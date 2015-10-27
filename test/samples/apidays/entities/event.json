@@ -1,0 +1,185 @@
+{
+	"name": "event",
+	"fields": [
+		{
+			"name": "id",
+			"type": "number",
+			"required": true,
+			"primary": true,
+			"unique": true,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": false
+		},
+		{
+			"name": "slug",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": true,
+			"default": false,
+			"autoIncrement": false,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "title",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "baseline",
+			"type": "text",
+			"required": false,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "date_start",
+			"type": "date",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "date_end",
+			"type": "date",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		}
+	],
+	"queries": [
+		{
+			"id": "list",
+			"type": "findAll"
+		},
+		{
+			"id": "getBySlug",
+			"type": "findOne",
+			"params": [
+				{
+					"name": "slug",
+					"type": "text",
+					"required": true
+				}
+			],
+			"opts": {
+				"includes": ["speaker", "sponsor", "talk"],
+				"conditions": [
+					{
+						"name": "slug",
+						"operator": "=",
+						"value": "="
+					}
+				]
+			}
+		},
+		{
+			"id": "create",
+			"type": "create",
+			"opts": {
+				"default": true
+			}
+		},
+		{
+			"id": "update",
+			"type": "update",
+			"params": [
+				{
+					"name": "slug",
+					"type": "text",
+					"required": "true"
+				},
+				{
+					"name": "newslug",
+					"type": "text",
+					"required": "true"
+				},
+				{
+					"name": "title",
+					"type": "text",
+					"required": "false"
+				},
+				{
+					"name": "baseline",
+					"type": "text",
+					"required": "false"
+				},
+				{
+					"name": "date_start",
+					"type": "date",
+					"required": "false"
+				},
+				{
+					"name": "date_end",
+					"type": "date",
+					"required": "false"
+				}
+			],
+			"opts": {
+				"values": {
+					"slug": "=newslug",
+					"title": "=",
+					"baseline": "=",
+					"date_start": "=",
+					"date_end": "="
+				},
+				"conditions": [
+					{
+						"name": "slug",
+						"operator": "=",
+						"value": "="
+					}
+				]
+			}
+		},
+		{
+			"id": "delete",
+			"type": "delete",
+			"params": [
+				{
+					"name": "slug",
+					"type": "text",
+					"required": true
+				}
+			],
+			"opts": {
+				"conditions": [
+					{
+						"name": "slug",
+						"operator": "=",
+						"value": "="
+					}
+				]
+			}
+		}
+	],
+	"relations": [
+		{
+			"type": "hasMany",
+			"reference": {
+				"entity": "event"
+			}
+		}
+	]
+}

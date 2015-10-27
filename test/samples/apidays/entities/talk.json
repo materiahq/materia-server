@@ -1,0 +1,82 @@
+{
+	"name": "talk",
+	"fields": [
+		{
+			"name": "id",
+			"type": "number",
+			"required": true,
+			"primary": true,
+			"unique": true,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": false
+		},
+		{
+			"name": "title",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": false,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "company",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "title",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "linkedin",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "profile_picture",
+			"type": "text",
+			"required": false,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		}
+	],
+	"queries": [
+	],
+	"relations": [
+		{
+			"field": "id_speaker",
+			"reference": {
+				"entity": "speaker",
+				"field": "id"
+			}
+		}
+	]
+}

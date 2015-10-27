@@ -1,0 +1,12 @@
+[
+	{
+		"method": "get",
+		"url": "/events",
+		"params": [],
+		"data": [],
+		"query": {
+			"entity": "event",
+			"id": "list"
+		}
+	}
+]

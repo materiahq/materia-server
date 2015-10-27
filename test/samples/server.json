@@ -1,0 +1,10 @@
+{
+	"dev": {
+		"port": 8080,
+		"host": "localhost"
+	},
+	"prod": {
+		"port": 80,
+		"host": "apidays.io"
+	}
+}

@@ -1,0 +1,45 @@
+{
+  "name": "materia",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "colors": "^1.1.2",
+    "cookie-parser": "^1.4.0",
+    "errorhandler": "^1.4.2",
+    "express": "^4.13.3",
+    "lodash": "^3.10.1",
+    "method-override": "^2.3.5",
+    "minimist": "^1.2.0",
+    "morgan": "^1.6.1",
+    "mysql": "^2.9.0",
+    "pg": "^4.4.2",
+    "pg-hstore": "^2.3.2",
+    "request": "^2.65.0",
+    "sequelize": "^3.9.0",
+    "sqlite3": "^3.1.0",
+    "tedious": "^1.12.3"
+  },
+  "devDependencies": {
+    "babel": "^5.8.23",
+    "chai": "^3.3.0",
+    "mocha": "^2.3.3"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:thyb/materia-core.git"
+  },
+  "author": "Thibaud Arnault <thyb@oauth.io>",
+  "license": "Apache 2",
+  "bugs": {
+    "url": "https://github.com/thyb/materia-core/issues"
+  },
+  "homepage": "https://github.com/thyb/materia-core"
+}
