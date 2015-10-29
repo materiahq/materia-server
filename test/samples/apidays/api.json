@@ -8,5 +8,21 @@
 			"entity": "event",
 			"id": "list"
 		}
+	},
+	{
+		"method": "get",
+		"url": "/events/:slug/speakers",
+		"params": [
+			{
+				"name": "slug",
+				"type": "text",
+				"required": true
+			}
+		],
+		"data": [],
+		"query": {
+			"entity": "speaker",
+			"id": "getByEvent"
+		}
 	}
 ]

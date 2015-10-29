@@ -165,7 +165,7 @@ describe('Apidays', () => {
 		})
 
 		it('should retrieve events via HTTP GET /events', (done) => {
-			expect(app.api.endpoints.length).to.equal(1)
+			expect(app.api.endpoints.length).to.equal(2)
 			request.get('http://localhost:8080/api/events', function(error, response, body) {
 				expect(error).to.equal(null)
 				expect(response.statusCode).to.equal(200)
