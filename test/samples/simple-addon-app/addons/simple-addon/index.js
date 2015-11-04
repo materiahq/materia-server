@@ -1,3 +1,5 @@
+'use strict';
+
 class SimpleAddon {
 	constructor(app) {
 		this.app = app
