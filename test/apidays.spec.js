@@ -4,7 +4,7 @@ var request = require('request')
 var app;
 
 describe('Apidays', () => {
-	describe('Loading', () => {
+	describe('loading', () => {
 
 		before(() => {
 		})
@@ -16,7 +16,7 @@ describe('Apidays', () => {
 
 		it('should load the app', (done) => {
 			app.load().then(() => {
-				expect(app.entities.findAll().length).to.equal(4)
+				expect(app.entities.findAll().length).to.be.at.least(4)
 				let eventEntity = app.entities.get('event');
 				expect(eventEntity.getQueries().length).to.equal(5)
 				done()
@@ -24,7 +24,7 @@ describe('Apidays', () => {
 		})
 	})
 
-	describe('Start server', () => {
+	describe('server', () => {
 		before((done) => {
 			app = new App('Test', __dirname + '/samples/apidays')
 			app.load().then(() => {
@@ -165,12 +165,65 @@ describe('Apidays', () => {
 		})
 
 		it('should retrieve events via HTTP GET /events', (done) => {
-			expect(app.api.endpoints.length).to.equal(2)
+			expect(app.api.endpoints.length).to.at.least(2)
 			request.get('http://localhost:8080/api/events', function(error, response, body) {
 				expect(error).to.equal(null)
 				expect(response.statusCode).to.equal(200)
 				console.log(body)
 				done()
+			})
+		})
+
+		it('should have created user entity', (done) => {
+			let userEntity = app.entities.get('user');
+			expect(userEntity).to.exist
+			done();
+		})
+
+		it('should fail authorization to HTTP POST /auth (no credentials)', (done) => {
+			request.post('http://localhost:8080/api/auth', function(error, response, body) {
+				expect(error).to.equal(null)
+				expect(response.statusCode).to.equal(500); // TODO: change to other code ?
+				expect(body).to.equal('"Credentials not found"');
+				done();
+			})
+		})
+
+		it('should fail authorization to HTTP POST /auth (bad credentials)', (done) => {
+			request.post({
+				url: 'http://localhost:8080/api/auth',
+				auth: { user: 'aaa', pass: 'bbbb' }
+			}, function(error, response, body) {
+				expect(error).to.equal(null)
+				expect(response.statusCode).to.equal(200); // TODO: change to other code ?
+				expect(body).to.equal("null"); // TODO: or something else ?
+				done();
+			})
+		})
+
+		it('should insert admin user', (done) => {
+			let userCreate = app.entities.get('user').getQuery('create')
+			userCreate.run({
+				email: 'admin@admin.com',
+				pass: 'admadm',
+				role: 'admin'
+			}).then(() => {
+				done()
+			}).catch((e) => {
+				done(e)
+			})
+		})
+
+		it('should authorize user with HTTP POST /auth', (done) => {
+			request.post({
+				url: 'http://localhost:8080/api/auth',
+				auth: { user: 'admin@admin.com', pass: 'admadm' },
+				jar: true
+			}, function(error, response, body) {
+				expect(error).to.equal(null)
+				expect(response.statusCode).to.equal(200);
+				expect(body).to.equal('{"id":1,"email":"admin@admin.com","role":"admin"}');
+				done();
 			})
 		})
 	})
