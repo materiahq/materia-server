@@ -174,7 +174,7 @@ describe('Apidays', () => {
 			})
 		})
 
-		it('should have created user entity', (done) => {
+		it('should have a user entity', (done) => {
 			let userEntity = app.entities.get('user');
 			expect(userEntity).to.exist
 			done();
@@ -201,16 +201,49 @@ describe('Apidays', () => {
 			})
 		})
 
-		it('should insert admin user', (done) => {
+		it('should insert new users', (done) => {
 			let userCreate = app.entities.get('user').getQuery('create')
 			userCreate.run({
-				email: 'admin@admin.com',
-				pass: 'admadm',
+				email: 'user@user.com',
+				pass: 'usrusr'
+			}).then(() => {
+				return userCreate.run({
+					email: 'admin@admin.com',
+					pass: 'admadm'
+				})
+			}).then(() => {
+				done()
+			}).catch((e) => {
+				done(e)
+			})
+		})
+
+		it('should give admin rights to new user', (done) => {
+			let userRoleCreate = app.entities.get('user_role').getQuery('create')
+			userRoleCreate.run({
+				id_user: 2,
 				role: 'admin'
 			}).then(() => {
 				done()
 			}).catch((e) => {
 				done(e)
+			})
+		})
+
+		it('should fail authorization on HTTP POST /events (no auth)', (done) => {
+			request.post({
+				url: 'http://localhost:8080/api/events',
+				json: {
+					slug: 'test-2015',
+					title: 'Test confs',
+					date_start: '12-05-2015',
+					date_end: '12-06-2015'
+				}
+			}, function(error, response, body) {
+				expect(error).to.equal(null)
+				expect(response.statusCode).to.equal(500)
+				expect(body).to.equal('"unauthorized"')
+				done();
 			})
 		})
 
@@ -222,8 +255,59 @@ describe('Apidays', () => {
 			}, function(error, response, body) {
 				expect(error).to.equal(null)
 				expect(response.statusCode).to.equal(200);
-				expect(body).to.equal('{"id":1,"email":"admin@admin.com","role":"admin"}');
+				expect(body).to.equal('{"id":2,"email":"admin@admin.com"}');
 				done();
+			})
+		})
+
+		it('should fail authorization on HTTP POST /events (no rights)', (done) => {
+			request.post({
+				url: 'http://localhost:8080/api/auth',
+				auth: { user: 'user@user.com', pass: 'usrusr' },
+				jar: true
+			}, function(error, response, body) {
+				expect(error).to.equal(null)
+				expect(response.statusCode).to.equal(200);
+				request.post({
+					url: 'http://localhost:8080/api/events',
+					jar: true,
+					json: {
+						slug: 'test-2015',
+						title: 'Test confs',
+						date_start: '12-05-2015',
+						date_end: '12-06-2015'
+					}
+				}, function(error, response, body) {
+					expect(error).to.equal(null)
+					expect(response.statusCode).to.equal(500)
+					expect(body).to.equal('"unauthorized"')
+					done();
+				})
+			})
+		})
+
+		it('should insert a new event via HTTP POST /events', (done) => {
+			request.post({
+				url: 'http://localhost:8080/api/auth',
+				auth: { user: 'admin@admin.com', pass: 'admadm' },
+				jar: true
+			}, function(error, response, body) {
+				expect(error).to.equal(null)
+				expect(response.statusCode).to.equal(200);
+				request.post({
+					url: 'http://localhost:8080/api/events',
+					jar: true,
+					json: {
+						slug: 'test-2015',
+						title: 'Test confs',
+						date_start: '12-05-2015',
+						date_end: '12-06-2015'
+					}
+				}, function(error, response, body) {
+					expect(error).to.equal(null)
+					expect(response.statusCode).to.equal(200)
+					done();
+				})
 			})
 		})
 	})

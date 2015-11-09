@@ -7,13 +7,12 @@ module.exports = (model, params, app) => {
 		if (! credentials)
 			reject(new Error("Credentials not found"));
 
-		model.findOne({attributes: ['id', 'email', 'role'], where:{
+		model.findOne({attributes: ['id', 'email'], where:{
 			email: credentials.name,
 			pass: credentials.pass
 		}}).then(function(user) {
-			if (user) {
+			if (user)
 				params.session.auth = user
-			}
 			accept(user);
 		}, function(e) { console.error(e); reject(e) })
 	});

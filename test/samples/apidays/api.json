@@ -10,6 +10,38 @@
 		}
 	},
 	{
+		"method": "post",
+		"url": "/events",
+		"params": [],
+		"data": [
+			{
+				"name": "slug",
+				"type": "text",
+				"required": true
+			},
+			{
+				"name": "title",
+				"type": "text",
+				"required": true
+			},
+			{
+				"name": "date_start",
+				"type": "text",
+				"required": true
+			},
+			{
+				"name": "date_end",
+				"type": "text",
+				"required": true
+			}
+		],
+		"permissions": ["needAuth:admin"],
+		"query": {
+			"entity": "event",
+			"id": "create"
+		}
+	},
+	{
 		"method": "get",
 		"url": "/events/:slug/speakers",
 		"params": [

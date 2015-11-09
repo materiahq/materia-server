@@ -33,18 +33,6 @@ module.exports = {
 			"autoIncrement": false,
 			"read": true,
 			"write": true
-		},
-		{
-			"name": "role",
-			"type": "text",
-			"required": false,
-			"primary": false,
-			"unique": false,
-			"default": true,
-			"autoIncrement": false,
-			"read": true,
-			"write": true,
-			"defaultValue": "user"
 		}
 	],
 	relations: [],
