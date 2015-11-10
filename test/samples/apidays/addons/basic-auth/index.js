@@ -8,8 +8,6 @@ class BasicAuth {
 	constructor(app, config) {
 		this.app = app
 
-		console.log('------------------------- BasicAuth ---')
-
 		let user = this.app.entities.get('user')
 		if ( ! user)
 			user = this.app.entities.add(userEntityConfig);
