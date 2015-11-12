@@ -35,7 +35,14 @@ module.exports = {
 			"write": true
 		}
 	],
-	relations: [],
+	relations: [
+		{
+			"type": "hasMany",
+			"reference": {
+				"entity": "user_role",
+			}
+		}
+	],
 	queries: [
 		{
 			"id": "auth",

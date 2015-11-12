@@ -172,6 +172,23 @@
 					}
 				]
 			}
+		},
+		{
+			"id": "companiesSince",
+			"type": "sql",
+			"params": [
+				{
+					"name": "date",
+					"type": "date",
+					"required": true
+				}
+			],
+			"opts": {
+				"query": "SELECT speaker.company FROM speaker, event WHERE event.date_start >= :date AND event.slug = speaker.slug_event GROUP BY speaker.company",
+				"values": {
+					"date": "="
+				}
+			}
 		}
 	],
 	"relations": [

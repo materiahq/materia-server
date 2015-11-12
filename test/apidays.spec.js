@@ -18,7 +18,7 @@ describe('Apidays', () => {
 			app.load().then(() => {
 				expect(app.entities.findAll().length).to.be.at.least(4)
 				let eventEntity = app.entities.get('event');
-				expect(eventEntity.getQueries().length).to.equal(5)
+				expect(eventEntity.getQueries().length).to.equal(6)
 				done()
 			}).catch(done)
 		})
@@ -308,6 +308,21 @@ describe('Apidays', () => {
 					expect(response.statusCode).to.equal(200)
 					done();
 				})
+			})
+		})
+
+		it('should use a sql query to find involved companies since 07-02-2015', (done) => {
+			app.entities.get('event').getQuery('companiesSince').run({
+				date: '07-02-2015'
+			}).then((data) => {
+				expect(data).to.deep.equal([
+					{ "company": "X Corp" },
+					{ "company": "X Corp2" },
+					{ "company": "Webshell / OAuth.io" }
+				])
+				done()
+			}).catch((e) => {
+				done(e)
 			})
 		})
 	})

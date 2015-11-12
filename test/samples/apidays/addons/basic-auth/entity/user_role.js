@@ -39,6 +39,7 @@ module.exports = {
 	relations: [
 		{
 			"field": "id_user",
+			"type": "belongsTo",
 			"reference": {
 				"entity": "user",
 				"field": "id"
