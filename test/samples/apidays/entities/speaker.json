@@ -100,8 +100,7 @@
 			"field": "slug_event",
 			"type": "belongsTo",
 			"reference": {
-				"entity": "event",
-				"field": "slug"
+				"entity": "event"
 			}
 		}
 	]

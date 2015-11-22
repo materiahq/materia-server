@@ -1,0 +1,49 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Launch tests",
+			"type": "node",
+			"request": "launch",
+			"program": "node_modules/mocha/bin/mocha",
+			"stopOnEntry": false,
+			"args": ["--debug-brk", "--compilers", "js:babel/register"],
+			"cwd": ".",
+			"runtimeExecutable": null,
+			"runtimeArgs": [
+				"--nolazy"
+			],
+			"env": {
+				"NODE_ENV": "development"
+			},
+			"externalConsole": false,
+			"sourceMaps": false,
+			"outDir": null
+		},
+		{
+			"name": "Launch apidays",
+			"type": "node",
+			"request": "launch",
+			"program": "cli/index.js",
+			"stopOnEntry": false,
+			"args": ["start"],
+			"cwd": "./test/samples/apidays",
+			"runtimeExecutable": null,
+			"runtimeArgs": [
+				"--nolazy"
+			],
+			"env": {
+				"NODE_ENV": "development"
+			},
+			"externalConsole": false,
+			"sourceMaps": false,
+			"outDir": null
+		},  
+		{
+			"name": "Attach",
+			"type": "node",
+			"request": "attach",
+			"port": 5858
+		}
+	]
+}

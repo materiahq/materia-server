@@ -156,8 +156,20 @@ describe('Apidays', () => {
 			app.entities.get('speaker').getQuery('getByEvent').run({
 				slug: 'global-2015'
 			}).then((speakers) => {
-				console.log(speakers)
 				expect(speakers.length).to.equal(2)
+				done()
+			}).catch((e) => {
+				done(e)
+			})
+		})
+
+		it('should retrieve event with speakers from slug \'global-2015\'', (done) => {
+			let eventEntity = app.entities.get('event')
+			eventEntity.getQuery('getBySlug').run({
+				slug: 'global-2015'
+			}).then((ev) => {
+				expect(ev.speakers && ev.speakers[0] && ev.speakers[0].id).to.equal(1)
+				expect(ev.title).to.equal('APIdays Global 2015 - Paris')
 				done()
 			}).catch((e) => {
 				done(e)

@@ -18,8 +18,8 @@ describe('Entities Manager', () => {
 
 		it('should load entities', (done) => {
 			entities.load()
-			expect(entities.entities.length).to.equal(1)
-			expect(entities.entities[0].name).to.equal('Todo')
+			expect(Object.keys(entities.entities).length).to.equal(1)
+			expect(entities.entities["Todo"].name).to.equal('Todo')
 			done()
 		})
 

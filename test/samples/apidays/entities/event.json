@@ -2,21 +2,10 @@
 	"name": "event",
 	"fields": [
 		{
-			"name": "id",
-			"type": "number",
-			"required": true,
-			"primary": true,
-			"unique": true,
-			"default": false,
-			"autoIncrement": true,
-			"read": true,
-			"write": false
-		},
-		{
 			"name": "slug",
 			"type": "text",
 			"required": true,
-			"primary": false,
+			"primary": true,
 			"unique": true,
 			"default": false,
 			"autoIncrement": false,
@@ -84,12 +73,12 @@
 				}
 			],
 			"opts": {
-				"includes": ["speaker", "sponsor", "talk"],
+				"include": ["speaker"],
 				"conditions": [
 					{
-						"name": "slug",
+						"name": "event.slug",
 						"operator": "=",
-						"value": "="
+						"value": "=slug"
 					}
 				]
 			}
@@ -195,7 +184,8 @@
 		{
 			"type": "hasMany",
 			"reference": {
-				"entity": "event"
+				"entity": "speaker",
+				"field": "slug_event"
 			}
 		}
 	]
