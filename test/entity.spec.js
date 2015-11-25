@@ -1,18 +1,24 @@
 var expect = require('chai').expect
 var DBEntity = require('../lib/entities/db-entity')
 var Entity = require('../lib/entities/abstract/entity')
+var History = require('../lib/history')
 
 describe('Entity', () => {
 
 })
 
 describe('DBEntity', () => {
+	let mock_app = {
+		name: 'app',
+		path: __dirname + '/samples/todo-app'
+	}
+	mock_app.history = new History(mock_app)
 	describe('Constructor', () => {
 		let entity1;
 		let entity2;
 		before(() => {
-			entity1 = new DBEntity({name: 'app'}, 'entity1')
-			entity2 = new DBEntity({name: 'app'}, 'entity2', [
+			entity1 = new DBEntity(mock_app, 'entity1')
+			entity2 = new DBEntity(mock_app, 'entity2', [
 				{
 					name: 'id',
 					primary: true,
@@ -46,7 +52,7 @@ describe('DBEntity', () => {
 	describe('addField()', () => {
 		let entity;
 		beforeEach(() => {
-			entity = new DBEntity({name: 'app', path: __dirname + '/samples/todo-app'}, {name: 'entity1'})
+			entity = new DBEntity(mock_app, {name: 'entity1'})
 		})
 
 		it('should add a field', () => {
@@ -63,7 +69,7 @@ describe('DBEntity', () => {
 	describe('addFieldFirst()', () => {
 		let entity;
 		beforeEach(() => {
-			entity = new DBEntity({name: 'app', path: __dirname + '/samples/todo-app'}, {name: 'entity1'})
+			entity = new DBEntity(mock_app, {name: 'entity1'})
 		})
 
 		it('should add a field in first position', () => {

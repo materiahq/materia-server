@@ -5,6 +5,7 @@ var Entities = require('../lib/entities')
 var mockApp = require('./mock/app')
 
 var Entity = require('../lib/entities/abstract/entity')
+var History = require('../lib/history')
 var DBEntity = require('../lib/entities/db-entity')
 
 var entities;
@@ -13,6 +14,7 @@ describe('Entities Manager', () => {
 	describe('Constructor', () => {
 		beforeEach(() => {
 			mockApp.path = path.join(__dirname, 'samples', 'todo-app')
+			mockApp.history = new History(mockApp)
 			entities = new Entities(mockApp)
 		})
 
