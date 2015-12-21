@@ -332,10 +332,28 @@ describe('Apidays', () => {
 					{ "company": "X Corp2" },
 					{ "company": "Webshell / OAuth.io" }
 				])
+				app.history.save()
 				done()
 			}).catch((e) => {
 				done(e)
 			})
 		})
+		
+		/*it('should add a field into entity event', (done) => {
+			app.history.clear()
+			app.entities.get('event').addField({
+				"name": "testField",
+				"type": "text",
+				"required": false,
+				"primary": false,
+				"unique": false,
+				"default": false,
+				"read": true,
+				"write": true
+			}).then((field) => {
+				console.log('field: ', field)
+				done()
+			}, (err) => { done(err)} )
+		})*/
 	})
 })

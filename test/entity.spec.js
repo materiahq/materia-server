@@ -55,34 +55,29 @@ describe('DBEntity', () => {
 			entity = new DBEntity(mock_app, {name: 'entity1'})
 		})
 
-		it('should add a field', () => {
+		it('should add a field', (done) => {
 			expect(entity.fields.length).to.equal(0)
-			entity.addField({
-				name: 'testField'
-			})
+			entity.addField({ name: 'testField' })
 			expect(entity.fields.length).to.equal(1)
 			expect(entity.getField('testField')).to.be.instanceof(Object)
 			expect(entity.getField('testField').name).to.equal('testField')
+			done()
 		})
-
 	})
+
 	describe('addFieldFirst()', () => {
 		let entity;
 		beforeEach(() => {
 			entity = new DBEntity(mock_app, {name: 'entity1'})
 		})
 
-		it('should add a field in first position', () => {
+		it('should add a field in first position', (done) => {
 			expect(entity.fields.length).to.equal(0)
-			entity.addField({
-				name: 'testField'
-			})
-			entity.addFieldFirst({
-				name: 'testField2'
-			})
+			entity.addField({ name: 'testField' })
+			entity.addFieldFirst({ name: 'testField2' })
 			expect(entity.fields.length).to.equal(2)
 			expect(entity.fields[0].name).to.equal('testField2')
-
+			done()
 		})
 	})
 })
