@@ -3,6 +3,8 @@ var App = require('../lib/app')
 var request = require('request')
 var app;
 
+/* global describe, before, beforeEach, afterEach, it */
+
 describe('Apidays', () => {
 	describe('loading', () => {
 
@@ -39,6 +41,11 @@ describe('Apidays', () => {
 			}).catch(done)
 		})
 		it('should start and stop the app', (done) => {
+			app.stop()
+			done()
+		})
+		
+		afterEach((done) => {
 			app.stop()
 			done()
 		})

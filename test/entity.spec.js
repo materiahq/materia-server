@@ -3,6 +3,8 @@ var DBEntity = require('../lib/entities/db-entity')
 var Entity = require('../lib/entities/abstract/entity')
 var History = require('../lib/history')
 
+/* global describe, before, beforeEach, after, it */
+
 describe('Entity', () => {
 
 })

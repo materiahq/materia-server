@@ -4,6 +4,9 @@ var Condition = require('../lib/entities/db/query/utils/condition')
 
 var conditions;
 var condition;
+
+/* global describe, before, beforeEach, after, it */
+
 describe('Conditions', () => {
 	describe('Initialize', () => {
 		it('should create an empty condition', (done) => {
