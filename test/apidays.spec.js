@@ -346,9 +346,10 @@ describe('Apidays', () => {
 			})
 		})
 		
-		/*it('should add a field into entity event', (done) => {
+		it('should add a field into entity event', (done) => {
 			app.history.clear()
-			app.entities.get('event').addField({
+			let eventEntity = app.entities.get('event')
+			eventEntity.addField({
 				"name": "testField",
 				"type": "text",
 				"required": false,
@@ -357,10 +358,31 @@ describe('Apidays', () => {
 				"default": false,
 				"read": true,
 				"write": true
-			}).then((field) => {
-				console.log('field: ', field)
+			})
+			app.history.commit('testcommit').then(() => {
+				eventEntity.getQuery('update').params.push({
+					"name": "testField",
+					"type": "text",
+					"required": "false"
+				})
+				eventEntity.getQuery('update').values['testField'] = '='
+				//eventEntity.getQuery('update').valuesType['testField'] = 'param'
+				//app.database.sync()
+				return eventEntity.getQuery('update').run({
+					testField: 'test field',
+					slug: 'global-2015'
+				})
+			}).then((data) => {
+				expect(data[0]).to.equal(1)
+				return eventEntity.getQuery('getBySlug').run({
+					slug: 'global-2015'
+				})
+			}).then((ev) => {
+				expect(ev.testField).to.equal('test field')
 				done()
-			}, (err) => { done(err)} )
-		})*/
+			}).catch((e) => {
+				done(e)
+			})
+		})
 	})
 })
