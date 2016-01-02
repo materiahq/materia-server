@@ -346,7 +346,7 @@ describe('Apidays', () => {
 			})
 		})
 		
-		it('should add a field into entity event', (done) => {
+		it('should add a field into entity event (commit)', (done) => {
 			app.history.clear()
 			let eventEntity = app.entities.get('event')
 			eventEntity.addField({
@@ -366,8 +366,6 @@ describe('Apidays', () => {
 					"required": "false"
 				})
 				eventEntity.getQuery('update').values['testField'] = '='
-				//eventEntity.getQuery('update').valuesType['testField'] = 'param'
-				//app.database.sync()
 				return eventEntity.getQuery('update').run({
 					testField: 'test field',
 					slug: 'global-2015'
@@ -379,6 +377,22 @@ describe('Apidays', () => {
 				})
 			}).then((ev) => {
 				expect(ev.testField).to.equal('test field')
+				done()
+			}).catch((e) => {
+				done(e)
+			})
+		})
+		
+		it('should delete a field from entity event (commit)', (done) => {
+			app.history.clear()
+			let eventEntity = app.entities.get('event')
+			eventEntity.removeField('title')
+			app.history.commit('testcommit').then(() => {
+				return eventEntity.getQuery('getBySlug').run({
+					slug: 'global-2015'
+				})
+			}).then((ev) => {
+				expect(ev.title).to.not.exist
 				done()
 			}).catch((e) => {
 				done(e)
