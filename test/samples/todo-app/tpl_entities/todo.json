@@ -8,7 +8,7 @@
       "unique": true,
       "required": true,
       "read": true,
-      "write": false,
+      "write": true,
       "default": false,
       "autoIncrement": true
     },
@@ -22,5 +22,8 @@
       "write": true,
       "default": false
     }
-  ]
+  ],
+  "relations": [],
+  "queries": [],
+  "type": "db"
 }

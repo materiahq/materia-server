@@ -1,19 +1,29 @@
+'use strict'
+
+var fs = require('fs')
+
 var expect = require('chai').expect
-var App = require('../lib/app')
 var request = require('request')
-var app;
+
+var App = require('../lib/app')
+
+var mockTools = require('./mock/tools')
 
 /* global describe, before, beforeEach, afterEach, it */
 
+const appDir = __dirname + '/samples/apidays'
+
 describe('Apidays', () => {
 	describe('loading', () => {
+		var app;
 
-		before(() => {
-		})
-
-		beforeEach((done) => {
-			app = new App('Test', __dirname + '/samples/apidays')
-			done()
+		before((done) => {
+			mockTools.cleanAppDir(appDir, (err) => {
+				if (err)
+					return done(err)
+				app = new App('Test', appDir)
+				done()
+			})
 		})
 
 		it('should load the app', (done) => {
@@ -27,13 +37,21 @@ describe('Apidays', () => {
 	})
 
 	describe('server', () => {
+		var app;
+
 		before((done) => {
-			app = new App('Test', __dirname + '/samples/apidays')
-			app.load().then(() => {
-				app.database.forceSync().then(() => {
+			mockTools.cleanAppDir(appDir, (err) => {
+				if (err)
+					return done(err)
+				app = new App('Test', appDir)
+				app.load().then(() => {
+					return app.database.forceSync()
+				}).then(() => {
 					done()
-				}).catch((e) =>  { done(e) })
-			}).catch((e) => { done(e) })
+				}).catch((err) => {
+					done(err)
+				})
+			})
 		})
 		beforeEach((done) => {
 			app.start().then(() => {
@@ -44,7 +62,7 @@ describe('Apidays', () => {
 			app.stop()
 			done()
 		})
-		
+
 		afterEach((done) => {
 			app.stop()
 			done()
@@ -163,6 +181,7 @@ describe('Apidays', () => {
 			app.entities.get('speaker').getQuery('getByEvent').run({
 				slug: 'global-2015'
 			}).then((speakers) => {
+				console.log('speakers', speakers)
 				expect(speakers.length).to.equal(2)
 				done()
 			}).catch((e) => {
@@ -345,9 +364,8 @@ describe('Apidays', () => {
 				done(e)
 			})
 		})
-		
-		it('should add a field into entity event (commit)', (done) => {
-			app.history.clear()
+
+		it('should add a field into entity event', (done) => {
 			let eventEntity = app.entities.get('event')
 			eventEntity.addField({
 				"name": "testField",
@@ -358,8 +376,7 @@ describe('Apidays', () => {
 				"default": false,
 				"read": true,
 				"write": true
-			})
-			app.history.commit('testcommit').then(() => {
+			}).then(() => {
 				eventEntity.getQuery('update').params.push({
 					"name": "testField",
 					"type": "text",
@@ -382,12 +399,10 @@ describe('Apidays', () => {
 				done(e)
 			})
 		})
-		
-		it('should delete a field from entity event (commit)', (done) => {
-			app.history.clear()
+
+		it('should delete a field from entity event', (done) => {
 			let eventEntity = app.entities.get('event')
-			eventEntity.removeField('title')
-			app.history.commit('testcommit').then(() => {
+			eventEntity.removeField('title').then(() => {
 				return eventEntity.getQuery('getBySlug').run({
 					slug: 'global-2015'
 				})
@@ -396,6 +411,22 @@ describe('Apidays', () => {
 				done()
 			}).catch((e) => {
 				done(e)
+			})
+		})
+
+		it('should commit modifications', (done) => {
+			app.history.commit('testcommit').then(() => {
+				if ( ! fs.existsSync(appDir + '/history/testcommit.json'))
+					return done(new Error('Failed to create commit file'))
+				let commitobj, commitstr = fs.readFileSync(appDir + '/history/testcommit.json').toString()
+				try {
+					commitobj = JSON.parse(commitstr)
+				}
+				catch (e) {
+					return done(new Error('Failed to parse commit file: ' + e.message))
+				}
+				expect(commitobj.length).to.equal(4) // user & user_role creation, add & delete fields
+				done()
 			})
 		})
 	})

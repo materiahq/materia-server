@@ -1,15 +1,19 @@
-var expect = require('chai').expect
-var Database = require('../lib/database')
+'use strict'
+
 var fs = require('fs')
 var path = require('path')
 
+var expect = require('chai').expect
+
+var Database = require('../lib/database')
+
 var mockApp = require('./mock/app');
-var db;
+
+/* global describe, beforeEach, after, it */
 
 describe('Database', () => {
 	describe('load()', () => {
-		before(() => {
-		})
+		var db;
 
 		beforeEach(() => {
 			db = new Database(mockApp)
@@ -47,6 +51,8 @@ describe('Database', () => {
 	})
 
 	describe('save() + toJson()', () => {
+		var db;
+
 		it('should save current settings to FS', () => {
 			db = new Database(mockApp)
 			db.load({
@@ -59,7 +65,7 @@ describe('Database', () => {
 			})
 			db.save()
 			let content = fs.readFileSync(path.join(mockApp.path, 'database.json'))
-			let json = JSON.parse(content)
+			let json = JSON.parse(content.toString())
 			expect(json.username).to.equal('test')
 			expect(json.password).to.equal('test2')
 			expect(json.database).to.equal('test3')
@@ -82,6 +88,8 @@ describe('Database', () => {
 	})
 
 	describe('start()', () => {
+		var db
+
 		beforeEach(() => {
 			db = new Database(mockApp)
 			db.load()
@@ -97,7 +105,7 @@ describe('Database', () => {
 
 		it('should start the database', (done) => {
 			let content = fs.readFileSync(path.join(__dirname, 'samples', 'database.json'))
-			let json = JSON.parse(content)
+			let json = JSON.parse(content.toString())
 			db.load(json)
 			db.start().then(() => {
 				expect(db.sequelize).to.be.an('Object')
@@ -108,7 +116,7 @@ describe('Database', () => {
 
 		it('should restart the database if the db is already started', (done) => {
 			let content = fs.readFileSync(path.join(__dirname, 'samples', 'database.json'))
-			let json = JSON.parse(content)
+			let json = JSON.parse(content.toString())
 			db.load(json)
 			db.start().then(() => {
 				db.start().then(done).catch(done)
@@ -117,10 +125,12 @@ describe('Database', () => {
 	})
 
 	describe('stop()', () => {
+		var db
+
 		beforeEach(() => {
 			db = new Database(mockApp)
 			let content = fs.readFileSync(path.join(__dirname, 'samples', 'database.json'))
-			let json = JSON.parse(content)
+			let json = JSON.parse(content.toString())
 			db.load(json)
 		})
 

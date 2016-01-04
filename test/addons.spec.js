@@ -1,16 +1,26 @@
-var expect = require('chai').expect
-var App = require('../lib/app')
+'use strict'
 
-var app;
+var expect = require('chai').expect
 var request = require('request')
 
-describe('Addons', () => {
-	before(() => {
-	})
+var App = require('../lib/app')
 
-	beforeEach((done) => {
-		app = new App('Test', __dirname + '/samples/simple-addon-app')
-		app.load().then(done).catch(done)
+var mockTools = require('./mock/tools')
+
+/* global describe, before, it */
+
+const appDir = __dirname + '/samples/simple-addon-app'
+
+describe('Addons', () => {
+	var app;
+
+	before((done) => {
+		mockTools.cleanAppDir(appDir, (err) => {
+			if (err)
+				return done(err)
+			app = new App('Test', appDir)
+			app.load().then(done).catch(done)
+		})
 	})
 
 	it('should load the basic auth addon', () => {
@@ -23,8 +33,5 @@ describe('Addons', () => {
 			})
 			app.stop()
 		})
-	})
-
-	after(() => {
 	})
 })
