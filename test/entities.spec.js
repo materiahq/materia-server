@@ -14,8 +14,6 @@ var mockTools = require('./mock/tools')
 
 var entities;
 
-/* global describe, beforeEach, it */
-
 const appDir = __dirname + '/samples/todo-app'
 
 describe('Entities Manager', () => {

@@ -6,8 +6,6 @@ var App = require('../lib/app')
 
 var mockTools = require('./mock/tools')
 
-/* global describe, before, it */
-
 const appDir = __dirname + '/samples/todo-app'
 
 describe('App', () => {
@@ -18,7 +16,7 @@ describe('App', () => {
 			mockTools.cleanAppDir(appDir, (err) => {
 				if (err)
 					return done(err)
-				app = new App('Test', appDir)
+				app = new App('Test', appDir, {silent:true})
 				app.load().then(() => {
 					done()
 				}).catch((err) => {

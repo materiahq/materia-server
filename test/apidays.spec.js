@@ -9,8 +9,6 @@ var App = require('../lib/app')
 
 var mockTools = require('./mock/tools')
 
-/* global describe, before, beforeEach, afterEach, it */
-
 const appDir = __dirname + '/samples/apidays'
 
 describe('Apidays', () => {
@@ -21,7 +19,7 @@ describe('Apidays', () => {
 			mockTools.cleanAppDir(appDir, (err) => {
 				if (err)
 					return done(err)
-				app = new App('Test', appDir)
+				app = new App('Test', appDir, {silent:true, logRequests:false})
 				done()
 			})
 		})
@@ -43,7 +41,7 @@ describe('Apidays', () => {
 			mockTools.cleanAppDir(appDir, (err) => {
 				if (err)
 					return done(err)
-				app = new App('Test', appDir)
+				app = new App('Test', appDir, {silent:true, logRequests:false, logSql:false})
 				app.load().then(() => {
 					return app.database.forceSync()
 				}).then(() => {
@@ -53,19 +51,20 @@ describe('Apidays', () => {
 				})
 			})
 		})
-		beforeEach((done) => {
-			app.start().then(() => {
-				done()
-			}).catch(done)
-		})
-		it('should start and stop the app', (done) => {
+
+		after(() => {
 			app.stop()
-			done()
 		})
 
-		afterEach((done) => {
-			app.stop()
-			done()
+		it('should start and stop the app', (done) => {
+			app.start().then(() => {
+				app.stop()
+				return app.start()
+			}).then(() => {
+				done()
+			}).catch((err) => {
+				done(err)
+			})
 		})
 
 		it('should create an event (using CreateQuery)', (done) => {
@@ -122,14 +121,12 @@ describe('Apidays', () => {
 			let eventCreate = app.entities.get('event').getQuery('create')
 			let speakerCreate = app.entities.get('speaker').getQuery('create')
 
-			console.log('try create event')
 			eventCreate.run({
 				slug: 'global-2015',
 				title: 'APIdays Global 2015 - Paris',
 				date_start: '12-02-2015',
 				date_end: '12-03-2015'
 			}).then(() => {
-				console.log('first event created')
 				return eventCreate.run({
 					slug: 'london-2015',
 					title: 'APIDays london - Banking and fintech',
@@ -137,7 +134,6 @@ describe('Apidays', () => {
 					date_end: '09-23-2015'
 				})
 			}).then(() => {
-				console.log('second event created')
 				return speakerCreate.run({
 					name: "Thibaud Arnault",
 					company: "Webshell / OAuth.io",
@@ -146,7 +142,6 @@ describe('Apidays', () => {
 					slug_event: 'global-2015'
 				})
 			}).then(() => {
-				console.log('first speaker created')
 				return speakerCreate.run({
 					name: "Mehdi Medjaoui",
 					company: "Webshell / OAuth.io",
@@ -181,7 +176,6 @@ describe('Apidays', () => {
 			app.entities.get('speaker').getQuery('getByEvent').run({
 				slug: 'global-2015'
 			}).then((speakers) => {
-				console.log('speakers', speakers)
 				expect(speakers.length).to.equal(2)
 				done()
 			}).catch((e) => {
@@ -207,7 +201,6 @@ describe('Apidays', () => {
 			request.get('http://localhost:8080/api/events', function(error, response, body) {
 				expect(error).to.equal(null)
 				expect(response.statusCode).to.equal(200)
-				console.log(body)
 				done()
 			})
 		})
@@ -377,12 +370,23 @@ describe('Apidays', () => {
 				"read": true,
 				"write": true
 			}).then(() => {
-				eventEntity.getQuery('update').params.push({
+				eventEntity.getQuery('update').addParam({
 					"name": "testField",
 					"type": "text",
-					"required": "false"
+					"required": false
 				})
-				eventEntity.getQuery('update').values['testField'] = '='
+				eventEntity.getQuery('update').updateValue('testField', '=')
+				eventEntity.getQuery('create').addParam({
+					"name": "testField",
+					"type": "text",
+					"required": false
+				})
+				eventEntity.getQuery('create').updateValue('testField', '=')
+				app.api.get('post', '/events').addData({
+					"name": "testField",
+					"type": "text",
+					"required": false
+				})
 				return eventEntity.getQuery('update').run({
 					testField: 'test field',
 					slug: 'global-2015'
@@ -415,18 +419,128 @@ describe('Apidays', () => {
 		})
 
 		it('should commit modifications', (done) => {
-			app.history.commit('testcommit').then(() => {
-				if ( ! fs.existsSync(appDir + '/history/testcommit.json'))
+			app.history.commit('1').then(() => {
+				if ( ! fs.existsSync(appDir + '/history/1.json'))
 					return done(new Error('Failed to create commit file'))
-				let commitobj, commitstr = fs.readFileSync(appDir + '/history/testcommit.json').toString()
+				let commitobj, commitstr = fs.readFileSync(appDir + '/history/1.json').toString()
 				try {
 					commitobj = JSON.parse(commitstr)
 				}
 				catch (e) {
 					return done(new Error('Failed to parse commit file: ' + e.message))
 				}
-				expect(commitobj.length).to.equal(4) // user & user_role creation, add & delete fields
+				expect(commitobj.length).to.equal(9) // depends on previous tests
 				done()
+			}).catch((err) => {
+				done(err)
+			})
+		})
+	})
+
+	describe('save/load project', () => {
+		var app
+
+		before((done) => {
+			app = new App('Test', appDir, {silent:true, logRequests:false})
+			app.load().then(() => {
+				return app.start()
+			}).then(() => {
+				done()
+			}).catch(done)
+		})
+
+		after(() => {
+			app.stop()
+		})
+
+		it('should insert a new event via HTTP POST /events', (done) => {
+			request.post({
+				url: 'http://localhost:8080/api/auth',
+				auth: { user: 'admin@admin.com', pass: 'admadm' },
+				jar: true
+			}, function(error, response, body) {
+				expect(error).to.equal(null)
+				expect(response.statusCode).to.equal(200);
+				request.post({
+					url: 'http://localhost:8080/api/events',
+					jar: true,
+					json: {
+						slug: 'test-2016',
+						title: 'Test confs 2016',
+						date_start: '12-05-2016',
+						date_end: '12-06-2016',
+						testField: 'test field 2016'
+					}
+				}, function(error, response, body) {
+					expect(error).to.equal(null)
+					expect(response.statusCode).to.equal(200)
+					done();
+				})
+			})
+		})
+	})
+
+	describe('update project from commit', () => {
+		var app
+
+		before((done) => {
+			mockTools.cleanEntities(appDir, (err) => {
+				if (err)
+					return done(err)
+				mockTools.cleanApi(appDir, (err) => {
+					if (err)
+						return done(err)
+					app = new App('Test', appDir, {silent:true, logRequests:false, logSql:false})
+					app.load().then(() => {
+						return app.database.forceSync()
+					}).then(() => {
+						return app.start()
+					}).then(() => {
+						done()
+					}).catch((err) => {
+						done(err)
+					})
+				})
+			})
+		})
+
+		after(() => {
+			app.stop()
+		})
+
+		it('should create a new event (before update)', (done) => {
+			let events = app.entities.get('event')
+			events.getQuery('create').run({
+				slug: 'global-2015',
+				title: 'APIdays Global 2015 - Paris',
+				date_start: '12-02-2015',
+				date_end: '12-03-2015'
+			}).then(() => {
+				return events.getQuery('getBySlug').run({
+					slug: 'global-2015'
+				})
+			}).then((ev) => {
+				expect(ev.title).to.equal("APIdays Global 2015 - Paris")
+				expect(ev.testField).to.not.exist
+				done()
+			}).catch((err) => {
+				done(err)
+			})
+		})
+
+		it('should update the project with the last commit', (done) => {
+			app.history.update(1).then(() => {
+				let events = app.entities.get('event')
+				return events.getQuery('getBySlug').run({
+					slug: 'global-2015'
+				})
+			}).then((ev) => {
+				expect(ev.slug).to.equal("global-2015")
+				expect(ev.title).to.not.exist
+				expect(ev.testField).to.equal(null)
+				done()
+			}).catch((e) => {
+				done(e)
 			})
 		})
 	})

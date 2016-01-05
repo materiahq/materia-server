@@ -8,8 +8,6 @@ var History = require('../lib/history')
 
 var mockTools = require('./mock/tools')
 
-/* global describe, before, beforeEach, after, it */
-
 const appDir = __dirname + '/samples/todo-app'
 
 describe('Entity', () => {

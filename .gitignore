@@ -1,3 +1,4 @@
 node_modules/
 test/samples/*/entities
 test/samples/*/history
+test/samples/*/api.json

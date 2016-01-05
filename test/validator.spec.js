@@ -4,8 +4,6 @@ var expect = require('chai').expect
 
 var Validator = require('../lib/entities/abstract/validator')
 
-/* global describe, before, it */
-
 describe('Validator', () => {
 	describe('Constructor', () => {
 		let validator;

@@ -18,6 +18,7 @@ var mockApp = {
 	},
 	path: __dirname + '/../samples/error-app',
 	mode: 'dev',
+	options: {},
 	entities: {
 		sync: () => {
 

@@ -4,8 +4,6 @@ var expect = require('chai').expect
 
 var Field = require('../lib/entities/abstract/field')
 
-/* global describe, before, it */
-
 describe('Field', () => {
 	describe('Constructor', () => {
 		let field;

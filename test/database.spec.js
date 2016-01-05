@@ -9,8 +9,6 @@ var Database = require('../lib/database')
 
 var mockApp = require('./mock/app');
 
-/* global describe, beforeEach, after, it */
-
 describe('Database', () => {
 	describe('load()', () => {
 		var db;
@@ -99,6 +97,7 @@ describe('Database', () => {
 			db.start().then(() => {
 				done('This configuration should not work')
 			}).catch((e) => {
+				db.stop()
 				done()
 			})
 		})
@@ -109,6 +108,7 @@ describe('Database', () => {
 			db.load(json)
 			db.start().then(() => {
 				expect(db.sequelize).to.be.an('Object')
+				db.stop()
 				done()
 			}).catch(done)
 		})
@@ -119,7 +119,10 @@ describe('Database', () => {
 			let json = JSON.parse(content.toString())
 			db.load(json)
 			db.start().then(() => {
-				db.start().then(done).catch(done)
+				db.start().then(() => {
+					db.stop()
+					done()
+				}).catch(done)
 			}).catch(done)
 		})
 	})
