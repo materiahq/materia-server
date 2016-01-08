@@ -40,6 +40,7 @@ module.exports = {
 			"type": "hasMany",
 			"reference": {
 				"entity": "user_role",
+				"field": "id_user"
 			}
 		}
 	],
