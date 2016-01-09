@@ -429,7 +429,7 @@ describe('Apidays', () => {
 				catch (e) {
 					return done(new Error('Failed to parse commit file: ' + e.message))
 				}
-				expect(commitobj.length).to.equal(9) // depends on previous tests
+				expect(commitobj.length).to.equal(7) // depends on previous tests
 				done()
 			}).catch((err) => {
 				done(err)

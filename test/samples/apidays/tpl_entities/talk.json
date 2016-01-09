@@ -35,17 +35,6 @@
 			"write": true
 		},
 		{
-			"name": "title",
-			"type": "text",
-			"required": true,
-			"primary": false,
-			"unique": false,
-			"default": false,
-			"autoIncrement": true,
-			"read": true,
-			"write": true
-		},
-		{
 			"name": "linkedin",
 			"type": "text",
 			"required": true,

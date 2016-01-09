@@ -12,9 +12,9 @@ class BasicAuth {
 	load() {
 		let user
 
-		return this.app.entities.getOrAdd('user', userEntityConfig).then((_user) => {
+		return this.app.entities.getOrAdd('user', userEntityConfig, {history:false}).then((_user) => {
 			user = _user
-			return this.app.entities.getOrAdd('user_role', userRoleEntityConfig)
+			return this.app.entities.getOrAdd('user_role', userRoleEntityConfig, {history:false})
 		}).then((user_role) => {
 			this.app.api.permissions.addFilter((permissions, req, res) => {
 				return new Promise(function(accept, reject) {
