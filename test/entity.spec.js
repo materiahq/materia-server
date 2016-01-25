@@ -3,7 +3,7 @@
 var expect = require('chai').expect
 
 var DBEntity = require('../lib/entities/db-entity')
-var Entity = require('../lib/entities/abstract/entity')
+var Entity = require('../lib/entities/entity')
 var History = require('../lib/history')
 
 var mockTools = require('./mock/tools')

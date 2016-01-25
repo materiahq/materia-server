@@ -5,7 +5,7 @@ var path = require('path')
 var expect = require('chai').expect
 
 var Entities = require('../lib/entities')
-var Entity = require('../lib/entities/abstract/entity')
+var Entity = require('../lib/entities/entity')
 var History = require('../lib/history')
 var DBEntity = require('../lib/entities/db-entity')
 

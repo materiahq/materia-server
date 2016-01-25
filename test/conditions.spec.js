@@ -1,6 +1,6 @@
 var expect = require('chai').expect
-var Conditions = require('../lib/entities/db/query/utils/conditions')
-var Condition = require('../lib/entities/db/query/utils/condition')
+var Conditions = require('../lib/entities/queries/utils/conditions')
+var Condition = require('../lib/entities/queries/utils/condition')
 
 var conditions;
 var condition;

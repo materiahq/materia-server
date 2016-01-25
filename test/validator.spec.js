@@ -2,7 +2,7 @@
 
 var expect = require('chai').expect
 
-var Validator = require('../lib/entities/abstract/validator')
+var Validator = require('../lib/entities/validator')
 
 describe('Validator', () => {
 	describe('Constructor', () => {

@@ -2,7 +2,7 @@
 
 var expect = require('chai').expect
 
-var Field = require('../lib/entities/abstract/field')
+var Field = require('../lib/entities/field')
 
 describe('Field', () => {
 	describe('Constructor', () => {
