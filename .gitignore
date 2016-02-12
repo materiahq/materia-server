@@ -1,4 +1,5 @@
 node_modules/
 test/samples/*/entities
 test/samples/*/history
+test/samples/*/history.json
 test/samples/*/api.json
