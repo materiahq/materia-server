@@ -60,18 +60,11 @@ else {
 			cwd = args[1]
 		}
 		console.log('Starting ' + 'materia'.yellow + ' in ' + cwd.green)
-		let app = new App('', cwd)
+		let app = new App('', cwd, options)
 		app.load().then(() => {
 			app.start()
+		}, (err) => {
+			console.error(err)
 		})
-		//fs.createReadStream(cwd + '/app.json').pipe(fs.createWriteStream(__dirname + '/../../client/src/app.json'))
-		//process.chdir __dirname + '/../../'
-		//browserify = require '../../gulp/tasks/browserify'
-		//browserify ->
-		//	process.chdir cwd
-		//	core = require('../../lib')
-		//	# console.log 'debug after browserify', argv.debug
-		//	core.init(cwd, argv.debug)
-		//	core.start()
 	}
 }

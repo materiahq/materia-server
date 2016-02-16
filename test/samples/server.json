@@ -5,6 +5,6 @@
 	},
 	"prod": {
 		"port": 80,
-		"host": "apidays.io"
+		"host": "0.0.0.0"
 	}
 }
