@@ -45,7 +45,8 @@ describe('Entities Manager', () => {
 				{
 					name: 'id',
 					type: 'number',
-					required: true
+					required: true,
+                    primary: true
 				},
 				{
 					name: 'content',

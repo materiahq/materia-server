@@ -28,7 +28,7 @@ describe('Apidays', () => {
 			app.load().then(() => {
 				expect(app.entities.findAll().length).to.be.at.least(4)
 				let eventEntity = app.entities.get('event');
-				expect(eventEntity.getQueries().length).to.equal(6)
+				expect(eventEntity.getQueries().length).to.equal(7)
 				done()
 			}).catch(done)
 		})
