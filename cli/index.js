@@ -59,6 +59,9 @@ else {
 		if (args.length >= 2 && args[1]) {
 			cwd = args[1]
 		}
+		options['database-host'] = options['database-host'] || process.env.MATERIA_DATABASE_HOST
+		options['database-port'] = options['database-port'] || process.env.MATERIA_DATABASE_PORT
+		options['mode'] = options['mode'] || process.env.MATERIA_MODE
 		console.log('Starting ' + 'materia'.yellow + ' in ' + cwd.green)
 		let app = new App('', cwd, options)
 		app.load().then(() => {

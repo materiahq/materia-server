@@ -1,0 +1,14 @@
+{
+  "name": "materia-basic-auth",
+  "version": "0.1.0",
+  "description": "basic authentication for materia endpoints",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "team@oauth.io",
+  "license": "MIT",
+  "dependencies": {
+    "basic-auth": "^1.0.3"
+  }
+}
