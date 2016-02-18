@@ -3,3 +3,6 @@ test/samples/*/entities
 test/samples/*/history
 test/samples/*/history.json
 test/samples/*/api.json
+test/samples/*/Dockerfile
+test/samples/*/docker-entrypoint.sh
+test/samples/*/key.pem
