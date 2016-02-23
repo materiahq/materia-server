@@ -2,5 +2,14 @@
 	"compilerOptions": {
 		"target": "ES6",
 		"module": "commonjs"
-	}
+	},
+    "javascript.validate.lint.newOnReturningFunctions": "ignore",
+
+    "javascript.validate.lint.newOnLowercaseFunctions": "ignore",
+
+    "editor.renderWhitespace": true,
+
+    "files.trimTrailingWhitespace": true,
+
+    "editor.insertSpaces": "auto"
 }
