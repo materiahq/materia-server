@@ -29,6 +29,8 @@ describe('Apidays', () => {
 				expect(app.entities.findAll().length).to.be.at.least(4)
 				let eventEntity = app.entities.get('event');
 				expect(eventEntity.getQueries().length).to.equal(7)
+				return app.database.forceSync()
+			}).then(() => {
 				done()
 			}).catch(done)
 		})
@@ -43,8 +45,6 @@ describe('Apidays', () => {
 					return done(err)
 				app = new App('Test', appDir, {silent:true, logRequests:false, logSql:false})
 				app.load().then(() => {
-					return app.database.forceSync()
-				}).then(() => {
 					done()
 				}).catch((err) => {
 					done(err)
@@ -250,8 +250,8 @@ describe('Apidays', () => {
 		})
 
 		it('should give admin rights to new user', (done) => {
-			let userRoleCreate = app.entities.get('user_role').getQuery('create')
-			userRoleCreate.run({
+			let userPermissionCreate = app.entities.get('user_permission').getQuery('create')
+			userPermissionCreate.run({
 				id_user: 2,
 				role: 'admin'
 			}).then(() => {
@@ -273,7 +273,7 @@ describe('Apidays', () => {
 			}, function(error, response, body) {
 				expect(error).to.equal(null)
 				expect(response.statusCode).to.equal(500)
-				expect(body).to.equal('"unauthorized"')
+				expect(body).to.equal('"Unauthorized"')
 				done();
 			})
 		})
@@ -311,7 +311,7 @@ describe('Apidays', () => {
 				}, function(error, response, body) {
 					expect(error).to.equal(null)
 					expect(response.statusCode).to.equal(500)
-					expect(body).to.equal('"unauthorized"')
+					expect(body).to.equal('"Unauthorized"')
 					done();
 				})
 			})
