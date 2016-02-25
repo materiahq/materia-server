@@ -63,14 +63,6 @@
   ],
   "queries": [
     {
-      "id": "list",
-      "type": "findAll",
-      "params": [],
-      "opts": {
-        "conditions": []
-      }
-    },
-    {
       "id": "getBySlug",
       "type": "findOne",
       "params": [
@@ -94,118 +86,6 @@
       }
     },
     {
-      "id": "create",
-      "type": "create",
-      "params": [
-        {
-          "name": "slug",
-          "type": "text",
-          "required": true
-        },
-        {
-          "name": "title",
-          "type": "text",
-          "required": true
-        },
-        {
-          "name": "baseline",
-          "type": "text",
-          "required": false
-        },
-        {
-          "name": "date_start",
-          "type": "date",
-          "required": true
-        },
-        {
-          "name": "date_end",
-          "type": "date",
-          "required": true
-        }
-      ],
-      "opts": {
-        "values": {
-          "slug": "=",
-          "title": "=",
-          "baseline": "=",
-          "date_start": "=",
-          "date_end": "="
-        }
-      }
-    },
-    {
-      "id": "update",
-      "type": "update",
-      "params": [
-        {
-          "name": "slug",
-          "type": "text",
-          "required": "true"
-        },
-        {
-          "name": "newslug",
-          "type": "text",
-          "required": "true"
-        },
-        {
-          "name": "title",
-          "type": "text",
-          "required": "false"
-        },
-        {
-          "name": "baseline",
-          "type": "text",
-          "required": "false"
-        },
-        {
-          "name": "date_start",
-          "type": "date",
-          "required": "false"
-        },
-        {
-          "name": "date_end",
-          "type": "date",
-          "required": "false"
-        }
-      ],
-      "opts": {
-        "values": {
-          "slug": "=newslug",
-          "title": "=",
-          "baseline": "=",
-          "date_start": "=",
-          "date_end": "="
-        },
-        "conditions": [
-          {
-            "name": "slug",
-            "operator": "=",
-            "value": "="
-          }
-        ]
-      }
-    },
-    {
-      "id": "delete",
-      "type": "delete",
-      "params": [
-        {
-          "name": "slug",
-          "type": "text",
-          "required": true
-        }
-      ],
-      "opts": {
-        "conditions": [
-          {
-            "name": "slug",
-            "operator": "=",
-            "value": "="
-          }
-        ]
-      }
-    },
-    {
       "id": "companiesSince",
       "type": "sql",
       "params": [
@@ -222,6 +102,5 @@
         "query": "SELECT speaker.company FROM speaker, event WHERE event.date_start >= :date AND event.slug = speaker.slug_event GROUP BY speaker.company"
       }
     }
-  ],
-  "type": "db"
+  ]
 }

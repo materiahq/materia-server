@@ -86,13 +86,6 @@
 					"value": "=slug"
 				}
 			}
-		},
-		{
-			"id": "create",
-			"type": "create",
-			"opts": {
-				"default": true
-			}
 		}
 	],
 	"relations": [

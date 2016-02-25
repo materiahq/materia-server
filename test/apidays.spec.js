@@ -370,23 +370,6 @@ describe('Apidays', () => {
 				"read": true,
 				"write": true
 			}).then(() => {
-				eventEntity.getQuery('update').addParam({
-					"name": "testField",
-					"type": "text",
-					"required": false
-				})
-				eventEntity.getQuery('update').updateValue('testField', '=')
-				eventEntity.getQuery('create').addParam({
-					"name": "testField",
-					"type": "text",
-					"required": false
-				})
-				eventEntity.getQuery('create').updateValue('testField', '=')
-				app.api.get('post', '/events').addData({
-					"name": "testField",
-					"type": "text",
-					"required": false
-				})
 				return eventEntity.getQuery('update').run({
 					testField: 'test field',
 					slug: 'global-2015'
@@ -429,7 +412,7 @@ describe('Apidays', () => {
 				catch (e) {
 					return done(new Error('Failed to parse commit file: ' + e.message))
 				}
-				expect(commitobj.length).to.equal(5) // depends on previous tests
+				expect(commitobj.length).to.equal(2) // depends on previous tests
 				done()
 			}).catch((err) => {
 				done(err)
