@@ -4,8 +4,6 @@ let userEntityConfig = require('./entity/user')
 let userRoleEntityConfig = require('./entity/user_role')
 let userPermissionEntityConfig = require('./entity/user_permission')
 
-let userAuthQuery = require('./query/auth')
-
 let userApiEndpoints = require('./endpoints')
 
 class BasicAuth {
@@ -36,13 +34,12 @@ class BasicAuth {
 				return function needAuthRole(req, res, next) {
 					if ( ! req.session || ! req.session.auth)
 						return next(new Error("Unauthorized"))
-					self.user_permissions.getQuery('getUserRoles').run({
-						id_user: req.session.auth.id
-					}).then((perms) => {
-						for (let perm of perms) {
-							if (perm.role == role)
-								return next()
-						}
+					self.user_permissions.getQuery('get').run({
+						id_user: req.session.auth.id,
+						role: role
+					}).then((hasPerm) => {
+						if (hasPerm)
+							return next()
 						return next(new Error("Unauthorized"))
 					}).catch(function(e) {
 						return next(e)
