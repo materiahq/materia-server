@@ -61,7 +61,10 @@ else {
 		}
 		options['database-host'] = options['database-host'] || process.env.MATERIA_DATABASE_HOST
 		options['database-port'] = options['database-port'] || process.env.MATERIA_DATABASE_PORT
+		options['database-username'] = options['database-username'] || process.env.MATERIA_DATABASE_USERNAME
+		options['database-db'] = options['database-db'] || process.env.MATERIA_DATABASE_DB
 		options['mode'] = options['mode'] || process.env.MATERIA_MODE
+		options['port'] = options['port'] || process.env.PORT
 		console.log('Starting ' + 'materia'.yellow + ' in ' + cwd.green)
 		let app = new App('', cwd, options)
 		app.load().then(() => {
