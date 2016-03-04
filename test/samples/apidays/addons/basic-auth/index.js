@@ -59,7 +59,7 @@ class BasicAuth {
 		})
 	}
 
-	load() {
+	start() {
 		let fillDefaultRoles = ! this.app.entities.get('user_role')
 		return Promise.all([
 			this.app.entities.getOrAdd('user', userEntityConfig, {history:false}),
@@ -70,7 +70,7 @@ class BasicAuth {
 			this.user_role = auth_entities[1]
 			this.user_permissions = auth_entities[2]
 
-			let addDefaultRoles  = fillDefaultRoles ? this._addDefaultRoles() : Promise.resolve()
+			let addDefaultRoles = fillDefaultRoles ? this._addDefaultRoles() : Promise.resolve()
 			return addDefaultRoles.then(() => {
 				return this._setPermissions()
 			}).then(() => {

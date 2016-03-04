@@ -5,4 +5,9 @@ test/samples/*/history.json
 test/samples/*/api.json
 test/samples/*/Dockerfile
 test/samples/*/docker-entrypoint.sh
+test/samples/*/docker-compose.yml
+test/samples/*/package.json
+test/samples/*/app.json
+test/samples/*/Procfile
+test/samples/*/README.md
 test/samples/*/key.pem

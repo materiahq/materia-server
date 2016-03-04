@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+{{#each env_var}}
+export {{env_var.name}}={{env_var.value}
+{{/each}}
+
+exec "$@"

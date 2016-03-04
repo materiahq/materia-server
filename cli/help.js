@@ -12,6 +12,7 @@ module.exports = {
     console.log('    materia ' + 'templates'.yellow + ' <command> [arguments]' + '\t' + 'Manage templates')
     console.log('    materia ' + 'layouts'.yellow + ' <command> [arguments]' + '\t' + 'Manage layouts')
     console.log('    materia ' + 'entities'.yellow + ' <command> [arguments]' + '\t' + 'Manage entities')
+    console.log('    materia ' + 'deploy'.yellow + ' <provider> [arguments]' + '\t' + 'Deploy a Materia app')
     console.log('')
     console.log('materia <command> ' + '--help'.green + ' for more information about a specific command')
 	}

@@ -26,6 +26,10 @@ describe('Apidays', () => {
 
 		it('should load the app', (done) => {
 			app.load().then(() => {
+				return app.database.start()
+			}).then(() => {
+				return app.addons.start()
+			}).then(() => {
 				expect(app.entities.findAll().length).to.be.at.least(4)
 				let eventEntity = app.entities.get('event');
 				expect(eventEntity.getQueries().length).to.equal(7)
@@ -475,6 +479,8 @@ describe('Apidays', () => {
 						return done(err)
 					app = new App('Test', appDir, {silent:true, logRequests:false, logSql:false})
 					app.load().then(() => {
+						return app.database.start()
+					}).then(() => {
 						return app.database.forceSync()
 					}).then(() => {
 						return app.start()

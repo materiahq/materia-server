@@ -24,6 +24,13 @@ else if (argv.version || argv.v) {
 	console.log(pckg_info.name + ' ' + pckg_info.version.yellow)
 }
 else {
+	options['database-host'] = options['database-host'] || process.env.MATERIA_DATABASE_HOST
+	options['database-port'] = options['database-port'] || process.env.MATERIA_DATABASE_PORT
+	options['database-username'] = options['database-username'] || process.env.MATERIA_DATABASE_USERNAME
+	options['database-db'] = options['database-db'] || process.env.MATERIA_DATABASE_DB
+	options['mode'] = options['mode'] || process.env.MATERIA_MODE
+	options['port'] = options['port'] || process.env.PORT
+
 	if (args[0] == 'init') {
 		console.log('Initialize ' + 'materia'.yellow + ' in the current directory')
 	}
@@ -59,16 +66,24 @@ else {
 		if (args.length >= 2 && args[1]) {
 			cwd = args[1]
 		}
-		options['database-host'] = options['database-host'] || process.env.MATERIA_DATABASE_HOST
-		options['database-port'] = options['database-port'] || process.env.MATERIA_DATABASE_PORT
-		options['database-username'] = options['database-username'] || process.env.MATERIA_DATABASE_USERNAME
-		options['database-db'] = options['database-db'] || process.env.MATERIA_DATABASE_DB
-		options['mode'] = options['mode'] || process.env.MATERIA_MODE
-		options['port'] = options['port'] || process.env.PORT
+		options['runtimes'] = 'core'
 		console.log('Starting ' + 'materia'.yellow + ' in ' + cwd.green)
 		let app = new App('', cwd, options)
 		app.load().then(() => {
 			app.start()
+		}, (err) => {
+			console.error(err)
+		})
+	}
+	else if (args[0] == 'deploy') {
+		let cwd = process.cwd();
+		let provider = args[1]
+		console.log('Deploying ' + 'materia'.yellow + ' app ' + cwd.green + ' to ' + provider.yellow)
+		let app = new App('', cwd, options)
+		app.load().then(() => {
+			return app.deploy.generate(provider, options)
+		}).then(() => {
+			console.log('Deployed to ' + provider.yellow + ' !')
 		}, (err) => {
 			console.error(err)
 		})
