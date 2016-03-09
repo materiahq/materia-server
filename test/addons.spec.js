@@ -16,7 +16,7 @@ describe('Addons', () => {
 		mockTools.cleanAppDir(appDir, (err) => {
 			if (err)
 				return done(err)
-			app = new App('Test', appDir, {silent:true})
+			app = new App(appDir, {silent:true})
 			app.load().then(done).catch(done)
 		})
 	})

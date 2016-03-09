@@ -19,7 +19,7 @@ describe('Apidays', () => {
 			mockTools.cleanAppDir(appDir, (err) => {
 				if (err)
 					return done(err)
-				app = new App('Test', appDir, {silent:true, logRequests:false})
+				app = new App(appDir, {silent:true, logRequests:false})
 				done()
 			})
 		})
@@ -47,7 +47,7 @@ describe('Apidays', () => {
 			mockTools.cleanAppDir(appDir, (err) => {
 				if (err)
 					return done(err)
-				app = new App('Test', appDir, {silent:true, logRequests:false, logSql:false})
+				app = new App(appDir, {silent:true, logRequests:false, logSql:false})
 				app.load().then(() => {
 					done()
 				}).catch((err) => {
@@ -428,7 +428,7 @@ describe('Apidays', () => {
 		var app
 
 		before((done) => {
-			app = new App('Test', appDir, {silent:true, logRequests:false})
+			app = new App(appDir, {silent:true, logRequests:false})
 			app.load().then(() => {
 				return app.start()
 			}).then(() => {
@@ -477,7 +477,7 @@ describe('Apidays', () => {
 				mockTools.cleanApi(appDir, (err) => {
 					if (err)
 						return done(err)
-					app = new App('Test', appDir, {silent:true, logRequests:false, logSql:false})
+					app = new App(appDir, {silent:true, logRequests:false, logSql:false})
 					app.load().then(() => {
 						return app.database.start()
 					}).then(() => {

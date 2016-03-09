@@ -16,7 +16,7 @@ describe('App', () => {
 			mockTools.cleanAppDir(appDir, (err) => {
 				if (err)
 					return done(err)
-				app = new App('Test', appDir, {silent:true})
+				app = new App(appDir, {silent:true})
 				app.load().then(() => {
 					done()
 				}).catch((err) => {
@@ -26,7 +26,7 @@ describe('App', () => {
 		})
 
 		it('should load the app, load the db configuration and connect the DB', () => {
-			expect(app.name).to.equal('Test')
+			expect(app.name).to.equal('todo-app')
 		})
 	})
 })

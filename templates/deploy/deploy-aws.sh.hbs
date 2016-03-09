@@ -1,0 +1,57 @@
+#! /bin/bash
+
+abort()
+{
+    echo >&2 '
+***************
+*** ABORTED ***
+***************
+'
+    echo "An error occurred. Exiting..." >&2
+    if [ -f ~/.docker/config.json.bak ]; then
+        cp ~/.docker/config.json.bak ~/.docker/config.json
+        rm ~/.docker/config.json.bak
+    fi
+    exit 1
+}
+
+trap 'abort' 0
+
+set -e
+
+export AWS_REGION={{instance.aws_region}}
+
+DOCKER_LOGIN=`aws ecr get-login --region {{instance.aws_region}}`
+
+if [ -f ~/.docker/config.json ]; then
+    cp ~/.docker/config.json ~/.docker/config.json.bak
+fi
+
+$DOCKER_LOGIN
+
+docker build -t {{instance.aws_image}} .
+
+docker tag {{instance.aws_image}}:latest {{instance.aws_ecr}}/{{instance.aws_image}}:latest
+
+docker push {{instance.aws_ecr}}/{{instance.aws_image}}:latest
+
+ecs-cli configure --cluster {{instance.aws_cluster}}
+
+{{#if instance.aws_keypair}}
+ecs-cli up --keypair {{instance.aws_keypair}} --capability-iam --size {{instance.aws_size}} --port {{instance.port}} --instance-type={{instance.aws_instance_type}}
+{{/if}}
+
+ecs-cli compose up
+
+trap : 0
+
+echo >&2 '
+************
+*** DONE ***
+************
+'
+
+if [ -f ~/.docker/config.json.bak ]; then
+    cp ~/.docker/config.json.bak ~/.docker/config.json
+    rm ~/.docker/config.json.bak
+fi

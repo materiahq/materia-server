@@ -1,18 +1,15 @@
 web:
-  build: .
-  command: 'bash -c ''node /app/materia/cli/index.js start'''
+{{#if instance.build}}
+  build: {{instance.build}}
+{{/if}}
+{{#if instance.command}}
+  command: {{instance.command}}
+{{/if}}
+{{#if instance.build_image}}
+  image: {{instance.build_image}}
+{{/if}}
   working_dir: /app/user
   environment:
     PORT: {{instance.port}}
   ports:
-    - '{{instance.port}}:{{instance.port}}'
-shell:
-  build: .
-  command: bash
-  working_dir: /app/user
-  environment:
-    PORT: {{instance.port}}
-  ports:
-    - '{{instance.port}}:{{instance.port}}'
-  volumes:
-    - '.:/app/user'
+    - "{{instance.port}}:{{instance.port}}"

@@ -1,0 +1,8 @@
+{
+    "name": "Apidays",
+    "description": "Materia test for apidays",
+    "author": "team@oauth.io",
+    "addons": {
+        "basic-auth": "latest"
+    }
+}
