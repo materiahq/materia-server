@@ -81,7 +81,7 @@ describe('Database', () => {
 			  "username": "testusername",
 			  "password": "testpassword"
 			}
-			fs.writeFileSync(path.join(mockApp.path, 'database.json'), JSON.stringify(json, null, 2))
+			fs.writeFileSync(path.join(mockApp.path, 'database.json'), JSON.stringify(json, null, '\t'))
 		})
 	})
 
