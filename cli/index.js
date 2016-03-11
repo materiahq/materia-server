@@ -66,17 +66,54 @@ else {
 		if (args.length >= 2 && args[1]) {
 			cwd = args[1]
 		}
-		options['runtimes'] = 'core'
+		options['runtimes'] = options['runtimes'] || 'core'
 		console.log('Starting ' + 'materia'.yellow + ' in ' + cwd.green)
 		let app = new App(cwd, options)
 		app.load().then(() => {
 			app.start()
 		}, (err) => {
-			console.error(err)
+			if (err.stdout)
+				console.error(err.stdout)
+			if (err.stderr)
+				console.error(err.stderr)
+			console.error(err.stack)
+		})
+	}
+	else if (args[0] == 'addons') {
+		let cwd = process.cwd()
+		let cmd = args[1]
+		let app = new App(cwd, options)
+		let proc
+		if (cmd == "install")
+			proc = app.addonsTools.install(args[2])
+		else
+			return Promise.reject(new Error("Unknown command: materia addons " + cmd))
+		new Promise((accept, reject) => {
+			let gotStderr = false
+			proc.on('error', (err) => { reject(err) })
+			proc.stdout.on('data', (data) => { process.stdout.write(data) })
+			proc.stderr.on('data', (data) => { process.stderr.write(data); gotStderr = true })
+			proc.on('close', (code) => {
+				// notice that we had some error text with gotStderr ?
+				accept(code)
+			})
+		}).then((code) => {
+			if (code == 0)
+				console.log('Addon installed !')
+			else {
+				console.error('Failed to install addon.')
+				console.error('Addon install finished with return code: ' + code.toString().yellow)
+			}
+		}).catch((err) => {
+			if (err.stdout)
+				console.error(err.stdout)
+			if (err.stderr)
+				console.error(err.stderr)
+			console.error(err.stack)
 		})
 	}
 	else if (args[0] == 'deploy') {
-		let cwd = process.cwd();
+		let cwd = process.cwd()
 		let provider = args[1] || 'dockerfile'
 		let app = new App(cwd, options)
 		app.load().then(() => {
