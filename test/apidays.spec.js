@@ -1,6 +1,7 @@
 'use strict'
 
 var fs = require('fs')
+var path = require('path')
 
 var expect = require('chai').expect
 var request = require('request')
@@ -9,7 +10,7 @@ var App = require('../lib/app')
 
 var mockTools = require('./mock/tools')
 
-const appDir = __dirname + '/samples/apidays'
+const appDir = path.join(__dirname, 'samples', 'apidays')
 
 describe('Apidays', () => {
 	describe('loading', () => {
@@ -404,24 +405,6 @@ describe('Apidays', () => {
 				done(e)
 			})
 		})
-
-		it('should commit modifications', (done) => {
-			app.history.commit('1').then(() => {
-				if ( ! fs.existsSync(appDir + '/history/1.json'))
-					return done(new Error('Failed to create commit file'))
-				let commitobj, commitstr = fs.readFileSync(appDir + '/history/1.json').toString()
-				try {
-					commitobj = JSON.parse(commitstr)
-				}
-				catch (e) {
-					return done(new Error('Failed to parse commit file: ' + e.message))
-				}
-				expect(commitobj.length).to.equal(2) // depends on previous tests
-				done()
-			}).catch((err) => {
-				done(err)
-			})
-		})
 	})
 
 	describe('save/load project', () => {
@@ -463,73 +446,6 @@ describe('Apidays', () => {
 					expect(response.statusCode).to.equal(200)
 					done();
 				})
-			})
-		})
-	})
-
-	describe('update project from commit', () => {
-		var app
-
-		before((done) => {
-			mockTools.cleanEntities(appDir, (err) => {
-				if (err)
-					return done(err)
-				mockTools.cleanApi(appDir, (err) => {
-					if (err)
-						return done(err)
-					app = new App(appDir, {silent:true, logRequests:false, logSql:false})
-					app.load().then(() => {
-						return app.database.start()
-					}).then(() => {
-						return app.database.forceSync()
-					}).then(() => {
-						return app.start()
-					}).then(() => {
-						done()
-					}).catch((err) => {
-						done(err)
-					})
-				})
-			})
-		})
-
-		after(() => {
-			app.stop()
-		})
-
-		it('should create a new event (before update)', (done) => {
-			let events = app.entities.get('event')
-			events.getQuery('create').run({
-				slug: 'global-2015',
-				title: 'APIdays Global 2015 - Paris',
-				date_start: '12-02-2015',
-				date_end: '12-03-2015'
-			}).then(() => {
-				return events.getQuery('getBySlug').run({
-					slug: 'global-2015'
-				})
-			}).then((ev) => {
-				expect(ev.title).to.equal("APIdays Global 2015 - Paris")
-				expect(ev.testField).to.not.exist
-				done()
-			}).catch((err) => {
-				done(err)
-			})
-		})
-
-		it('should update the project with the last commit', (done) => {
-			app.history.update(1).then(() => {
-				let events = app.entities.get('event')
-				return events.getQuery('getBySlug').run({
-					slug: 'global-2015'
-				})
-			}).then((ev) => {
-				expect(ev.slug).to.equal("global-2015")
-				expect(ev.title).to.not.exist
-				expect(ev.testField).to.equal(null)
-				done()
-			}).catch((e) => {
-				done(e)
 			})
 		})
 	})

@@ -14,7 +14,7 @@ var mockTools = require('./mock/tools')
 
 var entities;
 
-const appDir = __dirname + '/samples/todo-app'
+const appDir = path.join(__dirname, 'samples', 'todo-app')
 
 describe('Entities Manager', () => {
 	describe('Constructor', () => {

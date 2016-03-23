@@ -1,3 +1,5 @@
+var path = require("path")
+
 var mockApp = {
 	on: function(eventName, callback) {
 		if ( ! this.listeners ) {
@@ -16,7 +18,7 @@ var mockApp = {
 			})
 		}
 	},
-	path: __dirname + '/../samples/error-app',
+	path: path.join(__dirname, '..', 'samples', 'error-app'),
 	mode: 'dev',
 	options: {},
 	entities: {

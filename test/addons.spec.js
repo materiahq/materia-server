@@ -1,5 +1,6 @@
 'use strict'
 
+var path = require('path')
 var expect = require('chai').expect
 var request = require('request')
 
@@ -7,7 +8,7 @@ var App = require('../lib/app')
 
 var mockTools = require('./mock/tools')
 
-const appDir = __dirname + '/samples/simple-addon-app'
+const appDir = path.join(__dirname, 'samples', 'simple-addon-app')
 
 describe('Addons', () => {
 	var app;

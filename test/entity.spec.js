@@ -1,6 +1,7 @@
 'use strict'
 
 var expect = require('chai').expect
+var path = require('path')
 
 var DBEntity = require('../lib/entities/db-entity')
 var Entity = require('../lib/entities/entity')
@@ -8,7 +9,7 @@ var History = require('../lib/history')
 
 var mockTools = require('./mock/tools')
 
-const appDir = __dirname + '/samples/todo-app'
+const appDir = path.join(__dirname, 'samples', 'todo-app')
 
 describe('Entity', () => {
 

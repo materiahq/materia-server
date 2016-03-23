@@ -1,4 +1,5 @@
 var fs = require('fs')
+var path = require('path')
 
 var ncp = require('ncp').ncp
 var remove = require('remove')
@@ -27,8 +28,8 @@ exports.cleanAppDir = function cleanAppDir(appDir, callback) {
 }
 
 exports.cleanApi = function cleanApi(appDir, callback) {
-	if (fs.existsSync(appDir + '/tpl_api.json')) {
-		copyFile(appDir + '/tpl_api.json', appDir + '/api.json').then(() => {
+	if (fs.existsSync(path.join(appDir, 'tpl_api.json'))) {
+		copyFile(path.join(appDir, 'tpl_api.json'), path.join(appDir, 'api.json')).then(() => {
 			callback()
 		}).catch((err) => {
 			callback(err)
@@ -40,8 +41,8 @@ exports.cleanApi = function cleanApi(appDir, callback) {
 
 exports.cleanHistory = function cleanHistory(appDir, callback) {
 	try {
-		if (fs.existsSync(appDir + '/history'))
-			remove.removeSync(appDir + '/history')
+		if (fs.existsSync(path.join(appDir, 'history')))
+			remove.removeSync(path.join(appDir, 'history'))
 	} catch (err) {
 		return callback(err)
 	}
@@ -50,11 +51,11 @@ exports.cleanHistory = function cleanHistory(appDir, callback) {
 
 exports.cleanEntities = function cleanEntities(appDir, callback) {
 	try {
-		if (fs.existsSync(appDir + '/entities') && fs.existsSync(appDir + '/tpl_entities')) {
-			remove.removeSync(appDir + '/entities')
+		if (fs.existsSync(path.join(appDir, 'entities')) && fs.existsSync(path.join(appDir, 'tpl_entities'))) {
+			remove.removeSync(path.join(appDir, '/entities'))
 		}
 	} catch (err) {
 		return callback(err)
 	}
-	ncp(appDir + '/tpl_entities', appDir + '/entities', callback)
+	ncp(path.join(appDir, 'tpl_entities'), path.join(appDir, 'entities'), callback)
 }

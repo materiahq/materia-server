@@ -1,12 +1,14 @@
 'use strict'
 
+var path = require('path')
+
 var expect = require('chai').expect
 
 var App = require('../lib/app')
 
 var mockTools = require('./mock/tools')
 
-const appDir = __dirname + '/samples/todo-app'
+const appDir = path.join(__dirname, 'samples', 'todo-app')
 
 describe('App', () => {
 	describe('#load()', () => {
