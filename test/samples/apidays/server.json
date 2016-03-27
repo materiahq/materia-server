@@ -1,1 +1,10 @@
-../server.json
+{
+	"dev": {
+		"port": 8080,
+		"host": "localhost"
+	},
+	"prod": {
+		"port": 80,
+		"host": "0.0.0.0"
+	}
+}
