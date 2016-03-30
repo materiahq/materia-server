@@ -220,7 +220,7 @@ describe('Apidays', () => {
 			request.post('http://localhost:8080/api/auth', function(error, response, body) {
 				expect(error).to.equal(null)
 				expect(response.statusCode).to.equal(500); // TODO: change to other code ?
-				expect(body).to.equal('"Credentials not found"');
+				expect(body).to.equal('{"error":true,"message":"Credentials not found"}');
 				done();
 			})
 		})

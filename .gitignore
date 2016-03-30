@@ -1,6 +1,6 @@
 node_modules/
 test/samples/*/entities
-test/samples/*/history
+test/samples/*/changes.json
 test/samples/*/history.json
 test/samples/*/api.json
 test/samples/*/Dockerfile

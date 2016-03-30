@@ -7,8 +7,11 @@ class SimpleAddon {
 	}
 
 	load() {
-		this.app.api.add().get("/hello", (req, res) => {
-			res.status(200).send('Hello World!!')
+		return this.app.api.add({
+			method: "get",
+			url: "/hello",
+			file: "../addons/simple-addon/simpleQuery",
+			ext: "js"
 		})
 	}
 }
