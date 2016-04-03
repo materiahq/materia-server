@@ -12,3 +12,4 @@ test/samples/*/Procfile
 test/samples/*/README.md
 test/samples/*/key.pem
 test/samples/*/deploy-*
+test/samples/*/addons

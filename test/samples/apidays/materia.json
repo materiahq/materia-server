@@ -3,6 +3,6 @@
     "description": "Materia test for apidays",
     "author": "team@oauth.io",
     "addons": {
-        "thyb/materia-basic-auth": "master"
+        "materia-basic-auth": "thyb/materia-basic-auth#master"
     }
 }

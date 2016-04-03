@@ -2,12 +2,27 @@
 
 let App = require('../../lib/app')
 
+let msgs = {
+	install: {
+		success: 'Addon %s installed !',
+		failed: 'Failed to install addon %s.',
+		code: 'Addon install finished with return code %d'
+	},
+	update: {
+		success: 'Addon %s updated !',
+		failed: 'Failed to update addon %s.',
+		code: 'Addon update finished with return code %d'
+	}
+}
+
 function pipe_proc(proc) {
-	new Promise((accept, reject) => {
+	return new Promise((accept, reject) => {
 		let gotStderr = false
 		proc.on('error', (err) => { reject(err) })
-		proc.stdout.on('data', (data) => { process.stdout.write(data) })
-		proc.stderr.on('data', (data) => { process.stderr.write(data); gotStderr = true })
+		if (proc.stdout && proc.stderr) {
+			proc.stdout.on('data', (data) => { process.stdout.write(data) })
+			proc.stderr.on('data', (data) => { process.stderr.write(data); gotStderr = true })
+		}
 		proc.on('close', (code) => {
 			// notice that we had some error text with gotStderr ?
 			accept(code)
@@ -15,24 +30,56 @@ function pipe_proc(proc) {
 	})
 }
 
-function action_all() {
-	console.error('not implemented yet')
+function action_all(proc, messages) {
+	proc.on('success', (addon) => {
+		console.log(messages.success, addon.yellow)
+	})
+	pipe_proc(proc).then((code) => {
+		if (code instanceof Error) {
+			let err = code
+			if (err.addon) {
+				console.error(messages.failed, err.addon.yellow)
+			}
+			if (err.code) {
+				console.log(messages.code, err.code)
+			}
+			if ( ! err.addon && ! err.code) {
+				console.error(err.stack)
+			}
+		}
+		else
+			console.log('Finished !')
+	}).catch((err) => {
+		if (err.addon) {
+			console.error(messages.failed, addon.yellow)
+		}
+		console.error(err.message)
+	})
 }
 
-function action(proc, messages) {
+function action(addon, proc, messages) {
 	pipe_proc(proc).then((code) => {
 		if (code == 0)
-			console.log(messages.success)
+			console.log(messages.success, addon.yellow)
 		else {
-			console.error(messages.failed)
-			console.error(messages.code + code.toString().yellow)
+			console.error(messages.failed, addon.yellow)
+			console.error(messages.code, code.toString().yellow)
 		}
 	}).catch((err) => {
-		if (err.stdout)
-			console.error(err.stdout)
-		if (err.stderr)
-			console.error(err.stderr)
-		console.error(err.stack)
+		if ( ! err.code ) {
+			if ( ! err.addon) {
+				console.error(err.stack)
+			}
+			else {
+				console.error(err.message)
+			}
+		}
+		if (err.addon) {
+			console.error(messages.failed, addon.yellow)
+		}
+		if (err.code) {
+			console.error(messages.code, code.toString().yellow)
+		}
 	})
 }
 
@@ -73,24 +120,16 @@ module.exports = {
 		let app = new App(cwd, options)
 		if (cmd == "install") {
 			if (args[2]) {
-				action(app.addonsTools.install(args[2]), {
-					success: 'Addon installed !',
-					failed: 'Failed to install addon.',
-					code: 'Addon install finished with return code: '
-				})
+				action(args[2], app.addonsTools.install(args[2]), msgs.install)
 			} else {
-				action_all()
+				action_all(app.addonsTools.install_all(), msgs.install)
 			}
 		}
 		else if (cmd == "update") {
 			if (args[2]) {
-				action(app.addonsTools.install(args[2]), {
-					success: 'Addon updated !',
-					failed: 'Failed to update addon.',
-					code: 'Addon update finished with return code: '
-				})
+				action(args[2], app.addonsTools.update(args[2]), msgs.update)
 			} else {
-				action_all()
+				action_all(app.addonsTools.update_all(), msgs.update)
 			}
 		}
 		else if (cmd == "remove") {

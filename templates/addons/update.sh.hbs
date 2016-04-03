@@ -10,20 +10,17 @@ trap 'abort' 0
 
 set -e
 
-rm -rf {{temp_dir}}
 mkdir -p {{temp_dir}}/node_modules
 cd {{temp_dir}}
-cp {{temp_package}} ./package.json
+cp -r {{addons_dir}}/{{package.name}} ./node_modules/
+mv ./node_modules/{{package.name}}/node_modules/* ./node_modules/
 
-npm install {{addon_package}}
-
-ADDON_PATH=`npm ls --parseable 2>/dev/null | head -n 2 | tail -n 1`
-ADDON_NAME=`basename $ADDON_PATH`
+npm update
 
 mkdir -p {{addons_dir}}
-rm -rf {{addons_dir}}/$ADDON_NAME
-mv $ADDON_PATH {{addons_dir}}/$ADDON_NAME
-mv ./node_modules {{addons_dir}}/$ADDON_NAME/node_modules
+rm -rf {{addons_dir}}/{{package.name}}
+mv ./node_modules/{{package.name}} {{addons_dir}}/{{package.name}}
+mv ./node_modules {{addons_dir}}/{{package.name}}/node_modules
 
 rm -rf {{temp_dir}}
 
