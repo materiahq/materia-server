@@ -12,6 +12,10 @@ let msgs = {
 		success: 'Addon %s updated !',
 		failed: 'Failed to update addon %s.',
 		code: 'Addon update finished with return code %d'
+	},
+	remove: {
+		success: 'Addon %s removed !',
+		failed: 'Could not remove addon %s.'
 	}
 }
 
@@ -133,7 +137,12 @@ module.exports = {
 			}
 		}
 		else if (cmd == "remove") {
-			// ...
+			app.addonsTools.remove(args[2]).then(() => {
+				console.log(msgs.remove.success, args[2].yellow)
+			}).catch((err) => {
+				console.error(err.message)
+				console.error(msgs.remove.failed, args[2].yellow)
+			})
 		}
 	}
 }
