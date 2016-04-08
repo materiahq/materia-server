@@ -96,9 +96,6 @@
         }
       ],
       "opts": {
-        "values": {
-          "date": "="
-        },
         "query": "SELECT speaker.company FROM speaker, event WHERE event.date_start >= :date AND event.slug = speaker.slug_event GROUP BY speaker.company"
       }
     }
