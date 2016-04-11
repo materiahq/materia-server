@@ -32,7 +32,7 @@ describe('Entities Manager', () => {
 		it('should load entities', (done) => {
 			entities.load().then(() => {
 				expect(Object.keys(entities.entities).length).to.equal(1)
-				expect(entities.entities["Todo"].name).to.equal('Todo')
+				expect(entities.entities["todo"].name).to.equal('todo')
 				done()
 			}, (err) => {
 				done(err)
@@ -40,20 +40,23 @@ describe('Entities Manager', () => {
 		})
 
 		it('should add basic entity', (done) => {
-			let entity = new Entity(mockApp, 'testEntity')
-			entity.create([
-				{
-					name: 'id',
-					type: 'number',
-					required: true,
-                    primary: true
-				},
-				{
-					name: 'content',
-					type: 'text',
-					required: true
-				}
-			]).then(() => {
+			let entity = new Entity(mockApp)
+			entity.create({
+				name: 'testEntity',
+				fields: [
+					{
+						name: 'id',
+						type: 'number',
+						required: true,
+						primary: true
+					},
+					{
+						name: 'content',
+						type: 'text',
+						required: true
+					}
+				]
+			}).then(() => {
 				return entities.add(entity, {db:false})
 			}).then(() => {
 				expect(entities.findAll().length).to.equal(1)
@@ -66,19 +69,22 @@ describe('Entities Manager', () => {
 		})
 
 		it('should remove entity', (done) => {
-			let entity = new Entity(mockApp, 'testEntity')
-			entity.create([
-				{
-					name: 'id',
-					type: 'number',
-					required: true
-				},
-				{
-					name: 'content',
-					type: 'text',
-					required: true
-				}
-			]).then(() => {
+			let entity = new Entity(mockApp)
+			entity.create({
+				name: 'testEntity',
+				fields: [
+					{
+						name: 'id',
+						type: 'number',
+						required: true
+					},
+					{
+						name: 'content',
+						type: 'text',
+						required: true
+					}
+				]
+			}).then(() => {
 				return entities.add(entity, {db:false})
 			}).then(() => {
 				return entities.remove('testEntity', {db:false})

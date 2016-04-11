@@ -1,5 +1,4 @@
 {
-	"name": "talk",
 	"fields": [
 		{
 			"name": "id",
@@ -56,8 +55,6 @@
 			"read": true,
 			"write": true
 		}
-	],
-	"queries": [
 	],
 	"relations": [
 		{

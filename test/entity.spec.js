@@ -35,20 +35,27 @@ describe('DBEntity', () => {
 		let entity1;
 		let entity2;
 		before((done) => {
-			entity1 = new DBEntity(mock_app, 'entity1')
-			entity2 = new DBEntity(mock_app, 'entity2')
-			entity2.create([
-				{
-					name: 'id',
-					primary: true,
-					unique: true,
-					type: 'number',
-					autoIncrement: true
-				},
-				{
-					name: 'field2'
-				}
-			]).then(() => {
+			entity1 = new DBEntity(mock_app)
+			entity2 = new DBEntity(mock_app)
+			entity1.create({
+				name: 'entity1'
+			}).then(() => {
+				return entity2.create({
+					name: 'entity2',
+					fields: [
+						{
+							name: 'id',
+							primary: true,
+							unique: true,
+							type: 'number',
+							autoIncrement: true
+						},
+						{
+							name: 'field2'
+						}
+					]
+				})
+			}).then(() => {
 				done()
 			}, (err) => {
 				done(err)
@@ -75,8 +82,13 @@ describe('DBEntity', () => {
 
 	describe('addField()', () => {
 		let entity;
-		beforeEach(() => {
-			entity = new DBEntity(mock_app, 'entity1')
+		beforeEach((done) => {
+			entity = new DBEntity(mock_app)
+			entity.create({name: 'entity1'}).then(() => {
+				done()
+			}).catch((e) => {
+				done(e)
+			})
 		})
 
 		it('should add a field', (done) => {
@@ -94,8 +106,13 @@ describe('DBEntity', () => {
 
 	describe('addFieldFirst()', () => {
 		let entity;
-		beforeEach(() => {
-			entity = new DBEntity(mock_app, 'entity1')
+		beforeEach((done) => {
+			entity = new DBEntity(mock_app)
+			entity.create({name: 'entity1'}).then(() => {
+				done()
+			}).catch((e) => {
+				done(e)
+			})
 		})
 
 		it('should add a field in first position', (done) => {
