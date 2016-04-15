@@ -27,6 +27,7 @@
     "pretty-error": "^1.2.0",
     "remove": "^0.1.5",
     "request": "^2.69.0",
+    "rimraf": "^2.5.2",
     "sequelize": "^3.9.0",
     "sqlite3": "^3.1.0",
     "tedious": "^1.12.3",
