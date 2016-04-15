@@ -17,6 +17,7 @@
     "lodash": "^3.10.1",
     "method-override": "^2.3.5",
     "minimist": "^1.2.0",
+    "mkdirp": "^0.5.1",
     "morgan": "^1.6.1",
     "mysql": "^2.9.0",
     "ncp": "^2.0.0",
