@@ -24,7 +24,7 @@
     "node-uuid": "^1.4.7",
     "pg": "^4.4.2",
     "pg-hstore": "^2.3.2",
-    "pretty-error": "^1.2.0",
+    "pretty-error": "^2.0.0",
     "remove": "^0.1.5",
     "request": "^2.69.0",
     "rimraf": "^2.5.2",
