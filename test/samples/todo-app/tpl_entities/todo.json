@@ -1,5 +1,4 @@
 {
-  "name": "Todo",
   "fields": [
     {
       "name": "id_todo",
@@ -22,8 +21,5 @@
       "write": true,
       "default": false
     }
-  ],
-  "relations": [],
-  "queries": [],
-  "type": "db"
+  ]
 }
