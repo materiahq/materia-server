@@ -47,7 +47,7 @@ let topics = {
 		'  Generates a Dockerfile and docker-compose.yml',
 		'',
 		'heroku',
-		'  Required programs: docker, heroku, heroku-docker plugin',
+		'  Required programs: docker, heroku, heroku-container-tools plugin',
 		'  --heroku-app=<app>\t\t\tSpecifies the heroku app to use.',
 		'',
 		'aws',
