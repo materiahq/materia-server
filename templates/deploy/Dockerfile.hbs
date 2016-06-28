@@ -3,12 +3,11 @@ MAINTAINER {{app.author}}
 
 RUN mkdir -p /app
 
-### install materia (TODO: change when releasing)
+# invalidate cache
+RUN uptime
+
 # RUN npm install -g materia
-RUN mkdir -p /root/.ssh
-COPY ./key.pem /root/.ssh/id_rsa
-RUN chmod 400 /root/.ssh/id_rsa && ssh -o StrictHostKeyChecking=no git@bumpmann.dtdns.net -p 7777 uptime && git clone ssh://git@bumpmann.dtdns.net:7777/~/materia /app/materia && cd /app/materia && npm install
-###
+RUN git clone git@github.com:webshell/materia-server && cd /app/materia && npm install
 
 RUN mkdir -p /app/user
 COPY . /app/user
