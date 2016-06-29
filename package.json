@@ -1,10 +1,13 @@
 {
-  "name": "materia",
+  "name": "materia-server",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "directories": {
     "test": "test"
+  },
+  "bin": {
+    "materia": "cli/index.js"
   },
   "dependencies": {
     "async": "^1.5.0",
@@ -31,12 +34,12 @@
     "sequelize": "^3.21.0",
     "sqlite3": "^3.1.0",
     "tedious": "^1.12.3",
-    "whereis": "^0.4.0"
+    "whereis": "^0.4.0",
+    "handlebars": "^4.0.5"
   },
   "devDependencies": {
     "babel": "^5.8.23",
     "chai": "^3.3.0",
-    "handlebars": "^4.0.5",
     "mocha": "^2.3.3"
   },
   "scripts": {
@@ -44,12 +47,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:thyb/materia-core.git"
+    "url": "git@github.com:webshell/materia-server.git"
   },
-  "author": "Thibaud Arnault <thyb@oauth.io>",
+  "author": "Webshell <team@oauth.io>",
   "license": "Apache 2",
   "bugs": {
-    "url": "https://github.com/thyb/materia-core/issues"
+    "url": "https://github.com/webshell/materia-server/issues"
   },
-  "homepage": "https://github.com/thyb/materia-core"
+  "homepage": "https://github.com/webshell/materia-server"
 }
