@@ -7,4 +7,4 @@
 
 ---
 
-* Materia Version: pre-release
+* Materia Version: v0.1.1
