@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 'use strict'
 
 let argv = require('minimist')(process.argv.slice(2))
