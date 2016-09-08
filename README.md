@@ -29,12 +29,6 @@ Start the server
 $ materia start
 ```
 
-Stop the server
-
-```
-$ materia stop
-```
-
 ### Basic information
 
 Get the current version of Materia Server
