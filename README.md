@@ -52,7 +52,7 @@ Javascript Interface
 
 The API Reference is available on [getmateria.com/docs/api-reference](https://getmateria.com/docs/api-reference/app).
 
-You can require these object to create a Materia Application and save it on the Filesystem.
+You can include these object (using `require()`) to create a Materia Application and save it on the Filesystem.
 
 Licensing
 ---------
