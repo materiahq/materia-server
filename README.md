@@ -1,8 +1,8 @@
 # Materia Server
 
-![Materia logo](https://getmateria.com/img/logo.png)
-
 Materia Server is the core of [Materia](https://getmateria.com). It handles your Materia Application and host them anywhere.
+
+![Materia logo](https://getmateria.com/img/logo.png)
 
 Installation
 ------------
