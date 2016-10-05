@@ -28,7 +28,7 @@
     "pg-hstore": "^2.3.2",
     "pretty-error": "^2.0.0",
     "remove": "^0.1.5",
-    "request": "^2.74.0",
+    "request": "^2.75.0",
     "rimraf": "^2.5.4",
     "sequelize": "^3.24.0",
     "sqlite3": "^3.1.4",
