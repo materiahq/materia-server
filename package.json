@@ -17,6 +17,7 @@
     "errorhandler": "^1.4.3",
     "express": "^4.14.0",
     "express-session": "^1.14.0",
+    "handlebars": "^4.0.5",
     "method-override": "^2.3.6",
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
@@ -31,10 +32,10 @@
     "request": "^2.75.0",
     "rimraf": "^2.5.4",
     "sequelize": "^3.24.0",
+    "server-destroy": "^1.0.1",
     "sqlite3": "^3.1.4",
     "tedious": "^1.14.0",
-    "whereis": "^0.4.0",
-    "handlebars": "^4.0.5"
+    "whereis": "^0.4.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
