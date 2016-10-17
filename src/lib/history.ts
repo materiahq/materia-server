@@ -42,7 +42,7 @@ export const MigrationType = {
 
 export interface IMigrationData {
 	table: string,
-	type: MigrationType,
+	type: any,
 }
 
 export interface IMigration {
@@ -138,7 +138,7 @@ export class History {
 	@param {string} - Type name
 	@param {function} - Action's function
 	*/
-	register(type:MigrationType, action: (data: IActionData, opts: any) => Promise<any>|boolean) {
+	register(type:any, action: (data: IActionData, opts: any) => Promise<any>|boolean) {
 		this.actions[+type] = action
 	}
 
