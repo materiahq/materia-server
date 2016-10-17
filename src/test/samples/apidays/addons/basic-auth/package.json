@@ -1,0 +1,40 @@
+{
+  "name": "materia-basic-auth",
+  "version": "0.1.0",
+  "description": "Basic authentication for materia endpoints",
+  "main": "index.js",
+  "materia": {
+    "displayName": "Simple User Management",
+    "author": {
+        "name": "OAuth.io team",
+        "email": "team@oauth.io"
+    },
+    "logo": "",
+    "features": [
+        {
+            "title": "User management",
+            "description": "Authenticate your user with email/password and manage their account easily"
+        },
+        {
+            "title": "Permissions",
+            "description": "Give role to your user to allow them to perform some special actions"
+        },
+        {
+            "title": "Totally free",
+            "description": "This addon is free and will always be free."
+        },
+        {
+            "title": "No 3rd party service",
+            "description": "This addon don't need to send your data to a 3rd party service to work."
+        }
+    ]
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "team@oauth.io",
+  "license": "MIT",
+  "dependencies": {
+    "basic-auth": "^1.0.3"
+  }
+}

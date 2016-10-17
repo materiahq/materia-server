@@ -1,0 +1,34 @@
+{
+	"id": "c8e6dada-d181-4f37-ab34-a1806c421904",
+	"fields": [
+		{
+			"name": "role",
+			"type": "text",
+			"primary": true,
+			"unique": true,
+			"required": true,
+			"read": true,
+			"write": true,
+			"default": false
+		},
+		{
+			"name": "description",
+			"type": "text",
+			"primary": false,
+			"unique": false,
+			"required": false,
+			"read": true,
+			"write": true,
+			"default": false
+		}
+	],
+	"relations": [
+		{
+			"type": "hasMany",
+			"reference": {
+				"entity": "user_permission",
+				"field": "role"
+			}
+		}
+	]
+}

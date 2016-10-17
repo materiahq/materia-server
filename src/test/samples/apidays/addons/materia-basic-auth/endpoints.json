@@ -1,0 +1,12 @@
+[
+	{
+		"method": "post",
+		"url": "/auth",
+		"params": [],
+		"data": [],
+		"query": {
+			"entity": "user",
+			"id": "auth"
+		}
+	}
+]

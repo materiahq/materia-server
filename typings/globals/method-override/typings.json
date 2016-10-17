@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/1dc78748609a0d41e1dd2cbef975f2b2dbfba7d9/method-override/method-override.d.ts",
+    "raw": "registry:dt/method-override#0.0.0+20160925094606",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/1dc78748609a0d41e1dd2cbef975f2b2dbfba7d9/method-override/method-override.d.ts"
+  }
+}

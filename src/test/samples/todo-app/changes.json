@@ -1,0 +1,68 @@
+[
+	{
+		"undo": {
+			"type": "delete_field",
+			"table": "entity1",
+			"value": "testField"
+		},
+		"redo": {
+			"type": "create_field",
+			"table": "entity1",
+			"value": {
+				"name": "testField",
+				"type": "text",
+				"primary": false,
+				"unique": false,
+				"required": false,
+				"read": true,
+				"write": true,
+				"default": false
+			},
+			"position": 0
+		}
+	},
+	{
+		"undo": {
+			"type": "delete_field",
+			"table": "entity1",
+			"value": "testField"
+		},
+		"redo": {
+			"type": "create_field",
+			"table": "entity1",
+			"value": {
+				"name": "testField",
+				"type": "text",
+				"primary": false,
+				"unique": false,
+				"required": false,
+				"read": true,
+				"write": true,
+				"default": false
+			},
+			"position": 0
+		}
+	},
+	{
+		"undo": {
+			"type": "delete_field",
+			"table": "entity1",
+			"value": "testField2"
+		},
+		"redo": {
+			"type": "create_field",
+			"table": "entity1",
+			"value": {
+				"name": "testField2",
+				"type": "text",
+				"primary": false,
+				"unique": false,
+				"required": false,
+				"read": true,
+				"write": true,
+				"default": false
+			},
+			"position": 0
+		}
+	}
+]

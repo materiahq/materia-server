@@ -1,0 +1,87 @@
+{
+	"name": "user_permission",
+	"fields": [
+		{
+			"name": "id_user",
+			"type": "number",
+			"required": true,
+			"primary": true,
+			"unique": true,
+			"default": false,
+			"autoIncrement": false,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "role",
+			"type": "text",
+			"required": true,
+			"primary": true,
+			"unique": true,
+			"default": false,
+			"autoIncrement": false,
+			"read": true,
+			"write": true
+		}
+	],
+	"relations": [
+		{
+			"field": "id_user",
+			"type": "belongsTo",
+			"reference": {
+				"entity": "user",
+				"field": "id"
+			}
+		},
+		{
+			"field": "role",
+			"type": "belongsTo",
+			"reference": {
+				"entity": "user_role",
+				"field": "role"
+			}
+		}
+	],
+	"queries": [
+		{
+			"id": "getUserRoles",
+			"type": "findAll",
+			"params": [
+				{
+					"name": "id_user",
+					"type": "number",
+					"required": true
+				}
+			],
+			"opts": {
+				"conditions": [
+					{
+						"name": "id_user",
+						"operator": "=",
+						"value": "="
+					}
+				]
+			}
+		},
+		{
+			"id": "getRoleUsers",
+			"type": "findAll",
+			"params": [
+				{
+					"name": "role",
+					"type": "text",
+					"required": true
+				}
+			],
+			"opts": {
+				"conditions": [
+					{
+						"name": "role",
+						"operator": "=",
+						"value": "="
+					}
+				]
+			}
+		}
+	]
+}

@@ -1,0 +1,16 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "rootDir": "./src/",
+        "outDir": "./dist/",
+        "sourceMap": true,
+        "allowJs": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "ES6"
+    },
+    "include": [
+        "src/**/*",
+        "typings/index.d.ts"
+    ]
+}

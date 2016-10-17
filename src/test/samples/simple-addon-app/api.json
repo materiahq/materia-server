@@ -1,0 +1,8 @@
+[
+	{
+		"method": "get",
+		"url": "/hello",
+		"file": "../addons/simple-addon/simpleQuery",
+		"ext": "js"
+	}
+]

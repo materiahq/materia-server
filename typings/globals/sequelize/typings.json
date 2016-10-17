@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/119234be457b9a7a12cf0e796c909e5bdf0e2e32/sequelize/sequelize.d.ts",
+    "raw": "registry:dt/sequelize#3.4.1+20160929080558",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/119234be457b9a7a12cf0e796c909e5bdf0e2e32/sequelize/sequelize.d.ts"
+  }
+}

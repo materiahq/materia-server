@@ -1,0 +1,104 @@
+{
+	"id": "d422e35d-cfa8-462e-853e-8e98f3468d9f",
+	"fields": [
+		{
+			"name": "slug",
+			"type": "text",
+			"primary": true,
+			"unique": true,
+			"required": true,
+			"read": true,
+			"write": true,
+			"default": false
+		},
+		{
+			"name": "baseline",
+			"type": "text",
+			"primary": false,
+			"unique": false,
+			"required": false,
+			"read": true,
+			"write": true,
+			"default": false
+		},
+		{
+			"name": "date_start",
+			"type": "date",
+			"primary": false,
+			"unique": false,
+			"required": true,
+			"read": true,
+			"write": true,
+			"default": false
+		},
+		{
+			"name": "date_end",
+			"type": "date",
+			"primary": false,
+			"unique": false,
+			"required": true,
+			"read": true,
+			"write": true,
+			"default": false
+		},
+		{
+			"name": "testField",
+			"type": "text",
+			"primary": false,
+			"unique": false,
+			"required": false,
+			"read": true,
+			"write": true,
+			"default": false
+		}
+	],
+	"relations": [
+		{
+			"type": "hasMany",
+			"reference": {
+				"entity": "speaker",
+				"field": "slug_event"
+			}
+		}
+	],
+	"queries": [
+		{
+			"id": "getBySlug",
+			"type": "findOne",
+			"params": [
+				{
+					"name": "slug",
+					"type": "text",
+					"required": true
+				}
+			],
+			"opts": {
+				"include": [
+					"speaker"
+				],
+				"conditions": [
+					{
+						"name": "event.slug",
+						"operator": "=",
+						"value": "=slug"
+					}
+				]
+			}
+		},
+		{
+			"id": "companiesSince",
+			"type": "sql",
+			"params": [
+				{
+					"name": "date",
+					"type": "date",
+					"required": true
+				}
+			],
+			"opts": {
+				"values": {},
+				"query": "SELECT speaker.company FROM speaker, event WHERE event.date_start >= :date AND event.slug = speaker.slug_event GROUP BY speaker.company"
+			}
+		}
+	]
+}

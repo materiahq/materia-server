@@ -4,9 +4,7 @@
 
 	"javascript.validate.lint.newOnLowercaseFunctions": "ignore",
 
-	"editor.renderWhitespace": true,
+	"editor.renderWhitespace": "all",
 
-	"files.trimTrailingWhitespace": true,
-
-	"editor.insertSpaces": "auto"
+	"files.trimTrailingWhitespace": true
 }

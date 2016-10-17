@@ -1,0 +1,60 @@
+[
+	{
+		"method": "get",
+		"url": "/events",
+		"params": [],
+		"data": [],
+		"query": {
+			"entity": "event",
+			"id": "list"
+		}
+	},
+	{
+		"method": "post",
+		"url": "/events",
+		"params": [],
+		"data": [
+			{
+				"name": "slug",
+				"type": "text",
+				"required": true
+			},
+			{
+				"name": "title",
+				"type": "text",
+				"required": true
+			},
+			{
+				"name": "date_start",
+				"type": "text",
+				"required": true
+			},
+			{
+				"name": "date_end",
+				"type": "text",
+				"required": true
+			}
+		],
+		"permissions": ["needAuth:admin"],
+		"query": {
+			"entity": "event",
+			"id": "create"
+		}
+	},
+	{
+		"method": "get",
+		"url": "/events/:slug/speakers",
+		"params": [
+			{
+				"name": "slug",
+				"type": "text",
+				"required": true
+			}
+		],
+		"data": [],
+		"query": {
+			"entity": "speaker",
+			"id": "getByEvent"
+		}
+	}
+]

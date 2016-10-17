@@ -1,0 +1,57 @@
+{
+	"fields": [
+		{
+			"name": "id",
+			"type": "number",
+			"required": true,
+			"primary": true,
+			"unique": true,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": false
+		},
+		{
+			"name": "company",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "category",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "logo",
+			"type": "text",
+			"required": false,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		}
+	],
+	"relations": [
+		{
+			"field": "slug_event",
+			"reference": {
+				"entity": "event",
+				"field": "slug"
+			}
+		}
+	]
+}

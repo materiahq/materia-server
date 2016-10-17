@@ -1,0 +1,99 @@
+{
+	"fields": [
+		{
+			"name": "id",
+			"type": "number",
+			"required": true,
+			"primary": true,
+			"unique": true,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": false
+		},
+		{
+			"name": "name",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": true,
+			"default": false,
+			"autoIncrement": false,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "company",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "title",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "linkedin",
+			"type": "text",
+			"required": true,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		},
+		{
+			"name": "profile_picture",
+			"type": "text",
+			"required": false,
+			"primary": false,
+			"unique": false,
+			"default": false,
+			"autoIncrement": true,
+			"read": true,
+			"write": true
+		}
+	],
+	"queries": [
+		{
+			"id": "getByEvent",
+			"type": "findAll",
+			"params": [
+				{
+					"name": "slug",
+					"type": "text",
+					"required": "true"
+				}
+			],
+			"opts": {
+				"conditions": {
+					"name": "slug_event",
+					"operator": "=",
+					"value": "=slug"
+				}
+			}
+		}
+	],
+	"relations": [
+		{
+			"field": "slug_event",
+			"type": "belongsTo",
+			"reference": {
+				"entity": "event"
+			}
+		}
+	]
+}
