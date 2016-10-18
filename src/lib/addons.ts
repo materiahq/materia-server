@@ -1,20 +1,27 @@
 'use strict';
 
-var fs = require('fs')
-var path = require('path')
-var mkdirp = require('mkdirp')
-var rmdir = require('rimraf')
+import * as fs from 'fs'
+import * as path from 'path'
 
-var async = require('async')
+import * as mkdirp from 'mkdirp'
+import * as rmdir from 'rimraf'
+
+import * as async from 'async'
+
+import App from './app'
 
 /**
  * @class Addons
  * @classdesc
  * This class is used to manage your addons in a materia app.
  */
-class Addons {
-	constructor(app) {
-		this.app = app
+export default class Addons {
+	addons: any[]
+	addonsObj: any
+	rootDirectory: string
+	addonsConfig: any
+
+	constructor(private app: App) {
 		this.addons = []
 		this.addonsObj = {}
 		this.rootDirectory = path.join(this.app.path, 'addons')
@@ -47,16 +54,16 @@ class Addons {
 				addonPackage = require(path.join(this.rootDirectory, addon, 'package.json'))
 				AddonClass = require(path.join(this.rootDirectory, addon))
 			} catch (e) {
-				let err = new Error('Impossible to require addon ' + addon)
+				let err = new Error('Impossible to require addon ' + addon) as any
 				err.originalError = e
-				return reject(err)
+				return err
 			}
 			try {
 				addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp)
 			} catch(e) {
-				let err = new Error('Impossible to create addon ' + addon)
+				let err = new Error('Impossible to create addon ' + addon) as any
 				err.originalError = e
-				return reject(e)
+				return e
 			}
 
 			let version
@@ -93,14 +100,14 @@ class Addons {
 						addonPackage = require(path.join(this.rootDirectory, addon, 'package.json'))
 						AddonClass = require(path.join(this.rootDirectory, addon))
 					} catch (e) {
-						let err = new Error('Impossible to require addon ' + addon)
+						let err = new Error('Impossible to require addon ' + addon) as any
 						err.originalError = e
 						return reject(err)
 					}
 					try {
 						addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp)
 					} catch(e) {
-						let err = new Error('Impossible to create addon ' + addon)
+						let err = new Error('Impossible to create addon ' + addon) as any
 						err.originalError = e
 						return reject(e)
 					}
@@ -203,13 +210,11 @@ module.exports = ${nameCapitalizeFirst};`
 	}
 
 	unload(name) {
-		for (let i in this.addons) {
-			let addon = this.addons[i];
+		this.addons.forEach((addon, i) => {
 			if (addon.name == name) {
 				this.addons.splice(i, 1);
-				return
 			}
-		}
+		})
 	}
 
 	load() {
@@ -281,7 +286,7 @@ module.exports = ${nameCapitalizeFirst};`
 		}
 
 		for (let k in this.app.infos.addons) {
-			let addon = /[^/]+$/.exec(k)
+			let addon = /[^/]+$/.exec(k) as any
 			addon = addon ? addon[0] : ""
 			if (files.indexOf(addon) == -1) {
 				throw new Error('Missing addon: ' + k + ', please run "materia addons install"')
@@ -331,5 +336,3 @@ module.exports = ${nameCapitalizeFirst};`
 		return this.addons.length
 	}
 }
-
-module.exports = Addons

@@ -278,8 +278,9 @@ export class History {
 		}
 
 		p = p.then((action) => {
-			if (action.type)
+			if (action.type) {
 				actions.push(action)
+			}
 			this.diffRedo = diff_redo
 			this.diff = diff_undo
 			return Promise.resolve(actions)

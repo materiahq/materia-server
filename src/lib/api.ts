@@ -1,10 +1,14 @@
-const fs = require('fs')
-const path = require('path')
+import * as fs from 'fs'
+import * as path from 'path'
 
-const express = require('express')
+import * as express from 'express'
 
 const Endpoint = require('./api/endpoint')
 const Permissions = require('./api/permissions')
+
+import App from './app'
+
+import { MigrationType } from './history'
 
 /**
  * @class Api
@@ -12,11 +16,13 @@ const Permissions = require('./api/permissions')
  * This class is used to set the endpoints on the server
  * @property {Permissions} permissions - The access to the permission filters
  */
-class Api {
-	constructor(app) {
-		this.app = app
+export default class Api {
+	endpoints: any[]
+	permissions: any
+	router: express.Router
+
+	constructor(private app: App) {
 		this.endpoints = []
-		this.DiffType = this.app.history.DiffType
 		this.permissions = new Permissions(app)
 	}
 
@@ -88,8 +94,7 @@ class Api {
 	*/
 	remove(method, url, options) {
 		options = options || {}
-		for (let i in this.endpoints) {
-			let endpoint = this.endpoints[i]
+		this.endpoints.forEach((endpoint, i) => {
 			if (endpoint.url == url && endpoint.method == method) {
 				this.endpoints.splice(i, 1)
 				if (options.apply != false) {
@@ -100,7 +105,7 @@ class Api {
 				}
 				return
 			}
-		}
+		})
 	}
 
 	/**
@@ -140,12 +145,12 @@ class Api {
 					this.add(endpoint, opts)
 				} catch (e) {
 					this.app.logger.warn('Skipped endpoint ' + endpoint.method + ' ' + endpoint.url)
-					this.app.logger.warn('due to error ' + e.message)
+					this.app.logger.warn('due to error ' + e.message, e.stack)
 				}
 			})
 		} catch (e) {
 			if (e.code != 'ENOENT')
-				this.app.error('error loading endpoints', e.stack)
+				this.app.logger.error('error loading endpoints', e.stack)
 			else
 				throw e
 		}
@@ -166,7 +171,7 @@ class Api {
 	}
 
 	updateEndpoints() {
-		this.router = new express.Router()
+		this.router = express.Router()
 		this.endpoints.forEach((endpoint) => {
 			let route = this.router[endpoint.method.toLowerCase()]
 			route.call(this.router, endpoint.url, this.permissions.check(endpoint.permissions), (req, res) => {
@@ -206,5 +211,3 @@ class Api {
 		}
 	}
 }
-
-module.exports = Api

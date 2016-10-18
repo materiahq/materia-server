@@ -1,10 +1,62 @@
 'use strict';
 
-var path = require('path')
-var fs = require('fs')
+import * as path from 'path'
+import * as fs from 'fs'
 
-class Endpoint {
+import App from '../app'
 
+
+
+// Not used yet
+export enum Method {
+	GET,
+	POST,
+	PUT,
+	DELETE,
+	PATCH
+}
+
+export interface IParam {
+	name: string,
+	required: boolean,
+	type: string
+}
+
+export interface IEndpoint {
+	name: string,
+	method: string,
+	url: string,
+	file?: string,
+	ext?: string,
+	query?: {
+		entity: any,
+		id: any
+	},
+	params?: any[],
+	//data?: any[],
+	permissions?: any[]
+}
+
+export default class Endpoint {
+	name: string
+	method: string
+	url: string
+	fromAddon: string|boolean
+
+	params: IParam[]
+	data: IParam[]
+
+	permissions: any[]
+
+	file: string
+	ext: string
+
+	//TODO: differentiate query from javascript endpoint and query from query endpoint
+	//query: (req, app, res) => Promise<any>
+	query: any
+	queryStr: string
+
+	entity: any
 	/*
 		data format:
 		{
@@ -23,9 +75,8 @@ class Endpoint {
 			}
 		}
 	*/
-	constructor(app, endpointConfig) {
-		this.app = app
-		this.history = app.history
+	constructor(private app:App, endpointConfig) {
+		//this.history = app.history
 		this.method = (endpointConfig.method && endpointConfig.method.toLowerCase()) || 'get'
 
 		//this.name = endpointConfig.name
@@ -43,6 +94,7 @@ class Endpoint {
 			this.data = endpointConfig.data || []
 			this.query = endpointConfig.query
 		}*/
+
 		if (endpointConfig.file) {
 			this.file = endpointConfig.file
 			this.ext = endpointConfig.ext || 'js'
@@ -56,7 +108,8 @@ class Endpoint {
 				delete require.cache[require.resolve(path.join(basepath, 'endpoints', this.file))];
 			}
 			this.query = require(path.join(basepath, 'endpoints', this.file))
-			this.queryStr = fs.readFileSync(path.join(basepath, 'endpoints', this.file + '.' + this.ext));
+			this.queryStr = fs.readFileSync(path.join(basepath, 'endpoints', this.file + '.' + this.ext), 'utf-8');
+			this._buildParams(endpointConfig.params)
 		}
 		else {
 			let entity_name
@@ -78,33 +131,7 @@ class Endpoint {
 			if ( ! this.query || this.query.error ) {
 				throw new Error('Could not find query "' + endpointConfig.query.id + '" of entity ' + this.entity.name)
 			}
-
-			if (this.method == 'post' || this.method == 'put' || this.method == 'patch') {
-				for (let param of this.query.params) {
-					this.data.push(param)
-				}
-
-				let re = /\:([a-zA-Z_][a-zA-Z0-9_-]*)/g
-				let matchParam
-				let idsToSplice = []
-				while(matchParam = re.exec(this.url)) {
-					for (let i in this.data) {
-						if (this.data[i].name == matchParam[1]) {
-							idsToSplice.push(i)
-							this.params.push(this.data[i])
-						}
-					}
-				}
-				idsToSplice.forEach((id) => {
-					this.data.splice(id, 1)
-				})
-				//console.log('in constructor endpoint:', this.params, this.data)
-			}
-			else {
-				for (let param of this.query.params) {
-					this.params.push(param)
-				}
-			}
+			this._buildParams(this.query.params)
 		}
 		//this.queryType = endpointConfig.queryType || 'findAll'
 		//this.query = new Query[this.queryType](this, endpointConfig.query)
@@ -113,7 +140,40 @@ class Endpoint {
 		//this.permission = endpointConfig.permissions
 	}
 
-	getParam(name) {
+	private _buildParams(params) {
+		if ( ! params ) {
+			return false
+		}
+		if (this.method == 'post' || this.method == 'put' || this.method == 'patch') {
+			let re = /\:([a-zA-Z_][a-zA-Z0-9_-]*)/g,
+				matchParam,
+				idsToSplice = [];
+
+			params.map(param => {
+				this.data.push(param)
+			})
+
+			while(matchParam = re.exec(this.url)) {
+				this.data.forEach((data, i) => {
+					if (data.name == matchParam[1]) {
+						idsToSplice.push(i)
+						this.params.push(data)
+					}
+				})
+			}
+			idsToSplice.map(id => {
+				this.data.splice(id, 1)
+			})
+		}
+		else {
+			params.map(param => {
+				this.params.push(param)
+			})
+		}
+
+	}
+
+	getParam(name:string):any {
 		for (let param of this.params) {
 			if (param.name == name)
 				return param
@@ -144,7 +204,7 @@ class Endpoint {
 	}
 
 	getRequiredMergedParams() {
-		return this.getmergedParams(true)
+		return this.getMergedParams(true)
 	}
 
 	getAllData(onlyRequired) {
@@ -223,7 +283,7 @@ class Endpoint {
 			//next
 		})
 		*/
-		let resolvedParams = { params: {}, data: {} }
+		let resolvedParams = { params: {}, data: {}, headers: {}, session: {} }
 		//console.log(this.params, this.data)
 		if (this.params.length > 0) {
 			for (let param of this.params) {
@@ -289,12 +349,22 @@ class Endpoint {
 		let res = {
 			name: this.name,
 			method: this.method,
-			url: this.url,
+			url: this.url
 			//base: this.base,
-		}
+		} as IEndpoint
+
 		if (this.file) {
 			res.file = this.file
 			res.ext = this.ext
+			if (this.params.length || this.data.length) {
+				res.params = []
+			}
+			if (this.params.length) {
+				this.params.map(param => res.params.push(param))
+			}
+			if (this.data.length) {
+				this.data.map(param => res.params.push(param))
+			}
 		}
 		else {
 			res.query = {
@@ -302,12 +372,9 @@ class Endpoint {
 				id: this.query.id
 			}
 		}
-		if (this.params.length && ! this.query)
-			res.params = this.params
-		if (this.data.length && ! this.query)
-			res.data = this.data
-		if (this.permissions.length)
+		if (this.permissions.length) {
 			res.permissions = this.permissions
+		}
 		return res
 	}
 }

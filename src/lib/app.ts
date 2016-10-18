@@ -12,8 +12,8 @@ import { Entities } from './entities'
 import { Database } from './database'
 
 //TODO: convert to ts
-let Addons = require('./addons')
-let Api = require('./api')
+import Addons from './addons'
+import Api from './api'
 
 import { History } from './history'
 
