@@ -33,15 +33,13 @@ export default class Addons {
 	}
 
 	_loadAPI(addon) {
-		return new Promise((resolve, reject) => {
-			try {
-				this.app.api.loadFromAddon(addon)
-				resolve()
-			}
-			catch (e) {
-				reject(e)
-			}
-		})
+		try {
+			this.app.api.loadFromAddon(addon)
+			return Promise.resolve()
+		}
+		catch (e) {
+			return Promise.reject(e)
+		}
 	}
 
 	_requireAddon(addon) {
@@ -88,63 +86,60 @@ export default class Addons {
 	}
 
 	_requireAndCreateAddons(files) {
-		return new Promise((resolve, reject) => {
-			//let addonsWithDeps = {}
-			for (let addon of files) {
-				if (fs.existsSync(path.join(this.rootDirectory, addon, 'index.coffee')) ||
-				fs.existsSync(path.join(this.rootDirectory, addon, 'index.js')) ||
-				fs.existsSync(path.join(this.rootDirectory, addon + '.js')) ||
-				fs.existsSync(path.join(this.rootDirectory, addon + '.coffee'))) {
-					let AddonClass, addonInstance, addonPackage
-					try {
-						addonPackage = require(path.join(this.rootDirectory, addon, 'package.json'))
-						AddonClass = require(path.join(this.rootDirectory, addon))
-					} catch (e) {
-						let err = new Error('Impossible to require addon ' + addon) as any
-						err.originalError = e
-						return reject(err)
-					}
-					try {
-						addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp)
-					} catch(e) {
-						let err = new Error('Impossible to create addon ' + addon) as any
-						err.originalError = e
-						return reject(e)
-					}
-
-					let version
-					if (addonPackage._from) {
-						let matches = /^.*(?:#(.*))$/.exec(addonPackage._from)
-						if (matches)
-							version = matches[1]
-					}
-
-					this.addons.push({
-						name: addonPackage.name,
-						path: path.join(this.rootDirectory, addon),
-						info: {
-							description: addonPackage.description,
-							logo: addonPackage.materia && addonPackage.materia.logo,
-							author: addonPackage.materia && addonPackage.materia.author,
-							version: version
-						},
-						obj: addonInstance
-					})
-					//I'm not sure what it is..
-					/*if (AddonClass.dependencies) {
-						addonsWithDeps = []
-						for (var dep of AddonClass.dependencies) {
-							addonsWithDeps[addon].push(dep)
-						}
-						addonsWithDeps[addon].push(pushAddon)
-					} else {
-						addonsWithDeps[addon] = pushAddon
-					}*/
+		for (let addon of files) {
+			if (fs.existsSync(path.join(this.rootDirectory, addon, 'index.coffee')) ||
+			fs.existsSync(path.join(this.rootDirectory, addon, 'index.js')) ||
+			fs.existsSync(path.join(this.rootDirectory, addon + '.js')) ||
+			fs.existsSync(path.join(this.rootDirectory, addon + '.coffee'))) {
+				let AddonClass, addonInstance, addonPackage
+				try {
+					addonPackage = require(path.join(this.rootDirectory, addon, 'package.json'))
+					AddonClass = require(path.join(this.rootDirectory, addon))
+				} catch (e) {
+					let err = new Error('Impossible to require addon ' + addon) as any
+					err.originalError = e
+					return Promise.reject(err)
 				}
+				try {
+					addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp)
+				} catch(e) {
+					let err = new Error('Impossible to create addon ' + addon) as any
+					err.originalError = e
+					return Promise.reject(err)
+				}
+
+				let version
+				if (addonPackage._from) {
+					let matches = /^.*(?:#(.*))$/.exec(addonPackage._from)
+					if (matches)
+						version = matches[1]
+				}
+
+
+				this.addons.push({
+					name: addonPackage.name,
+					path: path.join(this.rootDirectory, addon),
+					info: {
+						description: addonPackage.description,
+						logo: addonPackage.materia && addonPackage.materia.logo,
+						author: addonPackage.materia && addonPackage.materia.author,
+						version: version
+					},
+					obj: addonInstance
+				})
+				//I'm not sure what it is..
+				/*if (AddonClass.dependencies) {
+					addonsWithDeps = []
+					for (var dep of AddonClass.dependencies) {
+						addonsWithDeps[addon].push(dep)
+					}
+					addonsWithDeps[addon].push(pushAddon)
+				} else {
+					addonsWithDeps[addon] = pushAddon
+				}*/
 			}
-			resolve()
-		})
-		//async.auto(addonsWithDeps, callback)
+		}
+		return Promise.resolve()
 	}
 
 	createCustom(name, description) {
@@ -221,51 +216,43 @@ module.exports = ${nameCapitalizeFirst};`
 		this.addons = []
 		this.addonsObj = {}
 
-		return new Promise((accept, reject) => {
-			let files
-			try {
-				files = fs.readdirSync(path.join(this.app.path, 'addons'))
-			} catch (e) {
-				if (e.code == 'ENOENT')
-					return accept()
-				return reject(e)
-			}
+		let files
+		try {
+			files = fs.readdirSync(path.join(this.app.path, 'addons'))
+		} catch (e) {
+			if (e.code == 'ENOENT')
+				return Promise.resolve()
+			return Promise.reject(e)
+		}
 
-			if (fs.existsSync(path.join(this.app.path, 'addons.json'))) {
-				let content = fs.readFileSync(path.join(this.app.path, 'addons.json'))
-				this.addonsConfig = JSON.parse(content.toString())
-			}
-			this._requireAndCreateAddons(files).then(() => {
-				let p = Promise.resolve()
-				for (let addon of this.addons) {
-					this.addonsObj[addon.name] = addon.obj
-					;((addon) => {
-						p = p.then(() => {
-							if (typeof addon.obj.load == 'function') {
-								let obj = addon.obj.load()
-								if (obj && obj.then && obj.catch
-									&& typeof obj.then === 'function'
-									&& typeof obj.catch === 'function') { // promise-like simple test
-									return obj
-								}
+		if (fs.existsSync(path.join(this.app.path, 'addons.json'))) {
+			let content = fs.readFileSync(path.join(this.app.path, 'addons.json'))
+			this.addonsConfig = JSON.parse(content.toString())
+		}
+		return this._requireAndCreateAddons(files).then(() => {
+			let p = Promise.resolve()
+			for (let addon of this.addons) {
+				this.addonsObj[addon.name] = addon.obj
+				;((addon) => {
+					p = p.then(() => {
+						if (typeof addon.obj.load == 'function') {
+							let obj = addon.obj.load()
+							if (obj && obj.then && obj.catch
+								&& typeof obj.then === 'function'
+								&& typeof obj.catch === 'function') { // promise-like simple test
+								return obj
 							}
-							return Promise.resolve()
-						}).then(() => {
-							return this._loadEntities(addon.name)
-						}).then(() => {
-							return this._loadAPI(addon.name)
-						})
-					})(addon)
-				}
+						}
+						return Promise.resolve()
+					}).then(() => {
+						return this._loadEntities(addon.name)
+					}).then(() => {
+						return this._loadAPI(addon.name)
+					})
+				})(addon)
+			}
 
-				p.then(() => {
-					accept()
-				}).catch((err) => {
-					reject(err)
-				})
-			}).catch((err) => {
-				reject(err)
-			})
+			return p
 		})
 	}
 

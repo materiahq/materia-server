@@ -42,6 +42,8 @@
     "whereis": "^0.4.0"
   },
   "devDependencies": {
+    "@types/async": "^2.0.32",
+    "@types/rimraf": "0.0.28",
     "chai": "^3.5.0",
     "mocha": "^3.0.2"
   },

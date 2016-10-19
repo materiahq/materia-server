@@ -3,7 +3,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import App, { AppMode } from './app'
+import App, { AppMode, ISaveOptions } from './app'
+import { IDatabaseServerConfig } from './database'
 
 import * as express from 'express'
 
@@ -17,20 +18,30 @@ import * as session from 'express-session'
 
 var enableDestroy = require('server-destroy')
 
-export interface IBasicServerConfig {
+export interface IWebServerConfig {
 	port: number,
-	host: string
+	host: string,
+	live?: IWebServerConfig
 }
 
 export interface IFullServerConfig {
 	dev?: {
-		port: number,
-		host: string
-	},
-	prod?: {
-		port: number,
-		host: string
+		web: IWebServerConfig
+		database?: IDatabaseServerConfig
 	}
+	prod?: {
+		web: IWebServerConfig
+		database?: IDatabaseServerConfig
+	}
+}
+
+export enum ConfigType {
+	WEB = <any>"web",
+	DATABASE = <any>"database"
+}
+
+export interface IConfigOptions {
+	live?: boolean
 }
 
 /**
@@ -40,26 +51,17 @@ export interface IFullServerConfig {
  */
 export class Server {
 	started: boolean = false
-	config: IBasicServerConfig | IFullServerConfig
+	config: IFullServerConfig
 
 	expressApp: express.Application
 	server: any
+
+	disabled: boolean = false
 
 	constructor(private app: App) {
 	}
 
 	load() {
-		try {
-			let content = fs.readFileSync(path.join(this.app.path, 'server.json')).toString()
-			this.config = JSON.parse(content)
-		}
-		catch (e) {
-			this.config = {
-				host: 'localhost',
-				port: 8080
-			}
-		}
-
 		this.expressApp = express()
 
 		this.expressApp.use(bodyParser.urlencoded({ extended: false }))
@@ -93,13 +95,17 @@ export class Server {
 	Get the base url for endpoints
 	@returns {string}
 	*/
-	getBaseUrl() {
-		let conf = this.getConfig()
+	getBaseUrl(path?:string, mode?:AppMode, options?:IConfigOptions) {
+		path = path || '/api'
+		let conf = this.getConfig(mode, ConfigType.WEB, options)
+		if ( ! conf) {
+			return ""
+		}
 		let url = 'http://' + conf.host;
 		if (conf.port != 80) {
 			url += ':' + conf.port
 		}
-		url += '/api'
+		url += path
 		return url
 	}
 
@@ -109,55 +115,134 @@ export class Server {
 	*/
 	isStarted():boolean { return this.started }
 
+	private checkMigrateConf(config?:any):void {
+		config = config || {}
+		if (config.dev && config.dev.web) {
+			return config
+		}
+		let database
+		try {
+			let content = fs.readFileSync(path.join(this.app.path, 'database.json')).toString()
+			database = JSON.parse(content)
+		} catch(e) {
+			if (e.code != 'ENOENT') {
+				throw e
+			}
+			database = {}
+		}
+
+		if ( ! Object.keys(config).length) {
+			config = {
+				host: 'localhost',
+				port: 8080
+			}
+		}
+
+		//flatten confs
+		config = {
+			dev: config.dev || config,
+			prod: config.prod
+		}
+		delete config.dev.prod
+		database = {
+			dev: this.app.database._confToJson(database.dev || database),
+			prod: this.app.database._confToJson(database.prod)
+		}
+
+		this.config = {
+			dev: {
+				web: config.dev,
+				database: database.dev
+			}
+		}
+
+		if (config.prod || database.prod) {
+			this.config.prod = {
+				web: config.prod,
+				database: database.prod
+			}
+		}
+
+		fs.writeFileSync(path.join(this.app.path, 'server.json'), JSON.stringify(this.toJson(), null, '\t'))
+		if (fs.existsSync(path.join(this.app.path, 'database.json'))) {
+			fs.unlinkSync(path.join(this.app.path, 'database.json'))
+		}
+	}
+
+	reloadConfig():void {
+		this.config = {}
+		try {
+			let content = fs.readFileSync(path.join(this.app.path, 'server.json')).toString()
+			this.config = JSON.parse(content)
+		}
+		catch (e) {
+			if (e.code != 'ENOENT') {
+				throw e
+			}
+		}
+		this.checkMigrateConf(this.config)
+	}
+
 	/**
-	Get the database configuration
-	@param {string} - The environment mode. `development` or `production`.
+	Get the server configuration
+	@param {string} - The environment mode. ConfigType.DEVELOPMENT or ConfigType.PRODUCTION.
 	@returns {object}
 	*/
-	getConfig(mode?:AppMode):IBasicServerConfig {
+	getConfig(mode?:AppMode, type?:ConfigType, options?:IConfigOptions):IWebServerConfig|IDatabaseServerConfig {
+		type = type || ConfigType.WEB
+		options = options || {live: this.app.live}
 		if ( ! this.config) {
-			throw new Error('The server is not configured yet.')
+			this.reloadConfig()
 		}
 
 		if ( ! mode) {
 			mode = this.app.mode
 		}
 
-		let result;
-		if (this.config[mode]) {
-			result = this.config[mode]
+		if ( ! this.config[mode]) {
+			return null
 		}
-		else {
-			result = this.config
+
+		let result = this.config[mode][type]
+
+		if (options.live) {
+			result = result && result.live
 		}
+
 		return result
 	}
 
 	/**
-	Set the database configuration
+	Set the web configuration
 	@param {object} - The configuration object
 	@param {string} - The environment mode. `development` or `production`.
 	*/
-	setConfig(config: IBasicServerConfig, mode: AppMode):IBasicServerConfig | IFullServerConfig | boolean {
-		//Question: Is this still needed with typescript ?
-		if ( ! config.host || ! config.port ) {
-			//missing needed parameters
-			return false
+	setConfig(config: IWebServerConfig|IDatabaseServerConfig, mode: AppMode, type?:ConfigType, options?: IConfigOptions, opts?: ISaveOptions):void {
+		if ( type == ConfigType.WEB && (! config.host || ! config.port) ) {
+			throw new Error('Missing host/port')
 		}
 
-		if ( ! mode ) {
-			mode = this.app.mode
+		if ( ! this.config) {
+			this.reloadConfig()
 		}
-		if (this.config[mode]) {
-			this.config[mode] = config
+		if ( ! this.config[mode]) {
+			this.config[mode] = {}
 		}
-		else {
-			this.config = config
-		}
-		return this.config
-	}
 
-	save(opts) {
+		let live = this.config[mode][type] && this.config[mode][type].live
+		if (type == ConfigType.WEB) {
+			this.config[mode].web = {
+				host: config.host,
+				port: config.port
+			}
+		} else if (type == ConfigType.DATABASE) {
+			this.config[mode].database = this.app.database._confToJson(<IDatabaseServerConfig> config)
+		}
+
+		if (this.config[mode][type] && live) {
+			this.config[mode][type].live = live
+		}
+
 		if (opts && opts.beforeSave) {
 			opts.beforeSave('server.json')
 		}
@@ -218,16 +303,23 @@ export class Server {
 				return this.expressApp
 			})
 
+			if (this.disabled) {
+				this.app.logger.log('INFO: The server is disabled on this machine.')
+				return Promise.resolve()
+			}
 
 			let config = this.getConfig()
 			return new Promise((resolve, reject) => {
-				let errListener = (err) => {
-					if (err.code == 'EADDRINUSE') {
-						this.app.logger.log('\nError while starting the server: The port is already used by another server.')
+				let errListener = (e) => {
+					let err
+					if (e.code == 'EADDRINUSE') {
+						err = new Error('Error while starting the server: The port is already used by another server.')
 					}
 					else {
-						this.app.logger.log('\nError while starting the server:' , err);
+						err = new Error('Error while starting the server: ' + e.message)
 					}
+					err.originalError = e
+					this.app.logger.error(err)
 					return reject(err)
 				}
 

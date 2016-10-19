@@ -1,10 +1,17 @@
 // Place your settings in this file to overwrite default and user settings.
 {
 	"javascript.validate.lint.newOnReturningFunctions": "ignore",
-
 	"javascript.validate.lint.newOnLowercaseFunctions": "ignore",
 
-	"editor.renderWhitespace": "all",
+	"files.trimTrailingWhitespace": true,
 
-	"files.trimTrailingWhitespace": true
+	"editor.renderWhitespace": "boundary",
+	"editor.detectIndentation": true,
+	"editor.insertSpaces": false,
+
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/bower_components": true,
+		"dist": true
+	}
 }

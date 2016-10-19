@@ -49,96 +49,92 @@ export class MysqlDialect extends AbstractDialect {
 	}
 
 	showTables() {
-		let promise = new Promise((resolve, reject) => {
-			let promises = []
-			this.sequelize.getQueryInterface().showAllTables()
-				.catch((err) =>	{ console.error('SHOW TABLES ERR: ' + err); reject(err) })
-				.then((tables:Array<string>) => {
-					for (let table of tables) {
-						let queryInterface = this.sequelize.getQueryInterface()
-						let qg = this.sequelize.getQueryInterface().QueryGenerator
-						let infoQuery = this._describeTable(table)
-						let indexQuery = queryInterface.showIndex(table)
-						let fkQuery = this._getFKs(table)
-						//let fkQuery = qg.getForeignKeysQuery(table)
-						//let fkQuery = queryInterface.getForeignKeysForTables([table])
-						// neither getForeignKeysQuery nor getForeignKeysForTables are working for mysql:
-						// https://github.com/sequelize/sequelize/issues/5748
-						promises.push(infoQuery)
-						promises.push(indexQuery)
-						promises.push(fkQuery)
+		let promises = []
+		return this.sequelize.getQueryInterface().showAllTables().then((tables:Array<string>) => {
+			for (let table of tables) {
+				let queryInterface = this.sequelize.getQueryInterface()
+				let qg = this.sequelize.getQueryInterface().QueryGenerator
+				let infoQuery = this._describeTable(table)
+				let indexQuery = queryInterface.showIndex(table)
+				let fkQuery = this._getFKs(table)
+				//let fkQuery = qg.getForeignKeysQuery(table)
+				//let fkQuery = queryInterface.getForeignKeysForTables([table])
+				// neither getForeignKeysQuery nor getForeignKeysForTables are working for mysql:
+				// https://github.com/sequelize/sequelize/issues/5748
+				promises.push(infoQuery)
+				promises.push(indexQuery)
+				promises.push(fkQuery)
+			}
+			return Promise.all(promises).then((result) => {
+				let res = {}
+
+				/*for (let i in tables) {
+					let table = tables[i]
+					let info = result[i * 3];
+					let indexes = result[i * 3 + 1];
+					let fks = result[i * 3 + 2];
+
+					console.log('----- %s -----', table)
+					console.log('info', JSON.stringify(info,null,' '))
+					console.log('indexes', JSON.stringify(indexes,null,' '))
+					console.log('fks', JSON.stringify(fks,null,' '))
+					console.log(fks);
+				}*/
+
+				tables.forEach((table, i) => {
+					let info = result[i * 3];
+					let indexes = result[i * 3 + 1];
+					let fks = result[i * 3 + 2];
+
+					let fields = []
+					for (let name in info) {
+						info[name].name = name
+
+						// Do not trust describe but only indices
+						info[name].primaryKey = false
+
+						fields.push(info[name])
 					}
-					Promise.all(promises).then((result) => {
-						let res = {}
 
-						/*for (let i in tables) {
-							let table = tables[i]
-							let info = result[i * 3];
-							let indexes = result[i * 3 + 1];
-							let fks = result[i * 3 + 2];
-
-							console.log('----- %s -----', table)
-							console.log('info', JSON.stringify(info,null,' '))
-							console.log('indexes', JSON.stringify(indexes,null,' '))
-							console.log('fks', JSON.stringify(fks,null,' '))
-							console.log(fks);
-						}*/
-
-						tables.forEach((table, i) => {
-							let info = result[i * 3];
-							let indexes = result[i * 3 + 1];
-							let fks = result[i * 3 + 2];
-
-							let fields = []
-							for (let name in info) {
-								info[name].name = name
-
-								// Do not trust describe but only indices
-								info[name].primaryKey = false
-
-								fields.push(info[name])
-							}
-
-							for (let field of fields) {
-								for (let index of indexes) {
-									for (let ind of index.fields) {
-										if (ind.attribute == field.name) {
-											field.primaryKey = field.primaryKey || index.primary
-											if ( ! index.primary && index.fields.length > 1) {
-												field.unique = index.name
-											}
-											else {
-												field.unique = field.unique || index.unique
-											}
-										}
+					for (let field of fields) {
+						for (let index of indexes) {
+							for (let ind of index.fields) {
+								if (ind.attribute == field.name) {
+									field.primaryKey = field.primaryKey || index.primary
+									if ( ! index.primary && index.fields.length > 1) {
+										field.unique = index.name
 									}
-								}
-								if (field.type == "JSON") {
-									field.type = ["JSON", "TEXT"]
-								}
-								for (let fk of fks) {
-									if (field.name == fk.from) {
-										if (fk.table.substr(0,1) == '"')
-											fk.table = fk.table.substr(1, fk.table.length - 2)
-										if (fk.to.substr(0,1) == '"')
-											fk.to = fk.to.substr(1, fk.to.length - 2)
-										field.fk = {
-											entity: fk.table,
-											field: fk.to
-										}
+									else {
+										field.unique = field.unique || index.unique
 									}
 								}
 							}
-							res[table] = fields
-						})
-						resolve(res)
-					}).catch((e) => {
-						console.error('Error when scanning database', e.stack)
-						reject(e)
-					})
+						}
+						if (field.type == "JSON") {
+							field.type = ["JSON", "TEXT"]
+						}
+						for (let fk of fks) {
+							if (field.name == fk.from) {
+								if (fk.table.substr(0,1) == '"')
+									fk.table = fk.table.substr(1, fk.table.length - 2)
+								if (fk.to.substr(0,1) == '"')
+									fk.to = fk.to.substr(1, fk.to.length - 2)
+								field.fk = {
+									entity: fk.table,
+									field: fk.to
+								}
+							}
+						}
+					}
+					res[table] = fields
 				})
+				return res
+			}).catch((e) => {
+				let err = new Error('Error when scanning database')
+				err['originalError'] = e
+				throw err
+			})
 		})
-		return promise
 	}
 
 	addConstraint(table, constraint) {

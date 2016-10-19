@@ -1,12 +1,15 @@
 'use strict';
 
-var fs = require('fs')
-var path = require('path')
+const fs = require('fs')
+const path = require('path')
 
-var uuid = require('node-uuid')
+const uuid = require('node-uuid')
 
-var Field = require('./field')
-var QueryGenerator = require('./query-generator')
+const Field = require('./field')
+const QueryGenerator = require('./query-generator')
+
+const MigrationType = require('../history').MigrationType
+
 
 /**
  * @class Entity
@@ -16,7 +19,6 @@ var QueryGenerator = require('./query-generator')
 class Entity {
 	constructor(app, queryTypes) {
 		this.app = app
-		this.DiffType = app.history.DiffType
 
 		this.relations_queue = []
 		this.queryObjects = {}
@@ -99,10 +101,7 @@ class Entity {
 		}
 		this.relations_queue = []
 		return Promise.all(promises).then(() => {
-			return new Promise((accept, reject) => {
-				this.refreshQueries()
-				accept()
-			})
+			this.refreshQueries()
 		})
 	}
 
@@ -424,11 +423,11 @@ class Entity {
 			p.then(() => {
 				if (options.history != false) {
 					this.app.history.push({
-						type: this.DiffType.ADD_RELATION,
+						type: MigrationType.ADD_RELATION,
 						table: this.name,
 						value: relation
 					},{
-						type: this.DiffType.DELETE_RELATION,
+						type: MigrationType.DELETE_RELATION,
 						table: this.name,
 						value: relation
 					})
@@ -510,11 +509,11 @@ class Entity {
 
 			if (options.history != false) {
 				this.app.history.push({
-					type: this.DiffType.DELETE_RELATION,
+					type: MigrationType.DELETE_RELATION,
 					table: this.name,
 					value: relation
 				},{
-					type: this.DiffType.ADD_RELATION,
+					type: MigrationType.ADD_RELATION,
 					table: this.name,
 					value: relation
 				})
@@ -627,12 +626,12 @@ class Entity {
 						}
 						if (options.history != false) {
 							this.app.history.push({
-								type: this.DiffType.CHANGE_FIELD,
+								type: MigrationType.CHANGE_FIELD,
 								table: this.name,
 								name: field.name,
 								value: fieldobj.toJson()
 							}, {
-								type: this.DiffType.CHANGE_FIELD,
+								type: MigrationType.CHANGE_FIELD,
 								table: this.name,
 								name: fieldobj.name,
 								value: field.toJson()
@@ -665,47 +664,46 @@ class Entity {
 	@returns {Promise<Field>}
 	*/
 	addFieldAt(field, at, options) {
-		return new Promise((accept, reject) => {
-			options = options || {}
+		options = options || {}
 
-			let fieldobj
-			try {
-				fieldobj = new Field(this, field)
-			} catch(e) {
-				return reject(e)
-			}
+		let fieldobj
+		try {
+			fieldobj = new Field(this, field)
+		} catch(e) {
+			return Promise.reject(e)
+		}
 
-			if (options.apply != false) {
-				if (this.getField(field.name)) {
-					if (field.isRelation)
-						return accept() // skip
-					return reject(new Error('A field of this name already exists'))
-				}
-				this.fields.splice(at, 0, fieldobj)
+		if (options.apply != false) {
+			if (this.getField(field.name)) {
+				if (field.isRelation)
+					return Promise.resolve() // skip
+				return Promise.reject(new Error('A field of this name already exists'))
 			}
+			this.fields.splice(at, 0, fieldobj)
+		}
 
-			if (options.history != false && ! field.isRelation) {
-				this.app.history.push({
-					type: this.DiffType.ADD_FIELD,
-					table: this.name,
-					value: fieldobj.toJson(),
-					position: at
-				},{
-					type: this.DiffType.DELETE_FIELD,
-					table: this.name,
-					value: field.name
-				})
-			}
+		if (options.history != false && ! field.isRelation) {
+			this.app.history.push({
+				type: MigrationType.ADD_FIELD,
+				table: this.name,
+				value: fieldobj.toJson(),
+				position: at
+			},{
+				type: MigrationType.DELETE_FIELD,
+				table: this.name,
+				value: field.name
+			})
+		}
 
-			if (options.save != false) {
-				this.save(options)
-			}
+		if (options.save != false) {
+			this.save(options)
+		}
 
-			if (options.generateQueries !== false) { //!== because null default true
-				this.initDefaultQuery()
-			}
-			return accept(fieldobj)
-		})
+		if (options.generateQueries !== false) { //!== because null default true
+			this.initDefaultQuery()
+		}
+
+		return Promise.resolve(fieldobj)
 	}
 
 	/**
@@ -735,40 +733,38 @@ class Entity {
 	@returns {Promise}
 	*/
 	removeField(name, options) {
-		return new Promise((accept, reject) => {
-			options = options || {}
-			if (! name) {
-				return reject()
-			}
-			if (options.apply != false && ! this.getField(name)) {
-				return reject(new Error('This field does not exist'))
-			}
-			this.fields.forEach((field, k) => {
-				if (field.name == name) {
-					if (options.apply != false) {
-						this.fields.splice(k, 1)
-					}
-					if (options.history != false) {
-						this.app.history.push({
-							type: this.DiffType.DELETE_FIELD,
-							table: this.name,
-							value: field.name
-						},{
-							type: this.DiffType.ADD_FIELD,
-							table: this.name,
-							value: field.toJson(),
-							position: k
-						})
-					}
+		options = options || {}
+		if (! name) {
+			return Promise.reject()
+		}
+		if (options.apply != false && ! this.getField(name)) {
+			return Promise.reject(new Error('This field does not exist'))
+		}
+		this.fields.forEach((field, k) => {
+			if (field.name == name) {
+				if (options.apply != false) {
+					this.fields.splice(k, 1)
 				}
-			})
-
-			if (options.save != false)
-				this.save(options)
-
-			this.initDefaultQuery()
-			accept()
+				if (options.history != false) {
+					this.app.history.push({
+						type: MigrationType.DELETE_FIELD,
+						table: this.name,
+						value: field.name
+					},{
+						type: MigrationType.ADD_FIELD,
+						table: this.name,
+						value: field.toJson(),
+						position: k
+					})
+				}
+			}
 		})
+
+		if (options.save != false)
+			this.save(options)
+
+		this.initDefaultQuery()
+		return Promise.resolve()
 	}
 
 	/**
@@ -871,12 +867,12 @@ class Entity {
 
 		if (options.history != false) {
 			this.app.history.push({
-				type: this.DiffType.ADD_QUERY,
+				type: MigrationType.ADD_QUERY,
 				table: this.name,
 				id: id,
 				value: queryobj.toJson()
 			}, {
-				type: this.DiffType.DELETE_QUERY,
+				type: MigrationType.DELETE_QUERY,
 				table: this.name,
 				id: id
 			})
@@ -912,11 +908,11 @@ class Entity {
 
 		if (options.history != false) {
 			this.app.history.push({
-				type: this.DiffType.DELETE_QUERY,
+				type: MigrationType.DELETE_QUERY,
 				table: this.name,
 				id: id
 			},{
-				type: this.DiffType.ADD_QUERY,
+				type: MigrationType.ADD_QUERY,
 				table: this.name,
 				id: id,
 				value: queryobj.toJson()

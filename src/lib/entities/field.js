@@ -36,6 +36,7 @@ class Field {
 				field.type = 'text'
 			}
 			this.type = field.type || this.DefaultType.TEXT
+			this.autoIncrement = false
 			if (this.type.toLowerCase() == this.DefaultType.NUMBER && field.autoIncrement || this.type.toLowerCase() == this.DefaultType.COUNTER) {
 				this.autoIncrement = true
 			}

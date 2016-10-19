@@ -7,7 +7,8 @@
         "allowJs": true,
         "module": "commonjs",
         "moduleResolution": "node",
-        "target": "ES6"
+        "target": "ES6",
+        "watch": true
     },
     "include": [
         "src/**/*",

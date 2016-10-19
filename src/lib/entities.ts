@@ -3,7 +3,7 @@ const path = require('path')
 
 import * as Sequelize from 'sequelize'
 
-import App, { ISaveOptions } from './app'
+import App, { IApplyOptions } from './app'
 
 import { MigrationType } from './history'
 
@@ -83,7 +83,7 @@ export class Entities {
 		})*/
 	}
 
-	_loadFromPath(basePath: string, opts: ISaveOptions):Promise<any> {
+	_loadFromPath(basePath: string, opts: IApplyOptions):Promise<any> {
 		let files;
 		try {
 			files = fs.readdirSync(path.join(basePath, 'entities'))
@@ -118,63 +118,45 @@ export class Entities {
 	}
 
 	load():Promise<any> {
-		return new Promise((accept, reject) => {
-			this.entities = {}
-			this._loadFromPath(this.app.path, {
-				history: false,
-				db: false,
-				save: false,
-				wait_relations: true
-			}).then(() => {
-				accept()
-			}).catch((err) => {
-				reject(err)
-			})
+		this.entities = {}
+		return this._loadFromPath(this.app.path, {
+			history: false,
+			db: false,
+			save: false,
+			wait_relations: true
 		})
 	}
 
 	loadFromAddon(addon):Promise<any> {
-		return new Promise((accept, reject) => {
-			this._loadFromPath(path.join(this.app.path, 'addons', addon), {
-				history: false,
-				db: true,
-				save: false,
-				wait_relations: true,
-				fromAddon: addon
-			}).then(() => {
-				accept()
-			}).catch((err) => {
-				reject(err)
-			})
+		return this._loadFromPath(path.join(this.app.path, 'addons', addon), {
+			history: false,
+			db: true,
+			save: false,
+			wait_relations: true,
+			fromAddon: addon
 		})
 	}
 
 	start():Promise<any> {
-		return new Promise((resolve, reject) => {
-			if ( this.app.database.disabled ) {
-				return Promise.resolve()
-			}
+		if ( this.app.database.disabled ) {
+			return Promise.resolve()
+		}
 
-			//Apply relations before sync
-			let promises = []
-			for (let name in this.entities) {
-				let entity = this.entities[name]
-				promises.push(entity.applyRelations())
-			}
+		//Apply relations before sync
+		let promises = []
+		for (let name in this.entities) {
+			let entity = this.entities[name]
+			promises.push(entity.applyRelations())
+		}
 
 
-			//detect rename then sync database
-			Promise.all(promises).then(() => {
-				return this.detect_rename()
-			}).then(() => {
-				return this._save_id_map()
-			}).then(() => {
-				return this.app.database.sync()
-			}).then(() => {
-				resolve()
-			}).catch((e) => {
-				reject(e)
-			})
+		//detect rename then sync database
+		return Promise.all(promises).then(() => {
+			return this.detect_rename()
+		}).then(() => {
+			return this._save_id_map()
+		}).then(() => {
+			return this.app.database.sync()
 		})
 	}
 
@@ -219,56 +201,50 @@ export class Entities {
 			createPromise = entity.create(entityobj, {wait_relations:options.wait_relations, fromAddon: options.fromAddon})
 		}
 
-		return new Promise((accept, reject) => {
-			createPromise.then(() => {
+		return createPromise.then(() => {
 
-				//maybe we'll have to move this after `if (options.apply != false)` block
-				if (options.save != false) {
-					entity.save(options)
-				}
+			//maybe we'll have to move this after `if (options.apply != false)` block
+			if (options.save != false) {
+				entity.save(options)
+			}
 
-				if (options.apply != false) {
-					this.entities[entity.name] = entity
-					this.app.emit('entity:added', entity)
-				}
+			if (options.apply != false) {
+				this.entities[entity.name] = entity
+				this.app.emit('entity:added', entity)
+			}
 
-				if (options.overwritable)
-					return accept(entity)
+			if (options.overwritable)
+				return entity
 
-				if (options.history != false) {
-					this.app.history.push({
-						type: MigrationType.CREATE_ENTITY,
-						table: entity.name,
-						value: entity.toJson()
-					},{
-						type: MigrationType.DELETE_ENTITY,
-						table: entity.name
-					})
-				}
-
-				if (options.db == false)
-					return accept(entity)
-
-				let p
-				if (options.apply != false) {
-					entity.initDefaultQuery()
-					p = this.sync().then(() => {
-						entity.refreshQueries()
-					})
-				}
-				else {
-					p = entity.loadModel()
-				}
-
-				p = p.then(() => {
-					return entity.model.sync()
-				}).then(function() {
-					accept(entity)
-				}, function(err) {
-					reject(err)
+			if (options.history != false) {
+				this.app.history.push({
+					type: MigrationType.CREATE_ENTITY,
+					table: entity.name,
+					value: entity.toJson()
+				},{
+					type: MigrationType.DELETE_ENTITY,
+					table: entity.name
 				})
-			}, function(err) {
-				reject(err)
+			}
+
+			if (options.db == false)
+				return entity
+
+			let p
+			if (options.apply != false) {
+				entity.initDefaultQuery()
+				p = this.sync().then(() => {
+					entity.refreshQueries()
+				})
+			}
+			else {
+				p = entity.loadModel()
+			}
+
+			return p.then(() => {
+				return entity.model.sync()
+			}).then(() => {
+				return entity
 			})
 		})
 	}
@@ -335,7 +311,7 @@ export class Entities {
 	@param {object} - Action's options
 	@returns {Promise}
 	*/
-	remove(name: string, options?: ISaveOptions): Promise<any> | boolean {
+	remove(name: string, options?: IApplyOptions): Promise<any> | boolean {
 		options = options || {}
 
 		if ( ! name) {
@@ -502,16 +478,10 @@ export class Entities {
 	@returns {Entity}
 	*/
 	getOrAdd(name, entityobj, options) {
-		return new Promise((accept, reject) => {
-			if (this.entities[name])
-				return accept(this.entities[name])
-			entityobj.name = name
-			this.add(entityobj, options).then((entity) => {
-				accept(entity)
-			}, (err) => {
-				reject(err)
-			})
-		})
+		if (this.entities[name])
+			return Promise.resolve(this.entities[name])
+		entityobj.name = name
+		return this.add(entityobj, options)
 	}
 
 	save(opts) {

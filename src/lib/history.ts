@@ -139,7 +139,7 @@ export class History {
 	@param {function} - Action's function
 	*/
 	register(type:any, action: (data: IActionData, opts: any) => Promise<any>|boolean) {
-		this.actions[+type] = action
+		this.actions[type] = action
 	}
 
 	/**

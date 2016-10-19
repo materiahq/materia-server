@@ -7,6 +7,8 @@ let domain = require('domain')
 
 import App, { AppMode, ISaveOptions } from './app'
 
+import { ConfigType, IConfigOptions } from './server'
+
 import { DatabaseInterface } from './database/interface'
 
 export enum Dialect {
@@ -23,19 +25,15 @@ export interface ISequelizeConfig {
 	storage?: string
 }
 
-export interface IBasicDatabaseConfig {
-	host?: string,
-	port?: number,
+export interface IDatabaseServerConfig {
+	type: string
+	host?: string
+	port?: number
 	username?: string
 	password?: string
 	database?: string
-	type: string
 	storage?: string
-}
-
-export interface IDatabaseConfig {
-	dev: IBasicDatabaseConfig,
-	prod?: IBasicDatabaseConfig
+	live?: IDatabaseServerConfig
 }
 
 /**
@@ -46,8 +44,8 @@ export interface IDatabaseConfig {
 export class Database {
 	interface: DatabaseInterface
 
-	settings: IDatabaseConfig
 	disabled: boolean
+	locked: boolean = false
 
 	host: string
 	port: number
@@ -71,14 +69,8 @@ export class Database {
 	@param {string} - *optional* The environment mode. `development` or `production`. Default to `development`
 	@returns {object}
 	*/
-	getConfig(mode?: AppMode):IBasicDatabaseConfig {
-		if ( ! this.settings) {
-			throw new Error('The server is not configured yet.')
-		}
-
-		mode = mode || this.app.mode
-
-		return this.settings[mode]
+	getConfig(mode?: AppMode, options?: IConfigOptions):IDatabaseServerConfig {
+		return <IDatabaseServerConfig>this.app.server.getConfig(mode, ConfigType.DATABASE, options)
 	}
 
 	/**
@@ -89,15 +81,11 @@ export class Database {
 	load(settings?: any):boolean {
 		this.disabled = false
 		if ( ! settings && this.app.path) {
-			try {
-				let content = fs.readFileSync(path.join(this.app.path, 'database.json'))
-				settings = JSON.parse(content.toString())
-			} catch (e) {
-				if (e.code != 'ENOENT') {
-					this.disabled = true
-					throw e
-				}
+			this.app.server.reloadConfig()
+			if (this.app.live) {
+				settings = this.getConfig(this.app.mode, {live: true})
 			}
+			settings = settings || this.getConfig(this.app.mode)
 		}
 
 		if ( ! settings) {
@@ -105,26 +93,13 @@ export class Database {
 			return false
 		}
 
-		if ( settings && ! settings.dev ) {
-			this.settings = {
-				dev: null,
-				prod: null
-			}
-			this.settings[this.app.mode] = settings
-		}
-		else {
-			this.settings = settings;
-		}
-
-		let modeSetting = this.settings[this.app.mode]
-
-		this.host = this.app.options['database-host'] || modeSetting.host || 'localhost'
-		this.port = Number(this.app.options['database-port'] || modeSetting.port)
-		this.username = this.app.options['database-username'] || modeSetting.username
-		this.password = this.app.options['database-password'] || modeSetting.password
-		this.database = this.app.options['database-db'] || modeSetting.database
-		this.storage = this.app.options['storage'] || modeSetting.storage
-		this.type = modeSetting.type
+		this.host = this.app.options['database-host'] || settings.host || 'localhost'
+		this.port = Number(this.app.options['database-port'] || settings.port)
+		this.username = this.app.options['database-username'] || settings.username
+		this.password = this.app.options['database-password'] || settings.password
+		this.database = this.app.options['database-db'] || settings.database
+		this.storage = this.app.options['storage'] || settings.storage
+		this.type = settings.type
 		this.started = false
 
 		let logging: any
@@ -148,20 +123,7 @@ export class Database {
 		return true
 	}
 
-	/**
-	 *
-	 */
-	save(opts?: ISaveOptions) {
-		if (opts && opts.beforeSave) {
-			opts.beforeSave('database.json')
-		}
-		fs.writeFileSync(path.join(this.app.path, 'database.json'), JSON.stringify(this.toJson(), null, '\t'))
-		if (opts && opts.afterSave) {
-			opts.afterSave()
-		}
-	}
-
-	private confToJson(conf:IBasicDatabaseConfig):IBasicDatabaseConfig {
+	_confToJson(conf:IDatabaseServerConfig):IDatabaseServerConfig {
 		if ( ! conf ) {
 			return null
 		}
@@ -173,12 +135,11 @@ export class Database {
 				database: conf.database,
 				username: conf.username,
 				password: conf.password
-			} as IBasicDatabaseConfig
+			} as IDatabaseServerConfig
 		}
 		else {
-			let res: IBasicDatabaseConfig = {
-				type: conf.type,
-				storage: null
+			let res: IDatabaseServerConfig = {
+				type: conf.type
 			}
 			if (conf.storage && conf.storage != "database.sqlite") {
 				res.storage = conf.storage
@@ -187,27 +148,12 @@ export class Database {
 		}
 	}
 
-	toJson():IDatabaseConfig {
-		let res: IDatabaseConfig = {
-			dev: this.confToJson(this.settings.dev),
-			prod: this.confToJson(this.settings.prod)
-		}
-		return res;
-	}
-
-	/* deprecated: use load() + save() instead */
-	setup(settings: IDatabaseConfig):void {
-		if (this.load(settings)) {
-			this.save();
-		}
-	}
-
 	/**
 	Try to connect with a custom configuration
 	@param {object} - The configuration object
 	@returns {Promise}
 	*/
-	static try(settings: IBasicDatabaseConfig, app?: App) {
+	static try(settings: IDatabaseServerConfig, app?: App) {
 
 		//TODO: check settings.storage to be a real path
 		if (settings.type == 'sqlite' && settings.storage) {
@@ -247,7 +193,7 @@ export class Database {
 	}
 
 	try(settings) {
-		return Database.try.call(this, settings)
+		return Database.try(settings, this.app)
 	}
 
 	/**
@@ -259,35 +205,31 @@ export class Database {
 			this.stop()
 		}
 
-		let promise = new Promise((resolve, reject) => {
-			if ( this.disabled ) {
-				return resolve()
-			}
-			if ( ! this.interface.hasDialect(this.type)) {
-				return reject(new Error('The database\'s dialect is not supported'))
-			}
-			this.app.emit('db:start')
-			try {
-				this.sequelize = new Sequelize(this.database, this.username, this.password, this.opts)
-			}
-			catch(e) {
-				return reject(e)
-			}
-			this.interface.setDialect(this.type)
-			let auth = this.sequelize.authenticate()
-			auth.then(() => {
-				this.app.emit('db:authorized')
-				this.started = true
-				this.app.emit('db:started')
-				resolve()
-			}).catch((e) => {
-				this.app.logger.warn('Impossible to connect the database:', e && e.message)
-				this.app.logger.warn('The database has been disabled')
-				this.disabled = true
-				resolve(e)
-			})
+		if ( this.disabled ) {
+			return Promise.resolve()
+		}
+		if ( ! this.interface.hasDialect(this.type)) {
+			return Promise.reject(new Error('The database\'s dialect is not supported'))
+		}
+		this.app.emit('db:start')
+		try {
+			this.sequelize = new Sequelize(this.database, this.username, this.password, this.opts)
+		}
+		catch(e) {
+			return Promise.reject(e)
+		}
+		this.interface.setDialect(this.type)
+		let auth = this.sequelize.authenticate()
+		return auth.then(() => {
+			this.app.emit('db:authorized')
+			this.started = true
+			this.app.emit('db:started')
+		}).catch((e) => {
+			this.app.logger.warn('Impossible to connect the database:', e && e.message)
+			this.app.logger.warn('The database has been disabled')
+			this.disabled = true
+			return Promise.resolve(e)
 		})
-		return promise
 	}
 
 	/**

@@ -8,8 +8,6 @@ const Permissions = require('./api/permissions')
 
 import App from './app'
 
-import { MigrationType } from './history'
-
 /**
  * @class Api
  * @classdesc

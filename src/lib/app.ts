@@ -40,8 +40,11 @@ export interface IAppOptions {
 }
 
 export interface ISaveOptions {
-	beforeSave?: (path?: string) => Promise<any>,
-	afterSave?: () => Promise<any>
+	beforeSave?: (path?: string) => Object,
+	afterSave?: (lock?: Object) => void
+}
+
+export interface IApplyOptions extends ISaveOptions {
 	apply?: boolean
 	history?: boolean
 	save?: boolean
@@ -59,8 +62,8 @@ export interface IMateriaConfig {
 }
 
 export enum AppMode {
-	DEVELOPMENT,
-	PRODUCTION
+	DEVELOPMENT = <any>'dev',
+	PRODUCTION = <any>'prod'
 }
 /**
  * @class App
@@ -90,6 +93,7 @@ export default class App extends events.EventEmitter {
 	logger: Logger
 
 	status: boolean
+	live: boolean = false
 
 	deploy: any
 	addonsTools: any
@@ -157,17 +161,15 @@ export default class App extends events.EventEmitter {
 		}
 
 		return beforeLoad.then(() => {
-			return new Promise((resolve, reject) => {
-				if (this.database.load()) {
-					this.database.start().then(() => {
-						return this.entities.load().then(resolve).catch(reject)
-					}).catch(reject)
-				}
-				else {
-					this.logger.log('No database configuration for this application - Continue without Entities')
-					return Promise.resolve()
-				}
-			})
+			if (this.database.load()) {
+				return this.database.start().then(() => {
+					return this.entities.load()
+				})
+			}
+			else {
+				this.logger.log('No database configuration for this application - Continue without Entities')
+				return Promise.resolve()
+			}
 		}).then(() => {
 			this.server.load()
 			this.api.load()
