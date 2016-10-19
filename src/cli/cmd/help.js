@@ -1,6 +1,6 @@
 'use strict'
 
-let pckg_info = require('../../package.json')
+let pckg_info = require('../../../package.json')
 
 let topics = {
 	'-': [
