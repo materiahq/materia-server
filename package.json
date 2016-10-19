@@ -7,7 +7,7 @@
     "test": "test"
   },
   "bin": {
-    "materia": "cli/index.js"
+    "materia": "dist/cli/index.js"
   },
   "dependencies": {
     "@types/async": "^2.0.32",
@@ -29,7 +29,7 @@
     "mysql": "^2.11.1",
     "ncp": "^2.0.0",
     "node-uuid": "^1.4.7",
-    "nodegit": "^0.16.0",
+    "nodegit": "0.16.0",
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
     "pretty-error": "^2.0.1",
@@ -38,7 +38,7 @@
     "rimraf": "^2.5.4",
     "sequelize": "^3.24.3",
     "server-destroy": "^1.0.1",
-    "sqlite3": "^3.1.4",
+    "sqlite3": "3.1.4",
     "tedious": "^1.14.0",
     "whereis": "^0.4.0"
   },
