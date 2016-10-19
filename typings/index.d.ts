@@ -11,3 +11,4 @@
 /// <reference path="globals/sequelize/index.d.ts" />
 /// <reference path="globals/serve-static/index.d.ts" />
 /// <reference path="modules/mkdirp/index.d.ts" />
+/// <reference path="nodegit/nodegit.d.ts" />
