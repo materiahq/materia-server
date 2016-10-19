@@ -258,6 +258,10 @@ declare namespace NodeGit {
         remoteCbPayload?: void;
     }
 
+    export interface EventEmitter extends NodeJS.EventEmitter {
+        start(): void
+    }
+
     export class Commit {
         static create(repo: NodeGit.Repository, update_ref: string, author: NodeGit.Signature, committer: NodeGit.Signature, message_encoding: string, message: string, tree: NodeGit.Tree, parent_count: number, parents: any[]): Oid;
         static createV(id: NodeGit.Oid, repo: NodeGit.Repository, update_ref: string, author: NodeGit.Signature, committer: NodeGit.Signature, message_encoding: string, message: string, tree: NodeGit.Tree, parent_count: number): number;
@@ -289,7 +293,7 @@ declare namespace NodeGit {
         date(): Date;
         getTree(): Promise<NodeGit.Tree>;
         getEntry(path: string): Promise<NodeGit.TreeEntry>;
-        history(): NodeJS.EventEmitter;
+        history(): EventEmitter;
         getParents(limit: number, callback: Function): Promise<NodeGit.Commit[]>;
         parents(callback: Function): Oid[];
         getDiff(callback: Function): Promise<NodeGit.Diff[]>;

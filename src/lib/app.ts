@@ -11,6 +11,8 @@ import { Server } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
 
+import GitVersionning from './git-versionning'
+
 //TODO: convert to ts
 import Addons from './addons'
 import Api from './api'
@@ -84,13 +86,14 @@ export default class App extends events.EventEmitter {
 
 	infos: IMateriaConfig
 
-	public history: History
-	public entities: Entities
-	public addons: any
-	public database: Database
-	public api: any
-	public server: Server
+	history: History
+	entities: Entities
+	addons: any
+	database: Database
+	api: any
+	server: Server
 	logger: Logger
+	gitVersionning: GitVersionning
 
 	status: boolean
 	live: boolean = false
@@ -128,6 +131,7 @@ export default class App extends events.EventEmitter {
 		this.database = new Database(this)
 		this.api = new Api(this)
 		this.server = new Server(this)
+		this.gitVersionning = new GitVersionning(this);
 
 		this.status = false
 
@@ -176,6 +180,8 @@ export default class App extends events.EventEmitter {
 			return this.history.load()
 		}).then(() => {
 			return this.addons.load()
+		}).then(() => {
+			return this.gitVersionning.initialize()
 		})
 	}
 
