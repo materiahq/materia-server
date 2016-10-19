@@ -205,8 +205,8 @@ export class Server {
 
 		let result = this.config[mode][type]
 
-		if (options.live) {
-			result = result && result.live
+		if (options.live && result && result.live) {
+			result = result.live
 		}
 
 		return result
@@ -218,8 +218,13 @@ export class Server {
 	@param {string} - The environment mode. `development` or `production`.
 	*/
 	setConfig(config: IWebServerConfig|IDatabaseServerConfig, mode: AppMode, type?:ConfigType, options?: IConfigOptions, opts?: ISaveOptions):void {
+		options = options || {}
 		if ( type == ConfigType.WEB && (! config.host || ! config.port) ) {
-			throw new Error('Missing host/port')
+			if (mode == AppMode.DEVELOPMENT) {
+				throw new Error('Missing host/port')
+			} else {
+				config = undefined
+			}
 		}
 
 		if ( ! this.config) {
@@ -229,18 +234,27 @@ export class Server {
 			this.config[mode] = {}
 		}
 
-		let live = this.config[mode][type] && this.config[mode][type].live
+		let conf: IWebServerConfig|IDatabaseServerConfig
 		if (type == ConfigType.WEB) {
-			this.config[mode].web = {
+			conf = config && {
 				host: config.host,
 				port: config.port
 			}
 		} else if (type == ConfigType.DATABASE) {
-			this.config[mode].database = this.app.database._confToJson(<IDatabaseServerConfig> config)
+			conf = this.app.database._confToJson(<IDatabaseServerConfig> config)
 		}
 
-		if (this.config[mode][type] && live) {
-			this.config[mode][type].live = live
+		if (options.live) {
+			if ( ! this.config[mode][type]) {
+				this.config[mode][type] = {}
+			}
+			this.config[mode][type].live = conf
+		} else {
+			let live = this.config[mode][type] && this.config[mode][type].live
+			this.config[mode][type] = conf
+			if (this.config[mode][type] && live) {
+				this.config[mode][type].live = live
+			}
 		}
 
 		if (opts && opts.beforeSave) {
