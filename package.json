@@ -13,6 +13,7 @@
     "async": "^2.0.1",
     "body-parser": "^1.15.2",
     "colors": "^1.1.2",
+    "compression": "^1.6.2",
     "cookie-parser": "^1.4.3",
     "errorhandler": "^1.4.3",
     "express": "^4.14.0",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@types/async": "^2.0.32",
+    "@types/compression": "0.0.33",
     "@types/lodash": "^4.14.37",
     "@types/rimraf": "0.0.28",
     "@types/sequelize": "^4.0.38",

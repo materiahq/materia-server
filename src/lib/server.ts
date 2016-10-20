@@ -15,6 +15,7 @@ import * as methodOverride from 'method-override'
 import * as bodyParser from 'body-parser'
 import * as errorHandler from 'errorhandler'
 import * as session from 'express-session'
+import * as compression from 'compression'
 
 var enableDestroy = require('server-destroy')
 
@@ -68,6 +69,7 @@ export class Server {
 		this.expressApp.use(bodyParser.json())
 		this.expressApp.use(methodOverride())
 		this.expressApp.use(cookieParser())
+		this.expressApp.use(compression())
 		this.expressApp.use(session({
 			secret: 'keyboard cat',
 			cookie: { maxAge: 60000 },
