@@ -14,4 +14,3 @@ test/samples/*/key.pem
 test/samples/*/deploy-*
 test/samples/*/addons
 .materia
-dist/**/*
