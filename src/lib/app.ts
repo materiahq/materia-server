@@ -116,7 +116,7 @@ export default class App extends events.EventEmitter {
 		else if (['development', 'dev', 'debug'].indexOf(this.options.mode) != -1) {
 			this.mode = AppMode.DEVELOPMENT
 		}
-		else if (this.options.mode == 'production') {
+		else if (this.options.mode == 'production' || this.options.mode == 'prod') {
 			this.mode = AppMode.PRODUCTION
 		}
 		else {
