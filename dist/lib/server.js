@@ -10,6 +10,7 @@ const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
 const errorHandler = require('errorhandler');
 const session = require('express-session');
+const compression = require('compression');
 var enableDestroy = require('server-destroy');
 (function (ConfigType) {
     ConfigType[ConfigType["WEB"] = "web"] = "WEB";
@@ -33,6 +34,7 @@ class Server {
         this.expressApp.use(bodyParser.json());
         this.expressApp.use(methodOverride());
         this.expressApp.use(cookieParser());
+        this.expressApp.use(compression());
         this.expressApp.use(session({
             secret: 'keyboard cat',
             cookie: { maxAge: 60000 },
