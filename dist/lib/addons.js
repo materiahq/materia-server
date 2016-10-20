@@ -1,0 +1,288 @@
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const mkdirp = require('mkdirp');
+/**
+ * @class Addons
+ * @classdesc
+ * This class is used to manage your addons in a materia app.
+ */
+class Addons {
+    constructor(app) {
+        this.app = app;
+        this.addons = [];
+        this.addonsObj = {};
+        this.rootDirectory = path.join(this.app.path, 'addons');
+        this.addonsConfig = {};
+    }
+    _loadEntities(addon) {
+        return this.app.entities.loadFromAddon(addon);
+    }
+    _loadAPI(addon) {
+        try {
+            this.app.api.loadFromAddon(addon);
+            return Promise.resolve();
+        }
+        catch (e) {
+            return Promise.reject(e);
+        }
+    }
+    _requireAddon(addon) {
+        if (fs.existsSync(path.join(this.rootDirectory, addon, 'index.coffee')) ||
+            fs.existsSync(path.join(this.rootDirectory, addon, 'index.js')) ||
+            fs.existsSync(path.join(this.rootDirectory, addon + '.js')) ||
+            fs.existsSync(path.join(this.rootDirectory, addon + '.coffee'))) {
+            let AddonClass, addonInstance, addonPackage;
+            try {
+                addonPackage = require(path.join(this.rootDirectory, addon, 'package.json'));
+                AddonClass = require(path.join(this.rootDirectory, addon));
+            }
+            catch (e) {
+                let err = new Error('Impossible to require addon ' + addon);
+                err.originalError = e;
+                return err;
+            }
+            try {
+                addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp);
+            }
+            catch (e) {
+                let err = new Error('Impossible to create addon ' + addon);
+                err.originalError = e;
+                return e;
+            }
+            let version;
+            if (addonPackage._from) {
+                let matches = /^.*(?:#(.*))$/.exec(addonPackage._from);
+                if (matches)
+                    version = matches[1];
+            }
+            this.addons.push({
+                name: addonPackage.name,
+                path: path.join(this.rootDirectory, addon),
+                info: {
+                    description: addonPackage.description,
+                    logo: addonPackage.materia && addonPackage.materia.logo,
+                    author: addonPackage.materia && addonPackage.materia.author,
+                    version: version
+                },
+                obj: addonInstance
+            });
+        }
+    }
+    _requireAndCreateAddons(files) {
+        for (let addon of files) {
+            if (fs.existsSync(path.join(this.rootDirectory, addon, 'index.coffee')) ||
+                fs.existsSync(path.join(this.rootDirectory, addon, 'index.js')) ||
+                fs.existsSync(path.join(this.rootDirectory, addon + '.js')) ||
+                fs.existsSync(path.join(this.rootDirectory, addon + '.coffee'))) {
+                let AddonClass, addonInstance, addonPackage;
+                try {
+                    addonPackage = require(path.join(this.rootDirectory, addon, 'package.json'));
+                    AddonClass = require(path.join(this.rootDirectory, addon));
+                }
+                catch (e) {
+                    let err = new Error('Impossible to require addon ' + addon);
+                    err.originalError = e;
+                    return Promise.reject(err);
+                }
+                try {
+                    addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp);
+                }
+                catch (e) {
+                    let err = new Error('Impossible to create addon ' + addon);
+                    err.originalError = e;
+                    return Promise.reject(err);
+                }
+                let version;
+                if (addonPackage._from) {
+                    let matches = /^.*(?:#(.*))$/.exec(addonPackage._from);
+                    if (matches)
+                        version = matches[1];
+                }
+                this.addons.push({
+                    name: addonPackage.name,
+                    path: path.join(this.rootDirectory, addon),
+                    info: {
+                        description: addonPackage.description,
+                        logo: addonPackage.materia && addonPackage.materia.logo,
+                        author: addonPackage.materia && addonPackage.materia.author,
+                        version: version
+                    },
+                    obj: addonInstance
+                });
+            }
+        }
+        return Promise.resolve();
+    }
+    createCustom(name, description) {
+        return new Promise((accept, reject) => {
+            if (!name) {
+                return reject({
+                    error: true,
+                    message: 'A name is required to create an addon.',
+                });
+            }
+            let regexp = /[a-zA-Z0-9][.a-zA-Z0-9-_]*/g;
+            if (!regexp.test(name)) {
+                return reject({
+                    error: true,
+                    message: 'The addon name contains bad characters.',
+                });
+            }
+            if (fs.exists(path.join(this.app.path, 'addons', name))) {
+                return reject({
+                    error: true,
+                    message: 'The addon already exists: ' + name,
+                });
+            }
+            mkdirp(path.join(this.app.path, 'addons', name), (err) => {
+                if (err) {
+                    return reject(err);
+                }
+                let nameCapitalizeFirst = name.charAt(0).toUpperCase() + name.slice(1);
+                let content = `'use strict';
+
+class ${nameCapitalizeFirst} {
+	constructor(app, config) {
+		//TODO
+	}
+
+	start() {
+		//TODO
+		return Promise.resolve()
+	}
+}
+
+module.exports = ${nameCapitalizeFirst};`;
+                let contentPackageJson = `{
+  "author": {
+    "name": "you@domain.com"
+  },
+  "dependencies": {
+  },
+  "description": ${JSON.stringify(description || '')},
+  "devDependencies": {},
+  "license": "MIT",
+  "main": "index.js",
+  "name": "${name}",
+  "version": "0.1.0"
+}`;
+                console.log('index.js created');
+                fs.writeFileSync(path.join(this.app.path, 'addons', name, 'index.js'), content);
+                fs.writeFileSync(path.join(this.app.path, 'addons', name, 'package.json'), contentPackageJson);
+                accept();
+            });
+        });
+    }
+    unload(name) {
+        this.addons.forEach((addon, i) => {
+            if (addon.name == name) {
+                this.addons.splice(i, 1);
+            }
+        });
+    }
+    load() {
+        this.addons = [];
+        this.addonsObj = {};
+        let files;
+        try {
+            files = fs.readdirSync(path.join(this.app.path, 'addons'));
+        }
+        catch (e) {
+            if (e.code == 'ENOENT')
+                return Promise.resolve();
+            return Promise.reject(e);
+        }
+        if (fs.existsSync(path.join(this.app.path, 'addons.json'))) {
+            let content = fs.readFileSync(path.join(this.app.path, 'addons.json'));
+            this.addonsConfig = JSON.parse(content.toString());
+        }
+        return this._requireAndCreateAddons(files).then(() => {
+            let p = Promise.resolve();
+            for (let addon of this.addons) {
+                this.addonsObj[addon.name] = addon.obj;
+                ((addon) => {
+                    p = p.then(() => {
+                        if (typeof addon.obj.load == 'function') {
+                            let obj = addon.obj.load();
+                            if (obj && obj.then && obj.catch
+                                && typeof obj.then === 'function'
+                                && typeof obj.catch === 'function') {
+                                return obj;
+                            }
+                        }
+                        return Promise.resolve();
+                    }).then(() => {
+                        return this._loadEntities(addon.name);
+                    }).then(() => {
+                        return this._loadAPI(addon.name);
+                    });
+                })(addon);
+            }
+            return p;
+        });
+    }
+    checkInstalled() {
+        if (!this.app.infos.addons)
+            return;
+        let files;
+        try {
+            files = fs.readdirSync(path.join(this.app.path, 'addons'));
+        }
+        catch (e) {
+            if (e.code == 'ENOENT') {
+                if (Object.keys(this.app.infos.addons).length == 0)
+                    return;
+                throw new Error('Missing addons, please run "materia addons install"');
+            }
+            throw e;
+        }
+        for (let k in this.app.infos.addons) {
+            let addon = /[^/]+$/.exec(k);
+            addon = addon ? addon[0] : "";
+            if (files.indexOf(addon) == -1) {
+                throw new Error('Missing addon: ' + k + ', please run "materia addons install"');
+            }
+        }
+    }
+    start() {
+        let p = Promise.resolve();
+        for (let addon of this.addons) {
+            ((addon) => {
+                p = p.then(() => {
+                    if (typeof addon.obj.start == 'function') {
+                        let obj = addon.obj.start();
+                        if (obj && obj.then && obj.catch
+                            && typeof obj.then === 'function'
+                            && typeof obj.catch === 'function') {
+                            return obj;
+                        }
+                    }
+                    return Promise.resolve();
+                });
+            })(addon);
+        }
+        return p;
+    }
+    /**
+    Get all the registered filters' name
+    @returns {Array<object>}
+    */
+    findAll() { return this.addons; }
+    /**
+    Get a plugin object
+    @param {string} - Addon's name
+    @returns {object}
+    */
+    get(name) { return this.addonsObj[name]; }
+    /**
+    Get the registered addons count
+    @returns {integer}
+    */
+    getLength() {
+        return this.addons.length;
+    }
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Addons;
+//# sourceMappingURL=addons.js.map
