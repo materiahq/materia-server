@@ -13,6 +13,8 @@ import { Database } from './database'
 
 import Git from './git'
 
+import { Synchronizer } from './synchronizer'
+
 import Addons from './addons'
 import Api from './api'
 
@@ -21,7 +23,6 @@ import { History } from './history'
 //TODO: convert to ts
 let Deploy = require('./runtimes/tools/deploy')
 let AddonsTools = require('./runtimes/tools/addons')
-let Versionning = require('./runtimes/tools/versionning')
 
 export interface IAppOptions {
 	mode?: string,
@@ -30,6 +31,7 @@ export interface IAppOptions {
 	silent?: boolean,
 	logSql?: boolean,
 	logRequests?: boolean,
+	prod?: boolean,
 	port?: number,
 
 	"database-host"?: string
@@ -99,7 +101,7 @@ export default class App extends events.EventEmitter {
 
 	deploy: any
 	addonsTools: any
-	versionning: any
+	synchronizer: Synchronizer
 
 	constructor(public path: string, public options: IAppOptions) {
 		super()
@@ -107,6 +109,10 @@ export default class App extends events.EventEmitter {
 
 		if ( ! this.options ) {
 			this.options = {}
+		}
+
+		if ( this.options.prod ) {
+			this.options.mode = 'prod'
 		}
 
 		if ( ! this.options.mode ) {
@@ -130,7 +136,8 @@ export default class App extends events.EventEmitter {
 		this.database = new Database(this)
 		this.api = new Api(this)
 		this.server = new Server(this)
-		this.git = new Git(this);
+		this.git = new Git(this)
+		this.synchronizer = new Synchronizer(this)
 
 		this.status = false
 
@@ -141,9 +148,6 @@ export default class App extends events.EventEmitter {
 
 			let AddonsTools = require('./runtimes/tools/addons')
 			this.addonsTools = new AddonsTools(this)
-
-			let Versionning = require('./runtimes/tools/versionning')
-			this.versionning = new Versionning(this)
 		}
 	}
 
@@ -249,6 +253,21 @@ export default class App extends events.EventEmitter {
 				e.errorType = 'addons'
 				throw e
 			})
+		}).then(() => {
+			if (this.mode == AppMode.PRODUCTION && ! this.live) {
+				return this.synchronizer.diff().then((diffs) => {
+					if (diffs && diffs.length == 0) {
+						return
+					}
+					this.logger.log('INFO: The database structure differs from entities. Syncing...')
+					return this.synchronizer.entitiesToDatabase(diffs, {}).then((actions) => {
+						this.logger.log(`INFO: Successfully updated the database. (Applied ${actions.length} actions)`)
+					})
+				}).catch((e) => {
+					e.errorType = 'sync'
+					throw e
+				})
+			}
 		}).then(() => {
 			return this.server.start().catch((e) => {
 				e.errorType = 'server'

@@ -104,7 +104,7 @@ export class Database {
 
 		let logging: any
 		if (this.app.options.logSql == true)
-			logging = this.app.logger.log
+			logging = (...args) => { this.app.logger.log.apply(this.app.logger, args) }
 		else if (this.app.options.logSql !== undefined)
 			logging = this.app.options.logSql
 		else

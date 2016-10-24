@@ -39,21 +39,6 @@ export const MigrationType = {
 	//DELETE_API_DATA: 'delete_api_data',
 }
 
-
-export interface IMigrationData {
-	table: string,
-	type: any,
-}
-
-export interface IMigration {
-	undo: IMigrationData,
-	redo: IMigrationData
-}
-
-export interface IHistoryActions {
-	[index:number]: (data: any, opts: any) => Promise<any> | boolean
-}
-
 export interface IActionData {
 	id?: string,
 	table: string,
@@ -67,6 +52,16 @@ export interface IActionData {
 		opts: any
 	}
 }
+
+export interface IMigration {
+	undo: IActionData,
+	redo: IActionData
+}
+
+export interface IHistoryActions {
+	[index:number]: (data: any, opts: any) => Promise<any> | boolean
+}
+
 
 export interface IActionOptions {
 	full_rename?: boolean,
@@ -254,7 +249,7 @@ export class History {
 	@param {object} - Action's options
 	@returns {Promise<Array>} the applied actions
 	*/
-	revert(diffs, opts) {
+	revert(diffs, opts) : Promise<IActionData[]> {
 		let diff_redo = this.diffRedo
 		let diff_undo = this.diff
 
@@ -300,7 +295,7 @@ export class History {
 	@param {object} - Action's options
 	@returns {Promise<Array>} the applied actions
 	*/
-	apply(diffs, opts) {
+	apply(diffs, opts) : Promise<IActionData[]> {
 		let diff_redo = this.diffRedo
 		let diff_undo = this.diff
 
@@ -313,7 +308,7 @@ export class History {
 		}
 
 		let actions = []
-		let p = Promise.resolve({ type: null, table: null } as IMigrationData)
+		let p = Promise.resolve({ type: null, table: null } as IActionData)
 
 		for (let i in this.diffRedo) {
 			p = p.then((action) => {

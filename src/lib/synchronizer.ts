@@ -1,9 +1,7 @@
-'use strict'
+import App from './app'
+import { MigrationType } from './history'
 
-import App from '../../app'
-import { MigrationType } from '../../history'
-
-class Versionning {
+export class Synchronizer {
 	constructor(private app: App) {}
 
 	_compareField(dbfield, field, entity):any {
@@ -515,5 +513,3 @@ class Versionning {
 		return this.app.history.apply(actions, options)
 	}
 }
-
-module.exports = Versionning
