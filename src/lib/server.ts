@@ -326,10 +326,12 @@ export class Server {
 
 			let config = this.getConfig()
 			return new Promise((resolve, reject) => {
+				let port = this.app.options.port || config.port
+
 				let errListener = (e) => {
 					let err
 					if (e.code == 'EADDRINUSE') {
-						err = new Error('Error while starting the server: The port is already used by another server.')
+						err = new Error(`Error while starting the server: The port ${port} is already used by another server.`)
 					}
 					else {
 						err = new Error('Error while starting the server: ' + e.message)
@@ -339,7 +341,6 @@ export class Server {
 					return reject(err)
 				}
 
-				let port = this.app.options.port || config.port
 				let args = [port, config.host, () => {
 					this.started = true
 					this.app.logger.log(`Server listening on ${config.host}:${port}`)

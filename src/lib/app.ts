@@ -11,9 +11,8 @@ import { Server } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
 
-import GitVersionning from './git-versionning'
+import { Synchronizer } from './synchronizer'
 
-//TODO: convert to ts
 import Addons from './addons'
 import Api from './api'
 
@@ -22,7 +21,6 @@ import { History } from './history'
 //TODO: convert to ts
 let Deploy = require('./runtimes/tools/deploy')
 let AddonsTools = require('./runtimes/tools/addons')
-let Versionning = require('./runtimes/tools/versionning')
 
 export interface IAppOptions {
 	mode?: string,
@@ -31,6 +29,7 @@ export interface IAppOptions {
 	silent?: boolean,
 	logSql?: boolean,
 	logRequests?: boolean,
+	prod?: boolean,
 	port?: number,
 
 	"database-host"?: string
@@ -93,14 +92,14 @@ export default class App extends events.EventEmitter {
 	api: any
 	server: Server
 	logger: Logger
-	gitVersionning: GitVersionning
+	git: any
 
 	status: boolean
 	live: boolean = false
 
 	deploy: any
 	addonsTools: any
-	versionning: any
+	synchronizer: Synchronizer
 
 	constructor(public path: string, public options: IAppOptions) {
 		super()
@@ -108,6 +107,10 @@ export default class App extends events.EventEmitter {
 
 		if ( ! this.options ) {
 			this.options = {}
+		}
+
+		if ( this.options.prod ) {
+			this.options.mode = 'prod'
 		}
 
 		if ( ! this.options.mode ) {
@@ -118,6 +121,9 @@ export default class App extends events.EventEmitter {
 		}
 		else if (this.options.mode == 'production' || this.options.mode == 'prod') {
 			this.mode = AppMode.PRODUCTION
+			if ( ! this.options.runtimes) {
+				this.options.runtimes = 'core'
+			}
 		}
 		else {
 			throw new Error("App constructor - Unknown mode")
@@ -131,7 +137,7 @@ export default class App extends events.EventEmitter {
 		this.database = new Database(this)
 		this.api = new Api(this)
 		this.server = new Server(this)
-		this.gitVersionning = new GitVersionning(this);
+		this.synchronizer = new Synchronizer(this)
 
 		this.status = false
 
@@ -143,8 +149,8 @@ export default class App extends events.EventEmitter {
 			let AddonsTools = require('./runtimes/tools/addons')
 			this.addonsTools = new AddonsTools(this)
 
-			let Versionning = require('./runtimes/tools/versionning')
-			this.versionning = new Versionning(this)
+			let Git = require('./git')
+			this.git = new Git.default(this)
 		}
 	}
 
@@ -177,11 +183,14 @@ export default class App extends events.EventEmitter {
 		}).then(() => {
 			this.server.load()
 			this.api.load()
+		}).then(() => {
 			return this.history.load()
 		}).then(() => {
 			return this.addons.load()
 		}).then(() => {
-			return this.gitVersionning.initialize()
+			if (this.git) {
+				return this.git.load()
+			}
 		})
 	}
 
@@ -249,6 +258,21 @@ export default class App extends events.EventEmitter {
 				e.errorType = 'addons'
 				throw e
 			})
+		}).then(() => {
+			if (this.mode == AppMode.PRODUCTION && ! this.live) {
+				return this.synchronizer.diff().then((diffs) => {
+					if (diffs && diffs.length == 0) {
+						return
+					}
+					this.logger.log('INFO: The database structure differs from entities. Syncing...')
+					return this.synchronizer.entitiesToDatabase(diffs, {}).then((actions) => {
+						this.logger.log(`INFO: Successfully updated the database. (Applied ${actions.length} actions)`)
+					})
+				}).catch((e) => {
+					e.errorType = 'sync'
+					throw e
+				})
+			}
 		}).then(() => {
 			return this.server.start().catch((e) => {
 				e.errorType = 'server'
