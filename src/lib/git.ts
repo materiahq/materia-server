@@ -26,12 +26,18 @@ export default class Git {
 	}
 
 	getStatus():Promise<number> {
-		return this.repo.getStatus(null)
+		return this.repo.getStatus({
+			flags: nodegit.Status.OPT.INCLUDE_UNTRACKED
+		})
 	}
 
 	stage(path):Promise<number> {
 		return this.repo.refreshIndex().then(index => {
-			return index.addByPath(path)
+			return index.addByPath(path).then((result) => {
+				if (result)
+					throw new Error('Error while adding file to index')
+				return index.write()
+			})
 		}).catch(e => {
 			console.log(e, e.stack)
 		})
@@ -39,7 +45,11 @@ export default class Git {
 
 	unstage(path):Promise<number> {
 		return this.repo.refreshIndex().then(index => {
-			return index.removeByPath(path)
+			return index.removeByPath(path).then((result) => {
+				if (result)
+					throw new Error('Error while adding file to index')
+				return index.write()
+			})
 		}).catch(e => {
 			console.log(e, e.stack)
 		})
@@ -51,7 +61,7 @@ export default class Git {
 			console.log('unstage')
 			return this.unstage(status.path())
 		}
-		console.log('stage')
+		console.log('stage', status.path())
 		return this.stage(status.path())
 	}
 }

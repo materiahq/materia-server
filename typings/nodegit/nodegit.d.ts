@@ -852,7 +852,7 @@ declare namespace NodeGit {
 
         add(source_entry: NodeGit.IndexEntry): number;
         addAll(pathspec: NodeGit.Strarray, flags: number, callback: Function, payload: void): Promise<number>;
-        addByPath(path: string): number;
+        addByPath(path: string): Promise<number>;
         caps(): number;
         checksum(): Oid;
         clear(): number;
@@ -870,7 +870,7 @@ declare namespace NodeGit {
         readTree(tree: NodeGit.Tree): number;
         remove(path: string, stage: number): number;
         removeAll(pathspec: NodeGit.Strarray, callback: Function, payload: void): Promise<number>;
-        removeByPath(path: string): number;
+        removeByPath(path: string): Promise<number>;
         removeDirectory(dir: string, stage: number): number;
         setCaps(caps: number): number;
         updateAll(pathspec: NodeGit.Strarray, callback: Function, payload: void): Promise<number>;
