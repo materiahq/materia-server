@@ -11,9 +11,8 @@ import { Server } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
 
-import GitVersionning from './git-versionning'
+import Git from './git'
 
-//TODO: convert to ts
 import Addons from './addons'
 import Api from './api'
 
@@ -93,7 +92,7 @@ export default class App extends events.EventEmitter {
 	api: any
 	server: Server
 	logger: Logger
-	gitVersionning: GitVersionning
+	git: Git
 
 	status: boolean
 	live: boolean = false
@@ -131,7 +130,7 @@ export default class App extends events.EventEmitter {
 		this.database = new Database(this)
 		this.api = new Api(this)
 		this.server = new Server(this)
-		this.gitVersionning = new GitVersionning(this);
+		this.git = new Git(this);
 
 		this.status = false
 
@@ -177,11 +176,12 @@ export default class App extends events.EventEmitter {
 		}).then(() => {
 			this.server.load()
 			this.api.load()
+		}).then(() => {
 			return this.history.load()
 		}).then(() => {
 			return this.addons.load()
 		}).then(() => {
-			return this.gitVersionning.initialize()
+			return this.git.load()
 		})
 	}
 

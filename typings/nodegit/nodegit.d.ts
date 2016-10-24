@@ -1471,6 +1471,7 @@ declare namespace NodeGit {
         odb(): Promise<NodeGit.Odb>;
         path(): string;
         refdb(): Promise<NodeGit.Refdb>;
+        refreshIndex(): Promise<NodeGit.Index>;
         setHead(refname: string): Promise<number>;
         setHeadDetached(commitish: NodeGit.Oid): number;
         setHeadDetachedFromAnnotated(commitish: NodeGit.AnnotatedCommit): number;
