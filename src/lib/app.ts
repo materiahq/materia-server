@@ -11,8 +11,6 @@ import { Server } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
 
-import Git from './git'
-
 import { Synchronizer } from './synchronizer'
 
 import Addons from './addons'
@@ -94,7 +92,7 @@ export default class App extends events.EventEmitter {
 	api: any
 	server: Server
 	logger: Logger
-	git: Git
+	git: any
 
 	status: boolean
 	live: boolean = false
@@ -123,6 +121,9 @@ export default class App extends events.EventEmitter {
 		}
 		else if (this.options.mode == 'production' || this.options.mode == 'prod') {
 			this.mode = AppMode.PRODUCTION
+			if ( ! this.options.runtimes) {
+				this.options.runtimes = 'core'
+			}
 		}
 		else {
 			throw new Error("App constructor - Unknown mode")
@@ -136,7 +137,6 @@ export default class App extends events.EventEmitter {
 		this.database = new Database(this)
 		this.api = new Api(this)
 		this.server = new Server(this)
-		this.git = new Git(this)
 		this.synchronizer = new Synchronizer(this)
 
 		this.status = false
@@ -148,6 +148,9 @@ export default class App extends events.EventEmitter {
 
 			let AddonsTools = require('./runtimes/tools/addons')
 			this.addonsTools = new AddonsTools(this)
+
+			let Git = require('./git')
+			this.git = new Git.default(this)
 		}
 	}
 
@@ -185,7 +188,9 @@ export default class App extends events.EventEmitter {
 		}).then(() => {
 			return this.addons.load()
 		}).then(() => {
-			return this.git.load()
+			if (this.git) {
+				return this.git.load()
+			}
 		})
 	}
 
