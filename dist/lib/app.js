@@ -7,15 +7,13 @@ const logger_1 = require('./logger');
 const server_1 = require('./server');
 const entities_1 = require('./entities');
 const database_1 = require('./database');
-const git_versionning_1 = require('./git-versionning');
-//TODO: convert to ts
+const synchronizer_1 = require('./synchronizer');
 const addons_1 = require('./addons');
 const api_1 = require('./api');
 const history_1 = require('./history');
 //TODO: convert to ts
 let Deploy = require('./runtimes/tools/deploy');
 let AddonsTools = require('./runtimes/tools/addons');
-let Versionning = require('./runtimes/tools/versionning');
 (function (AppMode) {
     AppMode[AppMode["DEVELOPMENT"] = 'dev'] = "DEVELOPMENT";
     AppMode[AppMode["PRODUCTION"] = 'prod'] = "PRODUCTION";
@@ -43,6 +41,9 @@ class App extends events.EventEmitter {
         if (!this.options) {
             this.options = {};
         }
+        if (this.options.prod) {
+            this.options.mode = 'prod';
+        }
         if (!this.options.mode) {
             this.mode = AppMode.DEVELOPMENT;
         }
@@ -51,6 +52,9 @@ class App extends events.EventEmitter {
         }
         else if (this.options.mode == 'production' || this.options.mode == 'prod') {
             this.mode = AppMode.PRODUCTION;
+            if (!this.options.runtimes) {
+                this.options.runtimes = 'core';
+            }
         }
         else {
             throw new Error("App constructor - Unknown mode");
@@ -62,15 +66,15 @@ class App extends events.EventEmitter {
         this.database = new database_1.Database(this);
         this.api = new api_1.default(this);
         this.server = new server_1.Server(this);
-        this.gitVersionning = new git_versionning_1.default(this);
+        this.synchronizer = new synchronizer_1.Synchronizer(this);
         this.status = false;
         this.loadMateria();
         if (this.options.runtimes != "core") {
             this.deploy = new Deploy(this);
             let AddonsTools = require('./runtimes/tools/addons');
             this.addonsTools = new AddonsTools(this);
-            let Versionning = require('./runtimes/tools/versionning');
-            this.versionning = new Versionning(this);
+            let Git = require('./git');
+            this.git = new Git.default(this);
         }
     }
     load() {
@@ -103,11 +107,14 @@ class App extends events.EventEmitter {
         }).then(() => {
             this.server.load();
             this.api.load();
+        }).then(() => {
             return this.history.load();
         }).then(() => {
             return this.addons.load();
         }).then(() => {
-            return this.gitVersionning.initialize();
+            if (this.git) {
+                return this.git.load();
+            }
         });
     }
     loadMateria() {
@@ -170,6 +177,21 @@ class App extends events.EventEmitter {
                 e.errorType = 'addons';
                 throw e;
             });
+        }).then(() => {
+            if (this.mode == AppMode.PRODUCTION && !this.live) {
+                return this.synchronizer.diff().then((diffs) => {
+                    if (diffs && diffs.length == 0) {
+                        return;
+                    }
+                    this.logger.log('INFO: The database structure differs from entities. Syncing...');
+                    return this.synchronizer.entitiesToDatabase(diffs, {}).then((actions) => {
+                        this.logger.log(`INFO: Successfully updated the database. (Applied ${actions.length} actions)`);
+                    });
+                }).catch((e) => {
+                    e.errorType = 'sync';
+                    throw e;
+                });
+            }
         }).then(() => {
             return this.server.start().catch((e) => {
                 e.errorType = 'server';

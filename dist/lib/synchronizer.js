@@ -1,6 +1,6 @@
-'use strict';
-const history_1 = require('../../history');
-class Versionning {
+"use strict";
+const history_1 = require('./history');
+class Synchronizer {
     constructor(app) {
         this.app = app;
     }
@@ -488,5 +488,5 @@ class Versionning {
         return this.app.history.apply(actions, options);
     }
 }
-module.exports = Versionning;
-//# sourceMappingURL=versionning.js.map
+exports.Synchronizer = Synchronizer;
+//# sourceMappingURL=synchronizer.js.map
