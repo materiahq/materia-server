@@ -465,4 +465,9 @@ export default class App extends events.EventEmitter {
 			throw e
 		})
 	}
+
+	getMateriaVersion() {
+		let pkg = require('../../package')
+		return pkg.version
+	}
 }
