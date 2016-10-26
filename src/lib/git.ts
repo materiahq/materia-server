@@ -14,7 +14,7 @@ export default class Git {
 		return Promise.resolve(this.repo)
 	}
 
-	getStatus():Promise<number> {
+	status():Promise<number> {
 		return this.repo.status()
 	}
 
@@ -31,5 +31,9 @@ export default class Git {
 			return this.unstage(status.path)
 		}
 		return this.stage(status.path)
+	}
+
+	logs():Promise<any> {
+		return this.repo.log().then(logs => logs.all)
 	}
 }
