@@ -1,83 +1,35 @@
 import App from './app'
 
-import * as nodegit from 'nodegit';
+require('./patches/git/StatusSummary')
+const git = require('simple-git/promise');
 
 export default class Git {
-	repo: NodeGit.Repository
-	statuses: {[path:string]: NodeGit.Status}
+	repo: any
 
 	constructor(private app: App) {
 	}
 
-	load():Promise<NodeGit.Repository> {
-		return new Promise((resolve, reject) => {
-			console.log('before git open')
-			nodegit.Repository.open(this.app.path).then((repo) => {
-				this.repo = repo
-				console.log('after git open')
-				resolve(repo)
-			}).catch((err) => {
-				console.log('error with open', err)
-				reject(err);
-			})
-		})
+	load():Promise<any> {
+		this.repo = git(this.app.path)
+		return Promise.resolve(this.repo)
 	}
 
 	getStatus():Promise<number> {
-		return this.repo.getStatus({
-			flags: nodegit.Status.OPT.INCLUDE_UNTRACKED
-		}).then((statusesArr) => {
-			let statuses = {}
-			for (let status of statusesArr) {
-				statuses[status.path()] = status
-			}
-			this.statuses = statuses
-			return this.statuses
-		})
+		return this.repo.status()
 	}
 
 	stage(path):Promise<any> {
-		return this.repo.refreshIndex().then(index => {
-			return index.addByPath(path).then((result) => {
-				if (result)
-					throw new Error('Error while adding file to index')
-				return index.write()
-			}).then(() => {
-				this.statuses[path] = nodegit.StatusFile({
-					path: path,
-					status: nodegit.Status.file(this.repo, path)
-				})
-			})
-		}).catch(e => {
-			console.log(e, e.stack)
-		})
+		return this.repo.add(path)
 	}
 
 	unstage(path):Promise<any> {
-		return this.repo.head().then((head) => {
-			return head.peel(-2) // GIT_OBJ_ANY https://github.com/libgit2/libgit2/blob/master/include/git2/types.h#L68
-		}).then((head) => {
-			return nodegit.Reset.default(this.repo, head, path)
-		}).then((result) => {
-			if (result)
-				throw new Error('Error while adding file to index')
-			this.statuses[path] = nodegit.StatusFile({
-				path: path,
-				status: nodegit.Status.file(this.repo, path)
-			})
-		}).catch(e => {
-			console.log(e, e.stack)
-		})
+		return this.repo.reset([path])
 	}
 
 	toggleStaging(status):Promise<any> {
-		console.log('before staging', status.path(), nodegit.Status.file(this.repo, status.path()));
-
-		if (status.inIndex()) {
-			console.log('unstage')
-			return this.unstage(status.path())
+		if (status.working_dir == ' ') {
+			return this.unstage(status.path)
 		}
-		console.log('stage', status.path())
-		return this.stage(status.path())
+		return this.stage(status.path)
 	}
 }
