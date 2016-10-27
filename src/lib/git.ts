@@ -12,6 +12,7 @@ export default class Git {
 
 	load():Promise<any> {
 		this.repo = git(this.app.path)
+		this.repo.silent(true)
 		return Promise.resolve(this.repo)
 	}
 
@@ -19,12 +20,20 @@ export default class Git {
 		return this.repo.status()
 	}
 
-	stage(path):Promise<any> {
-		return this.repo.add(path)
+	stage(path:string, status?):Promise<any> {
+		if (status && status.index == 'D') {
+			return this.repo.rmKeepLocal([path])
+		}
+		return this.repo.add([path])
 	}
 
-	unstage(path):Promise<any> {
-		return this.repo.reset([path])
+	unstage(path:string):Promise<any> {
+		return this.repo.reset(['HEAD', path]).catch((e) => {
+			if (e && e.message && e.message.match(/ambiguous argument 'HEAD': unknown revision/)) {
+				return this.repo.reset([path]) // no HEAD yet
+			}
+			throw e
+		})
 	}
 
 	toggleStaging(status):Promise<any> {
@@ -46,6 +55,11 @@ export default class Git {
 				'author_email': '%ae'
 			},
 			splitter: '<~spt~>'
-		}).then(logs => logs.all)
+		}).then(logs => logs.all).catch((e) => {
+			if (e && e.message && e.message.match(/your current branch '.*?' does not have any commits yet/)) {
+				return Promise.resolve([])
+			}
+			throw e
+		})
 	}
 }
