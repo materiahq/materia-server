@@ -245,7 +245,8 @@ export default class App extends events.EventEmitter {
 	Starts the materia app
 	*/
 	start() {
-		return this.database.start().catch((e) => {
+		let p = this.database.started ? Promise.resolve() : this.database.start()
+		return p.catch((e) => {
 			e.errorType = 'database'
 			throw e
 		}).then(() => {

@@ -35,6 +35,73 @@ class Entity {
 		}
 	}
 
+	fixIsRelation(options) {
+		if ( ! this.isRelation)
+			return Promise.resolve()
+		let entity1 = this.app.entities.get(this.isRelation[0].entity)
+		let entity2 = this.app.entities.get(this.isRelation[1].entity)
+
+		let p = Promise.resolve()
+		if ( ! entity1 || ! entity2) { // converts to / keep belongsTo relations
+			let pk1 = entity1 && entity1.getPK()[0]
+			if (pk1) {
+				let rel = {
+					type: 'belongsTo',
+					field: this.isRelation[0].field,
+					reference: {
+						entity: entity1.name,
+						field: pk1.name
+					}
+				}
+				if (entity1.getRelationIndex(rel) == -1) {
+					p = p.then(() => this.addRelation(rel, options))
+				}
+			}
+			let pk2 = entity2 && entity2.getPK()[0]
+			if (pk2) {
+				let rel = {
+					type: 'belongsTo',
+					field: this.isRelation[1].field,
+					reference: {
+						entity: entity2.name,
+						field: pk2.name
+					}
+				}
+				if (entity2.getRelationIndex(rel) == -1) {
+					p = p.then(() => this.addRelation(rel, options))
+				}
+			}
+			delete this.isRelation
+		} else { // add missing belongsToMany relations in related entities
+			let rel1 = {
+				type: 'belongsToMany',
+				through: this.name,
+				as: this.isRelation[0].field,
+				reference: {
+					entity: entity2.name,
+					as: this.isRelation[1].field
+				}
+			}
+			if (entity1.getRelationIndex(rel1) == -1) {
+				p = p.then(() => entity1.addRelation(rel1, options))
+			}
+
+			let rel2 = {
+				type: 'belongsToMany',
+				through: this.name,
+				as: this.isRelation[1].field,
+				reference: {
+					entity: entity1.name,
+					as: this.isRelation[0].field
+				}
+			}
+			if (entity2.getRelationIndex(rel2) == -1) {
+				p = p.then(() => entity2.addRelation(rel2, options))
+			}
+		}
+		return p
+	}
+
 	create(entityobj, options) {
 		options = options || {}
 
