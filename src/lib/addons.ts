@@ -10,13 +10,40 @@ import * as async from 'async'
 
 import App from './app'
 
+export interface IAddonInfo {
+	description: string,
+	logo: string,
+	author: string,
+	version: string
+}
+
+export interface IAddon {
+	name: string
+	path: string
+	info: IAddonInfo
+	published?: {
+
+	}
+	obj: any
+}
+
+export enum SupportedLanguage {
+	JAVASCRIPT,
+	TYPESCRIPT,
+	COFFEESCRIPT
+}
+
+export interface IAddonOptions {
+
+}
+
 /**
  * @class Addons
  * @classdesc
  * This class is used to manage your addons in a materia app.
  */
 export default class Addons {
-	addons: any[]
+	addons: IAddon[]
 	addonsObj: any
 	rootDirectory: string
 	addonsConfig: any
@@ -28,147 +55,119 @@ export default class Addons {
 		this.addonsConfig = {}
 	}
 
-	_loadEntities(addon) {
-		return this.app.entities.loadFromAddon(addon)
+
+	/**
+	Unload an addon by its name
+	@returns void
+	*/
+	unload(name:string):void {
+		this.addons.forEach((addon, i) => {
+			if (addon.name == name) {
+				this.addons.splice(i, 1);
+			}
+		})
 	}
 
-	_loadAPI(addon) {
-		try {
-			this.app.api.loadFromAddon(addon)
-			return Promise.resolve()
-		}
-		catch (e) {
-			return Promise.reject(e)
-		}
-	}
-
-	_requireAddon(addon) {
-		if (fs.existsSync(path.join(this.rootDirectory, addon, 'index.coffee')) ||
-		fs.existsSync(path.join(this.rootDirectory, addon, 'index.js')) ||
-		fs.existsSync(path.join(this.rootDirectory, addon + '.js')) ||
-		fs.existsSync(path.join(this.rootDirectory, addon + '.coffee'))) {
-			let AddonClass, addonInstance, addonPackage
-			try {
-				addonPackage = require(path.join(this.rootDirectory, addon, 'package.json'))
-				AddonClass = require(path.join(this.rootDirectory, addon))
-			} catch (e) {
-				let err = new Error('Impossible to require addon ' + addon) as any
-				err.originalError = e
-				return err
-			}
-			try {
-				addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp)
-			} catch(e) {
-				let err = new Error('Impossible to create addon ' + addon) as any
-				err.originalError = e
-				return e
-			}
-
-			let version
-			if (addonPackage._from) {
-				let matches = /^.*(?:#(.*))$/.exec(addonPackage._from)
-				if (matches)
-					version = matches[1]
-			}
-
-			this.addons.push({
-				name: addonPackage.name,
-				path: path.join(this.rootDirectory, addon),
-				info: {
-					description: addonPackage.description,
-					logo: addonPackage.materia && addonPackage.materia.logo,
-					author: addonPackage.materia && addonPackage.materia.author,
-					version: version
-				},
-				obj: addonInstance
-			})
-		}
-	}
-
-	_requireAndCreateAddons(files) {
-		for (let addon of files) {
-			if (fs.existsSync(path.join(this.rootDirectory, addon, 'index.coffee')) ||
-			fs.existsSync(path.join(this.rootDirectory, addon, 'index.js')) ||
-			fs.existsSync(path.join(this.rootDirectory, addon + '.js')) ||
-			fs.existsSync(path.join(this.rootDirectory, addon + '.coffee'))) {
-				let AddonClass, addonInstance, addonPackage
-				try {
-					addonPackage = require(path.join(this.rootDirectory, addon, 'package.json'))
-					AddonClass = require(path.join(this.rootDirectory, addon))
-				} catch (e) {
-					let err = new Error('Impossible to require addon ' + addon) as any
-					err.originalError = e
-					return Promise.reject(err)
+	private _searchInstalledAddons():Promise<Array<string>> {
+		return new Promise((resolve, reject) => {
+			fs.readdir(path.join(this.app.path, 'addons'), (err, files) => {
+				if (err && err.code == 'ENOENT') {
+					return resolve([])
 				}
-				try {
-					addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp)
-				} catch(e) {
-					let err = new Error('Impossible to create addon ' + addon) as any
-					err.originalError = e
-					return Promise.reject(err)
-				}
-
-				let version
-				if (addonPackage._from) {
-					let matches = /^.*(?:#(.*))$/.exec(addonPackage._from)
-					if (matches)
-						version = matches[1]
-				}
-
-
-				this.addons.push({
-					name: addonPackage.name,
-					path: path.join(this.rootDirectory, addon),
-					info: {
-						description: addonPackage.description,
-						logo: addonPackage.materia && addonPackage.materia.logo,
-						author: addonPackage.materia && addonPackage.materia.author,
-						version: version
-					},
-					obj: addonInstance
-				})
-				//I'm not sure what it is..
-				/*if (AddonClass.dependencies) {
-					addonsWithDeps = []
-					for (var dep of AddonClass.dependencies) {
-						addonsWithDeps[addon].push(dep)
-					}
-					addonsWithDeps[addon].push(pushAddon)
-				} else {
-					addonsWithDeps[addon] = pushAddon
-				}*/
-			}
-		}
-		return Promise.resolve()
-	}
-
-	createCustom(name, description) {
-		return new Promise((accept, reject) => {
-			if ( ! name ) {
-				return reject({
-					error: true,
-					message: 'A name is required to create an addon.',
-				})
-			}
-			let regexp = /[a-zA-Z0-9][.a-zA-Z0-9-_]*/g
-			if ( ! regexp.test(name)) {
-				return reject({
-					error: true,
-					message: 'The addon name contains bad characters.',
-				})
-			}
-			if (fs.exists(path.join(this.app.path, 'addons', name))) {
-				return reject({
-					error: true,
-					message: 'The addon already exists: ' + name,
-				})
-			}
-			mkdirp(path.join(this.app.path, 'addons', name), (err) => {
-				if (err) {
+				else if (err) {
 					return reject(err)
 				}
-				let nameCapitalizeFirst = name.charAt(0).toUpperCase() + name.slice(1)
-				let content = `'use strict';
+				else if (files && files.length) {
+                    let addons = []
+                    files.forEach(file => {
+                        //add only directories
+                        if (fs.lstatSync(path.join(this.app.path, 'addons', file)).isDirectory()) {
+                            addons.push(file)
+                        }
+                    })
+                    return resolve(addons);
+                }
+				else {
+					return resolve([])
+				}
+			})
+		})
+	}
+
+	private _loadConfig():Promise<any> {
+		return new Promise((resolve, reject) => {
+			fs.exists(path.join(this.app.path, 'addons.json'), exists => {
+				if ( ! exists) {
+					return resolve()
+				}
+				fs.readFile(path.join(this.app.path, 'addons.json'), 'utf8', (err, data) => {
+					if ( err ) {
+						return reject(err)
+					}
+					this.addonsConfig = JSON.parse(data)
+					return resolve(this.addonsConfig)
+				})
+			})
+		})
+	}
+
+	/**
+	Load all addons in the `addons/` directory
+	@returns Promise<void>
+	*/
+	load():Promise<void> {
+		return this._loadConfig().then(config => {
+			return this._searchInstalledAddons()
+		}).then(addonsName => {
+			return this._initializeAll(addonsName)
+		}).then(addons => {
+			this.addons = addons
+
+			let p = Promise.resolve()
+
+			this.addons.forEach(addon => {
+				p = p.then(() => {
+					console.log('addon', addon);
+					if (typeof addon.obj.load == 'function') {
+						let obj = addon.obj.load()
+						if (this._isPromise(obj)) { // promise-like simple test
+							return obj
+						}
+					}
+					return Promise.resolve()
+				}).then(() => {
+					return this._loadEntities(addon.name)
+				}).then(() => {
+					return this._loadAPI(addon.name)
+				})
+			})
+
+			return p
+		})
+	}
+
+	private _checkName(name:string):Promise<void> {
+		if ( ! name ) {
+			return Promise.reject(new Error('A name is required to create an addon.'))
+		}
+		let regexp = /[a-zA-Z0-9][.a-zA-Z0-9-_]*/g
+		if ( ! regexp.test(name)) {
+			return Promise.reject(new Error('The addon name contains bad characters.'))
+		}
+		if (fs.exists(path.join(this.app.path, 'addons', name))) {
+			return Promise.reject(new Error('The addon already exists: ' + name))
+		}
+	}
+
+	create(name:string, description:string, options?: IAddonOptions):Promise<void> {
+		return this._checkName(name).then(() => {
+			return new Promise((resolve, reject) => {
+				mkdirp(path.join(this.app.path, 'addons', name), (err) => {
+					if (err) {
+						return reject(err)
+					}
+					let nameCapitalizeFirst = name.charAt(0).toUpperCase() + name.slice(1)
+					let content = `'use strict';
 
 class ${nameCapitalizeFirst} {
 	constructor(app, config) {
@@ -196,63 +195,12 @@ module.exports = ${nameCapitalizeFirst};`
   "name": "${name}",
   "version": "0.1.0"
 }`
-				console.log('index.js created');
-				fs.writeFileSync(path.join(this.app.path, 'addons', name, 'index.js'), content);
-				fs.writeFileSync(path.join(this.app.path, 'addons', name, 'package.json'), contentPackageJson);
-				accept();
+					console.log('index.js created');
+					fs.writeFileSync(path.join(this.app.path, 'addons', name, 'index.js'), content);
+					fs.writeFileSync(path.join(this.app.path, 'addons', name, 'package.json'), contentPackageJson);
+					resolve();
+				})
 			})
-		})
-	}
-
-	unload(name) {
-		this.addons.forEach((addon, i) => {
-			if (addon.name == name) {
-				this.addons.splice(i, 1);
-			}
-		})
-	}
-
-	load() {
-		this.addons = []
-		this.addonsObj = {}
-
-		let files
-		try {
-			files = fs.readdirSync(path.join(this.app.path, 'addons'))
-		} catch (e) {
-			if (e.code == 'ENOENT')
-				return Promise.resolve()
-			return Promise.reject(e)
-		}
-
-		if (fs.existsSync(path.join(this.app.path, 'addons.json'))) {
-			let content = fs.readFileSync(path.join(this.app.path, 'addons.json'))
-			this.addonsConfig = JSON.parse(content.toString())
-		}
-		return this._requireAndCreateAddons(files).then(() => {
-			let p = Promise.resolve()
-			for (let addon of this.addons) {
-				this.addonsObj[addon.name] = addon.obj
-				;((addon) => {
-					p = p.then(() => {
-						if (typeof addon.obj.load == 'function') {
-							let obj = addon.obj.load()
-							if (obj && obj.then && obj.catch
-								&& typeof obj.then === 'function'
-								&& typeof obj.catch === 'function') { // promise-like simple test
-								return obj
-							}
-						}
-						return Promise.resolve()
-					}).then(() => {
-						return this._loadEntities(addon.name)
-					}).then(() => {
-						return this._loadAPI(addon.name)
-					})
-				})(addon)
-			}
-
-			return p
 		})
 	}
 
@@ -281,23 +229,19 @@ module.exports = ${nameCapitalizeFirst};`
 		}
 	}
 
-	start() {
+	start():Promise<void> {
 		let p = Promise.resolve()
-		for (let addon of this.addons) {
-			((addon) => {
-				p = p.then(() => {
-					if (typeof addon.obj.start == 'function') {
-						let obj = addon.obj.start()
-						if (obj && obj.then && obj.catch
-							&& typeof obj.then === 'function'
-							&& typeof obj.catch === 'function') { // promise-like simple test
-							return obj
-						}
+		this.addons.forEach(addon => {
+			p = p.then(() => {
+				if (typeof addon.obj.start == 'function') {
+					let startResult = addon.obj.start()
+					if (this._isPromise(startResult)) {
+						return startResult
 					}
-					return Promise.resolve()
-				})
-			})(addon)
-		}
+				}
+				return Promise.resolve()
+			})
+		})
 
 		return p
 	}
@@ -313,13 +257,114 @@ module.exports = ${nameCapitalizeFirst};`
 	@param {string} - Addon's name
 	@returns {object}
 	*/
-	get(name) { return this.addonsObj[name] }
+	get(name):IAddon {
+		let result:IAddon;
+
+		this.addons.forEach(addon => {
+			if (addon.name == name) {
+				result = addon
+			}
+		})
+		return result
+	}
 
 	/**
 	Get the registered addons count
 	@returns {integer}
 	*/
-	getLength() {
+	getLength():number {
 		return this.addons.length
+	}
+
+
+	private _loadEntities(addon:string):Promise<any> {
+		return this.app.entities.loadFromAddon(addon)
+	}
+
+	private _loadAPI(addon:string):Promise<void> {
+		try {
+			this.app.api.loadFromAddon(addon)
+			return Promise.resolve()
+		}
+		catch (e) {
+			return Promise.reject(e)
+		}
+	}
+
+	private _initialize(addon:string):Promise<IAddon> {
+		if (this._hasIndexFile(addon)) {
+			let AddonClass, addonInstance, addonPackage
+			try {
+				addonPackage = require(path.join(this.rootDirectory, addon, 'package.json'))
+				AddonClass = require(path.join(this.rootDirectory, addon))
+			} catch (e) {
+				let err = new Error('Impossible to require addon ' + addon) as any
+				err.originalError = e
+				return Promise.reject(err)
+			}
+			try {
+				addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp)
+			} catch(e) {
+				let err = new Error('Impossible to create addon ' + addon) as any
+				err.originalError = e
+				return Promise.reject(err)
+			}
+
+			let version
+			if (addonPackage._from) {
+				let matches = /^.*(?:#(.*))$/.exec(addonPackage._from)
+				if (matches)
+					version = matches[1]
+			}
+
+			return Promise.resolve({
+				name: addonPackage.name,
+				path: path.join(this.rootDirectory, addon),
+				info: {
+					description: addonPackage.description,
+					logo: addonPackage.materia && addonPackage.materia.logo,
+					author: addonPackage.materia && addonPackage.materia.author,
+					version: version
+				},
+				obj: addonInstance
+			})
+
+			//TODO: Check @bump - I'm not sure what it is..
+			/*if (AddonClass.dependencies) {
+				addonsWithDeps = []
+				for (var dep of AddonClass.dependencies) {
+					addonsWithDeps[addon].push(dep)
+				}
+				addonsWithDeps[addon].push(pushAddon)
+			} else {
+				addonsWithDeps[addon] = pushAddon
+			}*/
+		}
+		else {
+			Promise.reject(new Error(''))
+		}
+	}
+
+	private _initializeAll(addons:Array<string>):Promise<Array<IAddon>> {
+		let promises = []
+		addons.forEach(addon => {
+			promises.push(this._initialize(addon))
+		})
+		return Promise.all(promises)
+	}
+
+	private _hasIndexFile(addon:string):boolean {
+		return fs.existsSync(path.join(this.rootDirectory, addon, 'index.coffee')) ||
+			fs.existsSync(path.join(this.rootDirectory, addon, 'index.js')) ||
+			fs.existsSync(path.join(this.rootDirectory, addon, 'index.ts')) ||
+			fs.existsSync(path.join(this.rootDirectory, addon + '.js')) ||
+			fs.existsSync(path.join(this.rootDirectory, addon + '.coffee')) ||
+			fs.existsSync(path.join(this.rootDirectory, addon + '.ts'))
+	}
+
+	private _isPromise(obj:any):boolean {
+		return obj && obj.then && obj.catch
+			&& typeof obj.then === 'function'
+			&& typeof obj.catch === 'function'
 	}
 }
