@@ -62,4 +62,15 @@ export default class Git {
 			throw e
 		})
 	}
+
+	branches(opts?:{all:boolean}):any {
+		if (opts && opts.all)
+			return this.repo.branch().then(branches => branches.all)
+		else
+			return this.repo.branchLocal().then(branches => branches.all)
+	}
+
+	remotes():any {
+		return this.repo.getRemotes()
+	}
 }
