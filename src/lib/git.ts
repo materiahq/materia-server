@@ -1,6 +1,7 @@
 import App from './app'
 
 require('./patches/git/StatusSummary')
+require('./patches/git/ListLogSummary')
 const git = require('simple-git/promise');
 
 export default class Git {
@@ -34,6 +35,17 @@ export default class Git {
 	}
 
 	logs():Promise<any> {
-		return this.repo.log().then(logs => logs.all)
+		return this.repo.log({
+			format: {
+				'hash': '%H',
+				'parents': '%P',
+				'date': '%ai',
+				'message': '%s',
+				'refs': '%D',
+				'author_name': '%aN',
+				'author_email': '%ae'
+			},
+			splitter: '<~spt~>'
+		}).then(logs => logs.all)
 	}
 }
