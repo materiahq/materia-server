@@ -73,4 +73,15 @@ export default class Git {
 	remotes():any {
 		return this.repo.getRemotes()
 	}
+
+	getCommit(hash:string):any {
+		return this.repo.show(['--pretty=%w(0)%B%n<~diffs~>', '--name-status', hash]).then(data => {
+			let result = data.split("<~diffs~>")
+			let changes = result[1].trim().split(/[\r\n]/).map(line => line.split(/[ \t]/))
+			return {
+				message: result[0].trim(),
+				changes: changes
+			}
+		})
+	}
 }

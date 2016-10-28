@@ -47,10 +47,8 @@ Git.prototype.log = function (options, then) {
 	});
 
 	Git._appendOptions(command, opt);
-	console.log(command, opt)
 
 	return this._run(command, function (err, data) {
-		console.log('dat', err, data)
 		handler && handler(err, !err && ListLogSummary.parse(data, splitter, fields));
 	});
 };
