@@ -14,6 +14,10 @@ export default class Git {
 		return Promise.resolve(this.repo)
 	}
 
+	init():Promise<any> {
+		return this.repo.init()
+	}
+
 	status():Promise<number> {
 		return this.repo.status()
 	}
@@ -61,18 +65,18 @@ export default class Git {
 		})
 	}
 
-	branches(opts?:{all:boolean}):any {
+	branches(opts?:{all:boolean}):Promise<any> {
 		if (opts && opts.all)
 			return this.repo.branch().then(branches => branches.all)
 		else
 			return this.repo.branchLocal().then(branches => branches.all)
 	}
 
-	remotes():any {
+	remotes():Promise<any> {
 		return this.repo.getRemotes()
 	}
 
-	getCommit(hash:string):any {
+	getCommit(hash:string):Promise<any> {
 		return this.repo.show(['--pretty=%w(0)%B%n<~diffs~>', '--name-status', hash]).then(data => {
 			let result = data.split("<~diffs~>")
 			let changes = result[1].trim().split(/[\r\n]/).map(line => line.split(/[ \t]/))
@@ -81,5 +85,9 @@ export default class Git {
 				changes: changes
 			}
 		})
+	}
+
+	commit(message:string):any {
+		return this.repo.commit(message)
 	}
 }
