@@ -21,12 +21,12 @@ export interface IAddon {
 	name: string
 	path: string
 	info: IAddonInfo
-	published?: {
-
-	}
+	published?: any
+	config: any
 	obj: any
 }
 
+//Not used yet... waiting for real support of these language
 export enum SupportedLanguage {
 	JAVASCRIPT,
 	TYPESCRIPT,
@@ -167,6 +167,9 @@ export default class Addons {
 						return reject(err)
 					}
 					let nameCapitalizeFirst = name.charAt(0).toUpperCase() + name.slice(1)
+
+					//TODO: Get Git name & email for the package.json
+					//TODO: Put these files in external template files (for readability)
 					let content = `'use strict';
 
 class ${nameCapitalizeFirst} {
@@ -234,7 +237,7 @@ module.exports = ${nameCapitalizeFirst};`
 		this.addons.forEach(addon => {
 			p = p.then(() => {
 				if (typeof addon.obj.start == 'function') {
-					let startResult = addon.obj.start()
+					let startResult = addon.obj.start(addon.config)
 					if (this._isPromise(startResult)) {
 						return startResult
 					}
@@ -316,7 +319,14 @@ module.exports = ${nameCapitalizeFirst};`
 				if (matches)
 					version = matches[1]
 			}
-
+			let config;
+			try {
+				config = require(path.join(this.rootDirectory, addon, 'install.json'))
+			}
+			catch (e) {
+				console.log('Addon ' + addonPackage.name + ' not configured')
+			}
+			console.log('configuration file:', config);
 			return Promise.resolve({
 				name: addonPackage.name,
 				path: path.join(this.rootDirectory, addon),
@@ -326,6 +336,7 @@ module.exports = ${nameCapitalizeFirst};`
 					author: addonPackage.materia && addonPackage.materia.author,
 					version: version
 				},
+				config: config,
 				obj: addonInstance
 			})
 
