@@ -1,5 +1,6 @@
 import App from './app'
 
+require('./patches/git/GitStash')
 const git = require('simple-git/promise');
 
 export default class Git {
@@ -73,7 +74,9 @@ export default class Git {
 	}
 
 	remotes():Promise<any> {
-		return this.repo.getRemotes()
+		return this.repo.getRemotes().then(remotes => {
+			return remotes.filter(remote => remote.name)
+		})
 	}
 
 	getCommit(hash:string):Promise<any> {
@@ -87,7 +90,16 @@ export default class Git {
 		})
 	}
 
-	commit(message:string):any {
+	commit(message:string):Promise<any> {
 		return this.repo.commit(message)
+	}
+
+	sync(remote:string, branch:string):Promise<any> {
+		// stash && pull && stash pop && push; stops where if fails.
+		return Promise.resolve()
+	}
+
+	addRemote(name:string, url:string):Promise<any> {
+		return this.repo.addRemote(name, url)
 	}
 }
