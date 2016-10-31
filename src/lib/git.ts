@@ -1,7 +1,5 @@
 import App from './app'
 
-require('./patches/git/StatusSummary')
-require('./patches/git/ListLogSummary')
 const git = require('simple-git/promise');
 
 export default class Git {
