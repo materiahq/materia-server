@@ -11,9 +11,11 @@ export default class MateriaError extends Error {
 
 	constructor(message, options?:IErrorOptions) {
 		super(message)
-		this.slug = options.slug
-		this.issue = options.issue
-		this.debug = options.debug
+		if (options) {
+			this.slug = options.slug
+			this.issue = options.issue
+			this.debug = options.debug
+		}
 	}
 
 	toString() {
