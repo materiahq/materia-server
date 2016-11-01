@@ -172,6 +172,26 @@ export default class App extends events.EventEmitter {
 		})
 	}
 
+	check():Promise<any> {
+		if (this.git) {
+			return this.git.load().then(() => {
+				return this.git.status().then(status => {
+					for (let file of status.files) {
+						if (file.working_dir == 'U') {
+							throw new Error('Git repo contains unresolved conflicts')
+						}
+					}
+				}).catch(e => {
+					if (e && e.message && e.message.match(/This operation must be run in a work tree/)) {
+						return Promise.resolve()
+					}
+					throw e
+				})
+			})
+		}
+		return Promise.resolve()
+	}
+
 	load():Promise<any> {
 		let p = Promise.resolve()
 		if ( ! this.loaded) {

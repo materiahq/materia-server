@@ -1,4 +1,4 @@
-import App from './app'
+import App, { IApplyOptions } from './app'
 
 require('./patches/git/GitStash')
 const git = require('simple-git/promise');
@@ -68,9 +68,9 @@ export default class Git {
 
 	branches(opts?:{all:boolean}):Promise<any> {
 		if (opts && opts.all)
-			return this.repo.branch().then(branches => branches.all)
+			return this.repo.branch()
 		else
-			return this.repo.branchLocal().then(branches => branches.all)
+			return this.repo.branchLocal()
 	}
 
 	remotes():Promise<any> {
@@ -94,12 +94,64 @@ export default class Git {
 		return this.repo.commit(message)
 	}
 
-	sync(remote:string, branch:string):Promise<any> {
-		// stash && pull && stash pop && push; stops where if fails.
-		return Promise.resolve()
+	setUpstream(branch:string, upstream:string):Promise<any> {
+		return this.repo.branch(['--set-upstream-to=' + upstream, branch])
+	}
+
+	sync(options:{remote:string, branch:string, set_tracking?:boolean}, applyOptions:IApplyOptions):Promise<any> {
+		// stash && pull && stash pop && push; stops (and stash pop if needed) where if fails.
+		let stashed
+		applyOptions = applyOptions || {}
+		if (applyOptions.beforeSave)
+			applyOptions.beforeSave()
+		return this.repo.branchLocal().then((data) => {
+			return this.repo.stash()
+		}).then((data) => {
+			stashed = ! data.match(/No local changes to save/)
+			let p
+			if (options.set_tracking) {
+				p = this.repo.pull(options.remote, options.branch)
+			} else {
+				p = this.repo.pull()
+			}
+			return p.catch((e) => {
+				if (options.set_tracking && e && e.message && e.message.match(/Couldn't find remote ref/)) {
+					return Promise.resolve()
+				}
+				if (stashed) {
+					return this.repo.stash(['pop']).then(() => {
+						throw e
+					})
+				}
+				throw e
+			})
+		}).then((data) => {
+			if (stashed)
+				return this.repo.stash(['pop'])
+			else
+				return Promise.resolve()
+		}).then((data) => {
+			if (options.set_tracking) {
+				return this.repo.push(['-u', options.remote, options.branch])
+			} else {
+				return this.repo.push()
+			}
+		}).then((data) => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+			return data
+		}).catch((e) => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+			throw e
+		})
 	}
 
 	addRemote(name:string, url:string):Promise<any> {
 		return this.repo.addRemote(name, url)
+	}
+
+	addBranch(name:string):Promise<any> {
+		return this.repo.checkoutLocalBranch(name)
 	}
 }
