@@ -6,7 +6,7 @@ import { EventEmitter } from 'events'
 
 import * as mkdirp from 'mkdirp'
 
-const ncp = require('ncp').ncp;
+const fsextra = require('fs-extra')
 
 require('./patches/git/GitStash')
 const git = require('simple-git/promise');
@@ -181,7 +181,7 @@ export default class Git extends EventEmitter {
 		let _from = Path.resolve(options.path, '.git')
 		let to = Path.resolve(options.to, '.git')
 		return new Promise((accept, reject) => {
-			mkdirp(Path.dirname(to), (err) => {
+			mkdirp(options.to, (err) => {
 				if (err) {
 					return reject(err)
 				}
@@ -189,20 +189,19 @@ export default class Git extends EventEmitter {
 			})
 		}).then(() => {
 			return new Promise((accept, reject) => {
-				ncp(_from, to, (err) => {
-					if (err)
+				fsextra.copy(_from, to, (err) => {
+					if (err) {
 						return reject(err)
+					}
 					accept()
 				})
 			})
 		}).then(() => {
 			repoCopy = git(options.to)
 			repoCopy.silent(true)
-			return repoCopy.reset("hard")
-		}).then(() => {
 			return repoCopy.fetch(options.remote, options.branch)
 		}).then(() => {
-			return repoCopy.checkoutBranch("materia/live", `${options.remote}/${options.branch}`)
+			return repoCopy.reset(["--hard", `${options.remote}/${options.branch}`])
 		}).then(() => {
 			if (applyOptions.afterSave)
 				applyOptions.afterSave()

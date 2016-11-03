@@ -1,7 +1,7 @@
 var fs = require('fs')
 var path = require('path')
 
-var ncp = require('ncp').ncp
+var fsextra = require('fs-extra')
 var remove = require('remove')
 
 function copyFile(source, target) {
@@ -57,5 +57,5 @@ exports.cleanEntities = function cleanEntities(appDir, callback) {
 	} catch (err) {
 		return callback(err)
 	}
-	ncp(path.join(appDir, 'tpl_entities'), path.join(appDir, 'entities'), callback)
+	fsextra.copy(path.join(appDir, 'tpl_entities'), path.join(appDir, 'entities'), callback)
 }
