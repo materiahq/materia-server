@@ -5,8 +5,6 @@ import * as fs from 'fs'
 
 import App from '../app'
 
-
-
 // Not used yet
 export enum Method {
 	GET,
@@ -21,7 +19,24 @@ export interface IParam {
 	required: boolean,
 	type: string
 }
-
+/*
+	data format:
+	{
+		name: string,
+		desc: string,
+		method: string (GET|POST|PUT|DELETE|PATCH)
+		url: string
+		base: string
+		params: array
+		data: array
+		action: string (QUERY|JS|SQL)
+		file: path (if action == CODE)
+		query: {
+			entity: string
+			id: string (queryId)
+		}
+	}
+*/
 export interface IEndpoint {
 	name: string,
 	method: string,
@@ -32,9 +47,10 @@ export interface IEndpoint {
 		entity: any,
 		id: any
 	},
-	params?: any[],
+	params?: Array<any>,
 	//data?: any[],
-	permissions?: any[]
+	permissions?: Array<string>,
+	fromAddon: string
 }
 
 export default class Endpoint {
@@ -43,10 +59,10 @@ export default class Endpoint {
 	url: string
 	fromAddon: string|boolean
 
-	params: IParam[]
-	data: IParam[]
+	params: Array<IParam>
+	data: Array<IParam>
 
-	permissions: any[]
+	permissions: Array<string>
 
 	file: string
 	ext: string
@@ -57,25 +73,8 @@ export default class Endpoint {
 	queryStr: string
 
 	entity: any
-	/*
-		data format:
-		{
-			name: string,
-			desc: string,
-			method: string (GET|POST|PUT|DELETE|PATCH)
-			url: string
-			base: string
-			params: array
-			data: array
-			action: string (QUERY|JS|SQL)
-			file: path (if action == CODE)
-			query: {
-				entity: string
-				id: string (queryId)
-			}
-		}
-	*/
-	constructor(private app:App, endpointConfig) {
+
+	constructor(private app:App, endpointConfig: IEndpoint) {
 		//this.history = app.history
 		this.method = (endpointConfig.method && endpointConfig.method.toLowerCase()) || 'get'
 
@@ -234,108 +233,103 @@ export default class Endpoint {
 		return this.getAllData(true)
 	}
 
-	handle(req, res) {
-		if ( ! this.entity && typeof this.query == 'function') {
-			//TODO: Handle required params
-
-			try {
-				let obj = this.query(req, this.app, res)
-
-				if (obj && obj.then && obj.catch
-					&& typeof obj.then === 'function'
-					&& typeof obj.catch === 'function') {
-					obj.then((data) => {
-						res.status(200).send(data)
-					}).catch((e) => {
-						if (e instanceof Error) {
-							e = {
-								error: true,
-								message: e.message
+	handle(req, res):Promise<any> {
+		console.log('handle endpoint', this.method, this.url)
+		//if endpoint type javascript
+		return new Promise((resolve, reject) => {
+			if ( ! this.entity && typeof this.query == 'function') {
+				//TODO: Handle required params
+				try {
+					let obj = this.query(req, this.app, res)
+					console.log('yeah ?')
+					if (obj && obj.then && obj.catch
+						&& typeof obj.then === 'function'
+						&& typeof obj.catch === 'function') {
+						obj.then((data) => {
+							res.status(200).send(data)
+							resolve(data)
+						}).catch((e) => {
+							if (e instanceof Error) {
+								e = {
+									error: true,
+									message: e.message
+								}
 							}
-						}
-						res.status(e.statusCode || 500).send(e)
-					})
-				}
-				else {
-					res.status(200).send(obj)
-				}
-			}
-			catch (e) {
-				console.log('catch error', e.toString());
-				res.status(500).send({
-					error: true,
-					message: e.toString()
-				})
-			}
-			return false;
-		}
-
-		//console.log '\n---\nHandle ' + @method.toUpperCase() + ' ' + @url, @params, @data
-		//console.log 'Resolving parameters...'
-
-		/*
-		handle permissions
-		asyncSeries(this.permissions, (permission, callback) => {
-			permission.isAuthorized(req, res, () => {
-				callback()
-			})
-		}, () => {
-			//next
-		})
-		*/
-		let resolvedParams = { params: {}, data: {}, headers: {}, session: {} }
-		//console.log(this.params, this.data)
-		if (this.params.length > 0) {
-			for (let param of this.params) {
-				let v = null
-				//console.log req.params, req.params[param.name], req[param.name]
-				if (req.params[param.name] != null) {
-					v = req.params[param.name]
-				} else if (req[param.name] != null) {
-					v = req[param.name]
-				} else if (req.query[param.name] != null) {
-					v = req.query[param.name]
-				} else if (param.required) {
-					return res.status(500).json({
-						error: true,
-						message: 'Missing required parameter:' + param.name
-					})
-				}
-				//handle typeof `v` (number -> parseInt(v), date -> new Date(v) ...)
-				resolvedParams.params[param.name] = v
-			}
-		}
-		if (this.data.length > 0) {
-			for (let d of this.data) {
-				let v = null
-				if (req.body[d.name] !== null) {
-					v = req.body[d.name]
-				}
-				if ( v === null && d.required && this.method.toLowerCase() == 'post') {
-					return res.status(500).json({ error: true, message: 'Missing required data:' + d.name })
-				}
-				if (v !== null) {
-					if (v == 'null' && d.type == 'date') {
-						resolvedParams.data[d.name] = null
+							res.status(e.statusCode || 500).send(e)
+							return reject(e)
+						})
 					}
 					else {
-						resolvedParams.data[d.name] = v
+						res.status(200).send(obj)
+						return resolve(obj)
+						//if (res.)
 					}
 				}
+				catch (e) {
+					console.log('catch error', e.toString());
+					return res.status(e.statusCode || 500).send({
+						error: true,
+						message: e.toString()
+					})
+				}
 			}
-		}
-		resolvedParams.headers = req.headers;
-		resolvedParams.session = req.session;
-		//console.log('Execute query', resolvedParams)
-		//exec query and return result
+			else {
+				let resolvedParams = { params: {}, data: {}, headers: {}, session: {} }
+				//console.log(this.params, this.data)
+				if (this.params.length > 0) {
+					for (let param of this.params) {
+						let v = null
+						//console.log req.params, req.params[param.name], req[param.name]
+						if (req.params[param.name] != null) {
+							v = req.params[param.name]
+						} else if (req[param.name] != null) {
+							v = req[param.name]
+						} else if (req.query[param.name] != null) {
+							v = req.query[param.name]
+						} else if (param.required) {
+							return res.status(500).json({
+								error: true,
+								message: 'Missing required parameter:' + param.name
+							})
+						}
+						//handle typeof `v` (number -> parseInt(v), date -> new Date(v) ...)
+						resolvedParams.params[param.name] = v
+					}
+				}
+				if (this.data.length > 0) {
+					for (let d of this.data) {
+						let v = null
+						if (req.body[d.name] !== null) {
+							v = req.body[d.name]
+						}
+						if ( v === null && d.required && this.method.toLowerCase() == 'post') {
+							return res.status(500).json({ error: true, message: 'Missing required data:' + d.name })
+						}
+						if (v !== null) {
+							if (v == 'null' && d.type == 'date') {
+								resolvedParams.data[d.name] = null
+							}
+							else {
+								resolvedParams.data[d.name] = v
+							}
+						}
+					}
+				}
+				resolvedParams.headers = req.headers;
+				resolvedParams.session = req.session;
+				//console.log('Execute query', resolvedParams)
+				//exec query and return result
 
-		this.query.run(resolvedParams).then((data) => {
-			res.status(200).json(data)
-		}).catch((e) => {
-			res.status(500).json({ error: true, message: e.message })
+				this.query.run(resolvedParams).then((data) => {
+					res.status(200).json(data)
+					resolve(data)
+				}).catch((e) => {
+					let err = { error: true, message: e.message }
+					res.status(500).json(err)
+					reject(err)
+				})
+			}
 		})
-
-		//res.status(501).json({ error: 'not implemented' }) //TODO: check good error code for database error
 	}
 
 	isInUrl(name) {
@@ -375,6 +369,7 @@ export default class Endpoint {
 		if (this.permissions.length) {
 			res.permissions = this.permissions
 		}
+		console.log(res, this.permissions)
 		return res
 	}
 }

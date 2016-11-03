@@ -1,83 +1,215 @@
-import App from './app'
+import * as Path from 'path'
 
-import * as nodegit from 'nodegit';
+import App, { IApplyOptions } from './app'
 
-export default class Git {
-	repo: NodeGit.Repository
-	statuses: {[path:string]: NodeGit.Status}
+import { EventEmitter } from 'events'
+
+import * as mkdirp from 'mkdirp'
+
+const ncp = require('ncp').ncp;
+
+require('./patches/git/GitStash')
+const git = require('simple-git/promise');
+
+export default class Git extends EventEmitter {
+	repo: any
 
 	constructor(private app: App) {
+		super()
 	}
 
-	load():Promise<NodeGit.Repository> {
-		return new Promise((resolve, reject) => {
-			console.log('before git open')
-			nodegit.Repository.open(this.app.path).then((repo) => {
-				this.repo = repo
-				console.log('after git open')
-				resolve(repo)
-			}).catch((err) => {
-				console.log('error with open', err)
-				reject(err);
+	load():Promise<any> {
+		this.repo = git(this.app.path)
+		this.repo.silent(true)
+		this.repo.outputHandler((command, stdout, stderr) => {
+			stdout.on('data', (data) => {
+				this.emit('stdout', data.toString(), command)
+			})
+			stderr.on('data', (data) => {
+				this.emit('stderr', data.toString(), command)
 			})
 		})
+		return Promise.resolve(this.repo)
 	}
 
-	getStatus():Promise<number> {
-		return this.repo.getStatus({
-			flags: nodegit.Status.OPT.INCLUDE_UNTRACKED
-		}).then((statusesArr) => {
-			let statuses = {}
-			for (let status of statusesArr) {
-				statuses[status.path()] = status
+	init():Promise<any> {
+		return this.repo.init()
+	}
+
+	status():Promise<number> {
+		return this.repo.status()
+	}
+
+	stage(path:string, status?):Promise<any> {
+		if (status && status.index == 'D') {
+			return this.repo.rmKeepLocal([path])
+		}
+		return this.repo.add([path])
+	}
+
+	unstage(path:string):Promise<any> {
+		return this.repo.reset(['HEAD', path]).catch((e) => {
+			if (e && e.message && e.message.match(/ambiguous argument 'HEAD': unknown revision/)) {
+				return this.repo.reset([path]) // no HEAD yet
 			}
-			this.statuses = statuses
-			return this.statuses
-		})
-	}
-
-	stage(path):Promise<any> {
-		return this.repo.refreshIndex().then(index => {
-			return index.addByPath(path).then((result) => {
-				if (result)
-					throw new Error('Error while adding file to index')
-				return index.write()
-			}).then(() => {
-				this.statuses[path] = nodegit.StatusFile({
-					path: path,
-					status: nodegit.Status.file(this.repo, path)
-				})
-			})
-		}).catch(e => {
-			console.log(e, e.stack)
-		})
-	}
-
-	unstage(path):Promise<any> {
-		return this.repo.head().then((head) => {
-			return head.peel(-2) // GIT_OBJ_ANY https://github.com/libgit2/libgit2/blob/master/include/git2/types.h#L68
-		}).then((head) => {
-			return nodegit.Reset.default(this.repo, head, path)
-		}).then((result) => {
-			if (result)
-				throw new Error('Error while adding file to index')
-			this.statuses[path] = nodegit.StatusFile({
-				path: path,
-				status: nodegit.Status.file(this.repo, path)
-			})
-		}).catch(e => {
-			console.log(e, e.stack)
+			throw e
 		})
 	}
 
 	toggleStaging(status):Promise<any> {
-		console.log('before staging', status.path(), nodegit.Status.file(this.repo, status.path()));
-
-		if (status.inIndex()) {
-			console.log('unstage')
-			return this.unstage(status.path())
+		if (status.working_dir == ' ') {
+			return this.unstage(status.path)
 		}
-		console.log('stage', status.path())
-		return this.stage(status.path())
+		return this.stage(status.path)
+	}
+
+	logs():Promise<any> {
+		return this.repo.log({
+			format: {
+				'hash': '%H',
+				'parents': '%P',
+				'date': '%ai',
+				'message': '%s',
+				'refs': '%D',
+				'author_name': '%aN',
+				'author_email': '%ae'
+			},
+			splitter: '<~spt~>'
+		}).then(logs => logs.all).catch((e) => {
+			if (e && e.message && e.message.match(/your current branch '.*?' does not have any commits yet/)) {
+				return Promise.resolve([])
+			}
+			throw e
+		})
+	}
+
+	branches(opts?:{all:boolean}):Promise<any> {
+		if (opts && opts.all)
+			return this.repo.branch()
+		else
+			return this.repo.branchLocal()
+	}
+
+	remotes():Promise<any> {
+		return this.repo.getRemotes().then(remotes => {
+			return remotes.filter(remote => remote.name)
+		})
+	}
+
+	getCommit(hash:string):Promise<any> {
+		return this.repo.show(['--pretty=%w(0)%B%n<~diffs~>', '--name-status', hash]).then(data => {
+			let result = data.split("<~diffs~>")
+			let changes = result[1].trim().split(/[\r\n]/).map(line => line.split(/[ \t]/))
+			return {
+				message: result[0].trim(),
+				changes: changes
+			}
+		})
+	}
+
+	commit(message:string):Promise<any> {
+		return this.repo.commit(message)
+	}
+
+	setUpstream(branch:string, upstream:string):Promise<any> {
+		return this.repo.branch(['--set-upstream-to=' + upstream, branch])
+	}
+
+	sync(options:{remote:string, branch:string, set_tracking?:boolean}, applyOptions?:IApplyOptions):Promise<any> {
+		// stash && pull && stash pop && push; stops (and stash pop if needed) where if fails.
+		let stashed
+		applyOptions = applyOptions || {}
+		if (applyOptions.beforeSave)
+			applyOptions.beforeSave()
+		return this.repo.branchLocal().then((data) => {
+			return this.repo.stash()
+		}).then((data) => {
+			stashed = ! data.match(/No local changes to save/)
+			let p
+			if (options.set_tracking) {
+				p = this.repo.pull(options.remote, options.branch)
+			} else {
+				p = this.repo.pull()
+			}
+			return p.catch((e) => {
+				if (options.set_tracking && e && e.message && e.message.match(/Couldn't find remote ref/)) {
+					return Promise.resolve()
+				}
+				if (stashed) {
+					return this.repo.stash(['pop']).then(() => {
+						throw e
+					})
+				}
+				throw e
+			})
+		}).then((data) => {
+			if (stashed)
+				return this.repo.stash(['pop'])
+			else
+				return Promise.resolve()
+		}).then((data) => {
+			if (options.set_tracking) {
+				return this.repo.push(['-u', options.remote, options.branch])
+			} else {
+				return this.repo.push()
+			}
+		}).then((data) => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+			return data
+		}).catch((e) => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+			throw e
+		})
+	}
+
+	addRemote(name:string, url:string):Promise<any> {
+		return this.repo.addRemote(name, url)
+	}
+
+	addBranch(name:string):Promise<any> {
+		return this.repo.checkoutLocalBranch(name)
+	}
+
+	copyCheckout(options:{path:string, to:string, remote:string, branch:string}, applyOptions?:IApplyOptions):Promise<any> {
+		applyOptions = applyOptions || {}
+		if (applyOptions.beforeSave)
+			applyOptions.beforeSave()
+
+		let repoCopy
+		let _from = Path.resolve(options.path, '.git')
+		let to = Path.resolve(options.to, '.git')
+		return new Promise((accept, reject) => {
+			mkdirp(Path.dirname(to), (err) => {
+				if (err) {
+					return reject(err)
+				}
+				accept()
+			})
+		}).then(() => {
+			return new Promise((accept, reject) => {
+				ncp(_from, to, (err) => {
+					if (err)
+						return reject(err)
+					accept()
+				})
+			})
+		}).then(() => {
+			repoCopy = git(options.to)
+			repoCopy.silent(true)
+			return repoCopy.reset("hard")
+		}).then(() => {
+			return repoCopy.fetch(options.remote, options.branch)
+		}).then(() => {
+			return repoCopy.checkoutBranch("materia/live", `${options.remote}/${options.branch}`)
+		}).then(() => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+		}).catch((e) => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+			throw e
+		})
 	}
 }
