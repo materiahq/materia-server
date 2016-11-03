@@ -1,17 +1,34 @@
+import * as Path from 'path'
+
 import App, { IApplyOptions } from './app'
+
+import { EventEmitter } from 'events'
+
+import * as mkdirp from 'mkdirp'
+
+const ncp = require('ncp').ncp;
 
 require('./patches/git/GitStash')
 const git = require('simple-git/promise');
 
-export default class Git {
+export default class Git extends EventEmitter {
 	repo: any
 
 	constructor(private app: App) {
+		super()
 	}
 
 	load():Promise<any> {
 		this.repo = git(this.app.path)
 		this.repo.silent(true)
+		this.repo.outputHandler((command, stdout, stderr) => {
+			stdout.on('data', (data) => {
+				this.emit('stdout', data.toString(), command)
+			})
+			stderr.on('data', (data) => {
+				this.emit('stderr', data.toString(), command)
+			})
+		})
 		return Promise.resolve(this.repo)
 	}
 
@@ -98,7 +115,7 @@ export default class Git {
 		return this.repo.branch(['--set-upstream-to=' + upstream, branch])
 	}
 
-	sync(options:{remote:string, branch:string, set_tracking?:boolean}, applyOptions:IApplyOptions):Promise<any> {
+	sync(options:{remote:string, branch:string, set_tracking?:boolean}, applyOptions?:IApplyOptions):Promise<any> {
 		// stash && pull && stash pop && push; stops (and stash pop if needed) where if fails.
 		let stashed
 		applyOptions = applyOptions || {}
@@ -153,5 +170,46 @@ export default class Git {
 
 	addBranch(name:string):Promise<any> {
 		return this.repo.checkoutLocalBranch(name)
+	}
+
+	copyCheckout(options:{path:string, to:string, remote:string, branch:string}, applyOptions?:IApplyOptions):Promise<any> {
+		applyOptions = applyOptions || {}
+		if (applyOptions.beforeSave)
+			applyOptions.beforeSave()
+
+		let repoCopy
+		let _from = Path.resolve(options.path, '.git')
+		let to = Path.resolve(options.to, '.git')
+		return new Promise((accept, reject) => {
+			mkdirp(Path.dirname(to), (err) => {
+				if (err) {
+					return reject(err)
+				}
+				accept()
+			})
+		}).then(() => {
+			return new Promise((accept, reject) => {
+				ncp(_from, to, (err) => {
+					if (err)
+						return reject(err)
+					accept()
+				})
+			})
+		}).then(() => {
+			repoCopy = git(options.to)
+			repoCopy.silent(true)
+			return repoCopy.reset("hard")
+		}).then(() => {
+			return repoCopy.fetch(options.remote, options.branch)
+		}).then(() => {
+			return repoCopy.checkoutBranch("materia/live", `${options.remote}/${options.branch}`)
+		}).then(() => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+		}).catch((e) => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+			throw e
+		})
 	}
 }

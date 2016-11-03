@@ -7,7 +7,7 @@ import * as mkdirp from 'mkdirp'
 
 import { Logger } from './logger'
 
-import { Server } from './server'
+import { Server, ConfigType, IGitConfig } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
 
@@ -537,5 +537,18 @@ export default class App extends events.EventEmitter {
 	getMateriaVersion() {
 		let pkg = require('../../package')
 		return pkg.version
+	}
+
+	installLive():Promise<any> {
+		let gitConfig = this.server.getConfig(AppMode.PRODUCTION, ConfigType.GIT) as IGitConfig
+		if ( ! gitConfig || ! gitConfig.remote || ! gitConfig.branch ) {
+			return Promise.reject(new Error('Missing git configuration for production mode.'))
+		}
+		return this.git.copyCheckout({
+			path: this.path,
+			to: path.resolve(this.path, '.materia', 'live'),
+			remote: gitConfig.remote,
+			branch: gitConfig.branch
+		})
 	}
 }

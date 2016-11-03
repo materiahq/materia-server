@@ -33,16 +33,23 @@ export interface IFullServerConfig {
 	prod?: {
 		web: IWebServerConfig
 		database?: IDatabaseServerConfig
+		git?: IGitConfig
 	}
 }
 
 export enum ConfigType {
 	WEB = <any>"web",
-	DATABASE = <any>"database"
+	DATABASE = <any>"database",
+	GIT = <any>"git"
 }
 
 export interface IConfigOptions {
 	live?: boolean
+}
+
+export interface IGitConfig {
+	remote: string
+	branch: string
 }
 
 /**
@@ -99,7 +106,7 @@ export class Server {
 	*/
 	getBaseUrl(path?:string, mode?:AppMode, options?:IConfigOptions) {
 		path = path || '/api'
-		let conf = this.getConfig(mode, ConfigType.WEB, options)
+		let conf = this.getConfig(mode, ConfigType.WEB, options) as IWebServerConfig
 		if ( ! conf) {
 			return ""
 		}
@@ -187,10 +194,10 @@ export class Server {
 
 	/**
 	Get the server configuration
-	@param {string} - The environment mode. ConfigType.DEVELOPMENT or ConfigType.PRODUCTION.
+	@param {string} - The environment mode. AppMode.DEVELOPMENT or AppMode.PRODUCTION.
 	@returns {object}
 	*/
-	getConfig(mode?:AppMode, type?:ConfigType, options?:IConfigOptions):IWebServerConfig|IDatabaseServerConfig {
+	getConfig(mode?:AppMode, type?:ConfigType, options?:IConfigOptions):IWebServerConfig|IDatabaseServerConfig|IGitConfig {
 		type = type || ConfigType.WEB
 		options = options || {live: this.app.live}
 		if ( ! this.config) {
@@ -219,9 +226,10 @@ export class Server {
 	@param {object} - The configuration object
 	@param {string} - The environment mode. `development` or `production`.
 	*/
-	setConfig(config: IWebServerConfig|IDatabaseServerConfig, mode: AppMode, type?:ConfigType, options?: IConfigOptions, opts?: ISaveOptions):void {
+	setConfig(config: IWebServerConfig|IDatabaseServerConfig|IGitConfig, mode: AppMode, type?:ConfigType, options?: IConfigOptions, opts?: ISaveOptions):void {
 		options = options || {}
-		if ( type == ConfigType.WEB && (! config.host || ! config.port) ) {
+		let webConfig = <IWebServerConfig> config
+		if ( type == ConfigType.WEB && (! webConfig.host || ! webConfig.port) ) {
 			if (mode == AppMode.DEVELOPMENT) {
 				throw new Error('Missing host/port')
 			} else {
@@ -236,14 +244,20 @@ export class Server {
 			this.config[mode] = {}
 		}
 
-		let conf: IWebServerConfig|IDatabaseServerConfig
+		let conf: IWebServerConfig|IDatabaseServerConfig|IGitConfig
 		if (type == ConfigType.WEB) {
-			conf = config && {
-				host: config.host,
-				port: config.port
+			conf = webConfig && {
+				host: webConfig.host,
+				port: webConfig.port
 			}
 		} else if (type == ConfigType.DATABASE) {
 			conf = this.app.database._confToJson(<IDatabaseServerConfig> config)
+		} else if (type == ConfigType.GIT) {
+			let gitConfig = <IGitConfig> config
+			conf = gitConfig && {
+				remote: gitConfig.remote,
+				branch: gitConfig.branch
+			}
 		}
 
 		if (options.live) {
@@ -324,7 +338,7 @@ export class Server {
 				return Promise.resolve()
 			}
 
-			let config = this.getConfig()
+			let config = this.getConfig() as IWebServerConfig
 			return new Promise((resolve, reject) => {
 				let port = this.app.options.port || config.port
 
