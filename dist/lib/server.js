@@ -15,6 +15,7 @@ var enableDestroy = require('server-destroy');
 (function (ConfigType) {
     ConfigType[ConfigType["WEB"] = "web"] = "WEB";
     ConfigType[ConfigType["DATABASE"] = "database"] = "DATABASE";
+    ConfigType[ConfigType["GIT"] = "git"] = "GIT";
 })(exports.ConfigType || (exports.ConfigType = {}));
 var ConfigType = exports.ConfigType;
 /**
@@ -141,7 +142,7 @@ class Server {
     }
     /**
     Get the server configuration
-    @param {string} - The environment mode. ConfigType.DEVELOPMENT or ConfigType.PRODUCTION.
+    @param {string} - The environment mode. AppMode.DEVELOPMENT or AppMode.PRODUCTION.
     @returns {object}
     */
     getConfig(mode, type, options) {
@@ -169,7 +170,8 @@ class Server {
     */
     setConfig(config, mode, type, options, opts) {
         options = options || {};
-        if (type == ConfigType.WEB && (!config.host || !config.port)) {
+        let webConfig = config;
+        if (type == ConfigType.WEB && (!webConfig.host || !webConfig.port)) {
             if (mode == app_1.AppMode.DEVELOPMENT) {
                 throw new Error('Missing host/port');
             }
@@ -185,13 +187,20 @@ class Server {
         }
         let conf;
         if (type == ConfigType.WEB) {
-            conf = config && {
-                host: config.host,
-                port: config.port
+            conf = webConfig && {
+                host: webConfig.host,
+                port: webConfig.port
             };
         }
         else if (type == ConfigType.DATABASE) {
             conf = this.app.database._confToJson(config);
+        }
+        else if (type == ConfigType.GIT) {
+            let gitConfig = config;
+            conf = gitConfig && {
+                remote: gitConfig.remote,
+                branch: gitConfig.branch
+            };
         }
         if (options.live) {
             if (!this.config[mode][type]) {

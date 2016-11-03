@@ -16,10 +16,13 @@ class Synchronizer {
                     found = true;
                 }
             }
-            else if (dbfield[k] != field[k]) {
-                diff[0][k] = dbfield[k];
-                diff[1][k] = field[k];
-                found = true;
+            else {
+                if (dbfield[k] != field[k]
+                    && (k != 'defaultValue' || (new Date(dbfield[k])).getTime() != (new Date(field[k])).getTime())) {
+                    diff[0][k] = dbfield[k];
+                    diff[1][k] = field[k];
+                    found = true;
+                }
             }
         }
         if (dbfield.unique != field.unique && !dbfield.primary && !field.primary

@@ -100,11 +100,7 @@ class Api {
     @returns {Endpoint}
     */
     get(method, url) {
-        for (let endpoint of this.endpoints) {
-            if (endpoint.url == url && endpoint.method == method) {
-                return endpoint;
-            }
-        }
+        return this.endpoints.find(endpoint => endpoint.url == url && endpoint.method == method);
     }
     /**
     Get all endpoints
@@ -112,6 +108,7 @@ class Api {
     */
     findAll() { return this.endpoints; }
     _loadFromPath(basepath, opts) {
+        this.permissions.clear();
         let content;
         try {
             content = fs.readFileSync(path.join(basepath, 'api.json'));

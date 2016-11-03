@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 /**
  * @class Permissions
  * @classdesc
@@ -7,27 +7,33 @@
 class Permissions {
     constructor(app) {
         this.app = app;
+        this.app = app;
         this.clear();
     }
-    check(permissions) {
-        let self = this;
-        return function checkPermissions(req, res, next) {
+    isAuthorized(permission) {
+    }
+    check(permissionsName) {
+        return (req, res, next) => {
             let chain = (req, res, next) => { next(); };
-            let rev_permissions = permissions.reverse();
-            for (let perm of rev_permissions) {
-                let filter = self.filters[perm];
-                if (!filter)
-                    return next(new Error('Could not find addon for permission "' + perm + '"'));
+            let rev_permissions = permissionsName.reverse();
+            rev_permissions.every(permissionName => {
+                let permission = this.permissions.find(permission => permission.name == permissionName);
+                if (!permission) {
+                    next(new Error('Could not find permission "' + permissionName + '"'));
+                    return false;
+                }
                 let nextchain = chain;
                 chain = (req, res, next) => {
                     let _next = (e) => {
-                        if (e)
-                            return res.status(500).json(JSON.stringify(e.message)); // return next(e)
+                        if (e) {
+                            return res.status(500).json(JSON.stringify(e.message));
+                        }
                         nextchain(req, res, next);
                     };
-                    filter(req, res, _next);
+                    permission.middleware(req, res, _next);
                 };
-            }
+                return true;
+            });
             chain(req, res, next);
         };
     }
@@ -35,38 +41,55 @@ class Permissions {
     Remove all permissions
     */
     clear() {
-        this.filters = {};
-        this.set('Anyone', (req, res, next) => { return next(); });
+        this.permissions = [];
+        this.add('Anyone', 'Anyone can access without restriction endpoints which have the "Anyone" permission', (req, res, next) => { return next(); });
     }
     /**
-    Get all the registered filters' name
-    @returns {Array<string>}
+    Get all the registered permissions
+    @returns {Array<IPermission>}
     */
     findAll() {
-        return Object.keys(this.filters);
+        return this.permissions;
     }
     /**
-    Get a filter's function
+    Get a permission's object
     @param {string} - The filter name
     @returns {function}
     */
     get(name) {
-        return this.filters[name];
+        return this.permissions.find(permission => {
+            return permission.name == name;
+        });
     }
     /**
-    Set a filter.
+    Add a permission.
     @param {string} - The filter name
     @param {function} - The function to execute when an endpoint uses this filter
     */
-    set(name, middlewareFn) {
-        this.filters[name] = middlewareFn;
+    add(name, desc, middlewareFn) {
+        if (this.permissions.find(permission => {
+            return permission.name == name;
+        })) {
+            return Promise.reject(new Error(`The permission ${name} already exists`));
+        }
+        this.permissions.push({
+            name: name,
+            description: desc,
+            middleware: middlewareFn
+        });
+        return Promise.resolve();
     }
     /**
     Remove a filter
     @param {string} - The filter name
     */
     remove(name) {
-        delete this.filters[name];
+        let index = this.permissions.indexOf(this.permissions.find(permission => {
+            return permission.name == name;
+        }));
+        if (index != -1) {
+            this.permissions.splice(index, 1);
+        }
     }
 }
 module.exports = Permissions;

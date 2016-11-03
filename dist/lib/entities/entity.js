@@ -25,6 +25,71 @@ class Entity {
             qg.generateQueries();
         }
     }
+    fixIsRelation(options) {
+        if (!this.isRelation)
+            return Promise.resolve();
+        let entity1 = this.app.entities.get(this.isRelation[0].entity);
+        let entity2 = this.app.entities.get(this.isRelation[1].entity);
+        let p = Promise.resolve();
+        if (!entity1 || !entity2) {
+            let pk1 = entity1 && entity1.getPK()[0];
+            if (pk1) {
+                let rel = {
+                    type: 'belongsTo',
+                    field: this.isRelation[0].field,
+                    reference: {
+                        entity: entity1.name,
+                        field: pk1.name
+                    }
+                };
+                if (entity1.getRelationIndex(rel) == -1) {
+                    p = p.then(() => this.addRelation(rel, options));
+                }
+            }
+            let pk2 = entity2 && entity2.getPK()[0];
+            if (pk2) {
+                let rel = {
+                    type: 'belongsTo',
+                    field: this.isRelation[1].field,
+                    reference: {
+                        entity: entity2.name,
+                        field: pk2.name
+                    }
+                };
+                if (entity2.getRelationIndex(rel) == -1) {
+                    p = p.then(() => this.addRelation(rel, options));
+                }
+            }
+            delete this.isRelation;
+        }
+        else {
+            let rel1 = {
+                type: 'belongsToMany',
+                through: this.name,
+                as: this.isRelation[0].field,
+                reference: {
+                    entity: entity2.name,
+                    as: this.isRelation[1].field
+                }
+            };
+            if (entity1.getRelationIndex(rel1) == -1) {
+                p = p.then(() => entity1.addRelation(rel1, options));
+            }
+            let rel2 = {
+                type: 'belongsToMany',
+                through: this.name,
+                as: this.isRelation[1].field,
+                reference: {
+                    entity: entity1.name,
+                    as: this.isRelation[0].field
+                }
+            };
+            if (entity2.getRelationIndex(rel2) == -1) {
+                p = p.then(() => entity2.addRelation(rel2, options));
+            }
+        }
+        return p;
+    }
     create(entityobj, options) {
         options = options || {};
         this.name = entityobj.name;
@@ -154,20 +219,35 @@ class Entity {
     @returns {integer} Index of the relation in the relations array, or -1 if non existant.
     */
     getRelationIndex(relation) {
-        for (let i in this.relations) {
-            let rel = this.relations[i];
-            if (relation.field && relation.field == rel.field)
-                return i; // type belongsTo
+        let res = -1;
+        this.relations.forEach((rel, i) => {
+            if (res != -1) {
+                return false;
+            }
+            if (relation.field && relation.field == rel.field) {
+                res = i; // type belongsTo
+            }
             else if (relation.as && relation.as == rel.as
                 && relation.reference.entity == rel.reference.entity
-                && relation.reference.as == rel.reference.as)
-                return i; // type belongsToMany
+                && relation.reference.as == rel.reference.as) {
+                res = i; // type belongsToMany
+            }
             else if (relation.reference.field
                 && relation.reference.entity == rel.reference.entity
-                && relation.reference.field == rel.reference.field)
-                return i; // type hasMany
+                && relation.reference.field == rel.reference.field) {
+                res = i; // type hasMany
+            }
+        });
+        return res;
+    }
+    getPK() {
+        let pks = [];
+        for (let field of this.fields) {
+            if (field.primary) {
+                pks.push(field);
+            }
         }
-        return -1;
+        return pks;
     }
     /**
     Add a relation to the entity
@@ -228,6 +308,7 @@ class Entity {
                     if (!entityDest) {
                         return accept(); // when loading entities
                     }
+                    //TODO: Should be all PK of this and relation.reference.entity
                     let field1 = this.getPK()[0];
                     let field2 = this.app.entities.get(relation.reference.entity).getPK()[0];
                     if (!relation.as)
@@ -661,7 +742,7 @@ class Entity {
     removeField(name, options) {
         options = options || {};
         if (!name) {
-            return Promise.reject();
+            return Promise.reject(new Error('The name of the field is required'));
         }
         if (options.apply != false && !this.getField(name)) {
             return Promise.reject(new Error('This field does not exist'));
@@ -705,7 +786,7 @@ class Entity {
         }
         let relJson = [];
         if (this.relations) {
-            for (let relation of this.relations) {
+            this.relations.forEach(relation => {
                 if (!relation.implicit) {
                     let relCopy = {};
                     for (let k in relation) {
@@ -718,17 +799,21 @@ class Entity {
                     }
                     relJson.push(relCopy);
                 }
-            }
+            });
         }
         let queriesJson = [];
         if (this.queries) {
-            for (let query of this.queries) {
-                if (['get', 'list', 'update', 'create', 'delete'].indexOf(query.id) == -1)
+            this.queries.forEach(query => {
+                if (['get', 'list', 'update', 'create', 'delete'].indexOf(query.id) == -1) {
                     queriesJson.push(query.toJson());
-            }
+                }
+            });
         }
         let res = {
-            id: this.id
+            id: this.id,
+            fields: [],
+            relations: [],
+            queries: []
         };
         if (fieldsJson.length) {
             res.fields = fieldsJson;
@@ -764,11 +849,9 @@ class Entity {
         let queryobj = new QueryClass(this, id, params, opts);
         if (options.apply != false) {
             //check that query with `id` = id does not exist. if it exists, remove the query
-            for (let i in this.queries) {
-                let query = this.queries[i];
-                if (query.id == id) {
-                    this.queries.splice(i, 1);
-                }
+            let index = this.queries.indexOf(this.queries.find(query => query.id == id));
+            if (index != -1) {
+                this.queries.splice(index, 1);
             }
             this.queries.push(queryobj);
         }
@@ -800,11 +883,9 @@ class Entity {
             throw new Error('Could node find query `' + id + '`');
         }
         if (options.apply != false) {
-            for (let i in this.queries) {
-                let query = this.queries[i];
-                if (query.id == id) {
-                    this.queries.splice(i, 1);
-                }
+            let index = this.queries.indexOf(this.queries.find(query => query.id == id));
+            if (index != -1) {
+                this.queries.splice(index, 1);
             }
         }
         if (options.history != false) {

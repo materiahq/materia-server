@@ -11,6 +11,7 @@ const synchronizer_1 = require('./synchronizer');
 const addons_1 = require('./addons');
 const api_1 = require('./api');
 const history_1 = require('./history');
+const error_1 = require('./error');
 //TODO: convert to ts
 let Deploy = require('./runtimes/tools/deploy');
 let AddonsTools = require('./runtimes/tools/addons');
@@ -57,7 +58,10 @@ class App extends events.EventEmitter {
             }
         }
         else {
-            throw new Error("App constructor - Unknown mode");
+            //console.log('Info: the mode ' + this.options.mode + ' has not been found... Loaded in development mode')
+            throw new error_1.default("Unknown mode", {
+                debug: 'Option --mode can be development (development/dev/debug) or production (production/prod). e.g. materia start --mode=prod or materia start --mode=dev'
+            });
         }
         this.logger = new logger_1.Logger(this);
         this.history = new history_1.History(this);
@@ -68,33 +72,76 @@ class App extends events.EventEmitter {
         this.server = new server_1.Server(this);
         this.synchronizer = new synchronizer_1.Synchronizer(this);
         this.status = false;
-        this.loadMateria();
         if (this.options.runtimes != "core") {
-            this.deploy = new Deploy(this);
-            let AddonsTools = require('./runtimes/tools/addons');
-            this.addonsTools = new AddonsTools(this);
             let Git = require('./git');
             this.git = new Git.default(this);
         }
     }
-    load() {
-        let beforeLoad = Promise.resolve();
-        try {
-            this.addons.checkInstalled();
-        }
-        catch (e) {
-            if (this.addonsTools) {
-                console.log("Missing addons, trying to install...");
-                beforeLoad = this.addonsTools.install_all().then(() => {
-                    console.log("Addons installed");
-                    return Promise.resolve();
+    loadMateria() {
+        return this._loadMateriaConfig().then((materiaConf) => {
+            if (!materiaConf.name) {
+                return Promise.reject(new error_1.default('Missing "name" field in materia.json', {
+                    debug: `A minimal materia.json config file should look like:
+{
+	name: 'NameOfYourApplication'
+}`
+                }));
+            }
+            this.infos = materiaConf;
+            this.infos.addons = this.infos.addons || {};
+            this.name = this.infos.name;
+            return Promise.resolve();
+        });
+    }
+    check() {
+        if (this.git) {
+            return this.git.load().then(() => {
+                return this.git.status().then(status => {
+                    for (let file of status.files) {
+                        if (file.working_dir == 'U') {
+                            throw new Error('Git repo contains unresolved conflicts');
+                        }
+                    }
+                }).catch(e => {
+                    if (e && e.message && e.message.match(/This operation must be run in a work tree/)) {
+                        return Promise.resolve();
+                    }
+                    throw e;
                 });
-            }
-            else {
-                return Promise.reject(e);
-            }
+            });
         }
-        return beforeLoad.then(() => {
+        return Promise.resolve();
+    }
+    load() {
+        let p = Promise.resolve();
+        if (!this.loaded) {
+            p = this.loadMateria();
+        }
+        return p.then(() => {
+            //TODO: need to simplify this.
+            if (this.options.runtimes != "core") {
+                this.deploy = new Deploy(this);
+                let AddonsTools = require('./runtimes/tools/addons');
+                this.addonsTools = new AddonsTools(this);
+            }
+            let beforeLoad = Promise.resolve();
+            try {
+                this.addons.checkInstalled();
+            }
+            catch (e) {
+                if (this.addonsTools) {
+                    console.log("Missing addons, trying to install...");
+                    beforeLoad = this.addonsTools.install_all().then(() => {
+                        console.log("Addons installed");
+                        return Promise.resolve();
+                    });
+                }
+                else {
+                    return Promise.reject(e);
+                }
+            }
+            return beforeLoad;
+        }).then(() => {
             if (this.database.load()) {
                 return this.database.start().then(() => {
                     return this.entities.load();
@@ -107,6 +154,7 @@ class App extends events.EventEmitter {
         }).then(() => {
             this.server.load();
             this.api.load();
+            return Promise.resolve();
         }).then(() => {
             return this.history.load();
         }).then(() => {
@@ -117,23 +165,37 @@ class App extends events.EventEmitter {
             }
         });
     }
-    loadMateria() {
-        let materiaStr;
-        let materiaConf;
-        try {
-            materiaStr = fs.readFileSync(path.join(this.path, 'materia.json')).toString();
-            materiaConf = JSON.parse(materiaStr);
-        }
-        catch (e) {
-            e.message = 'Could not read/parse `materia.json` in the application directory';
-            throw e;
-        }
-        if (!materiaConf.name) {
-            throw new Error('Missing "name" field in materia.json');
-        }
-        this.infos = materiaConf;
-        this.infos.addons = this.infos.addons || {};
-        this.name = this.infos.name;
+    _loadMateriaConfig() {
+        return new Promise((resolve, reject) => {
+            fs.exists(this.path, exists => {
+                if (!exists) {
+                    return reject(new error_1.default('The application directory has not been found. The folder has been moved or removed'));
+                }
+                fs.exists(path.join(this.path, 'materia.json'), exists => {
+                    if (!exists) {
+                        return reject(new error_1.default('materia.json does not exists', {
+                            debug: `A minimal materia.json file should look like this:
+{
+	name: 'nameOfYourApplication'
+}`
+                        }));
+                    }
+                    fs.readFile(path.join(this.path, 'materia.json'), 'utf8', (err, conf) => {
+                        if (err) {
+                            return reject(new Error('Could not load materia.json'));
+                        }
+                        let confJson;
+                        try {
+                            confJson = JSON.parse(conf);
+                        }
+                        catch (e) {
+                            return reject(new Error('Could not parse materia.json. The JSON seems invalid'));
+                        }
+                        return resolve(confJson);
+                    });
+                });
+            });
+        });
     }
     saveMateria(opts) {
         if (opts && opts.beforeSave) {
@@ -164,7 +226,8 @@ class App extends events.EventEmitter {
     Starts the materia app
     */
     start() {
-        return this.database.start().catch((e) => {
+        let p = this.database.started ? Promise.resolve() : this.database.start();
+        return p.catch((e) => {
             e.errorType = 'database';
             throw e;
         }).then(() => {
@@ -369,6 +432,22 @@ class App extends events.EventEmitter {
                 opts.afterSave();
             }
             throw e;
+        });
+    }
+    getMateriaVersion() {
+        let pkg = require('../../package');
+        return pkg.version;
+    }
+    installLive() {
+        let gitConfig = this.server.getConfig(AppMode.PRODUCTION, server_1.ConfigType.GIT);
+        if (!gitConfig || !gitConfig.remote || !gitConfig.branch) {
+            return Promise.reject(new Error('Missing git configuration for production mode.'));
+        }
+        return this.git.copyCheckout({
+            path: this.path,
+            to: path.resolve(this.path, '.materia', 'live'),
+            remote: gitConfig.remote,
+            branch: gitConfig.branch
         });
     }
 }

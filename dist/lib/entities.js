@@ -85,12 +85,7 @@ class Entities {
                 return Promise.reject(new Error(e));
             }
         }
-        return Promise.all(promises).then(() => {
-            promises = [];
-            for (let name in this.entities)
-                promises.push(this.entities[name].applyRelations());
-            return Promise.all(promises);
-        });
+        return Promise.all(promises);
     }
     load() {
         this.entities = {};
@@ -104,7 +99,7 @@ class Entities {
     loadFromAddon(addon) {
         return this._loadFromPath(path.join(this.app.path, 'addons', addon), {
             history: false,
-            db: true,
+            db: false,
             save: false,
             wait_relations: true,
             fromAddon: addon
@@ -125,6 +120,13 @@ class Entities {
             return this.detect_rename();
         }).then(() => {
             return this._save_id_map();
+        }).then(() => {
+            //Convert orphan n-n through tables
+            promises = [];
+            for (let name in this.entities) {
+                promises.push(this.entities[name].fixIsRelation({ save: false, db: false, history: false }));
+            }
+            return Promise.all(promises);
         }).then(() => {
             return this.app.database.sync();
         });

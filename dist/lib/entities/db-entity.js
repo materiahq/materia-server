@@ -15,15 +15,6 @@ class DBEntity extends Entity {
         this.currentDiff = [];
         this.currentDiffUndo = [];
     }
-    getPK() {
-        let pks = [];
-        for (let field of this.fields) {
-            if (field.primary) {
-                pks.push(field);
-            }
-        }
-        return pks;
-    }
     updatePrimary(field, fieldobj, options) {
         let pks = this.getPK();
         let p = Promise.resolve();
