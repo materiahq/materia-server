@@ -6,6 +6,8 @@ import * as express from 'express'
 const Endpoint = require('./api/endpoint')
 const Permissions = require('./api/permissions')
 
+import MateriaError, { ErrorType } from './error'
+
 import App from './app'
 
 /**
@@ -122,44 +124,71 @@ export default class Api {
 	*/
 	findAll() { return this.endpoints }
 
-	_loadFromPath(basepath, opts) {
-		this.permissions.clear()
-		let content
-		try {
-			content = fs.readFileSync(path.join(basepath, 'api.json'))
-		}
-		catch(e) {
-			return
-		}
+	private _loadJson(basepath:string):Promise<any> {
+		return new Promise((resolve, reject) => {
+			fs.exists(path.join(basepath, 'api.json'), (exists) => {
+				//File api.json optional
+				if ( ! exists ) { return resolve([]) }
+				fs.readFile(path.join(basepath, 'api.json'), 'utf8', (err, content) => {
+					if (err) {
+						//TODO: Change this in warning
+						this.app.logger.error("Error while trying to read api.json file. It can be a permission issue. Endpoints has been skipped", err);
+						return resolve([])
+					}
 
-		try {
-			let endpoints = JSON.parse(content.toString())
-
-			endpoints.forEach((endpoint) => {
-				try {
-					this.add(endpoint, opts)
-				} catch (e) {
-					this.app.logger.warn('Skipped endpoint ' + endpoint.method + ' ' + endpoint.url)
-					this.app.logger.warn('due to error ' + e.message, e.stack)
-				}
+					let endpoints;
+					try {
+						endpoints = JSON.parse(content)
+						return resolve(endpoints)
+					}
+					catch (e) {
+						return reject(e)
+					}
+				})
 			})
-		} catch (e) {
-			if (e.code != 'ENOENT')
-				this.app.logger.error('error loading endpoints', e.stack)
-			else
-				throw e
-		}
+		})
 	}
 
-	load() {
+	_loadFromPath(basepath, opts): Promise<void> {
+		this.permissions.clear()
+		return new Promise((resolve, reject) => {
+			this._loadJson(basepath).then(endpoints => {
+				let errors = []
+				endpoints.forEach((endpoint) => {
+					try {
+						this.add(endpoint, opts)
+					} catch (e) {
+						let error = new MateriaError(`Skipped endpoint ${endpoint.method} ${endpoint.url}
+						due to error ${e.message}
+						${e.stack}`, {
+							type: ErrorType.ENDPOINT
+						})
+						errors.push(error)
+					}
+				})
+				if ( errors.length ) {
+					return reject(errors)
+				}
+				return resolve()
+			}).catch(e => {
+				let error = new MateriaError('The JSON in the file api.json is malformed.', {
+					type: ErrorType.API
+				});
+				this.app.logger.error(error)
+				return reject(error)
+			})
+		})
+	}
+
+	load():Promise<void> {
 		this.endpoints = []
-		this._loadFromPath(this.app.path, {
+		return this._loadFromPath(this.app.path, {
 			save: false
 		})
 	}
 
-	loadFromAddon(addon) {
-		this._loadFromPath(path.join(this.app.path, 'addons', addon), {
+	loadFromAddon(addon):Promise<void> {
+		return this._loadFromPath(path.join(this.app.path, 'addons', addon), {
 			save: false,
 			fromAddon: addon
 		})

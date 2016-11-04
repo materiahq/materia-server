@@ -18,7 +18,8 @@ import Api from './api'
 
 import { History } from './history'
 
-import MateriaError from './error'
+import MateriaError, { ErrorType } from './error'
+import ErrorManager from './errors'
 
 //TODO: convert to ts
 let Deploy = require('./runtimes/tools/deploy')
@@ -86,7 +87,7 @@ export default class App extends events.EventEmitter {
 	mode: AppMode
 
 	loaded: false
-
+	errorManager: ErrorManager
 	infos: IMateriaConfig
 
 	history: History
@@ -108,6 +109,8 @@ export default class App extends events.EventEmitter {
 	constructor(public path: string, public options: IAppOptions) {
 		super()
 		process.env.TZ = 'UTC'
+
+		this.errorManager = new ErrorManager(this)
 
 		if ( ! this.options ) {
 			this.options = {}
@@ -145,16 +148,16 @@ export default class App extends events.EventEmitter {
 		this.api = new Api(this)
 		this.server = new Server(this)
 		this.synchronizer = new Synchronizer(this)
-
 		this.status = false
 
 		if (this.options.runtimes != "core") {
-			let Git = require('./git')
-			this.git = new Git.default(this)
+			let Git = require('./git').default
+			this.git = new Git(this)
 		}
 	}
 
 	loadMateria():Promise<void> {
+		this.errorManager.clear()
 		return this._loadMateriaConfig().then((materiaConf) => {
 			if ( ! materiaConf.name) {
 				return Promise.reject(new MateriaError('Missing "name" field in materia.json', {
@@ -211,9 +214,9 @@ export default class App extends events.EventEmitter {
 				this.addons.checkInstalled()
 			} catch(e) {
 				if (this.addonsTools) {
-					console.log("Missing addons, trying to install...")
+					this.logger.log("Missing addons, trying to install...")
 					beforeLoad = this.addonsTools.install_all().then(() => {
-						console.log("Addons installed")
+						this.logger.log("Addons installed")
 						return Promise.resolve()
 					})
 				} else {
@@ -232,18 +235,30 @@ export default class App extends events.EventEmitter {
 				this.logger.log('No database configuration for this application - Continue without Entities')
 				return Promise.resolve()
 			}
+		}).catch(errors => {
+			this.errorManager.addError(errors)
 		}).then(() => {
 			this.server.load()
-			this.api.load()
-
-			return Promise.resolve()
+			return this.api.load()
+		}).catch(errors => {
+			this.errorManager.addError(errors)
 		}).then(() => {
 			return this.history.load()
 		}).then(() => {
 			return this.addons.load()
+		}).catch(errors => {
+			this.errorManager.addError(errors)
 		}).then(() => {
-			if (this.git) {
+			if ( this.git ) {
 				return this.git.load()
+			}
+		}).then(() => {
+			if ( this.errorManager.hasWarnings() ) {
+				this.errorManager.warnings.map(warning => this.logger.warn(warning))
+			}
+			if ( this.errorManager.hasErrors() ) {
+				this.errorManager.errors.map(error => this.logger.error(error))
+				return Promise.reject(this.errorManager)
 			}
 		})
 	}

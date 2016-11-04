@@ -11,6 +11,8 @@ import { MigrationType } from './history'
 let DBEntity = require('./entities/db-entity')
 let Entity = require('./entities/entity')
 
+import MateriaError, { ErrorType } from './error'
+
 //TODO: add when entities/entity will be converted in ts
 /*export interface IEntities {
      [index: string]:Entity[];
@@ -23,7 +25,7 @@ let Entity = require('./entities/entity')
  * Entity manager. This class is relative to all the entities of an app.
  */
 export class Entities {
-	entities: any
+	entities: any//{[name:string]:Entity}
 
 	constructor(public app: App) {
 		this.entities = {}
@@ -83,33 +85,79 @@ export class Entities {
 		})*/
 	}
 
-	_loadFromPath(basePath: string, opts: IApplyOptions):Promise<any> {
-		let files;
-		try {
-			files = fs.readdirSync(path.join(basePath, 'entities'))
-		} catch (e) {
-			files = []
-			fs.mkdirSync(path.join(basePath, 'entities'))
-			return Promise.resolve(false)
-		}
-
-		let promises = []
-
-		for (let file of files) {
-			try {
-				if (file.substr(file.length - 5, 5) == '.json') {
-					let content = fs.readFileSync(path.join(basePath, 'entities', file))
-					let entity = JSON.parse(content.toString())
-					entity.name = file.substr(0, file.length - 5)
-					promises.push(this.add(entity, opts));
+	private _loadFiles(basePath: string):Promise<string[]> {
+		return new Promise((resolve, reject) => {
+			fs.exists(path.join(basePath, 'entities'), exists => {
+				if ( ! exists ) {
+					fs.mkdirSync(path.join(basePath, 'entities'))
+					return reject(new MateriaError('The folder entities does not exists so we\'ve created it for you'))
 				}
-			} catch (e) {
-				e += ' in ' + file
-				return Promise.reject(new Error(e))
-			}
-		}
+				fs.readdir(path.join(basePath, 'entities'), (err, files):any => {
+					if (err) {
+						return reject(new MateriaError('Impossible to load the content of the folder entities/, please check the permission'))
+					}
 
-		return Promise.all(promises)
+					if ( ! files ) {
+						return resolve([])
+					}
+					return resolve(files)
+				})
+			})
+		})
+	}
+
+	private _loadFile(basePath:string, file:string):Promise<any> {
+		return new Promise((resolve, reject) => {
+			let filePath = path.join(basePath, 'entities', file)
+			let entityName = file.substr(0, file.length - 5)
+			fs.readFile(filePath, 'utf8', (err, content) => {
+				if (err) {
+					return reject(new MateriaError('Impossible the read the entity ${entityName}'))
+				}
+
+				try {
+					let entity = JSON.parse(content.toString())
+					entity.name = entityName
+					return resolve(entity)
+				}
+				catch (e) {
+					e += ' in ' + file
+					return reject(new MateriaError(e, {
+						type: ErrorType.ENTITY
+					}))
+				}
+			})
+		})
+	}
+
+	private async _loadFromPath(basePath: string, opts: IApplyOptions):Promise<any> {
+		return this._loadFiles(basePath).then(async files => {
+			let errors: Array<MateriaError> = []
+
+			let load = (file) => {
+				if (file.substr(file.length - 5, 5) == '.json') {
+					return this._loadFile(basePath, file).then(entity => {
+						return this.add(entity, opts)
+					})
+				}
+				else {
+					return Promise.resolve()
+				}
+			}
+
+			for (let file of files) {
+				try {
+					await load(file)
+				}
+				catch (e) {
+					errors.push(e)
+				}
+			}
+			if (errors.length) {
+				return Promise.reject(errors)
+			}
+			return Promise.resolve()
+		})
 	}
 
 	load():Promise<any> {

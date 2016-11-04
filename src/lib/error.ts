@@ -1,20 +1,32 @@
+export enum ErrorType {
+	DATABASE,
+	ENTITY,
+	FIELD,
+	RELATION,
+	API,
+	ENDPOINT
+}
+
 interface IErrorOptions {
 	slug?: string
 	issue?: number
 	debug?: string
+	type?: ErrorType
 }
 
 export default class MateriaError extends Error {
 	slug: string
 	issue: number
 	debug: string
+	type: ErrorType
 
-	constructor(message, options?:IErrorOptions) {
+	constructor(message:string, options?:IErrorOptions) {
 		super(message)
 		if (options) {
 			this.slug = options.slug
 			this.issue = options.issue
 			this.debug = options.debug
+			this.type = options.type
 		}
 	}
 
