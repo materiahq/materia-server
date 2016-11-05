@@ -7,7 +7,7 @@ let domain = require('domain')
 
 import App, { AppMode, ISaveOptions } from './app'
 
-import { ConfigType, IConfigOptions } from './server'
+import { ConfigType, IDatabaseConfig, IConfigOptions } from './config'
 
 import { DatabaseInterface } from './database/interface'
 
@@ -25,16 +25,6 @@ export interface ISequelizeConfig {
 	storage?: string
 }
 
-export interface IDatabaseServerConfig {
-	type: string
-	host?: string
-	port?: number
-	username?: string
-	password?: string
-	database?: string
-	storage?: string
-	live?: IDatabaseServerConfig
-}
 
 /**
  * @class Database
@@ -65,27 +55,18 @@ export class Database {
 	}
 
 	/**
-	Get the database configuration
-	@param {string} - *optional* The environment mode. `development` or `production`. Default to `development`
-	@returns {object}
-	*/
-	getConfig(mode?: AppMode, options?: IConfigOptions):IDatabaseServerConfig {
-		return <IDatabaseServerConfig>this.app.server.getConfig(mode, ConfigType.DATABASE, options)
-	}
-
-	/**
 	Load the database configuration
 	@param {object} - *optional* The settings of the database
 	@returns {object}
 	*/
-	load(settings?: any):boolean {
+	load(settings?: IDatabaseConfig):boolean {
 		this.disabled = false
 		if ( ! settings && this.app.path) {
-			this.app.server.reloadConfig()
+			this.app.config.reloadConfig()
 			if (this.app.live) {
-				settings = this.getConfig(this.app.mode, {live: true})
+				settings = this.app.config.get<IDatabaseConfig>(this.app.mode, ConfigType.DATABASE, {live: true})
 			}
-			settings = settings || this.getConfig(this.app.mode)
+			settings = settings || this.app.config.get<IDatabaseConfig>(this.app.mode, ConfigType.DATABASE)
 		}
 
 		if ( ! settings) {
@@ -123,7 +104,7 @@ export class Database {
 		return true
 	}
 
-	_confToJson(conf:IDatabaseServerConfig):IDatabaseServerConfig {
+	_confToJson(conf:IDatabaseConfig):IDatabaseConfig {
 		if ( ! conf ) {
 			return null
 		}
@@ -135,10 +116,10 @@ export class Database {
 				database: conf.database,
 				username: conf.username,
 				password: conf.password
-			} as IDatabaseServerConfig
+			} as IDatabaseConfig
 		}
 		else {
-			let res: IDatabaseServerConfig = {
+			let res: IDatabaseConfig = {
 				type: conf.type
 			}
 			if (conf.storage && conf.storage != "database.sqlite") {
@@ -153,7 +134,7 @@ export class Database {
 	@param {object} - The configuration object
 	@returns {Promise}
 	*/
-	static try(settings: IDatabaseServerConfig, app?: App) {
+	static try(settings: IDatabaseConfig, app?: App) {
 
 		//TODO: check settings.storage to be a real path
 		if (settings.type == 'sqlite' && settings.storage) {

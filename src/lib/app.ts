@@ -7,7 +7,8 @@ import * as mkdirp from 'mkdirp'
 
 import { Logger } from './logger'
 
-import { Server, ConfigType, IGitConfig } from './server'
+import { Config, ConfigType, IGitConfig } from './config'
+import { Server } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
 
@@ -96,6 +97,7 @@ export default class App extends events.EventEmitter {
 	api: any
 	server: Server
 	logger: Logger
+	config: Config
 	git: any
 
 	status: boolean
@@ -145,6 +147,7 @@ export default class App extends events.EventEmitter {
 		this.api = new Api(this)
 		this.server = new Server(this)
 		this.synchronizer = new Synchronizer(this)
+		this.config = new Config(this)
 
 		this.status = false
 
@@ -540,7 +543,7 @@ export default class App extends events.EventEmitter {
 	}
 
 	installLive():Promise<any> {
-		let gitConfig = this.server.getConfig(AppMode.PRODUCTION, ConfigType.GIT) as IGitConfig
+		let gitConfig = this.config.get(AppMode.PRODUCTION, ConfigType.GIT) as IGitConfig
 		if ( ! gitConfig || ! gitConfig.remote || ! gitConfig.branch ) {
 			return Promise.reject(new Error('Missing git configuration for production mode.'))
 		}

@@ -84,7 +84,7 @@ class Deploy {
 				instance: {
 					image_base: 'node:5.6',
 					use_runnable: true,
-					port: this.app.server.getConfig(options.mode).port,
+					port: this.app.config.get(options.mode).port,
 				},
 				app: this.app.infos,
 				env_vars: options.env_vars
