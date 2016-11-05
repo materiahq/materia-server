@@ -9,6 +9,7 @@ import * as mkdirp from 'mkdirp'
 const fsextra = require('fs-extra')
 
 require('./patches/git/GitStash')
+require('./patches/git/GitBranchList')
 const git = require('simple-git/promise');
 
 export default class Git extends EventEmitter {
@@ -63,8 +64,9 @@ export default class Git extends EventEmitter {
 		return this.stage(status.path)
 	}
 
-	logs():Promise<any> {
-		return this.repo.log({
+	logs(options?:{branch?:string}):Promise<any> {
+		options = options || {}
+		let args = {
 			format: {
 				'hash': '%H',
 				'parents': '%P',
@@ -75,7 +77,15 @@ export default class Git extends EventEmitter {
 				'author_email': '%ae'
 			},
 			splitter: '<~spt~>'
-		}).then(logs => logs.all).catch((e) => {
+		}
+		if (options.branch) {
+			args[options.branch] = null
+		} else {
+			args['--branches'] = null,
+			args['--remotes'] = null,
+			args['--tags'] = null
+		}
+		return this.repo.log(args).then(logs => logs.all).catch((e) => {
 			if (e && e.message && e.message.match(/your current branch '.*?' does not have any commits yet/)) {
 				return Promise.resolve([])
 			}
@@ -170,6 +180,20 @@ export default class Git extends EventEmitter {
 
 	addBranch(name:string):Promise<any> {
 		return this.repo.checkoutLocalBranch(name)
+	}
+
+	checkout(name:string, applyOptions?:IApplyOptions):Promise<any> {
+		applyOptions = applyOptions || {}
+		if (applyOptions.beforeSave)
+			applyOptions.beforeSave()
+		return this.repo.checkout(name).then(() => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+		}).catch((e) => {
+			if (applyOptions.afterSave)
+				applyOptions.afterSave()
+			throw e
+		})
 	}
 
 	copyCheckout(options:{path:string, to:string, remote:string, branch:string}, applyOptions?:IApplyOptions):Promise<any> {
