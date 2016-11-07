@@ -10,7 +10,6 @@
     "materia": "dist/cli/index.js"
   },
   "dependencies": {
-    "async": "^2.0.1",
     "body-parser": "^1.15.2",
     "colors": "^1.1.2",
     "compression": "^1.6.2",
@@ -24,30 +23,29 @@
     "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "morgan": "^1.7.0",
-    "mysql": "^2.11.1",
+    "mysql": "^2.12.0",
     "node-uuid": "^1.4.7",
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
-    "pretty-error": "^2.0.1",
+    "pretty-error": "^2.0.2",
     "remove": "^0.1.5",
-    "request": "^2.75.0",
+    "request": "^2.78.0",
     "rimraf": "^2.5.4",
-    "sequelize": "^3.24.3",
+    "sequelize": "^3.24.8",
     "server-destroy": "^1.0.1",
-    "simple-git": "^1.59.0",
-    "sqlite3": "3.1.4",
+    "simple-git": "^1.61.0",
+    "sqlite3": "3.1.8",
     "tedious": "^1.14.0",
     "whereis": "^0.4.0"
   },
   "devDependencies": {
     "@types/express": "^4.0.33",
-    "@types/async": "^2.0.32",
     "@types/compression": "0.0.33",
     "@types/lodash": "^4.14.37",
     "@types/rimraf": "0.0.28",
-    "@types/sequelize": "^4.0.38",
+    "@types/sequelize": "^4.0.39",
     "chai": "^3.5.0",
-    "mocha": "^3.0.2"
+    "mocha": "^3.1.2"
   },
   "scripts": {
     "test": "mocha"

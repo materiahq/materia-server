@@ -6,8 +6,6 @@ import * as path from 'path'
 import * as mkdirp from 'mkdirp'
 import * as rmdir from 'rimraf'
 
-import * as async from 'async'
-
 import App from './app'
 
 export interface IAddonInfo {

@@ -8,9 +8,7 @@ import * as mkdirp from 'mkdirp'
 
 const fsextra = require('fs-extra')
 
-require('./patches/git/GitStash')
-require('./patches/git/GitBranchList')
-const git = require('simple-git/promise');
+const git = require('simple-git/promise')
 
 export default class Git extends EventEmitter {
 	repo: any
