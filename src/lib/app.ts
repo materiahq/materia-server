@@ -227,7 +227,9 @@ export default class App extends events.EventEmitter {
 			return beforeLoad
 		}).then(() => {
 			if (this.database.load()) {
+				console.time('load - database start')
 				return this.database.start().then(() => {
+					console.timeEnd('load - database start')
 					return this.entities.load()
 				})
 			}
@@ -315,16 +317,20 @@ export default class App extends events.EventEmitter {
 	Starts the materia app
 	*/
 	start() {
+		console.time('start - database')
 		let p = this.database.started ? Promise.resolve() : this.database.start()
 		return p.catch((e) => {
 			e.errorType = 'database'
 			throw e
 		}).then(() => {
+			console.timeEnd('start - database')
+			console.time('start - entities')
 			return this.entities.start().catch((e) => {
 				e.errorType = 'entities'
 				throw e
 			})
 		}).then(() => {
+			console.timeEnd('start - entities')
 			return this.addons.start().catch((e) => {
 				e.errorType = 'addons'
 				throw e

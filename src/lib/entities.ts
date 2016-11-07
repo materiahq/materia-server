@@ -158,7 +158,8 @@ export class Entities {
 			}
 			return Promise.all(promises)
 		}).then(() => {
-			return this.app.database.sync()
+			console.time('start - entities - database sync')
+			return this.app.database.sync().then(()=>{console.timeEnd('start - entities - database sync')})
 		})
 	}
 

@@ -202,6 +202,7 @@ export default class Git extends EventEmitter {
 		let repoCopy
 		let _from = Path.resolve(options.path, '.git')
 		let to = Path.resolve(options.to, '.git')
+		console.time('live install - mkdir')
 		return new Promise((accept, reject) => {
 			mkdirp(options.to, (err) => {
 				if (err) {
@@ -210,6 +211,8 @@ export default class Git extends EventEmitter {
 				accept()
 			})
 		}).then(() => {
+			console.timeEnd('live install - mkdir')
+			console.time('live install - cp .git')
 			return new Promise((accept, reject) => {
 				fsextra.copy(_from, to, (err) => {
 					if (err) {
@@ -219,12 +222,17 @@ export default class Git extends EventEmitter {
 				})
 			})
 		}).then(() => {
+			console.timeEnd('live install - cp .git')
+			console.time('live install - fetch')
 			repoCopy = git(options.to)
 			repoCopy.silent(true)
 			return repoCopy.fetch(options.remote, options.branch)
 		}).then(() => {
+			console.timeEnd('live install - fetch')
+			console.time('live install - reset')
 			return repoCopy.reset(["--hard", `${options.remote}/${options.branch}`])
 		}).then(() => {
+			console.timeEnd('live install - reset')
 			if (applyOptions.afterSave)
 				applyOptions.afterSave()
 		}).catch((e) => {

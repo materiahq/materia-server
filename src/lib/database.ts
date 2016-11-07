@@ -230,8 +230,11 @@ export class Database {
 	@returns {Promise}
 	*/
 	sync() {
+		console.time('database - entities sync')
 		return this.app.entities.sync().then(() => {
-			return this.sequelize.sync()
+			console.timeEnd('database - entities sync')
+			console.time('database - sequelize sync')
+			return this.sequelize.sync().then(()=>{console.timeEnd('database - sequelize sync')})
 		})
 	}
 
