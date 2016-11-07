@@ -197,6 +197,7 @@ export default class App extends events.EventEmitter {
 
 	load():Promise<any> {
 		let p = Promise.resolve()
+		let warning
 		if ( ! this.loaded) {
 			p = this.loadMateria()
 		}
@@ -227,7 +228,8 @@ export default class App extends events.EventEmitter {
 			return beforeLoad
 		}).then(() => {
 			if (this.database.load()) {
-				return this.database.start().then(() => {
+				return this.database.start().then((e) => {
+					warning = e
 					return this.entities.load()
 				})
 			}
@@ -248,6 +250,8 @@ export default class App extends events.EventEmitter {
 			if (this.git) {
 				return this.git.load()
 			}
+		}).then(() => {
+			return warning
 		})
 	}
 
@@ -315,11 +319,13 @@ export default class App extends events.EventEmitter {
 	Starts the materia app
 	*/
 	start() {
+		let warning
 		let p = this.database.started ? Promise.resolve() : this.database.start()
 		return p.catch((e) => {
 			e.errorType = 'database'
 			throw e
-		}).then(() => {
+		}).then((e) => {
+			warning = e
 			return this.entities.start().catch((e) => {
 				e.errorType = 'entities'
 				throw e
@@ -351,6 +357,7 @@ export default class App extends events.EventEmitter {
 			})
 		}).then(() => {
 			this.status = true
+			return warning
 		})
 	}
 
