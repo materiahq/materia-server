@@ -1,0 +1,9 @@
+node_modules/
+test/**/*
+.materia
+src/**/*
+dist/test/**/*
+*.sqlite
+materia.json
+*.diff
+server.json

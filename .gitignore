@@ -15,3 +15,7 @@ test/samples/*/deploy-*
 test/samples/*/addons
 .materia
 dist/**/*
+*.sqlite
+materia.json
+*.diff
+server.json
