@@ -70,9 +70,9 @@ export default class Git extends EventEmitter {
 
 	toggleStaging(status):Promise<any> {
 		if (status.working_dir == ' ') {
-			return waitAndSend(()=>this.unstage(status.path))
+			return this.unstage(status.path)
 		}
-		return waitAndSend(()=>this.stage(status.path))
+		return this.stage(status.path)
 	}
 
 	logs(options?:{branch?:string}):Promise<any> {
