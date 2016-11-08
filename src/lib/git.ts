@@ -10,6 +10,19 @@ const fsextra = require('fs-extra')
 
 const git = require('simple-git/promise')
 
+let waitChain : Promise<any> = Promise.resolve()
+function waitAndSend(fn):Promise<any> {
+	return new Promise((accept, reject) => {
+		waitChain = waitChain.then(() => {
+			return fn().then((res) => {
+				accept(res)
+			}).catch((err) => {
+				reject(err)
+			})
+		})
+	})
+}
+
 export default class Git extends EventEmitter {
 	repo: any
 
@@ -32,24 +45,24 @@ export default class Git extends EventEmitter {
 	}
 
 	init():Promise<any> {
-		return this.repo.init()
+		return waitAndSend(()=>this.repo.init())
 	}
 
 	status():Promise<number> {
-		return this.repo.status()
+		return waitAndSend(()=>this.repo.status())
 	}
 
 	stage(path:string, status?):Promise<any> {
 		if (status && status.index == 'D') {
-			return this.repo.rmKeepLocal([path])
+			return waitAndSend(()=>this.repo.rmKeepLocal([path]))
 		}
-		return this.repo.add([path])
+		return waitAndSend(()=>this.repo.add([path]))
 	}
 
 	unstage(path:string):Promise<any> {
-		return this.repo.reset(['HEAD', path]).catch((e) => {
+		return waitAndSend(()=>this.repo.reset(['HEAD', path])).catch((e) => {
 			if (e && e.message && e.message.match(/ambiguous argument 'HEAD': unknown revision/)) {
-				return this.repo.reset([path]) // no HEAD yet
+				return waitAndSend(()=>this.repo.reset([path])) // no HEAD yet
 			}
 			throw e
 		})
@@ -57,9 +70,9 @@ export default class Git extends EventEmitter {
 
 	toggleStaging(status):Promise<any> {
 		if (status.working_dir == ' ') {
-			return this.unstage(status.path)
+			return waitAndSend(()=>this.unstage(status.path))
 		}
-		return this.stage(status.path)
+		return waitAndSend(()=>this.stage(status.path))
 	}
 
 	logs(options?:{branch?:string}):Promise<any> {
@@ -83,7 +96,7 @@ export default class Git extends EventEmitter {
 			args['--remotes'] = null,
 			args['--tags'] = null
 		}
-		return this.repo.log(args).then(logs => logs.all).catch((e) => {
+		return waitAndSend(()=>this.repo.log(args)).then(logs => logs.all).catch((e) => {
 			if (e && e.message && e.message.match(/your current branch '.*?' does not have any commits yet/)) {
 				return Promise.resolve([])
 			}
@@ -93,19 +106,19 @@ export default class Git extends EventEmitter {
 
 	branches(opts?:{all:boolean}):Promise<any> {
 		if (opts && opts.all)
-			return this.repo.branch()
+			return waitAndSend(()=>this.repo.branch())
 		else
-			return this.repo.branchLocal()
+			return waitAndSend(()=>this.repo.branchLocal())
 	}
 
 	remotes():Promise<any> {
-		return this.repo.getRemotes().then(remotes => {
+		return waitAndSend(()=>this.repo.getRemotes()).then(remotes => {
 			return remotes.filter(remote => remote.name)
 		})
 	}
 
 	getCommit(hash:string):Promise<any> {
-		return this.repo.show(['--pretty=%w(0)%B%n<~diffs~>', '--name-status', hash]).then(data => {
+		return waitAndSend(()=>this.repo.show(['--pretty=%w(0)%B%n<~diffs~>', '--name-status', hash])).then(data => {
 			let result = data.split("<~diffs~>")
 			let changes = result[1].trim().split(/[\r\n]/).map(line => line.split(/[ \t]/))
 			return {
@@ -116,11 +129,11 @@ export default class Git extends EventEmitter {
 	}
 
 	commit(message:string):Promise<any> {
-		return this.repo.commit(message)
+		return waitAndSend(()=>this.repo.commit(message))
 	}
 
 	setUpstream(branch:string, upstream:string):Promise<any> {
-		return this.repo.branch(['--set-upstream-to=' + upstream, branch])
+		return waitAndSend(()=>this.repo.branch(['--set-upstream-to=' + upstream, branch]))
 	}
 
 	sync(options:{remote:string, branch:string, set_tracking?:boolean}, applyOptions?:IApplyOptions):Promise<any> {
@@ -129,7 +142,7 @@ export default class Git extends EventEmitter {
 		applyOptions = applyOptions || {}
 		if (applyOptions.beforeSave)
 			applyOptions.beforeSave()
-		return this.repo.branchLocal().then((data) => {
+		return waitAndSend(()=>this.repo.branchLocal().then((data) => {
 			return this.repo.stash()
 		}).then((data) => {
 			stashed = ! data.match(/No local changes to save/)
@@ -169,22 +182,22 @@ export default class Git extends EventEmitter {
 			if (applyOptions.afterSave)
 				applyOptions.afterSave()
 			throw e
-		})
+		}))
 	}
 
 	addRemote(name:string, url:string):Promise<any> {
-		return this.repo.addRemote(name, url)
+		return waitAndSend(()=>this.repo.addRemote(name, url))
 	}
 
 	addBranch(name:string):Promise<any> {
-		return this.repo.checkoutLocalBranch(name)
+		return waitAndSend(()=>this.repo.checkoutLocalBranch(name))
 	}
 
 	checkout(name:string, applyOptions?:IApplyOptions):Promise<any> {
 		applyOptions = applyOptions || {}
 		if (applyOptions.beforeSave)
 			applyOptions.beforeSave()
-		return this.repo.checkout(name).then(() => {
+		return waitAndSend(()=>this.repo.checkout(name)).then(() => {
 			if (applyOptions.afterSave)
 				applyOptions.afterSave()
 		}).catch((e) => {
@@ -221,9 +234,9 @@ export default class Git extends EventEmitter {
 		}).then(() => {
 			repoCopy = git(options.to)
 			repoCopy.silent(true)
-			return repoCopy.fetch(options.remote, options.branch)
+			return waitAndSend(()=>repoCopy.fetch(options.remote, options.branch))
 		}).then(() => {
-			return repoCopy.reset(["--hard", `${options.remote}/${options.branch}`])
+			return waitAndSend(()=>repoCopy.reset(["--hard", `${options.remote}/${options.branch}`]))
 		}).then(() => {
 			if (applyOptions.afterSave)
 				applyOptions.afterSave()
