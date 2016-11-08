@@ -31,16 +31,18 @@ export default class Git extends EventEmitter {
 	}
 
 	load():Promise<any> {
-		this.repo = git(this.app.path)
-		this.repo.silent(true)
-		this.repo.outputHandler((command, stdout, stderr) => {
-			stdout.on('data', (data) => {
-				this.emit('stdout', data.toString(), command)
+		if ( ! this.repo) {
+			this.repo = git(this.app.path)
+			this.repo.silent(true)
+			this.repo.outputHandler((command, stdout, stderr) => {
+				stdout.on('data', (data) => {
+					this.emit('stdout', data.toString(), command)
+				})
+				stderr.on('data', (data) => {
+					this.emit('stderr', data.toString(), command)
+				})
 			})
-			stderr.on('data', (data) => {
-				this.emit('stderr', data.toString(), command)
-			})
-		})
+		}
 		return Promise.resolve(this.repo)
 	}
 
