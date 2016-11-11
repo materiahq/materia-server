@@ -402,6 +402,7 @@ export class Entities {
 			})
 		}
 
+		let entitiesChanged = [entity]
 		if (options.apply != false) {
 			for (let entity_name in this.entities) {
 				let entity = this.entities[entity_name]
@@ -411,9 +412,15 @@ export class Entities {
 						need_save = true
 						relation.reference.entity = new_name
 					}
+					if (relation.through == name) {
+						need_save = true
+						relation.through = new_name
+					}
 				}
-				if (need_save && options.save != false)
+				if (need_save && options.save != false) {
 					entity.save(options)
+					entitiesChanged.push(entity)
+				}
 			}
 
 			/*if (entity.fields[0].name == 'id_' + name) {
@@ -448,9 +455,15 @@ export class Entities {
 			return Promise.resolve()
 
 		return this.app.database.sequelize.getQueryInterface().renameTable(name, new_name).then(() => {
-			return entity.loadModel().then(() => {
-				entity.loadRelationsInModel()
-			})
+			let p = Promise.resolve()
+			for (let entity of entitiesChanged) {
+				p = p.then(() => {
+					return entity.loadModel().then(() => {
+						entity.loadRelationsInModel()
+					})
+				})
+			}
+			return p
 		})
 	}
 

@@ -726,6 +726,13 @@ class Entity {
 			}
 
 			let done = () => {
+				if (options.apply != false && fieldobj.name != name) {
+					for (let relation of this.relations) {
+						if (relation.field == name) {
+							relation.field = fieldobj.name
+						}
+					}
+				}
 				this.fields.forEach((field, k) => {
 					if (field.name == name) {
 						if (options.apply != false) {
