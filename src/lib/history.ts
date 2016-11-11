@@ -107,14 +107,15 @@ export class History {
 	}
 
 	save(opts?:ISaveOptions) {
-		if (opts && opts.beforeSave) {
+		// unused still undo / redo truely implemented
+		/*if (opts && opts.beforeSave) {
 			opts.beforeSave('changes.json')
 		}
 		this.cleanStacks()
 		fs.writeFileSync(path.join(this.app.path, 'changes.json'), JSON.stringify(this.diff, null,  '\t'))
 		if (opts && opts.afterSave) {
 			opts.afterSave()
-		}
+		}*/
 	}
 
 	/**

@@ -4,6 +4,5 @@ test/**/*
 src/**/*
 dist/test/**/*
 *.sqlite
-materia.json
 *.diff
 server.json

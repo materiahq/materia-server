@@ -126,7 +126,7 @@ export default class Api {
 		this.permissions.clear()
 		let content
 		try {
-			content = fs.readFileSync(path.join(basepath, 'api.json'))
+			content = fs.readFileSync(path.join(basepath, 'server', 'api.json'))
 		}
 		catch(e) {
 			return
@@ -198,9 +198,9 @@ export default class Api {
 
 	save(opts) {
 		if (opts && opts.beforeSave) {
-			opts.beforeSave('api.json')
+			opts.beforeSave(path.join('server', 'api.json'))
 		}
-		fs.writeFileSync(path.join(this.app.path, 'api.json'), JSON.stringify(this.toJson(), null, '\t'))
+		fs.writeFileSync(path.join(this.app.path, 'server', 'api.json'), JSON.stringify(this.toJson(), null, '\t'))
 		if (opts && opts.afterSave) {
 			opts.afterSave()
 		}

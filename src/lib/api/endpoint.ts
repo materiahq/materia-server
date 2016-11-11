@@ -103,11 +103,11 @@ export default class Endpoint {
 				basepath = path.join(this.app.path, 'addons', this.fromAddon)
 			}
 
-			if (require.cache[require.resolve(path.join(basepath, 'endpoints', this.file))]) {
-				delete require.cache[require.resolve(path.join(basepath, 'endpoints', this.file))];
+			if (require.cache[require.resolve(path.join(basepath, 'server', 'controllers', this.file))]) {
+				delete require.cache[require.resolve(path.join(basepath, 'server', 'controllers', this.file))];
 			}
-			this.query = require(path.join(basepath, 'endpoints', this.file))
-			this.queryStr = fs.readFileSync(path.join(basepath, 'endpoints', this.file + '.' + this.ext), 'utf-8');
+			this.query = require(path.join(basepath, 'server', 'controllers', this.file))
+			this.queryStr = fs.readFileSync(path.join(basepath, 'server', 'controllers', this.file + '.' + this.ext), 'utf-8');
 			this._buildParams(endpointConfig.params)
 		}
 		else {

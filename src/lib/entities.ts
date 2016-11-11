@@ -1,6 +1,8 @@
 const fs = require('fs')
 const path = require('path')
 
+const fse = require('fs-extra')
+
 import * as Sequelize from 'sequelize'
 
 import App, { IApplyOptions } from './app'
@@ -86,10 +88,10 @@ export class Entities {
 	_loadFromPath(basePath: string, opts: IApplyOptions):Promise<any> {
 		let files;
 		try {
-			files = fs.readdirSync(path.join(basePath, 'entities'))
+			files = fs.readdirSync(path.join(basePath, 'server', 'models'))
 		} catch (e) {
 			files = []
-			fs.mkdirSync(path.join(basePath, 'entities'))
+			fse.mkdirsSync(path.join(basePath, 'server', 'models'))
 			return Promise.resolve(false)
 		}
 
@@ -98,7 +100,7 @@ export class Entities {
 		for (let file of files) {
 			try {
 				if (file.substr(file.length - 5, 5) == '.json') {
-					let content = fs.readFileSync(path.join(basePath, 'entities', file))
+					let content = fs.readFileSync(path.join(basePath, 'server', 'models', file))
 					let entity = JSON.parse(content.toString())
 					entity.name = file.substr(0, file.length - 5)
 					promises.push(this.add(entity, opts));
@@ -351,7 +353,7 @@ export class Entities {
 				delete this.entities[name]
 			}
 
-			let relativePath = path.join('entities', name + '.json')
+			let relativePath = path.join('server', 'models', name + '.json')
 			if (options.save != false && entity && fs.existsSync(path.join(this.app.path, relativePath))) {
 				if (options && options.beforeSave) {
 					options.beforeSave(relativePath)
@@ -429,7 +431,7 @@ export class Entities {
 		}
 
 		if (options.save != false) {
-			let relativePath = path.join('entities', name + '.json')
+			let relativePath = path.join('server', 'models', name + '.json')
 			if (fs.existsSync(path.join(this.app.path, relativePath))) {
 				if (options && options.beforeSave) {
 					options.beforeSave(relativePath)

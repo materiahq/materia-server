@@ -54,64 +54,10 @@ export class Config {
 	constructor(private app: App) {
 	}
 
-	private checkMigrateConf(config?:any):void {
-		config = config || {}
-		if (config.dev && config.dev.web) {
-			return config
-		}
-		let database
-		try {
-			let content = fs.readFileSync(path.join(this.app.path, 'database.json')).toString()
-			database = JSON.parse(content)
-		} catch(e) {
-			if (e.code != 'ENOENT') {
-				throw e
-			}
-			database = {}
-		}
-
-		if ( ! Object.keys(config).length) {
-			config = {
-				host: 'localhost',
-				port: 8080
-			}
-		}
-
-		//flatten confs
-		config = {
-			dev: config.dev || config,
-			prod: config.prod
-		}
-		delete config.dev.prod
-		database = {
-			dev: this.app.database._confToJson(database.dev || database),
-			prod: this.app.database._confToJson(database.prod)
-		}
-
-		this.config = {
-			dev: {
-				web: config.dev,
-				database: database.dev
-			}
-		}
-
-		if (config.prod || database.prod) {
-			this.config.prod = {
-				web: config.prod,
-				database: database.prod
-			}
-		}
-
-		fs.writeFileSync(path.join(this.app.path, 'server.json'), JSON.stringify(this.toJson(), null, '\t'))
-		if (fs.existsSync(path.join(this.app.path, 'database.json'))) {
-			fs.unlinkSync(path.join(this.app.path, 'database.json'))
-		}
-	}
-
 	reloadConfig():void {
 		this.config = {}
 		try {
-			let content = fs.readFileSync(path.join(this.app.path, 'server.json')).toString()
+			let content = fs.readFileSync(path.join(this.app.path, 'server', 'server.json')).toString()
 			this.config = JSON.parse(content)
 		}
 		catch (e) {
@@ -119,7 +65,6 @@ export class Config {
 				throw e
 			}
 		}
-		this.checkMigrateConf(this.config)
 	}
 
 	/**
@@ -204,9 +149,9 @@ export class Config {
 		}
 
 		if (opts && opts.beforeSave) {
-			opts.beforeSave('server.json')
+			opts.beforeSave(path.join('server', 'server.json'))
 		}
-		fs.writeFileSync(path.join(this.app.path, 'server.json'), JSON.stringify(this.toJson(), null, '\t'))
+		fs.writeFileSync(path.join(this.app.path, 'server', 'server.json'), JSON.stringify(this.toJson(), null, '\t'))
 		if (opts && opts.afterSave) {
 			opts.afterSave()
 		}

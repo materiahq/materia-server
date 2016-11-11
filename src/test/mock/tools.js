@@ -29,7 +29,7 @@ exports.cleanAppDir = function cleanAppDir(appDir, callback) {
 
 exports.cleanApi = function cleanApi(appDir, callback) {
 	if (fs.existsSync(path.join(appDir, 'tpl_api.json'))) {
-		copyFile(path.join(appDir, 'tpl_api.json'), path.join(appDir, 'api.json')).then(() => {
+		copyFile(path.join(appDir, 'tpl_api.json'), path.join(appDir, 'server', 'api.json')).then(() => {
 			callback()
 		}).catch((err) => {
 			callback(err)
@@ -51,11 +51,11 @@ exports.cleanHistory = function cleanHistory(appDir, callback) {
 
 exports.cleanEntities = function cleanEntities(appDir, callback) {
 	try {
-		if (fs.existsSync(path.join(appDir, 'entities')) && fs.existsSync(path.join(appDir, 'tpl_entities'))) {
-			remove.removeSync(path.join(appDir, '/entities'))
+		if (fs.existsSync(path.join(appDir, 'server', 'models')) && fs.existsSync(path.join(appDir, 'tpl_entities'))) {
+			remove.removeSync(path.join(appDir, 'server', 'models'))
 		}
 	} catch (err) {
 		return callback(err)
 	}
-	fsextra.copy(path.join(appDir, 'tpl_entities'), path.join(appDir, 'entities'), callback)
+	fsextra.copy(path.join(appDir, 'tpl_entities'), path.join(appDir, 'server', 'models'), callback)
 }

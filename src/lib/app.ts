@@ -11,13 +11,12 @@ import { Config, ConfigType, IGitConfig } from './config'
 import { Server } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
-
 import { Synchronizer } from './synchronizer'
+import { Migration } from './migration'
+import { History } from './history'
 
 import Addons from './addons'
 import Api from './api'
-
-import { History } from './history'
 
 import MateriaError from './error'
 
@@ -98,6 +97,7 @@ export default class App extends events.EventEmitter {
 	server: Server
 	logger: Logger
 	config: Config
+	migration: Migration
 	git: any
 
 	status: boolean
@@ -151,6 +151,8 @@ export default class App extends events.EventEmitter {
 
 		this.status = false
 
+		this.migration = new Migration(this)
+
 		if (this.options.runtimes != "core") {
 			let Git = require('./git')
 			this.git = new Git.default(this)
@@ -160,11 +162,8 @@ export default class App extends events.EventEmitter {
 	loadMateria():Promise<void> {
 		return this._loadMateriaConfig().then((materiaConf) => {
 			if ( ! materiaConf.name) {
-				return Promise.reject(new MateriaError('Missing "name" field in materia.json', {
-					debug: `A minimal materia.json config file should look like:
-{
-	name: 'NameOfYourApplication'
-}`
+				return Promise.reject(new MateriaError('Missing "name" field in package.json', {
+					debug: `Please provide a valid package description in package.json or use "npm init"`
 				}))
 			}
 
@@ -198,8 +197,15 @@ export default class App extends events.EventEmitter {
 	load():Promise<any> {
 		let p = Promise.resolve()
 		let warning
+		if ( this.migration ) {
+			p = p.then(() => {
+				return this.migration.check()
+			}).then(() => {
+				delete this.migration
+			})
+		}
 		if ( ! this.loaded) {
-			p = this.loadMateria()
+			p = p.then(() => this.loadMateria())
 		}
 		return p.then(() => {
 			//TODO: need to simplify this.
@@ -261,27 +267,26 @@ export default class App extends events.EventEmitter {
 				if ( ! exists ) {
 					return reject(new MateriaError('The application directory has not been found. The folder has been moved or removed'))
 				}
-				fs.exists(path.join(this.path, 'materia.json'), exists => {
+				fs.exists(path.join(this.path, 'package.json'), exists => {
 					if ( ! exists ) {
-						return reject(new MateriaError('materia.json does not exists', {
-							debug: `A minimal materia.json file should look like this:
-{
-	name: 'nameOfYourApplication'
-}`
+						return reject(new MateriaError('package.json does not exists', {
+							debug: `Please provide a valid package description in package.json or use "npm init"`
 						}))
 					}
-					fs.readFile(path.join(this.path, 'materia.json'), 'utf8', (err, conf) => {
+					fs.readFile(path.join(this.path, 'package.json'), 'utf8', (err, conf) => {
 						if (err) {
-							return reject(new Error('Could not load materia.json'))
+							return reject(new Error('Could not load package.json'))
 						}
 						let confJson
 						try {
 							confJson = JSON.parse(conf)
 						}
 						catch (e) {
-							return reject(new Error('Could not parse materia.json. The JSON seems invalid'))
+							return reject(new Error('Could not parse package.json. The JSON seems invalid'))
 						}
-						return resolve(confJson)
+						confJson.materia = confJson.materia || {}
+						confJson.materia.name = confJson.name
+						return resolve(confJson.materia)
 					})
 				})
 			})
@@ -291,12 +296,24 @@ export default class App extends events.EventEmitter {
 
 	saveMateria(opts?: ISaveOptions) {
 		if (opts && opts.beforeSave) {
-			opts.beforeSave('materia.json')
+			opts.beforeSave('package.json')
+		}
+
+		let pkg
+		try {
+			let content = fs.readFileSync(path.join(this.path, 'package.json')).toString()
+			let pkg = JSON.parse(content)
+		}
+		catch (e) {
+			if (e.code != 'ENOENT') {
+				throw e
+			}
 		}
 		if (this.infos.addons && Object.keys(this.infos.addons).length == 0) {
 			delete this.infos.addons
 		}
-		fs.writeFileSync(path.join(this.path, 'materia.json'), JSON.stringify(this.infos, null, '\t'))
+		pkg.materia = this.infos
+		fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2))
 		if (opts && opts.afterSave) {
 			opts.afterSave()
 		}

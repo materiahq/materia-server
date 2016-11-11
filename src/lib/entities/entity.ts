@@ -195,7 +195,7 @@ class Entity {
 	}
 
 	save(opts?) {
-		let relativePath = path.join('entities', this.name + '.json')
+		let relativePath = path.join('server', 'models', this.name + '.json')
 		let basepath = this.app.path
 		if (this.fromAddon) {
 			basepath = path.join(this.app.path, 'addons', this.fromAddon)
