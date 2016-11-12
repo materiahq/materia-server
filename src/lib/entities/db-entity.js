@@ -329,6 +329,9 @@ class DBEntity extends Entity {
 				})
 			}
 
+			let isUnique = field.unique
+			field.unique = false
+
 			if (field.required && !field.default) {
 				field.default = true
 				if (field.generateFrom) {
@@ -347,6 +350,17 @@ class DBEntity extends Entity {
 					})
 				}
 				p = p.then(() => {
+					if (field.defaultValue == undefined) {
+						let defs = {
+							'number' : 0,
+							'text': "",
+							'string' : "",
+							'float': 0,
+							'boolean': false,
+							'date': new Date(0)
+						}
+						field.defaultValue = defs[field.type] || ""
+					}
 					return this.app.database.interface.addColumn(this.name, field.name, field)
 				})
 				if (field.required) {
@@ -364,8 +378,9 @@ class DBEntity extends Entity {
 				})
 			}
 
-			if (field.unique) {
+			if (isUnique) {
 				p = p.then(() => {
+					field.unique = true
 					return this.updateUnique(field, fieldobj)
 				})
 			}
