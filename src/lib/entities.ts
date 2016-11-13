@@ -8,8 +8,8 @@ import App, { IApplyOptions } from './app'
 import { MigrationType } from './history'
 
 //TODO: convert in ts
-let DBEntity = require('./entities/db-entity')
-let Entity = require('./entities/entity')
+import { DBEntity } from './entities/db-entity'
+import { Entity } from './entities/entity'
 
 //TODO: add when entities/entity will be converted in ts
 /*export interface IEntities {

@@ -1,8 +1,18 @@
-'use strict';
-var Entity = require('./entity')
+import { Entity } from './entity'
 
-class DBEntity extends Entity {
-	constructor(app) {
+import App from '../app'
+import { IField } from './field'
+
+import { QueryGenerator } from './query-generator'
+
+export class DBEntity extends Entity {
+	type: string
+	currentDiff: Array<any>
+	currentDiffUndo: Array<any>
+
+	model: any
+
+	constructor(app: App) {
 		super(app, {
 			findAll: require('./queries/findAll'),
 			findOne: require('./queries/findOne'),
@@ -23,13 +33,13 @@ class DBEntity extends Entity {
 		let pks = this.getPK()
 		let p = Promise.resolve()
 
-		let restore_ai = false
+		let restore_ai:any = false
 
 		// For mysql, it needs to remove auto increment before dropping pk
 		if (this.app.database.type == 'mysql') {
 			for (let pk of pks) {
 				if (pk.autoIncrement) {
-					let pkcpy = {}
+					let pkcpy:any = {}
 					for (let k in pk) {
 						pkcpy[k] = pk[k]
 					}
@@ -79,7 +89,7 @@ class DBEntity extends Entity {
 			if (pks.find(x => x.name == restore_ai)) {
 				p = p.then(() => {
 					let pk = this.getField(restore_ai)
-					let pkcpy = {}
+					let pkcpy:any = {}
 					for (let k in pk) {
 						pkcpy[k] = pk[k]
 					}
@@ -143,13 +153,12 @@ class DBEntity extends Entity {
 
 		let oldfield = this.getField(name)
 
-
-		if (!oldfield) {
-			return reject(new Error('This field does not exist'))
-		}
-
-
 		return new Promise((accept, reject) => {
+			if (!oldfield) {
+				return reject(new Error('This field does not exist'))
+			}
+
+
 			let fieldobj
 
 			let differ_done
@@ -158,7 +167,7 @@ class DBEntity extends Entity {
 			}
 
 			// complete with old values
-			let _field = {}
+			let _field:any = {}
 			for (let k in oldfield) {
 				_field[k] = oldfield[k]
 			}
@@ -361,6 +370,7 @@ class DBEntity extends Entity {
 						}
 						field.defaultValue = defs[field.type] || ""
 					}
+
 					return this.app.database.interface.addColumn(this.name, field.name, field)
 				})
 				if (field.required) {
@@ -424,7 +434,6 @@ class DBEntity extends Entity {
 	}
 
 	generateDefaultQueries() {
-		let QueryGenerator = require('./query-generator')
 		let qg = new QueryGenerator(this)
 		qg.generateQueries()
 	}
@@ -515,5 +524,3 @@ class DBEntity extends Entity {
 		return json
 	}
 }
-
-module.exports = DBEntity

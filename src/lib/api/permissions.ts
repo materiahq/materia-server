@@ -11,7 +11,7 @@ export interface IPermission {
  * @classdesc
  * This class is used to set filters to the endpoints.
  */
-class Permissions {
+export class Permissions {
 	permissions: IPermission[];
 
 	constructor(private app: App) {
@@ -114,5 +114,3 @@ class Permissions {
 		}
 	}
 }
-
-module.exports = Permissions

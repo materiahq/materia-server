@@ -50,10 +50,10 @@ export interface IEndpoint {
 	params?: Array<any>,
 	//data?: any[],
 	permissions?: Array<string>,
-	fromAddon: string
+	fromAddon: string|boolean
 }
 
-export default class Endpoint {
+export class Endpoint {
 	name: string
 	method: string
 	url: string
@@ -366,9 +366,6 @@ export default class Endpoint {
 		if (this.permissions.length) {
 			res.permissions = this.permissions
 		}
-		console.log(res, this.permissions)
 		return res
 	}
 }
-
-module.exports = Endpoint

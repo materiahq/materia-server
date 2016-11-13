@@ -3,8 +3,8 @@ import * as path from 'path'
 
 import * as express from 'express'
 
-const Endpoint = require('./api/endpoint')
-const Permissions = require('./api/permissions')
+import { Endpoint } from './api/endpoint'
+import { Permissions } from './api/permissions'
 
 import App from './app'
 
@@ -15,7 +15,7 @@ import App from './app'
  * @property {Permissions} permissions - The access to the permission filters
  */
 export default class Api {
-	endpoints: any[]
+	endpoints: Endpoint[]
 	permissions: any
 	router: express.Router
 
@@ -54,6 +54,7 @@ export default class Api {
 			if (this.exists(endpoint)) {
 				this.remove(endpoint.method, endpoint.url, options)
 			}
+			console.log('add endpoint', options)
 			if (options.fromAddon) {
 				endpoint.fromAddon = options.fromAddon
 			}
@@ -143,6 +144,7 @@ export default class Api {
 					this.app.logger.warn('due to error ' + e.message, e.stack)
 				}
 			})
+			console.log(endpoints)
 		} catch (e) {
 			if (e.code != 'ENOENT')
 				this.app.logger.error('error loading endpoints', e.stack)

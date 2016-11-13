@@ -1,8 +1,20 @@
-'use strict';
-class QueryGenerator {
-	constructor(entity) {
-		this.entity = entity
+import { Entity } from './entity'
+import { Field } from './field'
+
+interface IQueryParam {
+	name: string,
+	type: string,
+	required: boolean
+}
+
+export class QueryGenerator {
+	pk: Array<Field>
+	paramsPK: Array<IQueryParam>
+	paramsPagination: Array<IQueryParam>
+
+	constructor(private entity: Entity) {
 		this.pk = this.entity.getPK()
+
 		if (this.pk.length) {
 			this.paramsPK = []
 			for (let pk of this.pk) {
@@ -109,5 +121,3 @@ class QueryGenerator {
 		}
 	}
 }
-
-module.exports = QueryGenerator

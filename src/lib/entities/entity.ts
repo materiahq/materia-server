@@ -5,10 +5,11 @@ import * as path from 'path'
 
 import App from '../app'
 
-const uuid = require('node-uuid')
+import * as uuid from 'node-uuid'
 
-const Field = require('./field')
-const QueryGenerator = require('./query-generator')
+import { Field } from './field'
+
+import { QueryGenerator } from './query-generator'
 
 const MigrationType = require('../history').MigrationType
 
@@ -26,7 +27,7 @@ export interface IEntityConfig {
  * @classdesc
  * An entity, in a database this correspond to a table.
  */
-class Entity {
+export class Entity {
 	relations_queue: Array<any>
 	queryObjects: any
 
@@ -41,7 +42,7 @@ class Entity {
 
 	fromAddon: string
 
-	constructor(private app: App, queryTypes) {
+	constructor(protected app: App, queryTypes) {
 		this.relations_queue = []
 		this.queryObjects = {}
 
@@ -291,7 +292,7 @@ class Entity {
 		return res
 	}
 
-	getPK() {
+	getPK(): Array<Field> {
 		let pks = []
 		for (let field of this.fields) {
 			if (field.primary) {
@@ -1094,5 +1095,3 @@ class Entity {
 		return Object.keys(this.queryObjects)
 	}
 }
-
-module.exports = Entity
