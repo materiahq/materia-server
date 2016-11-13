@@ -388,6 +388,10 @@ class DBEntity extends Entity {
 			return p.then(() => {
 				return fieldobj
 			})
+		}).catch((e) => {
+			return this.removeField(field.name, options).catch(() => {}).then(() => {
+				throw e
+			})
 		})
 	}
 
