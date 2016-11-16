@@ -21,7 +21,7 @@ Conditions structure:
 */
 
 class Conditions {
-	constructor(conditions) {
+	constructor(conditions, parentEntity) {
 		this.conditions = []
 
 		// if conditions is an object (a single condition)
@@ -32,7 +32,7 @@ class Conditions {
 			conditions = []
 		}
 		conditions.forEach((condition) => {
-			this.conditions.push(new Condition(condition))
+			this.conditions.push(new Condition(condition, parentEntity && parentEntity.name))
 		})
 	}
 

@@ -12,7 +12,7 @@ class FindAllQuery extends Query {
 
 		this.opts = opts
 		this.type = 'findAll'
-		this.conditions = new Conditions(opts.conditions)
+		this.conditions = new Conditions(opts.conditions, entity)
 		this.include = opts.include || []
 
 		this.limit = opts.limit || 30

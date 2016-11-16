@@ -13,7 +13,7 @@ class FindOneQuery extends Query {
 		this.opts = opts
 		this.type = 'findOne'
 		this.include = opts.include || []
-		this.conditions = new Conditions(opts.conditions)
+		this.conditions = new Conditions(opts.conditions, entity)
 
 		this.orderBy = opts.orderBy || []
 

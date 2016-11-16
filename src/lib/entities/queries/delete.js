@@ -10,7 +10,7 @@ class DeleteQuery extends Query {
 		if ( ! data ) {
 			data = {}
 		}
-		this.conditions = new Conditions(data.conditions)
+		this.conditions = new Conditions(data.conditions, entity)
 	}
 	run(params) {
 		let sequelizeCond = this.conditions.toSequelize(params)

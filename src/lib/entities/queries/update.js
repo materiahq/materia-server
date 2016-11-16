@@ -18,7 +18,7 @@ class UpdateQuery extends Query {
 			this.values = opts.values
 		}
 
-		this.conditions = new Conditions(opts.conditions)
+		this.conditions = new Conditions(opts.conditions, entity)
 
 		this.refresh()
 	}

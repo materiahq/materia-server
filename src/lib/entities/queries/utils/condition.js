@@ -1,11 +1,11 @@
 'use strict';
 
 class Condition {
-	constructor(condition) {
+	constructor(condition, parentEntity) {
 		if ( ! condition.name || ! condition.operator || condition.value === undefined ) {
 			throw new Error('missing required parameter to build a condition')
 		}
-		this.entity = condition.entity
+		this.entity = condition.entity || parentEntity
 		this.name = condition.name
 		this.operator = condition.operator
 		this.value = condition.value
