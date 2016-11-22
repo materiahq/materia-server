@@ -210,6 +210,7 @@ export class SqliteDialect extends AbstractDialect {
 					()=>this.sequelize.transaction(t => {
 						let transactionQueries = [
 							`PRAGMA foreign_keys = 0;`,
+							`PRAGMA defer_foreign_keys = 1;`,
 							`DROP TABLE IF EXISTS ${quotedBackupTableName};`,
 							`CREATE TEMPORARY TABLE ${quotedBackupTableName} AS SELECT * FROM ${quotedTableName};`,
 							`DROP TABLE ${quotedTableName};`,
