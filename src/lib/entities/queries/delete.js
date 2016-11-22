@@ -13,7 +13,7 @@ class DeleteQuery extends Query {
 		this.conditions = new Conditions(data.conditions, entity)
 	}
 	run(params) {
-		let sequelizeCond = this.conditions.toSequelize(params)
+		let sequelizeCond = this.conditions.toSequelize(params, this.entity.name)
 		//console.log('delete on condition', sequelizeCond)
 		return this.entity.model.destroy({ where: sequelizeCond })
 	}

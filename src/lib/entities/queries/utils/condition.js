@@ -6,6 +6,7 @@ class Condition {
 			throw new Error('missing required parameter to build a condition')
 		}
 		this.entity = condition.entity || parentEntity
+		this.parent = parentEntity
 		this.name = condition.name
 		this.operator = condition.operator
 		this.value = condition.value
@@ -19,10 +20,12 @@ class Condition {
 
 	toJson() {
 		let res = {
-			entity: this.entity,
 			name: this.name,
 			operator: this.operator,
 			value: this.value,
+		}
+		if (this.entity && this.parent && this.entity != this.parent) {
+			res.entity = this.entity
 		}
 		if (this.operand) {
 			res.operand = this.operand;

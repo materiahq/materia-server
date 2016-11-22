@@ -37,7 +37,7 @@ class UpdateQuery extends Query {
 
 	run(params) {
 		let updates = this.resolveParams(params)
-		let where = this.conditions.toSequelize(params)
+		let where = this.conditions.toSequelize(params, this.entity.name)
 		return this.entity.model.update(updates, { where: where })
 	}
 
