@@ -4,7 +4,8 @@ import { Field } from './field'
 interface IQueryParam {
 	name: string,
 	type: string,
-	required: boolean
+	required: boolean,
+	component: string
 }
 
 export class QueryGenerator {
@@ -21,18 +22,21 @@ export class QueryGenerator {
 				this.paramsPK.push({
 					name: pk.name,
 					type: pk.type,
-					required: true
+					required: true,
+					component: 'input'
 				})
 			}
 		}
 		this.paramsPagination = [{
 			name: 'page',
 			type: 'number',
-			required: false
+			required: false,
+			component: 'input'
 		}, {
 			name: 'limit',
 			type: 'number',
-			required: false
+			required: false,
+			component: 'input'
 		}]
 	}
 
@@ -62,7 +66,7 @@ export class QueryGenerator {
 			this.entity.addDefaultQuery('get', 'findOne', this.paramsPK, {conditions: conditions})
 		}
 
-		let params = []
+		let params:IQueryParam[] = []
 		let values = {}
 		let updateValues = {}
 		let paramsUpdate = []
@@ -78,12 +82,12 @@ export class QueryGenerator {
 
 		this.entity.getFields().forEach((field) => {
 			if (field.write && ! field.autoIncrement) {
-				params.push({ name: field.name, type: field.type, required: field.required })
+				params.push({ name: field.name, type: field.type, required: field.required, component: field.component })
 				values[field.name] = '='
 				updateValues[field.name] = getUpdateValue(field)
 			}
 			else if (field.autoIncrement) {
-				paramsUpdate.push({ name: field.name, type: field.type, required: field.required })
+				paramsUpdate.push({ name: field.name, type: field.type, required: field.required, component: field.component })
 				updateValues[field.name] = getUpdateValue(field)
 			}
 		})
@@ -97,7 +101,8 @@ export class QueryGenerator {
 				let newParam = {
 					name: param.name,
 					type: param.type,
-					required: false
+					required: false,
+					component: param.component
 				}
 				paramsUpdate.push(newParam)
 			})
@@ -106,7 +111,8 @@ export class QueryGenerator {
 				paramsUpdate.push({
 					name: 'new_' + pk.name,
 					type: pk.type,
-					required: false
+					required: false,
+					component: 'input'
 				})
 			}
 

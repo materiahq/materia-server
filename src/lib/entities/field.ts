@@ -1,5 +1,3 @@
-'use strict';
-
 import { Entity } from './entity'
 
 import { IValidator, Validator } from './validator'
@@ -15,6 +13,7 @@ export interface IField {
 	autoIncrement?: boolean
 
 	title?:boolean
+	component?:string
 
 	read?: boolean
 	write?: boolean
@@ -23,6 +22,14 @@ export interface IField {
 
 	validators?: Array<Validator>
 }
+
+export const DefaultComponent = Object.freeze({
+	text: 'input',
+	number: 'input',
+	date: 'datePicker',
+	float: 'input',
+	boolean: 'switch'
+})
 
 export const FieldType = Object.freeze({
 	TEXT: 'text',
@@ -48,6 +55,7 @@ export class Field {
 	autoIncrement: boolean
 
 	title: boolean
+	component: string
 
 	read: boolean
 	write: boolean
@@ -79,6 +87,7 @@ export class Field {
 			}
 
 			this.title = field.title || false
+			this.component = field.component || DefaultComponent[this.type]
 
 			//TODO: need more test on read/write
 			this.read = field.read
@@ -100,8 +109,10 @@ export class Field {
 		this.required = false
 		this.primary = false
 		this.unique = false
+		this.read = true
 		this.write = true
 		this.default = false
+		this.title = false
 		if (this.defaultValue) { delete this.defaultValue }
 		if (this.autoIncrement) { delete this.autoIncrement }
 	}
@@ -160,6 +171,10 @@ export class Field {
 			res.title = true
 		}
 
+		if (this.component) {
+			res.component = this.component
+		}
+
 		return res
 	}
 
@@ -188,12 +203,15 @@ export class Field {
 		this.default = field.default
 		this.defaultValue = field.defaultValue
 		this.autoIncrement = field.autoIncrement
+		this.title = field.title
+		this.component = field.component
 	}
 
 	setType(type:string):boolean {
 		for (let t in FieldType) {
 			if (FieldType[t] == type) {
 				this.type = type
+				this.component = DefaultComponent[type]
 				return true
 			}
 		}
@@ -207,11 +225,11 @@ export class Field {
 	removeValidator(name: string): boolean {
 		let id = -1
 		this.validators.forEach((validator, k) => {
-			if (this.validators[k].name == name) {
+			if (validator.name == name) {
 				id = k
 			}
 		})
-		if (id) {
+		if (id !== -1) {
 			this.validators.splice(id, 1)
 			return true
 		}
