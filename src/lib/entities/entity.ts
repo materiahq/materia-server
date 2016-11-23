@@ -5,7 +5,7 @@ import * as path from 'path'
 
 import App from '../app'
 
-const uuid = require('node-uuid')
+const uuid = require('uuid')
 
 const Field = require('./field')
 const QueryGenerator = require('./query-generator')
