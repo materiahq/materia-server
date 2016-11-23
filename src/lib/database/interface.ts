@@ -188,6 +188,10 @@ export class DatabaseInterface {
 		return this.dialectTools.castColumnType(table, column_name, old_type, type)
 	}
 
+	authenticate() {
+		return this.dialectTools.authenticate()
+	}
+
 	quoteIdentifier(identifier) {
 		return this.database.sequelize.getQueryInterface().QueryGenerator.quoteIdentifier(identifier)
 	}
@@ -239,6 +243,17 @@ export class DatabaseInterface {
 		}
 
 		res.write = ! res.autoIncrement
+
+		if (field.fk) {
+			if (field.onUpdate != "CASCADE") {
+				res.onUpdate = field.onUpdate || "NO ACTION"
+			}
+
+			if ( ! field.allowNull && field.onDelete != "CASCADE" || field.allowNull && field.onDelete != "SET NULL") {
+				res.onDelete = field.onDelete || "NO ACTION"
+			}
+		}
+
 
 		return res
 	}
@@ -292,7 +307,8 @@ export class DatabaseInterface {
 					model: field.isRelation.reference.entity,
 					key: field.isRelation.reference.field
 				}
-				res.onUpdate = 'cascade'
+				res.onUpdate = field.onUpdate || 'cascade'
+				res.onDelete = field.onDelete || (res.allowNull ? 'set null' : 'cascade')
 			}
 		}
 

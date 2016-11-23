@@ -217,6 +217,10 @@ export class DBEntity extends Entity {
 						delete field.autoIncrement
 					if (field.defaultValue == oldfield.defaultValue)
 						delete field.defaultValue
+					if (field.onUpdate == oldfield.onUpdate)
+						delete field.onUpdate
+					if (field.onDelete == oldfield.onDelete)
+						delete field.onDelete
 				}
 
 				//console.log('after diff', field.unique)
@@ -236,7 +240,10 @@ export class DBEntity extends Entity {
 				}
 			}).then(() => {
 				delete field.unique
-				if (field.references === null) {
+				if (oldfield.isRelation) {
+					field.isRelation = oldfield.isRelation
+				}
+				if (field.references === null || field.isRelation) {
 					return this.app.database.interface.dropConstraint(this.name, { field: fieldobj.name, type: "references" })
 				}
 			}).then(() => {
@@ -246,7 +253,7 @@ export class DBEntity extends Entity {
 					delete field.type
 				}
 				let dbfield = this.app.database.interface.fieldToColumn(field)
-				//console.log('translate field', field.required, field, dbfield)
+				//console.log('translate field', field.required, field, dbfield, oldfield)
 				if (Object.keys(dbfield).length == 0)
 					return Promise.resolve()
 
@@ -262,6 +269,10 @@ export class DBEntity extends Entity {
 				}
 				if (field.default && dbfield.defaultValue == undefined) {
 					field.defaultValue = oldfield.defaultValue
+				}
+				if (dbfield.onUpdate || dbfield.onDelete) {
+					field.onUpdate = dbfield.onUpdate
+					field.onDelete = dbfield.onDelete
 				}
 
 				let p = Promise.resolve()

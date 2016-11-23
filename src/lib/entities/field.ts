@@ -11,6 +11,8 @@ export interface IField {
 	default?: boolean
 	defaultValue?: any
 	autoIncrement?: boolean
+	onUpdate?: string
+	onDelete?: string
 
 	title?:boolean
 	component?:string
@@ -53,6 +55,8 @@ export class Field {
 	default: boolean
 	defaultValue: any
 	autoIncrement: boolean
+	onUpdate: string
+	onDelete: string
 
 	title: boolean
 	component: string
@@ -74,6 +78,8 @@ export class Field {
 			this.primary = field.primary || false
 			this.unique = field.unique || false
 			this.default = field.default || false
+			this.onUpdate = field.onUpdate
+			this.onDelete = field.onDelete
 			if (field.default && field.defaultValue != undefined) {
 				this.defaultValue = field.defaultValue
 			}
@@ -113,6 +119,8 @@ export class Field {
 		this.write = true
 		this.default = false
 		this.title = false
+		delete this.onUpdate
+		delete this.onDelete
 		if (this.defaultValue) { delete this.defaultValue }
 		if (this.autoIncrement) { delete this.autoIncrement }
 	}
@@ -175,7 +183,23 @@ export class Field {
 			res.component = this.component
 		}
 
+		if (this.onUpdate) {
+			res.onUpdate = this.onUpdate
+		}
+
+		if (this.onDelete) {
+			res.onDelete = this.onDelete
+		}
+
 		return res
+	}
+
+	isDefaultRelationField():boolean {
+		return this.required
+			&& ! this.unique
+			&& ! this.primary
+			&& ( ! this.onUpdate || this.onUpdate.toUpperCase() == "CASCADE")
+			&& ( ! this.onDelete || this.onDelete.toUpperCase() == "CASCADE")
 	}
 
 	//Not Used
@@ -205,6 +229,8 @@ export class Field {
 		this.autoIncrement = field.autoIncrement
 		this.title = field.title
 		this.component = field.component
+		this.onUpdate = field.onUpdate
+		this.onDelete = field.onDelete
 	}
 
 	setType(type:string):boolean {

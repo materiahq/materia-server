@@ -5,7 +5,7 @@ export class Synchronizer {
 	constructor(private app: App) {}
 
 	_compareField(dbfield, field, entity):any {
-		let props = ['name', 'type', 'primary', 'required', 'autoIncrement', 'default', 'defaultValue']
+		let props = ['name', 'type', 'primary', 'required', 'autoIncrement', 'default', 'defaultValue', 'onUpdate', 'onDelete']
 
 		let diff = [{},{}] as any
 		let found = false
@@ -84,6 +84,27 @@ export class Synchronizer {
 							}
 						}
 					})
+				} else if (field) {
+					let fieldDiff = this._compareField(dbField, field, entity)
+					if ( fieldDiff ) {
+						// the field has custom properties so add to fields or revert on db.
+						dbField.read = field.read
+						dbField.write = field.write
+						diffs.fields.push({
+							redo: {
+								type: MigrationType.CHANGE_FIELD,
+								table: entity.name,
+								name: dbField.name,
+								value: this.app.database.interface.flattenField(dbField)
+							},
+							undo: {
+								type: MigrationType.CHANGE_FIELD,
+								table: entity.name,
+								name: field.name,
+								value: fieldDiff[1]
+							}
+						})
+					}
 				}
 			}
 			if ( ! found) {
@@ -126,7 +147,7 @@ export class Synchronizer {
 					redo: {
 						type: MigrationType.ADD_FIELD,
 						table: entity.name,
-						value: field
+						value: field.toJson()
 					},
 					undo: {
 						type: MigrationType.DELETE_FIELD,

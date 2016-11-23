@@ -33,8 +33,7 @@ export class SqliteDialect extends AbstractDialect {
 				let res = {}
 
 				/*
-				for (let i in tables) {
-					let table = tables[i]
+				tables.forEach((table, i) => {
 					let info = result[i * 4]
 					let indexes = result[i * 4 + 1]
 					let fks = result[i * 4 + 2]
@@ -45,8 +44,7 @@ export class SqliteDialect extends AbstractDialect {
 					console.log('indexes', JSON.stringify(indexes,null,' '))
 					console.log('fks', JSON.stringify(fks,null,' '))
 					console.log('hasAi', JSON.stringify(hasAi,null,' '))
-				}
-				*/
+				})*/
 				tables.forEach((table, i) => {
 					let info = result[i * 4]
 					let indexes = result[i * 4 + 1]
@@ -100,6 +98,8 @@ export class SqliteDialect extends AbstractDialect {
 									entity: fk.table,
 									field: fk.to
 								}
+								field.onUpdate = fk.on_update
+								field.onDelete = fk.on_delete
 							}
 						}
 
@@ -385,6 +385,12 @@ export class SqliteDialect extends AbstractDialect {
 			if ( ! changed)
 				return Promise.resolve()
 			return tableData.done()
+		})
+	}
+
+	authenticate() {
+		return this.sequelize.authenticate().then(() => {
+			this.sequelize.query("PRAGMA foreign_keys = 1;", {raw: true})
 		})
 	}
 }

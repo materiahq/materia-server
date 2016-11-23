@@ -36,7 +36,7 @@ export class Entity {
 
 	isRelation: any
 
-	fields: Array<any>
+	fields: Array<Field>
 	relations: Array<any>
 	queries: Array<any>
 
@@ -890,7 +890,7 @@ export class Entity {
 		let fieldsJson = []
 		if (this.fields) {
 			for (let field of this.fields) {
-				if ( ! field.isRelation) {
+				if ( ! field.isRelation || ! field.isDefaultRelationField()) {
 					fieldsJson.push(field.toJson())
 				}
 			}
