@@ -1,7 +1,24 @@
-'use strict';
+import { DBEntity } from '../../db-entity'
 
-class Condition {
-	constructor(condition, parentEntity) {
+export interface ICondition {
+	entity: string
+	name: string
+	operator: string
+	value: any
+	operand: string
+	operandPriority?: number
+}
+
+export class Condition {
+	entity: string
+	parent: string
+	name: string
+	operator: string
+	value: any
+	operand: string
+	operandPriority: number
+
+	constructor(condition: ICondition, parentEntity) {
 		if ( ! condition.name || ! condition.operator || condition.value === undefined ) {
 			throw new Error('missing required parameter to build a condition')
 		}
@@ -14,7 +31,7 @@ class Condition {
 		//this.priorityLevel = condition.priority || 0
 	}
 
-	valueIsParam(value) {
+	valueIsParam(value:any) {
 		return (typeof value == 'string' && value.length > 0 && value[0] == '=')
 	}
 
@@ -23,7 +40,8 @@ class Condition {
 			name: this.name,
 			operator: this.operator,
 			value: this.value,
-		}
+		} as ICondition
+
 		if (this.entity && this.parent && this.entity != this.parent) {
 			res.entity = this.entity
 		}
@@ -38,5 +56,3 @@ class Condition {
 		return res;
 	}
 }
-
-module.exports = Condition

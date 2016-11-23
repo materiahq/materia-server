@@ -1,9 +1,17 @@
-'use strict';
+import { Query } from '../query'
+import { Conditions } from './utils/conditions'
 
-var Query = require('../query')
-var Conditions = require('./utils/conditions')
+export class FindAllQuery extends Query {
+	opts: any
+	type: string
+	conditions: Conditions
+	include: any
+	limit: number
+	page: number
+	offset: number
+	orderBy: any
+	select: any
 
-class FindAllQuery extends Query {
 	constructor(entity, id, params, opts) {
 		super(entity, id, params)
 		if (!opts) {
@@ -62,10 +70,10 @@ class FindAllQuery extends Query {
 			where: this.conditions.toSequelize(params, this.entity.name),
 			include: include,
 			raw: raw
-		}
+		} as any
 
 		//Add conditions to opts recursively for included obj
-		this._constructConditions(opts.include, params)
+		this.conditions.constructConditions(opts.include, params)
 
 
 		if (pagination) {
@@ -132,7 +140,8 @@ class FindAllQuery extends Query {
 			type: 'findAll',
 			params: this.params,
 			opts: {}
-		}
+		} as any
+
 		if (this.opts.select) {
 			res.opts.select = this.opts.select
 		}
@@ -159,5 +168,3 @@ class FindAllQuery extends Query {
 		return res
 	}
 }
-
-module.exports = FindAllQuery

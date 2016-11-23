@@ -1,9 +1,9 @@
 'use strict';
 
-class Query {
-	constructor(entity, id, params) {
+export class Query {
+	constructor(protected entity, protected id, protected params) {
 		this.entity = entity
-		this.history = entity.app.history
+		//this.history = entity.app.history
 		this.id = id
 		this.params = params
 		if ( ! this.params ) {
@@ -43,41 +43,13 @@ class Query {
 		return false
 	}
 
-	resolveParams(params) {
-		let res = {}
-		for (let field in this.values) {
-			try {
-				res[field] = Query.resolveParam({ name: field, value: this.values[field] }, params)
-			} catch (e) {
-				if ( this.values[field].substr(0, 1) == '=') {
-					let t = this.getParam(this.values[field].substr(1))
-					if (t && t.required) {
-						throw e
-					}
-				}
-			}
-		}
-		for (let field of this.params) {
-			if ( ! this.values[field.name]) {
-				try {
-					res[field.name] = Query.resolveParam({ name: field.name, value: "=" }, params)
-				} catch(e) {
-					if (field.required)
-						throw e
-				}
-			}
-		}
-
-		return res
-	}
-
 	_constructInclude(includeArray, includedName) {
 		for (let entity of includedName) {
 			let includeEntity = this.entity.app.entities.get(entity.entity)
 			let includePart = {
 				model: includeEntity.model,
 				attributes: entity.fields
-			}
+			} as any
 
 			if (entity.include) {
 				includePart.include = []
@@ -85,26 +57,6 @@ class Query {
 				this._constructInclude(includePart.include, includeNames)
 			}
 			includeArray.push(includePart)
-		}
-	}
-
-
-	_constructConditions(entities, params) {
-		for (let x in entities) {
-			let entity = entities[x]
-			for (let i in this.conditions.conditions) {
-				let condition = this.conditions.conditions[i]
-				if (this.conditions.conditions[i] && this.conditions.conditions[i].entity == entity.model.name) {
-					if (entity.model.name != this.entity.name){
-						entity.where = this.conditions.toSequelize(params, entity.model.name, this.entity.name)
-					} else {
-						entity.where = this.conditions.toSequelize(params, entity.model.name, this.entity.name)
-					}
-				}
-				if (entity.include) {
-					this._constructConditions(entity.include, params)
-				}
-			}
 		}
 	}
 
@@ -146,5 +98,3 @@ class Query {
 		return field.value
 	}
 }
-
-module.exports = Query

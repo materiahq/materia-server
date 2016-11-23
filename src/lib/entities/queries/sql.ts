@@ -1,8 +1,12 @@
-'use strict';
+import { Query } from '../query'
 
-var Query = require('../query')
+export class SQLQuery extends Query {
+	type: string
+	params: any
+	values: any
+	query: string
+	valuesType: any
 
-class SQLQuery extends Query {
 	constructor(entity, id, params, opts) {
 		super(entity, id, params)
 
@@ -28,6 +32,34 @@ class SQLQuery extends Query {
 				this.valuesType[field] = 'value'
 			}
 		})
+	}
+
+	resolveParams(params) {
+		let res = {}
+		for (let field in this.values) {
+			try {
+				res[field] = Query.resolveParam({ name: field, value: this.values[field] }, params)
+			} catch (e) {
+				if ( this.values[field].substr(0, 1) == '=') {
+					let t = this.getParam(this.values[field].substr(1))
+					if (t && t.required) {
+						throw e
+					}
+				}
+			}
+		}
+		for (let field of this.params) {
+			if ( ! this.values[field.name]) {
+				try {
+					res[field.name] = Query.resolveParam({ name: field.name, value: "=" }, params)
+				} catch(e) {
+					if (field.required)
+						throw e
+				}
+			}
+		}
+
+		return res
 	}
 
 	run(params) {
@@ -61,5 +93,3 @@ class SQLQuery extends Query {
 		return res
 	}
 }
-
-module.exports = SQLQuery

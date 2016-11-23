@@ -1,9 +1,12 @@
-'use strict';
+import { Query } from '../query'
+import { Conditions } from './utils/conditions'
 
-var Query = require('../query')
-var Conditions = require('./utils/conditions')
+export class UpdateQuery extends Query {
+	type: string
+	values: any
+	conditions: Conditions
+	valuesType: any
 
-class UpdateQuery extends Query {
 	constructor(entity, id, params, opts) {
 		super(entity, id, params)
 
@@ -35,6 +38,34 @@ class UpdateQuery extends Query {
 		})
 	}
 
+	resolveParams(params) {
+		let res = {}
+		for (let field in this.values) {
+			try {
+				res[field] = Query.resolveParam({ name: field, value: this.values[field] }, params)
+			} catch (e) {
+				if ( this.values[field].substr(0, 1) == '=') {
+					let t = this.getParam(this.values[field].substr(1))
+					if (t && t.required) {
+						throw e
+					}
+				}
+			}
+		}
+		for (let field of this.params) {
+			if ( ! this.values[field.name]) {
+				try {
+					res[field.name] = Query.resolveParam({ name: field.name, value: "=" }, params)
+				} catch(e) {
+					if (field.required)
+						throw e
+				}
+			}
+		}
+
+		return res
+	}
+
 	run(params) {
 		let updates = this.resolveParams(params)
 		let where = this.conditions.toSequelize(params, this.entity.name)
@@ -54,5 +85,3 @@ class UpdateQuery extends Query {
 		return res
 	}
 }
-
-module.exports = UpdateQuery

@@ -1,10 +1,15 @@
 'use strict';
 
-var Query = require('../query')
-var fs = require('fs')
-var path = require('path')
+import { Query } from '../query'
+import * as fs from 'fs'
+import * as path from 'path'
 
-class CustomQuery extends Query {
+export class CustomQuery extends Query {
+	type: string
+	file: string
+	query: any
+	queryStr: string
+
 	constructor(entity, id, params, opts) {
 		super(entity, id, params);
 
@@ -25,9 +30,9 @@ class CustomQuery extends Query {
 				delete require.cache[require.resolve(path.join(basepath, this.file))];
 			}
 			this.query = require(path.join(basepath, this.file))
-			this.queryStr = fs.readFileSync(path.join(basepath, this.file + '.js'))
+			this.queryStr = fs.readFileSync(path.join(basepath, this.file + '.js'), 'utf8')
 		} catch(e) {
-			let err = new Error('Could not load query ' + this.file + ' in entity ' + entity.name)
+			let err = new Error('Could not load query ' + this.file + ' in entity ' + entity.name) as any
 			err.originalError = e
 			throw err
 		}
@@ -48,5 +53,3 @@ class CustomQuery extends Query {
 		}
 	}
 }
-
-module.exports = CustomQuery

@@ -1,9 +1,14 @@
-'use strict';
+import { Query } from '../query'
+import { Conditions } from './utils/conditions'
 
-var Query = require('../query')
-var Conditions = require('./utils/conditions')
+export class FindOneQuery extends Query {
+	opts: any
+	type: string
+	include: any
+	conditions: Conditions
+	orderBy: any
+	select: any
 
-class FindOneQuery extends Query {
 	constructor(entity, id, params, opts) {
 		super(entity, id, params)
 
@@ -48,10 +53,10 @@ class FindOneQuery extends Query {
 			where: this.conditions.toSequelize(params, this.entity.name),
 			include: include,
 			raw: raw
-		}
+		} as any
 
 		//Add conditions to opts recursively for included obj
-		this._constructConditions(opts.include, params)
+		this.conditions.constructConditions(opts.include, params)
 
 		opts.order = []
 		this.orderBy.forEach((order) => {
@@ -71,7 +76,8 @@ class FindOneQuery extends Query {
 			type: 'findOne',
 			params: this.params,
 			opts: {}
-		}
+		} as any
+
 		if ( this.opts.include ) {
 			res.opts.include = this.opts.include
 		}
@@ -88,5 +94,3 @@ class FindOneQuery extends Query {
 		return res
 	}
 }
-
-module.exports = FindOneQuery

@@ -1,9 +1,12 @@
 'use strict';
 
-var Query = require('../query')
-var Conditions = require('./utils/conditions')
+import { Query } from '../query'
+import { Conditions } from './utils/conditions'
 
-class DeleteQuery extends Query {
+export class DeleteQuery extends Query {
+	type: string
+	conditions: Conditions
+
 	constructor(entity, id, params, data) {
 		super(entity, id, params)
 		this.type = 'delete'
@@ -30,5 +33,3 @@ class DeleteQuery extends Query {
 		return res
 	}
 }
-
-module.exports = DeleteQuery

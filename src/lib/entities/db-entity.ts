@@ -5,6 +5,15 @@ import { IField } from './field'
 
 import { QueryGenerator } from './query-generator'
 
+import { FindAllQuery } from './queries/findAll'
+import { FindOneQuery } from './queries/findOne'
+import { CreateQuery } from './queries/create'
+import { UpdateQuery } from './queries/update'
+import { DeleteQuery } from './queries/delete'
+import { SQLQuery } from './queries/sql'
+import { CustomQuery } from './queries/custom'
+
+
 export class DBEntity extends Entity {
 	type: string
 	currentDiff: Array<any>
@@ -14,13 +23,13 @@ export class DBEntity extends Entity {
 
 	constructor(app: App) {
 		super(app, {
-			findAll: require('./queries/findAll'),
-			findOne: require('./queries/findOne'),
-			create: require('./queries/create'),
-			update: require('./queries/update'),
-			delete: require('./queries/delete'),
-			custom: require('./queries/custom'),
-			sql: require('./queries/sql')
+			findAll: FindAllQuery,
+			findOne: FindOneQuery,
+			create: CreateQuery,
+			update: UpdateQuery,
+			delete: DeleteQuery,
+			custom: CustomQuery,
+			sql: SQLQuery
 		})
 
 		this.type = 'db'
