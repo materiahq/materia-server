@@ -9,8 +9,6 @@ export class QueryParamResolver {
 				paramName = field.value.substr(1)
 			}
 
-			console.log(params)
-
 			if (params.params && params.params[paramName] !== undefined) {
 				return params.params[paramName]
 			}

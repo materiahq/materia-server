@@ -53,8 +53,6 @@ export class Conditions {
 			params = []
 		}
 
-		console.log('toSequelize conditions' ,this.conditions)
-
 		this.conditions.forEach((condition, i) => {
 			if (condition && condition.name && condition.operator && condition.entity == entityName) {
 				let resolvedParam = QueryParamResolver.resolve(condition, params)
