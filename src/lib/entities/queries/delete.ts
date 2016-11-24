@@ -7,14 +7,22 @@ export class DeleteQuery extends Query {
 	type: string
 	conditions: Conditions
 
-	constructor(entity, id, params, data) {
-		super(entity, id, params)
+	constructor(entity, id, opts) {
+		super(entity, id)
 		this.type = 'delete'
-		if ( ! data ) {
-			data = {}
+		if ( ! opts ) {
+			opts = {}
 		}
-		this.conditions = new Conditions(data.conditions, entity)
+		this.conditions = new Conditions(opts.conditions, entity)
+		this.discoverParams()
 	}
+
+	refresh() {}
+	discoverParams() {
+		this.params = []
+		this.params = this.params.concat(this.conditions.discoverParams())
+	}
+
 	run(params) {
 		let sequelizeCond = this.conditions.toSequelize(params, this.entity.name)
 		//console.log('delete on condition', sequelizeCond)

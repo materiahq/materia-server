@@ -3,7 +3,7 @@
 import { Condition, ICondition } from './condition'
 import { DBEntity } from '../../db-entity'
 
-import { Query } from '../../query'
+import { Query, QueryParamResolver, IQueryParam } from '../../query'
 
 /*
 Conditions manage a list of condition (associated with `operand`)
@@ -22,21 +22,24 @@ Conditions structure:
 ]
 */
 
+export type IConditions = ICondition[]
+
 export class Conditions {
 	conditions: Array<Condition>
 
-	constructor(conditions:any, parentEntity: DBEntity) {
+	constructor(conditions:Array<ICondition>, private entity: DBEntity) {
 		this.conditions = []
 
 		// if conditions is an object (a single condition)
-		if (conditions && !Array.isArray(conditions)) {
-			conditions = [conditions]
-		}
-		else if (!conditions) {
+		//if (conditions && !Array.isArray(conditions)) {
+		//	conditions = [conditions]
+		//}
+		//else
+		if (!conditions) {
 			conditions = []
 		}
 		conditions.forEach((condition) => {
-			this.conditions.push(new Condition(condition, parentEntity && parentEntity.name))
+			this.conditions.push(new Condition(condition, entity && entity.name))
 		})
 	}
 
@@ -54,7 +57,7 @@ export class Conditions {
 
 		this.conditions.forEach((condition, i) => {
 			if (condition && condition.name && condition.operator && condition.entity == entityName) {
-				let resolvedParam = Query.resolveParam(condition, params)
+				let resolvedParam = QueryParamResolver.resolve(condition, params)
 				if (i > 0) {
 					if (this.conditions[i].entity == entityName && res.where.length > 0) {
 						res.where += ' ' + (this.conditions[i].operand) + ' '
@@ -108,6 +111,33 @@ export class Conditions {
 				}
 			}
 		}
+	}
+
+	discoverParams():Array<IQueryParam> {
+		let params = []
+		this.conditions.forEach(condition => {
+			if (condition.valueIsParam()) {
+				let type = this.entity.getField(condition.name).type
+				if (condition.entity != this.entity.name) {
+					type = this.entity.app.entities.get(condition.entity).getField(condition.name).type
+				}
+
+				let paramName = condition.name
+				if (condition.value.length > 1) {
+					paramName = condition.value.substr(1)
+				}
+				params.push({
+					name: paramName,
+					reference: {
+						entity: condition.entity,
+						field: condition.name
+					},
+					type: type,
+					required: true
+				})
+			}
+		})
+		return params
 	}
 
 	toJson() {

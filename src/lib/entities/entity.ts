@@ -11,12 +11,14 @@ import { Field } from './field'
 
 import { QueryGenerator } from './query-generator'
 
+import { IQueryConstructor } from './query'
+
 const MigrationType = require('../history').MigrationType
 
 
 export interface IEntityConfig {
 	id: string
-	fields?: Array<any>
+	fields?: Array<Field>
 	relations?: Array<any>
 	queries?: Array<any>
 	isRelation?: any
@@ -42,7 +44,7 @@ export class Entity {
 
 	fromAddon: string
 
-	constructor(protected app: App, queryTypes) {
+	constructor(public app: App, queryTypes) {
 		this.relations_queue = []
 		this.queryObjects = {}
 
@@ -968,8 +970,13 @@ export class Entity {
 			throw new Error('Query type `' + type + '` not defined')
 		}
 
+		//To migrate from to November release (remove params OR moved to opts if SQL / Custom queries)
+		if (params && (type == 'sql' || type == 'custom')) {
+			opts.params = params
+		}
+
 		let QueryClass = this.queryObjects[type]
-		let queryobj = new QueryClass(this, id, params, opts)
+		let queryobj = <IQueryConstructor> new QueryClass(this, id, opts)
 
 		if (options.apply != false) {
 			//check that query with `id` = id does not exist. if it exists, remove the query
@@ -1060,6 +1067,7 @@ export class Entity {
 	refreshQueries() {
 		for (let query of this.queries) {
 			query.refresh()
+			query.discoverParams()
 		}
 	}
 

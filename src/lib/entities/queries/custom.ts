@@ -1,8 +1,13 @@
 'use strict';
 
-import { Query } from '../query'
+import { Query, IQueryParam } from '../query'
 import * as fs from 'fs'
 import * as path from 'path'
+
+export interface ICustomQueryOpts {
+	file: string
+	params: IQueryParam[]
+}
 
 export class CustomQuery extends Query {
 	type: string
@@ -10,16 +15,16 @@ export class CustomQuery extends Query {
 	query: any
 	queryStr: string
 
-	constructor(entity, id, params, opts) {
-		super(entity, id, params);
+	constructor(entity, id, opts) {
+		super(entity, id);
 
 		this.type = 'custom'
 
 		if ( ! opts || ! opts.file)
 			throw new Error('missing required parameter "file"')
 
+		this.params =  opts.params
 		this.file = opts.file
-
 
 		let basepath = entity.app.path
 		if ( entity.fromAddon ) {
@@ -36,7 +41,11 @@ export class CustomQuery extends Query {
 			err.originalError = e
 			throw err
 		}
+		this.discoverParams()
 	}
+
+	refresh() {}
+	discoverParams() {}
 
 	run(params) {
 		return this.query(this.entity.model, params, this.entity.app);
@@ -46,10 +55,10 @@ export class CustomQuery extends Query {
 		return {
 			id: this.id,
 			type: 'custom',
-			params: this.params,
 			opts: {
+				params: this.params,
 				file: this.file
-			}
+			} as ICustomQueryOpts
 		}
 	}
 }

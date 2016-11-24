@@ -1,4 +1,4 @@
-import { Query } from '../query'
+import { Query, QueryParamResolver } from '../query'
 
 export class CreateQuery extends Query {
 	type: string
@@ -6,13 +6,14 @@ export class CreateQuery extends Query {
 	values: any
 	valuesType: any
 
-	constructor(entity, id, params, opts) {
-		super(entity, id, params)
+	constructor(entity, id, opts) {
+		super(entity, id)
 
 		this.type = 'create'
 		this.opts = opts
 		this.entity = entity
 		this.refresh()
+		this.discoverParams()
 	}
 
 	refresh() {
@@ -22,11 +23,6 @@ export class CreateQuery extends Query {
 				this.values = {}
 				let fields = this.entity.getWritableFields()
 				fields.forEach((field) => {
-					this.params.push({
-						name: field.name,
-						type: field.type,
-						required: field.required
-					})
 					this.values[field.name] = '='
 				})
 			}
@@ -38,13 +34,31 @@ export class CreateQuery extends Query {
 		if ( ! this.values ) {
 			this.values = {}
 		}
+	}
+
+	discoverParams() {
 		this.valuesType = {}
-		Object.keys(this.values).forEach((field) => {
-			if (this.values[field].substr(0, 1) == '=') {
-				this.valuesType[field] = 'param'
+		this.params = []
+		Object.keys(this.values).forEach(fieldName => {
+			if (this.values[fieldName] && this.values[fieldName].substr(0, 1) == '=') {
+				this.valuesType[fieldName] = 'param'
+				let paramName = fieldName
+				if (this.values[fieldName].length > 1) {
+					paramName = this.values[fieldName].substr(1)
+				}
+				let field = this.entity.getField(fieldName)
+				this.params.push({
+					name: paramName,
+					type: field.type,
+					required: field.required,
+					reference: {
+						entity: this.entity.name,
+						field: fieldName
+					}
+				})
 			}
 			else {
-				this.valuesType[field] = 'value'
+				this.valuesType[fieldName] = 'value'
 			}
 		})
 	}
@@ -53,7 +67,7 @@ export class CreateQuery extends Query {
 		let res = {}
 		for (let field in this.values) {
 			try {
-				res[field] = Query.resolveParam({ name: field, value: this.values[field] }, params)
+				res[field] = QueryParamResolver.resolve({ name: field, value: this.values[field] }, params)
 			} catch (e) {
 				if ( this.values[field].substr(0, 1) == '=') {
 					let t = this.getParam(this.values[field].substr(1))
@@ -66,7 +80,7 @@ export class CreateQuery extends Query {
 		for (let field of this.params) {
 			if ( ! this.values[field.name]) {
 				try {
-					res[field.name] = Query.resolveParam({ name: field.name, value: "=" }, params)
+					res[field.name] = QueryParamResolver.resolve({ name: field.name, value: "=" }, params)
 				} catch(e) {
 					if (field.required)
 						throw e
@@ -85,7 +99,7 @@ export class CreateQuery extends Query {
 		let res = {
 			id: this.id,
 			type: 'create',
-			params: this.params,
+			//params: this.params,
 			opts: {
 				values: this.values
 			}

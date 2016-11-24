@@ -9,8 +9,8 @@ export class FindOneQuery extends Query {
 	orderBy: any
 	select: any
 
-	constructor(entity, id, params, opts) {
-		super(entity, id, params)
+	constructor(entity, id, opts) {
+		super(entity, id)
 
 		if ( ! opts) {
 			opts = {}
@@ -25,6 +25,11 @@ export class FindOneQuery extends Query {
 		this.refresh()
 	}
 
+	discoverParams() {
+		this.params = []
+		this.params = this.params.concat(this.conditions.discoverParams())
+	}
+
 	refresh() {
 		this.select = this.opts.select
 		if ( ! this.select || this.select == [] ) {
@@ -35,6 +40,7 @@ export class FindOneQuery extends Query {
 				}
 			})
 		}
+		this.discoverParams()
 	}
 
 	run(params, options) {

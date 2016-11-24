@@ -31,11 +31,11 @@ export class Condition {
 		//this.priorityLevel = condition.priority || 0
 	}
 
-	valueIsParam(value:any) {
-		return (typeof value == 'string' && value.length > 0 && value[0] == '=')
+	valueIsParam():boolean {
+		return (typeof this.value == 'string' && this.value.length > 0 && this.value[0] == '=')
 	}
 
-	toJson() {
+	toJson():ICondition {
 		let res = {
 			name: this.name,
 			operator: this.operator,

@@ -1,25 +1,27 @@
-import { Query } from '../query'
+import { Query, QueryParamResolver } from '../query'
+
 
 export class SQLQuery extends Query {
 	type: string
-	params: any
+	//TODO: remove values & opts.values as it could be deduct form opts.params
 	values: any
 	query: string
 	valuesType: any
 
-	constructor(entity, id, params, opts) {
-		super(entity, id, params)
+	constructor(entity, id, opts) {
+		super(entity, id)
 
 		if ( ! opts || ! opts.query )
 			throw new Error('missing required parameter "query"')
 
 		this.type = 'sql'
 
-		this.params = params || {}
+		this.params = opts.params || []
 		this.values = opts.values || {}
 		this.query = opts.query
 
 		this.refresh()
+		this.discoverParams()
 	}
 
 	refresh() {
@@ -34,11 +36,16 @@ export class SQLQuery extends Query {
 		})
 	}
 
+	discoverParams() {
+		//does nothing as params is defined in opts.params
+		//cf constructor
+	}
+
 	resolveParams(params) {
 		let res = {}
 		for (let field in this.values) {
 			try {
-				res[field] = Query.resolveParam({ name: field, value: this.values[field] }, params)
+				res[field] = QueryParamResolver.resolve({ name: field, value: this.values[field] }, params)
 			} catch (e) {
 				if ( this.values[field].substr(0, 1) == '=') {
 					let t = this.getParam(this.values[field].substr(1))
@@ -51,7 +58,7 @@ export class SQLQuery extends Query {
 		for (let field of this.params) {
 			if ( ! this.values[field.name]) {
 				try {
-					res[field.name] = Query.resolveParam({ name: field.name, value: "=" }, params)
+					res[field.name] = QueryParamResolver.resolve({ name: field.name, value: "=" }, params)
 				} catch(e) {
 					if (field.required)
 						throw e
@@ -84,8 +91,8 @@ export class SQLQuery extends Query {
 		let res = {
 			id: this.id,
 			type: 'sql',
-			params: this.params,
 			opts: {
+				params: this.params,
 				values: this.values,
 				query: this.query
 			}
