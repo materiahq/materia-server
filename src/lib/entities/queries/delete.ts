@@ -1,5 +1,3 @@
-'use strict';
-
 import { Query } from '../query'
 import { Conditions } from './utils/conditions'
 

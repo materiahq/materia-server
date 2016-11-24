@@ -1,5 +1,3 @@
-'use strict'
-
 import { AbstractDialect } from './abstract'
 
 export class MysqlDialect extends AbstractDialect {

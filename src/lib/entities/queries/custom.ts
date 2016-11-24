@@ -1,5 +1,3 @@
-'use strict';
-
 import { Query, IQueryParam } from '../query'
 import * as fs from 'fs'
 import * as path from 'path'

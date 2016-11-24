@@ -1,5 +1,3 @@
-'use strict'
-
 import { AbstractDialect } from './abstract'
 
 import * as Sequelize from 'sequelize'

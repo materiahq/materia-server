@@ -1,7 +1,7 @@
 import { DBEntity } from './db-entity'
 
 export class QueryParamResolver {
-	static resolve(field, params) {
+	static resolve(field: any, params: any) {
 		if (typeof field.value == 'string' && field.value.substr(0, 1) == '=') {
 
 			let paramName = field.name
@@ -76,11 +76,11 @@ export abstract class Query {
 		return Promise.reject(new Error('not implemented yet'))
 	}
 
-	hasParameters() {
+	hasParameters():boolean {
 		return this.params.length > 0
 	}
 
-	getAllParams() {
+	getAllParams():Array<IQueryParam> {
 		return this.params
 	}
 
@@ -92,7 +92,7 @@ export abstract class Query {
 		return null
 	}
 
-	hasRequiredParameters() {
+	hasRequiredParameters():boolean {
 		for (let param of this.params) {
 			if (param.required) {
 				return true
