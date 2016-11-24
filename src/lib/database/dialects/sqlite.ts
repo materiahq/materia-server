@@ -1,5 +1,3 @@
-'use strict'
-
 import { AbstractDialect } from './abstract'
 
 import * as Sequelize from 'sequelize'
@@ -33,8 +31,7 @@ export class SqliteDialect extends AbstractDialect {
 				let res = {}
 
 				/*
-				for (let i in tables) {
-					let table = tables[i]
+				tables.forEach((table, i) => {
 					let info = result[i * 4]
 					let indexes = result[i * 4 + 1]
 					let fks = result[i * 4 + 2]
@@ -45,8 +42,7 @@ export class SqliteDialect extends AbstractDialect {
 					console.log('indexes', JSON.stringify(indexes,null,' '))
 					console.log('fks', JSON.stringify(fks,null,' '))
 					console.log('hasAi', JSON.stringify(hasAi,null,' '))
-				}
-				*/
+				})*/
 				tables.forEach((table, i) => {
 					let info = result[i * 4]
 					let indexes = result[i * 4 + 1]
@@ -100,6 +96,8 @@ export class SqliteDialect extends AbstractDialect {
 									entity: fk.table,
 									field: fk.to
 								}
+								field.onUpdate = fk.on_update
+								field.onDelete = fk.on_delete
 							}
 						}
 
@@ -187,7 +185,7 @@ export class SqliteDialect extends AbstractDialect {
 			}
 
 			const quotedTableName = qg.quoteTable(table);
-			const quotedBackupTableName = qg.quoteTable(table + '_backup');
+			const quotedBackupTableName = qg.quoteTable(table + '_materia_backup');
 
 			tableData.done = () => {
 				const attributeNames = Object.keys(tableData.attributes).map(attr => qg.quoteIdentifier(attr)).join(', ')
@@ -205,30 +203,44 @@ export class SqliteDialect extends AbstractDialect {
 				}
 
 				const attributesSql = qg.attributesToSQL(tableData.attributes)
-				let sql = 'PRAGMA foreign_keys = 0;'
-					+ `CREATE TEMPORARY TABLE ${quotedBackupTableName} AS SELECT * FROM ${quotedTableName};`
-					+ `DROP TABLE ${quotedTableName};`
-					+ qg.createTableQuery(table, attributesSql, tableData.options)
-					+ `INSERT INTO ${quotedTableName} SELECT ${attributesNameImport} FROM ${quotedBackupTableName};`
-					+ `DROP TABLE ${quotedBackupTableName};`
-					+ "PRAGMA foreign_keys = 1;"
 
-				let subQueries:Array<any> = sql.split(';')
-					.filter(q => q !== '')
-					.map(subQuery => {
-						this.sequelize.query(subQuery + ';', {raw: true})
+				let subQueries = [
+					()=>this.sequelize.transaction(t => {
+						let transactionQueries = [
+							`PRAGMA foreign_keys = 0;`,
+							`PRAGMA defer_foreign_keys = 1;`,
+							`DROP TABLE IF EXISTS ${quotedBackupTableName};`,
+							`CREATE TEMPORARY TABLE ${quotedBackupTableName} AS SELECT * FROM ${quotedTableName};`,
+							`DROP TABLE ${quotedTableName};`,
+							qg.createTableQuery(table, attributesSql, tableData.options),
+							`INSERT INTO ${quotedTableName} SELECT ${attributesNameImport} FROM ${quotedBackupTableName};`,
+							`DROP TABLE ${quotedBackupTableName};`
+						].map(query => {
+							return ()=>this.sequelize.query(query, {raw: true, transaction: t})
+						})
+						let p = Promise.resolve()
+						for (let query of transactionQueries) {
+							p = p.then(() => {
+								return query()
+							})
+						}
+						return p
 					})
+				]
 
 				for (let uniq of tableData.options.uniqueKeys) {
 					if (uniq.origin == "c") {
-						subQueries.push(queryInterface.addIndex(table, uniq))
+						subQueries.push(()=>queryInterface.addIndex(table, uniq))
 					}
 				}
 
-				return subQueries.reduce(
-					(p, f): Promise<any> => p.then(f),
-					Promise.resolve()
-				)
+				let p = Promise.resolve()
+				for (let query of subQueries) {
+					p = p.then(() => {
+						return query()
+					})
+				}
+				return p
 			}
 
 			return Promise.resolve(tableData)
@@ -371,6 +383,12 @@ export class SqliteDialect extends AbstractDialect {
 			if ( ! changed)
 				return Promise.resolve()
 			return tableData.done()
+		})
+	}
+
+	authenticate() {
+		return this.sequelize.authenticate().then(() => {
+			this.sequelize.query("PRAGMA foreign_keys = 1;", {raw: true})
 		})
 	}
 }

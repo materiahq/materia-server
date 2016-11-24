@@ -1,21 +1,22 @@
-'use strict';
-
 import * as fs from 'fs'
 import * as path from 'path'
 
 import App from '../app'
 
-const uuid = require('node-uuid')
+import * as uuid from 'node-uuid'
 
-const Field = require('./field')
-const QueryGenerator = require('./query-generator')
+import { Field } from './field'
+
+import { QueryGenerator } from './query-generator'
+
+import { IQueryConstructor } from './query'
 
 const MigrationType = require('../history').MigrationType
 
 
 export interface IEntityConfig {
 	id: string
-	fields?: Array<any>
+	fields?: Array<Field>
 	relations?: Array<any>
 	queries?: Array<any>
 	isRelation?: any
@@ -26,7 +27,7 @@ export interface IEntityConfig {
  * @classdesc
  * An entity, in a database this correspond to a table.
  */
-class Entity {
+export class Entity {
 	relations_queue: Array<any>
 	queryObjects: any
 
@@ -35,13 +36,13 @@ class Entity {
 
 	isRelation: any
 
-	fields: Array<any>
+	fields: Array<Field>
 	relations: Array<any>
 	queries: Array<any>
 
 	fromAddon: string
 
-	constructor(private app: App, queryTypes) {
+	constructor(public app: App, queryTypes) {
 		this.relations_queue = []
 		this.queryObjects = {}
 
@@ -152,30 +153,32 @@ class Entity {
 			})
 		}
 
-		return Promise.all(promises).then(() => {
-			this.initDefaultQuery()
-			if (entityobj.queries) {
-				entityobj.queries.forEach((query) => {
-					//fix: don't overload default query else it always overload after the first generation
-					let reservedQueries = [
-						'list', 'get', 'create', 'update', 'delete'
-					]
-					if (reservedQueries.indexOf(query.id) == -1) {
-						try {
-							this.addQuery(query.id, query.type, query.params, query.opts, {history:false, save:false})
-						} catch(e) {
-							if (e.originalError) {
-								this.app.logger.warn('Skipped query ' + query.id + ' of entity ' + this.name)
-								this.app.logger.warn('due to error: ' + e.originalError.stack)
-							}
-							else {
-								throw e
-							}
+		return Promise.all(promises)
+	}
+
+	loadQueries(queries) {
+		this.initDefaultQuery()
+		if (queries) {
+			queries.forEach((query) => {
+				//fix: don't overload default query else it always overload after the first generation
+				let reservedQueries = [
+					'list', 'get', 'create', 'update', 'delete'
+				]
+				if (reservedQueries.indexOf(query.id) == -1) {
+					try {
+						this.addQuery(query.id, query.type, query.params, query.opts, {history:false, save:false})
+					} catch(e) {
+						if (e.originalError) {
+							this.app.logger.warn('Skipped query ' + query.id + ' of entity ' + this.name)
+							this.app.logger.warn('due to error: ' + e.originalError.stack)
+						}
+						else {
+							throw e
 						}
 					}
-				})
-			}
-		});
+				}
+			})
+		}
 	}
 
 	applyRelations() {
@@ -291,7 +294,7 @@ class Entity {
 		return res
 	}
 
-	getPK() {
+	getPK(): Array<Field> {
 		let pks = []
 		for (let field of this.fields) {
 			if (field.primary) {
@@ -726,6 +729,13 @@ class Entity {
 			}
 
 			let done = () => {
+				if (options.apply != false && fieldobj.name != name) {
+					for (let relation of this.relations) {
+						if (relation.field == name) {
+							relation.field = fieldobj.name
+						}
+					}
+				}
 				this.fields.forEach((field, k) => {
 					if (field.name == name) {
 						if (options.apply != false) {
@@ -882,7 +892,7 @@ class Entity {
 		let fieldsJson = []
 		if (this.fields) {
 			for (let field of this.fields) {
-				if ( ! field.isRelation) {
+				if ( ! field.isRelation || ! field.isDefaultRelationField()) {
 					fieldsJson.push(field.toJson())
 				}
 			}
@@ -960,8 +970,13 @@ class Entity {
 			throw new Error('Query type `' + type + '` not defined')
 		}
 
+		//To migrate from to November release (remove params OR moved to opts if SQL / Custom queries)
+		if (params && (type == 'sql' || type == 'custom')) {
+			opts.params = params
+		}
+
 		let QueryClass = this.queryObjects[type]
-		let queryobj = new QueryClass(this, id, params, opts)
+		let queryobj = <IQueryConstructor> new QueryClass(this, id, opts)
 
 		if (options.apply != false) {
 			//check that query with `id` = id does not exist. if it exists, remove the query
@@ -1052,6 +1067,7 @@ class Entity {
 	refreshQueries() {
 		for (let query of this.queries) {
 			query.refresh()
+			query.discoverParams()
 		}
 	}
 
@@ -1087,5 +1103,3 @@ class Entity {
 		return Object.keys(this.queryObjects)
 	}
 }
-
-module.exports = Entity

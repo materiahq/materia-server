@@ -10,8 +10,8 @@ import App, { IApplyOptions } from './app'
 import { MigrationType } from './history'
 
 //TODO: convert in ts
-let DBEntity = require('./entities/db-entity')
-let Entity = require('./entities/entity')
+import { DBEntity } from './entities/db-entity'
+import { Entity } from './entities/entity'
 
 //TODO: add when entities/entity will be converted in ts
 /*export interface IEntities {
@@ -96,7 +96,7 @@ export class Entities {
 		}
 
 		let promises = []
-
+		let entitiesJson = []
 		for (let file of files) {
 			try {
 				if (file.substr(file.length - 5, 5) == '.json') {
@@ -104,6 +104,7 @@ export class Entities {
 					let entity = JSON.parse(content.toString())
 					entity.name = file.substr(0, file.length - 5)
 					promises.push(this.add(entity, opts));
+					entitiesJson.push(entity)
 				}
 			} catch (e) {
 				e += ' in ' + file
@@ -111,7 +112,11 @@ export class Entities {
 			}
 		}
 
-		return Promise.all(promises)
+		return Promise.all(promises).then(() => {
+			entitiesJson.forEach(entityJson => {
+				this.get(entityJson.name).loadQueries(entityJson.queries)
+			})
+		})
 	}
 
 	load():Promise<any> {
@@ -404,6 +409,7 @@ export class Entities {
 			})
 		}
 
+		let entitiesChanged = [entity]
 		if (options.apply != false) {
 			for (let entity_name in this.entities) {
 				let entity = this.entities[entity_name]
@@ -413,9 +419,15 @@ export class Entities {
 						need_save = true
 						relation.reference.entity = new_name
 					}
+					if (relation.through == name) {
+						need_save = true
+						relation.through = new_name
+					}
 				}
-				if (need_save && options.save != false)
+				if (need_save && options.save != false) {
 					entity.save(options)
+					entitiesChanged.push(entity)
+				}
 			}
 
 			/*if (entity.fields[0].name == 'id_' + name) {
@@ -450,9 +462,15 @@ export class Entities {
 			return Promise.resolve()
 
 		return this.app.database.sequelize.getQueryInterface().renameTable(name, new_name).then(() => {
-			return entity.loadModel().then(() => {
-				entity.loadRelationsInModel()
-			})
+			let p = Promise.resolve()
+			for (let entity of entitiesChanged) {
+				p = p.then(() => {
+					return entity.loadModel().then(() => {
+						entity.loadRelationsInModel()
+					})
+				})
+			}
+			return p
 		})
 	}
 

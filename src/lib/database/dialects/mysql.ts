@@ -1,5 +1,3 @@
-'use strict'
-
 import { AbstractDialect } from './abstract'
 
 export class MysqlDialect extends AbstractDialect {
@@ -30,9 +28,17 @@ export class MysqlDialect extends AbstractDialect {
 	}
 
 	_getFKs(table) {
-		let query = "SELECT CONSTRAINT_NAME as `constraint_name`, COLUMN_NAME as `from`, REFERENCED_TABLE_NAME as `table`, " +
-					"REFERENCED_COLUMN_NAME as `to` FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " +
-					"WHERE TABLE_NAME = '" + table + "' AND REFERENCED_TABLE_NAME IS NOT NULL"
+		let query =
+			"SELECT INFORMATION_SCHEMA.KEY_COLUMN_USAGE.CONSTRAINT_NAME as `constraint_name`," +
+				"INFORMATION_SCHEMA.KEY_COLUMN_USAGE.COLUMN_NAME as `from`," +
+				"INFORMATION_SCHEMA.KEY_COLUMN_USAGE.REFERENCED_TABLE_NAME as `table`," +
+				"INFORMATION_SCHEMA.KEY_COLUMN_USAGE.REFERENCED_COLUMN_NAME as `to`," +
+				"INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS.UPDATE_RULE as `on_update`," +
+				"INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS.DELETE_RULE as `on_delete`" +
+			"FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS " +
+				"ON INFORMATION_SCHEMA.KEY_COLUMN_USAGE.CONSTRAINT_NAME = INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS.CONSTRAINT_NAME " +
+				"WHERE INFORMATION_SCHEMA.KEY_COLUMN_USAGE.TABLE_NAME = '" + table + "' " +
+				"AND INFORMATION_SCHEMA.KEY_COLUMN_USAGE.REFERENCED_TABLE_NAME IS NOT NULL"
 		return this.sequelize.query(query, {raw:true}).then((res) => {
 			return Promise.resolve(res[0])
 		})
@@ -68,8 +74,7 @@ export class MysqlDialect extends AbstractDialect {
 			return Promise.all(promises).then((result) => {
 				let res = {}
 
-				/*for (let i in tables) {
-					let table = tables[i]
+				/*tables.forEach((table, i) => {
 					let info = result[i * 3];
 					let indexes = result[i * 3 + 1];
 					let fks = result[i * 3 + 2];
@@ -79,7 +84,7 @@ export class MysqlDialect extends AbstractDialect {
 					console.log('indexes', JSON.stringify(indexes,null,' '))
 					console.log('fks', JSON.stringify(fks,null,' '))
 					console.log(fks);
-				}*/
+				})*/
 
 				tables.forEach((table, i) => {
 					let info = result[i * 3];
@@ -122,6 +127,11 @@ export class MysqlDialect extends AbstractDialect {
 								field.fk = {
 									entity: fk.table,
 									field: fk.to
+								}
+								field.onUpdate = fk.on_update
+								field.onDelete = fk.on_delete
+								if (field.onDelete == "RESTRICT" || field.onDelete == "NO ACTION") {
+									field.onDelete = ["RESTRICT", "NO ACTION"]
 								}
 							}
 						}

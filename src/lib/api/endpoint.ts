@@ -1,5 +1,3 @@
-'use strict';
-
 import * as path from 'path'
 import * as fs from 'fs'
 
@@ -50,10 +48,10 @@ export interface IEndpoint {
 	params?: Array<any>,
 	//data?: any[],
 	permissions?: Array<string>,
-	fromAddon: string
+	fromAddon: string|boolean
 }
 
-export default class Endpoint {
+export class Endpoint {
 	name: string
 	method: string
 	url: string
@@ -234,14 +232,12 @@ export default class Endpoint {
 	}
 
 	handle(req, res):Promise<any> {
-		console.log('handle endpoint', this.method, this.url)
 		//if endpoint type javascript
 		return new Promise((resolve, reject) => {
 			if ( ! this.entity && typeof this.query == 'function') {
 				//TODO: Handle required params
 				try {
 					let obj = this.query(req, this.app, res)
-					console.log('yeah ?')
 					if (obj && obj.then && obj.catch
 						&& typeof obj.then === 'function'
 						&& typeof obj.catch === 'function') {
@@ -266,7 +262,6 @@ export default class Endpoint {
 					}
 				}
 				catch (e) {
-					console.log('catch error', e.toString());
 					return res.status(e.statusCode || 500).send({
 						error: true,
 						message: e.toString()
@@ -369,9 +364,6 @@ export default class Endpoint {
 		if (this.permissions.length) {
 			res.permissions = this.permissions
 		}
-		console.log(res, this.permissions)
 		return res
 	}
 }
-
-module.exports = Endpoint

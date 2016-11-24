@@ -200,11 +200,8 @@ export class Database {
 			return Promise.reject(e)
 		}
 		this.interface.setDialect(this.type)
-		let auth = this.sequelize.authenticate()
-		return auth.then(() => {
-			this.app.emit('db:authorized')
+		return this.interface.authenticate().then(() => {
 			this.started = true
-			this.app.emit('db:started')
 		}).catch((e) => {
 			this.app.logger.warn('Impossible to connect the database:', e && e.message)
 			this.app.logger.warn('The database has been disabled')

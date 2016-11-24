@@ -1,5 +1,3 @@
-'use strict'
-
 import { AbstractDialect } from './abstract'
 
 export class PostgresDialect extends AbstractDialect {
@@ -26,8 +24,7 @@ export class PostgresDialect extends AbstractDialect {
 			return Promise.all(promises).then((result) => {
 				let res = {}
 
-				/*for (let i in tables) {
-					let table = tables[i]
+				/*tables.forEach((table, i) => {
 					let info = result[i * 3];
 					let indexes = result[i * 3 + 1];
 					let fks = result[i * 3 + 2];
@@ -36,7 +33,7 @@ export class PostgresDialect extends AbstractDialect {
 					console.log('info', JSON.stringify(info,null,' '))
 					console.log('indexes', JSON.stringify(indexes,null,' '))
 					console.log('fks', JSON.stringify(fks,null,' '))
-				}*/
+				})*/
 				tables.forEach((table, i) => {
 					let info = result[i * 3];
 					let indexes = result[i * 3 + 1];
@@ -75,6 +72,8 @@ export class PostgresDialect extends AbstractDialect {
 									entity: fk.table,
 									field: fk.to
 								}
+								field.onUpdate = fk.on_update
+								field.onDelete = fk.on_delete
 							}
 						}
 					}
@@ -138,11 +137,13 @@ export class PostgresDialect extends AbstractDialect {
 		}
 		else if (constraint.field) {
 			if (constraint.type == "references") {
-				return this.getFKs(table).then((fks) => {
-					if (fks[constraint.field]) {
-						return this.sequelize.query(
-							`ALTER TABLE "${table}" DROP CONSTRAINT "${fks[constraint.field].constraint_name}"`
-						)
+				return this._getFKs(table).then((fks) => {
+					for (let fk of fks) {
+						if (fk.from == constraint.field) {
+							return this.sequelize.query(
+								`ALTER TABLE "${table}" DROP CONSTRAINT "${fk.constraint_name}"`
+							)
+						}
 					}
 				})
 			}

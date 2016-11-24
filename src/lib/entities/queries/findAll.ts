@@ -1,18 +1,47 @@
-'use strict';
+import { Query, QueryParamResolver } from '../query'
+import { Conditions } from './utils/conditions'
 
-var Query = require('../query')
-var Conditions = require('./utils/conditions')
+export interface IFindAllOpts {
+	select?: Array<any>
+	include?: Array<any>
+	conditions?: Array<any>
+	limit?: number
+	offset?: number
+	page?: number
+	orderBy?: Array<string>
+}
 
-class FindAllQuery extends Query {
-	constructor(entity, id, params, opts) {
-		super(entity, id, params)
+export interface ISequelizeOpts {
+	attributes: string[]
+	where: any[]
+	include?: any
+	raw?: boolean
+	offset?: number
+	page?: number
+	limit?: number
+	order?: any
+}
+
+export class FindAllQuery extends Query {
+	opts: any
+	type: string
+	conditions: Conditions
+	include: any
+	limit: number|string
+	page: number|string
+	offset: number|string
+	orderBy: any
+	select: any
+
+	constructor(entity, id, opts: IFindAllOpts) {
+		super(entity, id)
 		if (!opts) {
-			opts = {}
+			opts = {} as IFindAllOpts
 		}
 
 		this.opts = opts
 		this.type = 'findAll'
-		this.conditions = new Conditions(opts.conditions)
+		this.conditions = new Conditions(opts.conditions, entity)
 		this.include = opts.include || []
 
 		this.limit = opts.limit || 30
@@ -27,7 +56,6 @@ class FindAllQuery extends Query {
 		}
 
 		this.orderBy = opts.orderBy || []
-
 		this.refresh()
 	}
 
@@ -39,6 +67,33 @@ class FindAllQuery extends Query {
 				if (field.read) {
 					this.select.push(field.name)
 				}
+			})
+		}
+		this.discoverParams();
+	}
+
+	discoverParams() {
+		this.params = []
+		this.params = this.params.concat(this.conditions.discoverParams())
+
+		this.discoverParam('limit', 'number')
+		this.discoverParam('page', 'number')
+		this.discoverParam('offset', 'number')
+	}
+
+	discoverParam(param:string, type:string, required?: boolean) {
+		if ( ! required ) {
+			required = false
+		}
+		if (this[param] && typeof this[param] == 'string' && this[param].length > 0 && this[param][0] == '=') {
+			let paramName = param
+			if (this[param].length > 1) {
+				paramName = this[param].substr(1)
+			}
+			this.params.push({
+				name: paramName,
+				required: required,
+				type: type
 			})
 		}
 	}
@@ -57,36 +112,36 @@ class FindAllQuery extends Query {
 			raw = true
 		}
 
-		let opts = {
+		let sequelizeOpts = {
 			attributes: this.select,
 			where: this.conditions.toSequelize(params, this.entity.name),
 			include: include,
 			raw: raw
-		}
+		} as ISequelizeOpts
 
 		//Add conditions to opts recursively for included obj
-		this._constructConditions(opts.include, params)
+		this.conditions.constructConditions(sequelizeOpts.include, params)
 
 
 		if (pagination) {
 			if (pagination.offset) {
-				opts.offset = pagination.offset
+				sequelizeOpts.offset = pagination.offset
 			}
 			if (pagination.limit) {
-				opts.limit = pagination.limit
+				sequelizeOpts.limit = pagination.limit
 			}
 		}
 
-		opts.order = []
+		sequelizeOpts.order = []
 		this.orderBy.forEach((order) => {
 			let ascTxt = 'ASC'
 			if (order.desc) {
 				ascTxt = 'DESC'
 			}
-			opts.order.push([order.field, ascTxt]);
+			sequelizeOpts.order.push([order.field, ascTxt]);
 		})
 
-		return this.entity.model.findAndCountAll(opts)/*.then((data) => {
+		return this.entity.model.findAndCountAll(sequelizeOpts)/*.then((data) => {
 			for (let item in data.rows)
 				data.rows[item] = data.rows[item]
 			return data
@@ -96,7 +151,7 @@ class FindAllQuery extends Query {
 	_paramResolver(name, value, params, defaultValue) {
 		let tmp;
 		try {
-			tmp = Query.resolveParam({ name: name, value: value }, params)
+			tmp = QueryParamResolver.resolve({ name: name, value: value }, params)
 			if (!tmp) {
 				throw 'error'
 			}
@@ -130,9 +185,10 @@ class FindAllQuery extends Query {
 		let res = {
 			id: this.id,
 			type: 'findAll',
-			params: this.params,
-			opts: {}
+			//params: this.params,
+			opts: {} as IFindAllOpts
 		}
+
 		if (this.opts.select) {
 			res.opts.select = this.opts.select
 		}
@@ -159,5 +215,3 @@ class FindAllQuery extends Query {
 		return res
 	}
 }
-
-module.exports = FindAllQuery

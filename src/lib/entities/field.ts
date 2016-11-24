@@ -1,26 +1,75 @@
-'use strict';
+import { Entity } from './entity'
 
-var Validator = require('./validator')
+import { IValidator, Validator } from './validator'
 
-class Field {
-	constructor(app, field) {
-		this.app = app
-		this.edit = false
+export interface IField {
+	name: string
+	type: string
+	primary?: boolean
+	unique?: boolean
+	required?: boolean
+	default?: boolean
+	defaultValue?: any
+	autoIncrement?: boolean
+	onUpdate?: string
+	onDelete?: string
 
-		this.DefaultType = Object.freeze({
-			TEXT: 'text',
-			NUMBER: 'number',
-			DATE: 'date',
-			COUNTER: 'counter',
-			IMAGE: 'image',
-			FILE: 'file',
-			STRING: 'string',
-			FLOAT: 'float',
-			BOOL: 'boolean',
-			URL: 'url'
-		})
+	title?:boolean
+	component?:string
 
-		if (!field || !field.name) {
+	read?: boolean
+	write?: boolean
+
+	isRelation?: boolean
+
+	validators?: Array<Validator>
+}
+
+export const DefaultComponent = Object.freeze({
+	text: 'input',
+	number: 'input',
+	date: 'datePicker',
+	float: 'input',
+	boolean: 'switch'
+})
+
+export const FieldType = Object.freeze({
+	TEXT: 'text',
+	NUMBER: 'number',
+	DATE: 'date',
+	//COUNTER: 'counter',
+	//IMAGE: 'image',
+	//FILE: 'file',
+	//STRING: 'string',
+	FLOAT: 'float',
+	BOOL: 'boolean'
+	//URL: 'url'
+})
+
+export class Field {
+	name: string
+	type: string
+	primary: boolean
+	unique: boolean
+	required: boolean
+	default: boolean
+	defaultValue: any
+	autoIncrement: boolean
+	onUpdate: string
+	onDelete: string
+
+	title: boolean
+	component: string
+
+	read: boolean
+	write: boolean
+
+	isRelation: boolean
+
+	validators: Array<any>
+
+	constructor(private entity: Entity, field: IField) {
+		if ( ! field || ! field.name) {
 			throw new Error("A field must have a name")
 		}
 		else {
@@ -29,17 +78,22 @@ class Field {
 			this.primary = field.primary || false
 			this.unique = field.unique || false
 			this.default = field.default || false
+			this.onUpdate = field.onUpdate
+			this.onDelete = field.onDelete
 			if (field.default && field.defaultValue != undefined) {
 				this.defaultValue = field.defaultValue
 			}
 			if (field.type == 'string') {
 				field.type = 'text'
 			}
-			this.type = field.type || this.DefaultType.TEXT
+			this.type = field.type || FieldType.TEXT
 			this.autoIncrement = false
-			if (this.type.toLowerCase() == this.DefaultType.NUMBER && field.autoIncrement || this.type.toLowerCase() == this.DefaultType.COUNTER) {
+			if (this.type.toLowerCase() == FieldType.NUMBER && field.autoIncrement) {
 				this.autoIncrement = true
 			}
+
+			this.title = field.title || false
+			this.component = field.component || DefaultComponent[this.type]
 
 			//TODO: need more test on read/write
 			this.read = field.read
@@ -56,23 +110,27 @@ class Field {
 		}
 	}
 
-	setDefaultValue() {
+	setDefaultValue():void {
 		this.type = 'text'
 		this.required = false
 		this.primary = false
 		this.unique = false
+		this.read = true
 		this.write = true
 		this.default = false
+		this.title = false
+		delete this.onUpdate
+		delete this.onDelete
 		if (this.defaultValue) { delete this.defaultValue }
 		if (this.autoIncrement) { delete this.autoIncrement }
 	}
 
-	toJson() {
+	toJson():IField {
 		//let validatorsJson = []
 		//for i of this.validators
 		//	validatorsJson.push validators[i].toJson()
 
-		let res = {
+		let res:IField = {
 			name: this.name,
 			type: this.type,
 			read: this.read,
@@ -117,16 +175,41 @@ class Field {
 			res.autoIncrement = true
 		}
 
+		if (this.title && this.type == FieldType.TEXT) {
+			res.title = true
+		}
+
+		if (this.component) {
+			res.component = this.component
+		}
+
+		if (this.onUpdate) {
+			res.onUpdate = this.onUpdate
+		}
+
+		if (this.onDelete) {
+			res.onDelete = this.onDelete
+		}
+
 		return res
 	}
 
-	fillDefault() {
+	isDefaultRelationField():boolean {
+		return this.required
+			&& ! this.unique
+			&& ! this.primary
+			&& ( ! this.onUpdate || this.onUpdate.toUpperCase() == "CASCADE")
+			&& ( ! this.onDelete || this.onDelete.toUpperCase() == "CASCADE")
+	}
+
+	//Not Used
+	fillDefault():void {
 		this.required = this.required || false
 		this.primary = this.primary || false
 		this.unique = this.unique || false
 		this.default = this.default || false
-		this.type = this.type || this.DefaultType.TEXT
-		if (this.autoIncrement == undefined && this.type.toLowerCase() == this.DefaultType.NUMBER && this.autoIncrement || this.type.toLowerCase() == this.DefaultType.COUNTER) {
+		this.type = this.type || FieldType.TEXT
+		if (this.autoIncrement == undefined && this.type.toLowerCase() == FieldType.NUMBER && this.primary) {
 			this.autoIncrement = true
 		}
 		this.read = this.read || true
@@ -134,7 +217,7 @@ class Field {
 		this.isRelation = this.isRelation || false
 	}
 
-	update(field) {
+	update(field:IField):void {
 		this.name = field.name
 		this.type = field.type
 		this.required = field.required
@@ -144,33 +227,38 @@ class Field {
 		this.default = field.default
 		this.defaultValue = field.defaultValue
 		this.autoIncrement = field.autoIncrement
+		this.title = field.title
+		this.component = field.component
+		this.onUpdate = field.onUpdate
+		this.onDelete = field.onDelete
 	}
 
-	setType(type) {
-		for (let t of this.DefaultType) {
-			if (t == type) {
-				return this.type = type
+	setType(type:string):boolean {
+		for (let t in FieldType) {
+			if (FieldType[t] == type) {
+				this.type = type
+				this.component = DefaultComponent[type]
+				return true
 			}
 		}
 		return false
 	}
 
-	addValidator(name, value) {
+	addValidator(name: string, value: any):void {
 		this.validators.push(new Validator(this, name, value))
 	}
 
-	removeValidator(name) {
+	removeValidator(name: string): boolean {
 		let id = -1
 		this.validators.forEach((validator, k) => {
-			if (this.validators[k].name == name) {
+			if (validator.name == name) {
 				id = k
 			}
 		})
-		if (id) {
-			return this.validators.splice(id, 1)
+		if (id !== -1) {
+			this.validators.splice(id, 1)
+			return true
 		}
 		return false
 	}
 }
-
-module.exports = Field

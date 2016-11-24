@@ -1,5 +1,3 @@
-'use strict';
-
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -125,7 +123,6 @@ export default class Addons {
 
 			this.addons.forEach(addon => {
 				p = p.then(() => {
-					console.log('addon', addon);
 					if (typeof addon.obj.load == 'function') {
 						let obj = addon.obj.load()
 						if (this._isPromise(obj)) { // promise-like simple test
@@ -196,7 +193,6 @@ module.exports = ${nameCapitalizeFirst};`
   "name": "${name}",
   "version": "0.1.0"
 }`
-					console.log('index.js created');
 					fs.writeFileSync(path.join(this.app.path, 'addons', name, 'index.js'), content);
 					fs.writeFileSync(path.join(this.app.path, 'addons', name, 'package.json'), contentPackageJson);
 					resolve();
@@ -322,9 +318,8 @@ module.exports = ${nameCapitalizeFirst};`
 				config = require(path.join(this.rootDirectory, addon, 'install.json'))
 			}
 			catch (e) {
-				console.log('Addon ' + addonPackage.name + ' not configured')
+				this.app.logger.warn('Addon ' + addonPackage.name + ' not configured')
 			}
-			console.log('configuration file:', config);
 			return Promise.resolve({
 				name: addonPackage.name,
 				path: path.join(this.rootDirectory, addon),

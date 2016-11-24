@@ -1,16 +1,35 @@
-'use strict';
-var Entity = require('./entity')
+import { Entity } from './entity'
 
-class DBEntity extends Entity {
-	constructor(app) {
+import App from '../app'
+import { IField } from './field'
+
+import { QueryGenerator } from './query-generator'
+
+import { FindAllQuery } from './queries/findAll'
+import { FindOneQuery } from './queries/findOne'
+import { CreateQuery } from './queries/create'
+import { UpdateQuery } from './queries/update'
+import { DeleteQuery } from './queries/delete'
+import { SQLQuery } from './queries/sql'
+import { CustomQuery } from './queries/custom'
+
+
+export class DBEntity extends Entity {
+	type: string
+	currentDiff: Array<any>
+	currentDiffUndo: Array<any>
+
+	model: any
+
+	constructor(app: App) {
 		super(app, {
-			findAll: require('./queries/findAll'),
-			findOne: require('./queries/findOne'),
-			create: require('./queries/create'),
-			update: require('./queries/update'),
-			delete: require('./queries/delete'),
-			custom: require('./queries/custom'),
-			sql: require('./queries/sql')
+			findAll: FindAllQuery,
+			findOne: FindOneQuery,
+			create: CreateQuery,
+			update: UpdateQuery,
+			delete: DeleteQuery,
+			custom: CustomQuery,
+			sql: SQLQuery
 		})
 
 		this.type = 'db'
@@ -23,13 +42,13 @@ class DBEntity extends Entity {
 		let pks = this.getPK()
 		let p = Promise.resolve()
 
-		let restore_ai = false
+		let restore_ai:any = false
 
 		// For mysql, it needs to remove auto increment before dropping pk
 		if (this.app.database.type == 'mysql') {
 			for (let pk of pks) {
 				if (pk.autoIncrement) {
-					let pkcpy = {}
+					let pkcpy:any = {}
 					for (let k in pk) {
 						pkcpy[k] = pk[k]
 					}
@@ -79,7 +98,7 @@ class DBEntity extends Entity {
 			if (pks.find(x => x.name == restore_ai)) {
 				p = p.then(() => {
 					let pk = this.getField(restore_ai)
-					let pkcpy = {}
+					let pkcpy:any = {}
 					for (let k in pk) {
 						pkcpy[k] = pk[k]
 					}
@@ -143,13 +162,12 @@ class DBEntity extends Entity {
 
 		let oldfield = this.getField(name)
 
-
-		if (!oldfield) {
-			return reject(new Error('This field does not exist'))
-		}
-
-
 		return new Promise((accept, reject) => {
+			if (!oldfield) {
+				return reject(new Error('This field does not exist'))
+			}
+
+
 			let fieldobj
 
 			let differ_done
@@ -158,7 +176,7 @@ class DBEntity extends Entity {
 			}
 
 			// complete with old values
-			let _field = {}
+			let _field:any = {}
 			for (let k in oldfield) {
 				_field[k] = oldfield[k]
 			}
@@ -199,6 +217,10 @@ class DBEntity extends Entity {
 						delete field.autoIncrement
 					if (field.defaultValue == oldfield.defaultValue)
 						delete field.defaultValue
+					if (field.onUpdate == oldfield.onUpdate)
+						delete field.onUpdate
+					if (field.onDelete == oldfield.onDelete)
+						delete field.onDelete
 				}
 
 				//console.log('after diff', field.unique)
@@ -218,7 +240,10 @@ class DBEntity extends Entity {
 				}
 			}).then(() => {
 				delete field.unique
-				if (field.references === null) {
+				if (oldfield.isRelation) {
+					field.isRelation = oldfield.isRelation
+				}
+				if (field.references === null || field.isRelation) {
 					return this.app.database.interface.dropConstraint(this.name, { field: fieldobj.name, type: "references" })
 				}
 			}).then(() => {
@@ -228,7 +253,7 @@ class DBEntity extends Entity {
 					delete field.type
 				}
 				let dbfield = this.app.database.interface.fieldToColumn(field)
-				//console.log('translate field', field.required, field, dbfield)
+				//console.log('translate field', field.required, field, dbfield, oldfield)
 				if (Object.keys(dbfield).length == 0)
 					return Promise.resolve()
 
@@ -244,6 +269,10 @@ class DBEntity extends Entity {
 				}
 				if (field.default && dbfield.defaultValue == undefined) {
 					field.defaultValue = oldfield.defaultValue
+				}
+				if (dbfield.onUpdate || dbfield.onDelete) {
+					field.onUpdate = dbfield.onUpdate
+					field.onDelete = dbfield.onDelete
 				}
 
 				let p = Promise.resolve()
@@ -329,6 +358,9 @@ class DBEntity extends Entity {
 				})
 			}
 
+			let isUnique = field.unique
+			field.unique = false
+
 			if (field.required && !field.default) {
 				field.default = true
 				if (field.generateFrom) {
@@ -347,6 +379,18 @@ class DBEntity extends Entity {
 					})
 				}
 				p = p.then(() => {
+					if (field.defaultValue == undefined) {
+						let defs = {
+							'number' : 0,
+							'text': "",
+							'string' : "",
+							'float': 0,
+							'boolean': false,
+							'date': new Date(0)
+						}
+						field.defaultValue = defs[field.type] || ""
+					}
+
 					return this.app.database.interface.addColumn(this.name, field.name, field)
 				})
 				if (field.required) {
@@ -364,14 +408,19 @@ class DBEntity extends Entity {
 				})
 			}
 
-			if (field.unique) {
+			if (isUnique) {
 				p = p.then(() => {
+					field.unique = true
 					return this.updateUnique(field, fieldobj)
 				})
 			}
 
 			return p.then(() => {
 				return fieldobj
+			})
+		}).catch((e) => {
+			return this.removeField(field.name, options).catch(() => {}).then(() => {
+				throw e
 			})
 		})
 	}
@@ -405,7 +454,6 @@ class DBEntity extends Entity {
 	}
 
 	generateDefaultQueries() {
-		let QueryGenerator = require('./query-generator')
 		let qg = new QueryGenerator(this)
 		qg.generateQueries()
 	}
@@ -496,5 +544,3 @@ class DBEntity extends Entity {
 		return json
 	}
 }
-
-module.exports = DBEntity
