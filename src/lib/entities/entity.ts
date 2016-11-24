@@ -1,5 +1,3 @@
-'use strict';
-
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -155,30 +153,32 @@ export class Entity {
 			})
 		}
 
-		return Promise.all(promises).then(() => {
-			this.initDefaultQuery()
-			if (entityobj.queries) {
-				entityobj.queries.forEach((query) => {
-					//fix: don't overload default query else it always overload after the first generation
-					let reservedQueries = [
-						'list', 'get', 'create', 'update', 'delete'
-					]
-					if (reservedQueries.indexOf(query.id) == -1) {
-						try {
-							this.addQuery(query.id, query.type, query.params, query.opts, {history:false, save:false})
-						} catch(e) {
-							if (e.originalError) {
-								this.app.logger.warn('Skipped query ' + query.id + ' of entity ' + this.name)
-								this.app.logger.warn('due to error: ' + e.originalError.stack)
-							}
-							else {
-								throw e
-							}
+		return Promise.all(promises)
+	}
+
+	loadQueries(queries) {
+		this.initDefaultQuery()
+		if (queries) {
+			queries.forEach((query) => {
+				//fix: don't overload default query else it always overload after the first generation
+				let reservedQueries = [
+					'list', 'get', 'create', 'update', 'delete'
+				]
+				if (reservedQueries.indexOf(query.id) == -1) {
+					try {
+						this.addQuery(query.id, query.type, query.params, query.opts, {history:false, save:false})
+					} catch(e) {
+						if (e.originalError) {
+							this.app.logger.warn('Skipped query ' + query.id + ' of entity ' + this.name)
+							this.app.logger.warn('due to error: ' + e.originalError.stack)
+						}
+						else {
+							throw e
 						}
 					}
-				})
-			}
-		});
+				}
+			})
+		}
 	}
 
 	applyRelations() {

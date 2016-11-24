@@ -1,5 +1,3 @@
-'use strict';
-
 import { Condition, ICondition } from './condition'
 import { DBEntity } from '../../db-entity'
 
@@ -115,9 +113,12 @@ export class Conditions {
 		let params = []
 		this.conditions.forEach(condition => {
 			if (condition.valueIsParam()) {
-				let type = this.entity.getField(condition.name).type
+				let type;
 				if (condition.entity != this.entity.name) {
 					type = this.entity.app.entities.get(condition.entity).getField(condition.name).type
+				}
+				else {
+					type = this.entity.getField(condition.name).type
 				}
 
 				let paramName = condition.name

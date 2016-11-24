@@ -94,7 +94,7 @@ export class Entities {
 		}
 
 		let promises = []
-
+		let entitiesJson = []
 		for (let file of files) {
 			try {
 				if (file.substr(file.length - 5, 5) == '.json') {
@@ -102,6 +102,7 @@ export class Entities {
 					let entity = JSON.parse(content.toString())
 					entity.name = file.substr(0, file.length - 5)
 					promises.push(this.add(entity, opts));
+					entitiesJson.push(entity)
 				}
 			} catch (e) {
 				e += ' in ' + file
@@ -109,7 +110,11 @@ export class Entities {
 			}
 		}
 
-		return Promise.all(promises)
+		return Promise.all(promises).then(() => {
+			entitiesJson.forEach(entityJson => {
+				this.get(entityJson.name).loadQueries(entityJson.queries)
+			})
+		})
 	}
 
 	load():Promise<any> {
