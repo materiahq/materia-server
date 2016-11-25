@@ -110,15 +110,15 @@ export class Conditions {
 	}
 
 	discoverParams():Array<IQueryParam> {
-		let params = []
+		let params = [] as IQueryParam[]
 		this.conditions.forEach(condition => {
 			if (condition.valueIsParam()) {
-				let type;
+				let field;
 				if (condition.entity != this.entity.name) {
-					type = this.entity.app.entities.get(condition.entity).getField(condition.name).type
+					field = this.entity.app.entities.get(condition.entity).getField(condition.name)
 				}
 				else {
-					type = this.entity.getField(condition.name).type
+					field = this.entity.getField(condition.name)
 				}
 
 				let paramName = condition.name
@@ -131,7 +131,8 @@ export class Conditions {
 						entity: condition.entity,
 						field: condition.name
 					},
-					type: type,
+					type: field.type,
+					component: field.component,
 					required: true
 				})
 			}

@@ -93,7 +93,8 @@ export class FindAllQuery extends Query {
 			this.params.push({
 				name: paramName,
 				required: required,
-				type: type
+				type: type,
+				component: 'input'
 			})
 		}
 	}
