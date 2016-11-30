@@ -51,6 +51,7 @@ export class CreateQuery extends Query {
 					name: paramName,
 					type: field.type,
 					required: field.required,
+					component: field.component,
 					reference: {
 						entity: this.entity.name,
 						field: fieldName

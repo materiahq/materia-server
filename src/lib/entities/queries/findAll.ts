@@ -57,6 +57,7 @@ export class FindAllQuery extends Query {
 
 		this.orderBy = opts.orderBy || []
 		this.refresh()
+		this.discoverParams();
 	}
 
 	refresh() {
@@ -69,7 +70,6 @@ export class FindAllQuery extends Query {
 				}
 			})
 		}
-		this.discoverParams();
 	}
 
 	discoverParams() {
@@ -93,7 +93,8 @@ export class FindAllQuery extends Query {
 			this.params.push({
 				name: paramName,
 				required: required,
-				type: type
+				type: type,
+				component: 'input'
 			})
 		}
 	}

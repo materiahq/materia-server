@@ -1005,6 +1005,17 @@ export class Entity {
 		}
 	}
 
+	getNewQuery(id:string, type: string, opts):IQueryConstructor {
+		if ( ! this.queryObjects[type]) {
+			throw new Error('Query type `' + type + '` not defined')
+		}
+
+		let QueryClass = this.queryObjects[type]
+		let queryobj = <IQueryConstructor> new QueryClass(this, id, opts)
+
+		return queryobj
+	}
+
 	/**
 	Delete a query
 	@param {string} - Query's name

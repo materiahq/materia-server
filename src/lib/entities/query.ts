@@ -50,6 +50,7 @@ export interface IQueryParam {
 	name: string
 	type: string
 	required: boolean
+	component: string
 	reference?: IQueryParamReference
 }
 
