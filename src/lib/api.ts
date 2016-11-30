@@ -46,21 +46,21 @@ export default class Api {
 	@param {object} - Endpoint's description
 	@param {object} - Action's options
 	*/
-	add(endpoint, options) {
+	add(endpoint, options:IApplyOptions) {
 		options = options || {}
 
 		if ( ! endpoint.controller && typeof endpoint.query == 'Object' && endpoint.query.entity && this.app.database.disabled ) {
 			throw new Error('The database is disabled and this endpoint rely on it')
 		}
 		if (endpoint) {
-			if (this.exists(endpoint)) {
-				this.remove(endpoint.method, endpoint.url, options)
-			}
-			console.log('add endpoint', options)
 			if (options.fromAddon) {
 				endpoint.fromAddon = options.fromAddon
 			}
-			this.endpoints.push(new Endpoint(this.app, endpoint))
+			let obj = new Endpoint(this.app, endpoint)
+			if (this.exists(endpoint)) {
+				this.remove(endpoint.method, endpoint.url, options)
+			}
+			this.endpoints.push(obj)
 			if (options.apply != false) {
 				this.updateEndpoints()
 			}
@@ -76,7 +76,7 @@ export default class Api {
 	@param {integer} - Position in the array
 	@param {object} - Action's options
 	*/
-	put(endpoint, pos, options) {
+	put(endpoint, pos, options:IApplyOptions) {
 		options = options || {}
 		this.endpoints[pos] = new Endpoint(this.app, endpoint)
 		if (options.apply != false) {
@@ -93,7 +93,7 @@ export default class Api {
 	@param {string} - HTTP url relative to the API base.
 	@param {object} - Action's options
 	*/
-	remove(method, url, options) {
+	remove(method, url, options:IApplyOptions) {
 		options = options || {}
 		this.endpoints.forEach((endpoint, i) => {
 			if (endpoint.url == url && endpoint.method == method) {
@@ -186,19 +186,22 @@ export default class Api {
 	Get the endpoints array in the `api.json` format
 	@returns {Array<object>}
 	*/
-	toJson() {
+	toJson(opts?:IApplyOptions) {
 		let res = []
 		this.endpoints.forEach((endpoint) => {
-			res.push(endpoint.toJson())
+			if ( ! opts || opts.fromAddon == endpoint.fromAddon) {
+				res.push(endpoint.toJson())
+			}
 		})
 		return res
 	}
 
-	save(opts) {
+	save(opts?:IApplyOptions) {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave(path.join('server', 'api.json'))
 		}
-		fs.writeFileSync(path.join(this.app.path, 'server', 'api.json'), JSON.stringify(this.toJson(), null, '\t'))
+		let basePath = (opts && opts.fromAddon) ? opts.fromAddon.path : this.app.path
+		fs.writeFileSync(path.join(this.app.path, 'server', 'api.json'), JSON.stringify(this.toJson(opts), null, '\t'))
 		if (opts && opts.afterSave) {
 			opts.afterSave()
 		}
