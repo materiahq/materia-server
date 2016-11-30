@@ -1,7 +1,9 @@
 import * as path from 'path'
 import * as fs from 'fs'
 
-import App from '../app'
+import App, { AppMode } from '../app'
+
+import { IAddon } from '../addons'
 
 // Not used yet
 export enum Method {
@@ -39,8 +41,8 @@ export interface IEndpoint {
 	name: string,
 	method: string,
 	url: string,
-	file?: string,
-	ext?: string,
+	controller?: string,
+	action?: string,
 	query?: {
 		entity: any,
 		id: any
@@ -48,39 +50,71 @@ export interface IEndpoint {
 	params?: Array<any>,
 	//data?: any[],
 	permissions?: Array<string>,
-	fromAddon: string|boolean
+	fromAddon?: IAddon
+}
+
+class Controller {
+	private app: App
+	ctrlClass: any
+	ctrlStr: string
+	ctrlInstance: any
+
+	constructor(app:App) {
+		this.app = app;
+	}
+
+	load(basePath:string, controller:string):void {
+		let ctrlPath = require.resolve(path.join(basePath, 'server', 'controllers', controller + '.ctrl.js'))
+		try {
+			if (require.cache[ctrlPath]) {
+				delete require.cache[ctrlPath]
+			}
+			this.ctrlClass = require(ctrlPath)
+			this.ctrlStr = fs.readFileSync(ctrlPath, 'utf8').toString()
+			delete this.ctrlInstance
+		} catch(e) {
+			let err = new Error('Could not load controller ' + controller) as any
+			err.originalError = e
+			throw err
+		}
+	}
+
+	instance():any {
+		if ( ! this.ctrlInstance) {
+			this.ctrlInstance = new this.ctrlClass(this.app)
+		}
+		return this.ctrlInstance
+	}
 }
 
 export class Endpoint {
 	name: string
 	method: string
 	url: string
-	fromAddon: string|boolean
+	fromAddon?: IAddon
 
 	params: Array<IParam>
 	data: Array<IParam>
 
 	permissions: Array<string>
 
-	file: string
-	ext: string
+	controller: string
+	action: string
 
-	//TODO: differentiate query from javascript endpoint and query from query endpoint
-	//query: (req, app, res) => Promise<any>
 	query: any
 	queryStr: string
+
+	static controllers: {[name:string]: Controller} = {}
 
 	entity: any
 
 	constructor(private app:App, endpointConfig: IEndpoint) {
-		//this.history = app.history
 		this.method = (endpointConfig.method && endpointConfig.method.toLowerCase()) || 'get'
 
 		//this.name = endpointConfig.name
 		//this.desc = endpointConfig.desc
 		this.url = endpointConfig.url
-		this.fromAddon = endpointConfig.fromAddon || false
-		//this.base = endpointConfig.base
+		this.fromAddon = endpointConfig.fromAddon
 
 		this.params = []
 		this.data = []
@@ -92,20 +126,18 @@ export class Endpoint {
 			this.query = endpointConfig.query
 		}*/
 
-		if (endpointConfig.file) {
-			this.file = endpointConfig.file
-			this.ext = endpointConfig.ext || 'js'
+		if (endpointConfig.controller) {
+			this.controller = endpointConfig.controller
+			this.action = endpointConfig.action
 
-			let basepath = this.app.path
-			if ( this.fromAddon ) {
-				basepath = path.join(this.app.path, 'addons', this.fromAddon)
-			}
+			let basePath = this.fromAddon ? this.fromAddon.path : this.app.path
 
-			if (require.cache[require.resolve(path.join(basepath, 'server', 'controllers', this.file))]) {
-				delete require.cache[require.resolve(path.join(basepath, 'server', 'controllers', this.file))];
+			let ctrl = this._getController()
+			ctrl.load(basePath, this.controller)
+
+			if ( ! ctrl.ctrlClass.prototype[this.action]) {
+				throw new Error(`cannot find method ${this.action} in model queries/${this.controller}.js`)
 			}
-			this.query = require(path.join(basepath, 'server', 'controllers', this.file))
-			this.queryStr = fs.readFileSync(path.join(basepath, 'server', 'controllers', this.file + '.' + this.ext), 'utf-8');
 			this._buildParams(endpointConfig.params)
 		}
 		else {
@@ -130,11 +162,13 @@ export class Endpoint {
 			}
 			this._buildParams(this.query.params)
 		}
-		//this.queryType = endpointConfig.queryType || 'findAll'
-		//this.query = new Query[this.queryType](this, endpointConfig.query)
+	}
 
-		//TODO: handle permission
-		//this.permission = endpointConfig.permissions
+	private _getController():Controller {
+		if ( ! Endpoint.controllers[(this.fromAddon || "") + "/" + this.controller]) {
+			Endpoint.controllers[(this.fromAddon || "") + "/" + this.controller] = new Controller(this.app)
+		}
+		return Endpoint.controllers[(this.fromAddon || "") + "/" + this.controller]
 	}
 
 	private _buildParams(params) {
@@ -231,13 +265,14 @@ export class Endpoint {
 		return this.getAllData(true)
 	}
 
-	handle(req, res):Promise<any> {
+	handle(req, res, next):Promise<any> {
 		//if endpoint type javascript
 		return new Promise((resolve, reject) => {
-			if ( ! this.entity && typeof this.query == 'function') {
+			if (this.controller && this.action) {
 				//TODO: Handle required params
 				try {
-					let obj = this.query(req, this.app, res)
+					let instance = this._getController().instance()
+					let obj = instance[this.action](req, res, next)
 					if (obj && obj.then && obj.catch
 						&& typeof obj.then === 'function'
 						&& typeof obj.catch === 'function') {
@@ -251,30 +286,35 @@ export class Endpoint {
 									message: e.message
 								}
 							}
+							if (this.app.mode != AppMode.PRODUCTION) {
+								e.stack = e.stack
+							}
+							console.error('2', e)
 							res.status(e.statusCode || 500).send(e)
 							return reject(e)
 						})
 					}
-					else {
-						res.status(200).send(obj)
-						return resolve(obj)
-						//if (res.)
-					}
 				}
 				catch (e) {
-					return res.status(e.statusCode || 500).send({
-						error: true,
-						message: e.toString()
-					})
+					if (e instanceof Error) {
+						e = {
+							error: true,
+							message: e.message
+						}
+					}
+					console.error('1', e)
+					if (this.app.mode != AppMode.PRODUCTION) {
+						e.stack = e.stack
+					}
+					res.status(e.statusCode || 500).send(e)
+					return reject(e)
 				}
 			}
 			else {
 				let resolvedParams = { params: {}, data: {}, headers: {}, session: {} }
-				//console.log(this.params, this.data)
 				if (this.params.length > 0) {
 					for (let param of this.params) {
 						let v = null
-						//console.log req.params, req.params[param.name], req[param.name]
 						if (req.params[param.name] != null) {
 							v = req.params[param.name]
 						} else if (req[param.name] != null) {
@@ -342,9 +382,9 @@ export class Endpoint {
 			//base: this.base,
 		} as IEndpoint
 
-		if (this.file) {
-			res.file = this.file
-			res.ext = this.ext
+		if (this.controller) {
+			res.controller = this.controller
+			res.action = this.action
 			if (this.params.length || this.data.length) {
 				res.params = []
 			}

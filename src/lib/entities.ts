@@ -1,11 +1,13 @@
 const fs = require('fs')
 const path = require('path')
 
-const fse = require('fs-extra')
+import * as fse from 'fs-extra'
 
 import * as Sequelize from 'sequelize'
 
 import App, { IApplyOptions } from './app'
+
+import { IAddon } from './addons'
 
 import { MigrationType } from './history'
 
@@ -18,7 +20,6 @@ import { Entity } from './entities/entity'
      [index: string]:Entity[];
 }*/
 
-
 /**
  * @class Entities
  * @classdesc
@@ -26,9 +27,11 @@ import { Entity } from './entities/entity'
  */
 export class Entities {
 	entities: any
+	entitiesJson: {[path:string]: Array<any>}
 
 	constructor(public app: App) {
 		this.entities = {}
+		this.entitiesJson = {}
 
 		this.app.history.register(MigrationType.CREATE_ENTITY, (data, opts) => {
 			return this.add(data.value, opts)
@@ -85,7 +88,8 @@ export class Entities {
 		})*/
 	}
 
-	_loadFromPath(basePath: string, opts: IApplyOptions):Promise<any> {
+	loadFiles(addon?: IAddon):Promise<any> {
+		let basePath = addon ? addon.path : this.app.path
 		let files;
 		try {
 			files = fs.readdirSync(path.join(basePath, 'server', 'models'))
@@ -95,16 +99,14 @@ export class Entities {
 			return Promise.resolve(false)
 		}
 
-		let promises = []
-		let entitiesJson = []
+		this.entitiesJson[basePath] = []
 		for (let file of files) {
 			try {
 				if (file.substr(file.length - 5, 5) == '.json') {
 					let content = fs.readFileSync(path.join(basePath, 'server', 'models', file))
 					let entity = JSON.parse(content.toString())
 					entity.name = file.substr(0, file.length - 5)
-					promises.push(this.add(entity, opts));
-					entitiesJson.push(entity)
+					this.entitiesJson[basePath].push(entity)
 				}
 			} catch (e) {
 				e += ' in ' + file
@@ -112,31 +114,55 @@ export class Entities {
 			}
 		}
 
-		return Promise.all(promises).then(() => {
-			entitiesJson.forEach(entityJson => {
-				this.get(entityJson.name).loadQueries(entityJson.queries)
-			})
-		})
+		return Promise.resolve()
 	}
 
-	load():Promise<any> {
-		this.entities = {}
-		return this._loadFromPath(this.app.path, {
+	loadEntities(addon?: IAddon):Promise<any> {
+		let basePath = addon ? addon.path : this.app.path
+		let promises = []
+		let opts: IApplyOptions = {
 			history: false,
 			db: false,
 			save: false,
 			wait_relations: true
+		}
+		if (addon) {
+			opts.fromAddon = addon
+		}
+		return this.loadFiles(addon).then(() => {
+			for (let file of this.entitiesJson[basePath]) {
+				promises.push(this.add(file, opts));
+			}
+
+			return Promise.all(promises)
 		})
 	}
 
-	loadFromAddon(addon):Promise<any> {
-		return this._loadFromPath(path.join(this.app.path, 'addons', addon), {
-			history: false,
-			db: false,
-			save: false,
-			wait_relations: true,
-			fromAddon: addon
-		})
+	loadQueries(addon?: IAddon):Promise<any> {
+		let basePath = addon ? addon.path : this.app.path
+		try {
+			for (let entityJson of this.entitiesJson[basePath]) {
+				this.get(entityJson.name).loadQueries(entityJson.queries)
+			}
+		} catch(e) {
+			return Promise.reject(e)
+		}
+		return Promise.resolve()
+	}
+
+	loadRelations():Promise<any> {
+		let promises = []
+		for (let name in this.entities) {
+			let entity = this.entities[name]
+			promises.push(entity.applyRelations())
+		}
+
+		return Promise.all(promises)
+	}
+
+	cleanFiles() {
+		delete this.entitiesJson
+		this.entitiesJson = {}
 	}
 
 	start():Promise<any> {
@@ -144,22 +170,12 @@ export class Entities {
 			return Promise.resolve()
 		}
 
-		//Apply relations before sync
-		let promises = []
-		for (let name in this.entities) {
-			let entity = this.entities[name]
-			promises.push(entity.applyRelations())
-		}
-
-
 		//detect rename then sync database
-		return Promise.all(promises).then(() => {
-			return this.detect_rename()
-		}).then(() => {
+		return this.detect_rename().then(() => {
 			return this._save_id_map()
 		}).then(() => {
 			//Convert orphan n-n through tables
-			promises = []
+			let promises = []
 			for (let name in this.entities) {
 				promises.push(this.entities[name].fixIsRelation({save:false, db:false, history:false}))
 			}

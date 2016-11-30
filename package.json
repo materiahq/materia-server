@@ -28,7 +28,6 @@
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
     "pretty-error": "^2.0.2",
-    "remove": "^0.1.5",
     "request": "^2.78.0",
     "rimraf": "^2.5.4",
     "sequelize": "^3.24.8",
@@ -46,6 +45,7 @@
     "@types/node-uuid": "0.0.28",
     "@types/rimraf": "0.0.28",
     "@types/sequelize": "^4.0.39",
+    "@types/fs-extra": "^0.0.35",
     "chai": "^3.5.0",
     "mocha": "^3.1.2"
   },

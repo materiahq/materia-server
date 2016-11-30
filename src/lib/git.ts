@@ -6,7 +6,7 @@ import { EventEmitter } from 'events'
 
 import * as mkdirp from 'mkdirp'
 
-const fsextra = require('fs-extra')
+import * as fse from 'fs-extra'
 
 const git = require('simple-git/promise')
 
@@ -226,7 +226,7 @@ export default class Git extends EventEmitter {
 			})
 		}).then(() => {
 			return new Promise((accept, reject) => {
-				fsextra.copy(_from, to, (err) => {
+				fse.copy(_from, to, (err) => {
 					if (err) {
 						return reject(err)
 					}

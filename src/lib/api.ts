@@ -6,7 +6,9 @@ import * as express from 'express'
 import { Endpoint } from './api/endpoint'
 import { Permissions } from './api/permissions'
 
-import App from './app'
+import App, { IApplyOptions } from './app'
+
+import { IAddon } from './addons'
 
 /**
  * @class Api
@@ -47,7 +49,7 @@ export default class Api {
 	add(endpoint, options) {
 		options = options || {}
 
-		if ( ! endpoint.file && typeof endpoint.query == 'Object' && endpoint.query.entity && this.app.database.disabled ) {
+		if ( ! endpoint.controller && typeof endpoint.query == 'Object' && endpoint.query.entity && this.app.database.disabled ) {
 			throw new Error('The database is disabled and this endpoint rely on it')
 		}
 		if (endpoint) {
@@ -123,14 +125,21 @@ export default class Api {
 	*/
 	findAll() { return this.endpoints }
 
-	_loadFromPath(basepath, opts) {
+	load(addon?: IAddon):Promise<any> {
+		let basePath = addon ? addon.path : this.app.path
+		let opts: IApplyOptions = {
+			save: false
+		}
+		if (addon) {
+			opts.fromAddon = addon
+		}
 		this.permissions.clear()
 		let content
 		try {
-			content = fs.readFileSync(path.join(basepath, 'server', 'api.json'))
+			content = fs.readFileSync(path.join(basePath, 'server', 'api.json'))
 		}
 		catch(e) {
-			return
+			return Promise.resolve()
 		}
 
 		try {
@@ -149,30 +158,17 @@ export default class Api {
 			if (e.code != 'ENOENT')
 				this.app.logger.error('error loading endpoints', e.stack)
 			else
-				throw e
+				return Promise.reject(e)
 		}
-	}
-
-	load() {
-		this.endpoints = []
-		this._loadFromPath(this.app.path, {
-			save: false
-		})
-	}
-
-	loadFromAddon(addon) {
-		this._loadFromPath(path.join(this.app.path, 'addons', addon), {
-			save: false,
-			fromAddon: addon
-		})
+		return Promise.resolve()
 	}
 
 	updateEndpoints() {
 		this.router = express.Router()
 		this.endpoints.forEach((endpoint) => {
 			let route = this.router[endpoint.method.toLowerCase()]
-			route.call(this.router, endpoint.url, this.permissions.check(endpoint.permissions), (req, res) => {
-				endpoint.handle(req, res)
+			route.call(this.router, endpoint.url, this.permissions.check(endpoint.permissions), (req, res, next) => {
+				endpoint.handle(req, res, next)
 			})
 		})
 	}

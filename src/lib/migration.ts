@@ -4,7 +4,7 @@ import * as path from 'path'
 
 import App, { AppMode } from './app'
 
-const fse = require('fs-extra')
+import * as fse from 'fs-extra'
 
 export class Migration {
 
@@ -14,6 +14,9 @@ export class Migration {
 	// migration from 0.3.2: merge database.json in server.json
 	private checkMigrateDatabaseConf():Promise<boolean> {
 		let newconfig:any = {}
+		if (fs.existsSync(path.join(this.app.path, 'server'))) {
+			return Promise.resolve(false)
+		}
 		try {
 			let content = fs.readFileSync(path.join(this.app.path, 'server.json')).toString()
 			newconfig = JSON.parse(content)
@@ -86,14 +89,18 @@ export class Migration {
 			if (e.code != 'ENOENT') {
 				return Promise.reject(e)
 			} else {
-				return Promise.resolve(false)
+				if ( ! fs.existsSync(path.join(this.app.path, 'entities')) && ! fs.existsSync(path.join(this.app.path, 'endpoints'))) {
+					return Promise.resolve(false)
+				} else {
+					materiaConf = {}
+				}
 			}
 		}
 
 		let pkg
 		try {
 			let content = fs.readFileSync(path.join(this.app.path, 'package.json')).toString()
-			let pkg = JSON.parse(content)
+			pkg = JSON.parse(content)
 		}
 		catch (e) {
 			if (e.code != 'ENOENT') {
@@ -122,9 +129,9 @@ export class Migration {
 			pkg.materia.addons = materiaConf.addons
 		}
 
-		//...
+		// ---
 
-		new Promise((accept, reject) => {
+		return new Promise((accept, reject) => {
 			fse.mkdirs(path.join(this.app.path, 'server'), (err) => {
 				if (err) {
 					return reject(err)
@@ -134,18 +141,7 @@ export class Migration {
 		}).then(() => {
 			if (fs.existsSync(path.join(this.app.path, 'server.json'))) {
 				return new Promise((accept, reject) => {
-					fse.move(path.join(this.app.path, 'server.json'), path.join(this.app.path, 'server', 'server.json'), (err) => {
-						if (err) {
-							return reject(err)
-						}
-						accept()
-					})
-				})
-			}
-		}).then(() => {
-			if (fs.existsSync(path.join(this.app.path, 'api.json'))) {
-				return new Promise((accept, reject) => {
-					fse.move(path.join(this.app.path, 'api.json'), path.join(this.app.path, 'server', 'api.json'), (err) => {
+					fse.move(path.join(this.app.path, 'server.json'), path.join(this.app.path, 'server', 'server.json'), { clobber:true }, (err) => {
 						if (err) {
 							return reject(err)
 						}
@@ -156,7 +152,7 @@ export class Migration {
 		}).then(() => {
 			if (fs.existsSync(path.join(this.app.path, 'entities'))) {
 				return new Promise((accept, reject) => {
-					fse.move(path.join(this.app.path, 'entities'), path.join(this.app.path, 'server', 'models'), (err) => {
+					fse.move(path.join(this.app.path, 'entities'), path.join(this.app.path, 'server', 'models'), { clobber:true }, (err) => {
 						if (err) {
 							return reject(err)
 						}
@@ -165,31 +161,160 @@ export class Migration {
 				})
 			}
 		}).then(() => {
+			let api = []
+			if (fs.existsSync(path.join(this.app.path, 'api.json'))) {
+				let apiJson = fs.readFileSync(path.join(this.app.path, 'api.json')).toString()
+				try {
+					api = JSON.parse(apiJson)
+				} catch (e) {
+					api = []
+				}
+			}
+
 			if (fs.existsSync(path.join(this.app.path, 'endpoints'))) {
-				return new Promise((accept, reject) => {
-					fse.move(path.join(this.app.path, 'endpoints'), path.join(this.app.path, 'server', 'controllers'), (err) => {
-						if (err) {
-							return reject(err)
+				let files = fs.readdirSync(path.join(this.app.path, 'endpoints'))
+				let code = "class DefaultCtrl {\n\tconstructor(app) { this.app = app; }\n\n"
+				let methods_count = 0
+				for (let file of files) {
+					if (/\.js$/.test(file)) {
+						let method_name = file.replace(/\.[a-zA-Z]+$/,'').replace(/[.\s_+]/g, '-').replace(/-[a-zA-Z]/g, v => v.substr(1).toUpperCase())
+						let endpoint_code = fs.readFileSync(path.join(this.app.path, 'endpoints', file)).toString().replace(/^(.+)$/mg, '\t\t$1')
+						code += `\t${method_name}(req, res, next) {\n\t\tlet module={};\n${endpoint_code}\n`
+						code += `\t\treturn Promise.resolve(module.exports(req, this.app, res));\n\t}\n`
+						methods_count++
+						for (let endpoint of api) {
+							if (`${endpoint.file}.${endpoint.ext}` == file) {
+								endpoint.controller = "default"
+								endpoint.action = method_name
+								delete endpoint.file
+								delete endpoint.ext
+							}
 						}
-						accept()
-					})
+					}
+				}
+				code += "}\nmodule.exports = DefaultCtrl;\n"
+				if (methods_count) {
+					fse.mkdirpSync(path.join(this.app.path, 'server', 'controllers'))
+					fs.writeFileSync(path.join(this.app.path, 'server', 'controllers', 'default.ctrl.js'), code)
+				}
+				fse.removeSync(path.join(this.app.path, 'endpoints'))
+			}
+
+			if (api.length) {
+				fs.writeFileSync(path.join(this.app.path, 'server', 'api.json'), JSON.stringify(api, null, '\t'))
+			}
+			if (fs.existsSync(path.join(this.app.path, 'api.json'))) {
+				fse.removeSync(path.join(this.app.path, 'api.json'))
+			}
+		}).then(() => {
+			if (fs.existsSync(path.join(this.app.path, 'addons'))) {
+				let addons = fs.readdirSync(path.join(this.app.path, 'addons'))
+				let p = Promise.resolve()
+				for (let addon of addons) {
+					if (fs.lstatSync(path.join(this.app.path, 'addons', addon)).isDirectory()) {
+						p = p.then(() => new Promise((accept, reject) => {
+							fse.move(path.join(this.app.path, 'addons', addon),
+									path.join(this.app.path, 'node_modules', addon), { clobber:true }, (err) => {
+								if (err) {
+									return reject(err)
+								}
+								try {
+									let addon_pkg = require(path.join(this.app.path, 'node_modules', addon, 'package.json'))
+									addon_pkg.name = addon
+									addon_pkg.materia = {}
+									fs.writeFileSync(path.join(this.app.path, 'node_modules', addon, 'package.json'), JSON.stringify(addon_pkg, null, 2))
+									pkg.dependencies = pkg.dependencies || {}
+									pkg.dependencies[addon] = addon_pkg.version ? "^" + addon_pkg.version : "latest"
+								} catch (e) {
+									console.error('while rewriting', e)
+								}
+								accept()
+							})
+						}))
+					}
+				}
+				return p.then(() => {
+					fse.removeSync(path.join(this.app.path, 'addons'))
 				})
 			}
 		}).then(() => {
-			return new Promise((accept, reject) => {
-				let modelsPath = path.join(this.app.path, 'server', 'models')
-				fs.readdir(modelsPath, (err, files) => {
-					if (err) {
-						return reject(err)
+			let modelsPath = path.join(this.app.path, 'server', 'models')
+			let modelQueries = {}
+			let models = {}
+			if (fs.existsSync(path.join(modelsPath, 'queries'))) {
+				let queries = fs.readdirSync(path.join(modelsPath, 'queries'))
+				for (let query of queries) {
+					let matches = query.match(/^([^.]+)\.(.+)\.js$/)
+					if ( ! matches) {
+						matches = query.match(/^(.+)\.js$/)
+						if ( ! matches) {
+							continue
+						}
+						matches[2] = matches[1]
+						matches[1] = 'default'
 					}
-					for (let file of files) {
-						let content = fs.readFileSync(path.relative(modelsPath, file)).toString()
-						content = content.replace(/entities[\/\\]queries/g, path.join('server', 'models', 'queries'))
-						fs.writeFileSync(path.relative(modelsPath, file), content)
+					let content = fs.readFileSync(path.join(modelsPath, 'queries', query)).toString()
+					content = content.replace(/require\((['"])\.\./g, 'require($1../..)').replace(/^(.+)$/mg, '\t\t$1')
+					modelQueries['queries/' + query] = {
+						model: matches[1].replace(/^[a-zA-Z]/, v => v.toUpperCase()),
+						action: matches[2].replace(/[.\s_+]/g, '-').replace(/-[a-zA-Z]/g, v => v.substr(1).toUpperCase()),
+						content: content
 					}
-					accept()
-				})
-			})
+					models[matches[1]] = models[matches[1]] || []
+					models[matches[1]].push(modelQueries['queries/' + query])
+				}
+			}
+			for (let name in models) {
+				let modelName = name.replace(/^[a-zA-Z]/, v => v.toUpperCase())
+				let code = `class ${modelName}Model {\n`
+				code += "\tconstructor(app, model) {\n"
+				code += "\t\tthis.app = app;\n"
+				code += "\t\tthis.model = model;\n"
+				code += "\t}\n\n"
+				for (let query of models[name]) {
+					code += `\t${query.action}(params) {\n\t\tlet module={};\n`
+					code += query.content
+					code += "\n\t\treturn module.exports(this.model, params, this.app);\n\t}\n"
+				}
+				code += `}\nmodule.exports = ${modelName}Model;\n`
+				fs.writeFileSync(path.join(modelsPath, 'queries', name.toLowerCase() + '.js'), code)
+			}
+			let files = fs.readdirSync(modelsPath)
+			for (let file of files) {
+				let file_path = path.resolve(modelsPath, file)
+				if ( ! fs.lstatSync(file_path).isDirectory()) {
+					let content = fs.readFileSync(file_path).toString()
+					let entity
+					try {
+						entity = JSON.parse(content)
+					} catch (e) {
+						entity = {}
+					}
+					let matches = file.match(/^(.*)\.json/)
+					if (matches) {
+						entity.name = matches[1]
+						if (entity.queries) {
+							for (let query of entity.queries) {
+								if (query.opts && query.opts.file) {
+									let modelQuery = modelQueries[query.opts.file.replace('\\', '/').replace(/^entities\//, '') + '.js']
+									if (modelQuery) {
+										if (query.opts.model != entity.name) {
+											query.opts.model = modelQuery.model.toLowerCase()
+										}
+										query.opts.action = modelQuery.action
+										delete query.opts.file
+										delete query.opts.ext
+									}
+								}
+							}
+						}
+						fs.writeFileSync(file_path, JSON.stringify(entity, null, '\t'))
+					}
+				}
+			}
+			for (let queryPath in modelQueries) {
+				fse.removeSync(path.join(modelsPath, queryPath))
+			}
 		}).then(() => {
 			fs.writeFileSync(path.join(this.app.path, 'package.json'), JSON.stringify(pkg, null, 2))
 			if (fs.existsSync(path.join(this.app.path, 'materia.json'))) {
@@ -202,13 +327,16 @@ export class Migration {
 	check():Promise<any> {
 		return this.checkMigrateDatabaseConf().then(migrate => {
 			if (migrate) {
-				this.app.logger.warn('Migrated from 0.3.2 structure')
+				this.app.logger.warn('Migrated from 0.3 structure')
 			}
 			return this.checkMigrateServer()
 		}).then(migrate => {
 			if (migrate) {
-				this.app.logger.warn('Migrated from 0.4.0 structure')
+				this.app.logger.warn('Migrated from 0.4 structure')
 			}
+		}).catch((e) => {
+			this.app.logger.warn('Error during migration:', e)
+			throw e
 		})
 	}
 }

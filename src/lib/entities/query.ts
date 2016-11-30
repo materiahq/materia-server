@@ -1,4 +1,5 @@
 import { DBEntity } from './db-entity'
+import MateriaError from '../error'
 
 export class QueryParamResolver {
 	static resolve(field: any, params: any) {
@@ -104,6 +105,9 @@ export abstract class Query {
 	_constructInclude(includeArray, includedName) {
 		for (let entity of includedName) {
 			let includeEntity = this.entity.app.entities.get(entity.entity)
+			if ( ! includeEntity) {
+				throw new MateriaError(`Cannot find included entity ${entity.entity}`)
+			}
 			let includePart = {
 				model: includeEntity.model,
 				attributes: entity.fields

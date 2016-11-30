@@ -7,6 +7,8 @@ import * as uuid from 'node-uuid'
 
 import { Field } from './field'
 
+import { IAddon } from '../addons'
+
 import { QueryGenerator } from './query-generator'
 
 import { IQueryConstructor } from './query'
@@ -40,7 +42,7 @@ export class Entity {
 	relations: Array<any>
 	queries: Array<any>
 
-	fromAddon: string
+	fromAddon: IAddon
 
 	constructor(public app: App, queryTypes) {
 		this.relations_queue = []
@@ -199,13 +201,10 @@ export class Entity {
 
 	save(opts?) {
 		let relativePath = path.join('server', 'models', this.name + '.json')
-		let basepath = this.app.path
-		if (this.fromAddon) {
-			basepath = path.join(this.app.path, 'addons', this.fromAddon)
-		}
+		let basepath = this.fromAddon ? this.fromAddon.path : this.app.path
 
 		if (opts && opts.beforeSave) {
-			opts.beforeSave(relativePath)
+			opts.beforeSave(path.join(basepath, relativePath))
 		}
 		fs.writeFileSync(
 			path.join(basepath, relativePath),

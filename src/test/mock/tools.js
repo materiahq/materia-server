@@ -2,7 +2,6 @@ var fs = require('fs')
 var path = require('path')
 
 var fsextra = require('fs-extra')
-var remove = require('remove')
 
 function copyFile(source, target) {
 	return new Promise(function(resolve, reject) {
@@ -42,7 +41,7 @@ exports.cleanApi = function cleanApi(appDir, callback) {
 exports.cleanHistory = function cleanHistory(appDir, callback) {
 	try {
 		if (fs.existsSync(path.join(appDir, 'history')))
-			remove.removeSync(path.join(appDir, 'history'))
+			fsextra.removeSync(path.join(appDir, 'history'))
 	} catch (err) {
 		return callback(err)
 	}
@@ -52,7 +51,7 @@ exports.cleanHistory = function cleanHistory(appDir, callback) {
 exports.cleanEntities = function cleanEntities(appDir, callback) {
 	try {
 		if (fs.existsSync(path.join(appDir, 'server', 'models')) && fs.existsSync(path.join(appDir, 'tpl_entities'))) {
-			remove.removeSync(path.join(appDir, 'server', 'models'))
+			fsextra.removeSync(path.join(appDir, 'server', 'models'))
 		}
 	} catch (err) {
 		return callback(err)

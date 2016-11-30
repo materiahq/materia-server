@@ -15,7 +15,7 @@ import { Synchronizer } from './synchronizer'
 import { Migration } from './migration'
 import { History } from './history'
 
-import Addons from './addons'
+import Addons, { IAddon } from './addons'
 import Api from './api'
 
 import MateriaError from './error'
@@ -53,7 +53,7 @@ export interface IApplyOptions extends ISaveOptions {
 	save?: boolean
 	db?: boolean
 	wait_relations?: boolean
-	fromAddon?: string
+	fromAddon?: IAddon
 }
 
 export interface IMateriaConfig {
@@ -91,9 +91,9 @@ export default class App extends events.EventEmitter {
 
 	history: History
 	entities: Entities
-	addons: any
+	addons: Addons
 	database: Database
-	api: any
+	api: Api
 	server: Server
 	logger: Logger
 	config: Config
@@ -132,7 +132,6 @@ export default class App extends events.EventEmitter {
 			}
 		}
 		else {
-			//console.log('Info: the mode ' + this.options.mode + ' has not been found... Loaded in development mode')
 			throw new MateriaError("Unknown mode", {
 				debug: 'Option --mode can be development (development/dev/debug) or production (production/prod). e.g. materia start --mode=prod or materia start --mode=dev'
 			})
@@ -160,7 +159,15 @@ export default class App extends events.EventEmitter {
 	}
 
 	loadMateria():Promise<void> {
-		return this._loadMateriaConfig().then((materiaConf) => {
+		let p = Promise.resolve()
+		if ( this.migration ) {
+			p = p.then(() => {
+				return this.migration.check()
+			}).then(() => {
+				delete this.migration
+			})
+		}
+		return p.then(() => this._loadMateriaConfig()).then((materiaConf) => {
 			if ( ! materiaConf.name) {
 				return Promise.reject(new MateriaError('Missing "name" field in package.json', {
 					debug: `Please provide a valid package description in package.json or use "npm init"`
@@ -197,15 +204,8 @@ export default class App extends events.EventEmitter {
 	load():Promise<any> {
 		let p = Promise.resolve()
 		let warning
-		if ( this.migration ) {
-			p = p.then(() => {
-				return this.migration.check()
-			}).then(() => {
-				delete this.migration
-			})
-		}
 		if ( ! this.loaded) {
-			p = p.then(() => this.loadMateria())
+			p = this.loadMateria()
 		}
 		return p.then(() => {
 			//TODO: need to simplify this.
@@ -215,50 +215,29 @@ export default class App extends events.EventEmitter {
 				let AddonsTools = require('./runtimes/tools/addons')
 				this.addonsTools = new AddonsTools(this)
 			}
-
-			let beforeLoad = Promise.resolve()
-			try {
-				this.addons.checkInstalled()
-			} catch(e) {
-				if (this.addonsTools) {
-					console.log("Missing addons, trying to install...")
-					beforeLoad = this.addonsTools.install_all().then(() => {
-						console.log("Addons installed")
-						return Promise.resolve()
-					})
-				} else {
-					return Promise.reject(e)
-				}
-			}
-
-			return beforeLoad
 		}).then(() => {
-			if (this.database.load()) {
+			this.database.load()
+			this.server.load()
+			return this.addons.loadAddons()
+		}).then(() => {
+			if ( ! this.database.disabled) {
 				return this.database.start().then((e) => {
 					warning = e
-					return this.entities.load()
-				})
+					return this.addons.loadEntities()
+				}).then(() => this.entities.loadEntities()
+				).then(() => this.entities.loadRelations())
 			}
 			else {
 				this.logger.log('No database configuration for this application - Continue without Entities')
 				return Promise.resolve()
 			}
-		}).then(() => {
-			this.server.load()
-			this.api.load()
-
-			return Promise.resolve()
-		}).then(() => {
-			return this.history.load()
-		}).then(() => {
-			return this.addons.load()
-		}).then(() => {
-			if (this.git) {
-				return this.git.load()
-			}
-		}).then(() => {
-			return warning
-		})
+		}).then(() => this.addons.loadQueries()
+		).then(() => this.entities.loadQueries()
+		).then(() => this.addons.loadAPI()
+		).then(() => this.api.load()
+		).then(() => this.history.load()
+		).then(() => this.git && this.git.load()
+		).then(() => warning)
 	}
 
 	private _loadMateriaConfig():Promise<IMateriaConfig> {
@@ -535,7 +514,7 @@ export default class App extends events.EventEmitter {
 	saveFile(fullpath, content, opts) {
 		let p = Promise.resolve()
 		if (opts && opts.beforeSave) {
-			opts.beforeSave(path.relative(this.path, fullpath))
+			opts.beforeSave(path.resolve(this.path, fullpath))
 		}
 		if (opts && opts.mkdir) {
 			p = new Promise((accept, reject) => {
