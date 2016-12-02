@@ -136,7 +136,7 @@ export class Endpoint {
 			ctrl.load(basePath, this.controller)
 
 			if ( ! ctrl.ctrlClass.prototype[this.action]) {
-				throw new Error(`cannot find method ${this.action} in model queries/${this.controller}.js`)
+				throw new Error(`cannot find method ${this.action} in controller ${this.controller}.js`)
 			}
 			this._buildParams(endpointConfig.params)
 		}
@@ -165,10 +165,11 @@ export class Endpoint {
 	}
 
 	private _getController():Controller {
-		if ( ! Endpoint.controllers[(this.fromAddon || "") + "/" + this.controller]) {
-			Endpoint.controllers[(this.fromAddon || "") + "/" + this.controller] = new Controller(this.app)
+		let controller_prefix = this.fromAddon ? this.fromAddon.name + "/" : ""
+		if ( ! Endpoint.controllers[controller_prefix + this.controller]) {
+			Endpoint.controllers[controller_prefix + this.controller] = new Controller(this.app)
 		}
-		return Endpoint.controllers[(this.fromAddon || "") + "/" + this.controller]
+		return Endpoint.controllers[controller_prefix + this.controller]
 	}
 
 	private _buildParams(params) {

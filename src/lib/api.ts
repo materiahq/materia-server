@@ -31,14 +31,8 @@ export default class Api {
 	@param {object} - Endpoint's description. must contain at leat `method` and `url`
 	@returns {boolean}
 	*/
-	exists(endpoint) {
-		let find = false
-		this.endpoints.forEach((e) => {
-			if (endpoint.method == e.method && endpoint.url == e.url) {
-				find = true
-			}
-		})
-		return find
+	exists(endpoint):boolean {
+		return !! this.get(endpoint.method, endpoint.url)
 	}
 
 	/**
@@ -102,7 +96,12 @@ export default class Api {
 					this.updateEndpoints()
 				}
 				if (options.save != false) {
-					this.save(options)
+					let opts:IApplyOptions = {}
+					for (let k in options) {
+						opts[k] = options[k]
+					}
+					opts.fromAddon = endpoint.fromAddon
+					this.save(opts)
 				}
 				return
 			}
@@ -201,9 +200,13 @@ export default class Api {
 			opts.beforeSave(path.join('server', 'api.json'))
 		}
 		let basePath = (opts && opts.fromAddon) ? opts.fromAddon.path : this.app.path
-		fs.writeFileSync(path.join(this.app.path, 'server', 'api.json'), JSON.stringify(this.toJson(opts), null, '\t'))
+		fs.writeFileSync(path.join(basePath, 'server', 'api.json'), JSON.stringify(this.toJson(opts), null, '\t'))
 		if (opts && opts.afterSave) {
 			opts.afterSave()
 		}
+	}
+
+	getControllers() {
+		return Object.keys(Endpoint.controllers)
 	}
 }
