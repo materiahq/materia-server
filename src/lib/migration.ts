@@ -11,6 +11,10 @@ export class Migration {
 	constructor(private app: App) {
 	}
 
+	private formatName(name) {
+		return name.replace(/[.\s_+()\[\]\+]/g, '-').replace(/-[a-zA-Z]/g, v => v.substr(1).toUpperCase()).replace(/-/g, '')
+	}
+
 	// migration from 0.3.2: merge database.json in server.json
 	private checkMigrateDatabaseConf():Promise<boolean> {
 		let newconfig:any = {}
@@ -177,7 +181,7 @@ export class Migration {
 				let methods_count = 0
 				for (let file of files) {
 					if (/\.js$/.test(file)) {
-						let method_name = file.replace(/\.[a-zA-Z]+$/,'').replace(/[.\s_+]/g, '-').replace(/-[a-zA-Z]/g, v => v.substr(1).toUpperCase())
+						let method_name = this.formatName(file.replace(/\.[a-zA-Z]+$/,''))
 						let endpoint_code = fs.readFileSync(path.join(this.app.path, 'endpoints', file)).toString().replace(/^(.+)$/mg, '\t\t$1')
 						code += `\t${method_name}(req, res, next) {\n\t\tlet module={};\n${endpoint_code}\n`
 						code += `\t\treturn Promise.resolve(module.exports(req, this.app, res));\n\t}\n`
@@ -257,7 +261,7 @@ export class Migration {
 					content = content.replace(/require\((['"])\.\./g, 'require($1../..)').replace(/^(.+)$/mg, '\t\t$1')
 					modelQueries['queries/' + query] = {
 						model: matches[1].replace(/^[a-zA-Z]/, v => v.toUpperCase()),
-						action: matches[2].replace(/[.\s_+]/g, '-').replace(/-[a-zA-Z]/g, v => v.substr(1).toUpperCase()),
+						action: this.formatName(matches[2]),
 						content: content
 					}
 					models[matches[1]] = models[matches[1]] || []
