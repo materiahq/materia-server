@@ -71,13 +71,11 @@ export class CustomQuery extends Query {
 	}
 
 	refresh() {
-		if ( ! CustomQuery.models[this.model]) {
-			CustomQuery.models[this.model] = new Model(this.entity)
-		}
+		let model = this._getModel()
 
-		CustomQuery.models[this.model].load(this.model)
+		model.load(this.model)
 
-		if ( ! CustomQuery.models[this.model].modelClass.prototype[this.action]) {
+		if ( ! model.modelClass.prototype[this.action]) {
 			throw new Error(`cannot find method ${this.action} in model queries/${this.model}.js`)
 		}
 	}
@@ -85,7 +83,7 @@ export class CustomQuery extends Query {
 	discoverParams() {}
 
 	run(params) {
-		let instance = CustomQuery.models[this.model].instance()
+		let instance = this._getModel().instance()
 		return instance[this.action](params)
 	}
 
@@ -102,5 +100,13 @@ export class CustomQuery extends Query {
 			type: 'custom',
 			opts: opts
 		}
+	}
+
+	private _getModel():Model {
+		let model_prefix = this.entity.fromAddon ? this.entity.fromAddon.name + "/" : ""
+		if ( ! CustomQuery.models[model_prefix + this.model]) {
+			CustomQuery.models[model_prefix + this.model] = new Model(this.entity)
+		}
+		return CustomQuery.models[model_prefix + this.model]
 	}
 }

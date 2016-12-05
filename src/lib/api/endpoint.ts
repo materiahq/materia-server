@@ -290,7 +290,6 @@ export class Endpoint {
 							if (this.app.mode != AppMode.PRODUCTION) {
 								e.stack = e.stack
 							}
-							console.error('2', e)
 							res.status(e.statusCode || 500).send(e)
 							return reject(e)
 						})
@@ -303,7 +302,6 @@ export class Endpoint {
 							message: e.message
 						}
 					}
-					console.error('1', e)
 					if (this.app.mode != AppMode.PRODUCTION) {
 						e.stack = e.stack
 					}

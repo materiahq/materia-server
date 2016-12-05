@@ -11,6 +11,8 @@ import { IAddon } from './addons'
 
 import { MigrationType } from './history'
 
+import { CustomQuery } from './entities/queries/custom'
+
 //TODO: convert in ts
 import { DBEntity } from './entities/db-entity'
 import { Entity } from './entities/entity'
@@ -592,5 +594,12 @@ export class Entities {
 			}
 		}
 		return res
+	}
+
+	getModels(addon?:IAddon) {
+		return Object.keys(CustomQuery.models).filter((value) => {
+			return (addon && value.substr(0, addon.name.length + 1) == addon.name + "/")
+				|| ( ! addon && value.indexOf("/") == -1)
+		})
 	}
 }

@@ -152,7 +152,6 @@ export default class Api {
 					this.app.logger.warn('due to error ' + e.message, e.stack)
 				}
 			})
-			console.log(endpoints)
 		} catch (e) {
 			if (e.code != 'ENOENT')
 				this.app.logger.error('error loading endpoints', e.stack)
