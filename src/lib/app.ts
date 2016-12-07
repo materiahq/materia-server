@@ -3,7 +3,7 @@ import * as events from 'events'
 import * as fs from 'fs'
 import * as path from 'path'
 
-import * as mkdirp from 'mkdirp'
+import * as fse from 'fs-extra'
 
 import { Logger } from './logger'
 
@@ -517,14 +517,11 @@ export default class App extends events.EventEmitter {
 			opts.beforeSave(path.resolve(this.path, fullpath))
 		}
 		if (opts && opts.mkdir) {
-			p = new Promise((accept, reject) => {
-				mkdirp(path.dirname(fullpath), (err) => {
-					if (err) {
-						return reject(err)
-					}
-					accept()
-				})
-			})
+			try {
+				fse.mkdirpSync(path.dirname(fullpath))
+			} catch (e) {
+				p = Promise.reject(e)
+			}
 		}
 
 		return p.then(() => {

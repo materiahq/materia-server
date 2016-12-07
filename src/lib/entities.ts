@@ -92,6 +92,9 @@ export class Entities {
 
 	loadFiles(addon?: IAddon):Promise<any> {
 		let basePath = addon ? addon.path : this.app.path
+
+		this.entitiesJson[basePath] = []
+
 		let files;
 		try {
 			files = fs.readdirSync(path.join(basePath, 'server', 'models'))
@@ -101,7 +104,6 @@ export class Entities {
 			return Promise.resolve(false)
 		}
 
-		this.entitiesJson[basePath] = []
 		for (let file of files) {
 			try {
 				if (file.substr(file.length - 5, 5) == '.json') {

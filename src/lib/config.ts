@@ -63,6 +63,15 @@ export class Config {
 		catch (e) {
 			if (e.code != 'ENOENT') {
 				throw e
+			} else {
+				this.config = {
+					dev: {
+						web: {
+							host: 'localhost',
+							port: 8080
+						}
+					}
+				}
 			}
 		}
 	}
@@ -151,10 +160,16 @@ export class Config {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave(path.join('server', 'server.json'))
 		}
-		fs.writeFileSync(path.join(this.app.path, 'server', 'server.json'), JSON.stringify(this.toJson(), null, '\t'))
-		if (opts && opts.afterSave) {
-			opts.afterSave()
-		}
+		this.app.saveFile(path.join(this.app.path, 'server', 'server.json'), JSON.stringify(this.toJson(), null, '\t'), { mkdir: true }).catch(e => {
+			if (opts && opts.afterSave) {
+				opts.afterSave()
+			}
+			throw e
+		}).then(() => {
+			if (opts && opts.afterSave) {
+				opts.afterSave()
+			}
+		})
 	}
 
 	/**
