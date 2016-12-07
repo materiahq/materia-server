@@ -72,8 +72,8 @@ export class PostgresDialect extends AbstractDialect {
 									entity: fk.table,
 									field: fk.to
 								}
-								field.onUpdate = fk.on_update
-								field.onDelete = fk.on_delete
+								field.onUpdate = fk.on_update && fk.on_update.toUpperCase()
+								field.onDelete = fk.on_delete && fk.on_delete.toUpperCase()
 							}
 						}
 					}

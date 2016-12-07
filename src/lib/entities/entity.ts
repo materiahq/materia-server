@@ -1,19 +1,15 @@
 import * as fs from 'fs'
 import * as path from 'path'
-
-import App from '../app'
-
 import * as uuid from 'node-uuid'
 
-import { Field } from './field'
-
+import App from '../app'
+import MateriaError from '../error'
+import { MigrationType } from '../history'
 import { IAddon } from '../addons'
 
+import { Field } from './field'
 import { QueryGenerator } from './query-generator'
-
 import { IQueryConstructor } from './query'
-
-const MigrationType = require('../history').MigrationType
 
 
 export interface IEntityConfig {
@@ -170,9 +166,10 @@ export class Entity {
 					try {
 						this.addQuery(query.id, query.type, query.params, query.opts, {history:false, save:false})
 					} catch(e) {
-						if (e.originalError) {
+						let err = e.originalError || e instanceof MateriaError && e
+						if (err) {
 							this.app.logger.warn('Skipped query ' + query.id + ' of entity ' + this.name)
-							this.app.logger.warn('due to error: ' + e.originalError.stack)
+							this.app.logger.warn('due to error: ' + err.stack)
 						}
 						else {
 							throw e
@@ -790,9 +787,12 @@ export class Entity {
 		}
 
 		if (options.apply != false) {
-			if (this.getField(field.name)) {
-				if (field.isRelation)
-					return Promise.resolve() // skip
+			let oldfield = this.getField(field.name)
+			if (oldfield) {
+				if (field.isRelation) {
+					oldfield.isRelation = field.isRelation
+					return Promise.resolve()
+				}
 				return Promise.reject(new Error('A field of this name already exists'))
 			}
 			this.fields.splice(at, 0, fieldobj)

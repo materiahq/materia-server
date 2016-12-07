@@ -96,8 +96,8 @@ export class SqliteDialect extends AbstractDialect {
 									entity: fk.table,
 									field: fk.to
 								}
-								field.onUpdate = fk.on_update
-								field.onDelete = fk.on_delete
+								field.onUpdate = fk.on_update && fk.on_update.toUpperCase()
+								field.onDelete = fk.on_delete && fk.on_delete.toUpperCase()
 							}
 						}
 
@@ -161,7 +161,8 @@ export class SqliteDialect extends AbstractDialect {
 							model: fk.table,
 							key: fk.to
 						}
-						// todo: add onDelete / onUpdate
+						field.onUpdate = fk.on_update && fk.on_update.toUpperCase()
+						field.onDelete = fk.on_delete && fk.on_delete.toUpperCase()
 					}
 				}
 			}

@@ -1,8 +1,11 @@
-import App from '../../app'
-import { Entity } from '../entity'
-import { Query, IQueryParam } from '../query'
 import * as fs from 'fs'
 import * as path from 'path'
+
+import App from '../../app'
+import MateriaError from '../../error'
+
+import { Entity } from '../entity'
+import { Query, IQueryParam } from '../query'
 
 export interface ICustomQueryOpts {
 	action: string
@@ -33,7 +36,7 @@ class Model {
 			this.modelStr = fs.readFileSync(modelPath, 'utf8').toString()
 			delete this.modelInstance
 		} catch(e) {
-			let err = new Error('Could not load model ' + name + ' from entity ' + this.entity.name) as any
+			let err = new MateriaError('Could not load model ' + name + ' from entity ' + this.entity.name) as any
 			err.originalError = e
 			throw err
 		}
@@ -59,7 +62,7 @@ export class CustomQuery extends Query {
 		this.type = 'custom'
 
 		if ( ! opts || ! opts.action)
-			throw new Error('missing required parameter "action"')
+			throw new MateriaError('missing required parameter "action"')
 
 		this.params = opts.params
 		this.action = opts.action
@@ -76,7 +79,7 @@ export class CustomQuery extends Query {
 		model.load(this.model)
 
 		if ( ! model.modelClass.prototype[this.action]) {
-			throw new Error(`cannot find method ${this.action} in model queries/${this.model}.js`)
+			throw new MateriaError(`cannot find method ${this.action} in model queries/${this.model}.js`)
 		}
 	}
 
