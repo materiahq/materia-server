@@ -183,6 +183,7 @@ export class Migration {
 					if (/\.js$/.test(file)) {
 						let method_name = this.formatName(file.replace(/\.[a-zA-Z]+$/,''))
 						let endpoint_code = fs.readFileSync(path.join(this.app.path, 'endpoints', file)).toString().replace(/^(.+)$/mg, '\t\t$1')
+						endpoint_code = endpoint_code.replace(/require\((['"])\.\./g, 'require($1../..').replace(/^(.+)$/mg, '\t\t$1')
 						code += `\t${method_name}(req, res, next) {\n\t\tlet module={};\n${endpoint_code}\n`
 						code += `\t\treturn Promise.resolve(module.exports(req, this.app, res));\n\t}\n`
 						methods_count++
@@ -258,7 +259,7 @@ export class Migration {
 						matches[1] = 'default'
 					}
 					let content = fs.readFileSync(path.join(modelsPath, 'queries', query)).toString()
-					content = content.replace(/require\((['"])\.\./g, 'require($1../..)').replace(/^(.+)$/mg, '\t\t$1')
+					content = content.replace(/require\((['"])\.\./g, 'require($1../..').replace(/^(.+)$/mg, '\t\t$1')
 					modelQueries['queries/' + query] = {
 						model: matches[1].replace(/^[a-zA-Z]/, v => v.toUpperCase()),
 						action: this.formatName(matches[2]),
