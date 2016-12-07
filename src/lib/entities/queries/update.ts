@@ -48,7 +48,7 @@ export class UpdateQuery extends Query {
 				this.params.push({
 					name: paramName,
 					type: field.type,
-					required: field.required,
+					required: false,
 					component: field.component,
 					reference: {
 						entity: this.entity.name,
