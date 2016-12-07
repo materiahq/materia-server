@@ -92,7 +92,7 @@ export class SQLQuery extends Query {
 			id: this.id,
 			type: 'sql',
 			opts: {
-				params: this.params,
+				params: this.paramsToJson(),
 				values: this.values,
 				query: this.query
 			}

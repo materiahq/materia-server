@@ -186,7 +186,6 @@ export class FindAllQuery extends Query {
 		let res = {
 			id: this.id,
 			type: 'findAll',
-			//params: this.params,
 			opts: {} as IFindAllOpts
 		}
 
@@ -208,9 +207,11 @@ export class FindAllQuery extends Query {
 		if (this.opts.page) {
 			res.opts.page = this.opts.page
 		}
-
 		if (this.opts.orderBy) {
 			res.opts.orderBy = this.opts.orderBy
+		}
+		if (Object.keys(res.opts).length == 0) {
+			delete res.opts
 		}
 
 		return res

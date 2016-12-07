@@ -100,7 +100,6 @@ export class CreateQuery extends Query {
 		let res = {
 			id: this.id,
 			type: 'create',
-			//params: this.params,
 			opts: {
 				values: this.values
 			}

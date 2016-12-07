@@ -80,7 +80,6 @@ export class FindOneQuery extends Query {
 		let res = {
 			id: this.id,
 			type: 'findOne',
-			params: this.params,
 			opts: {}
 		} as any
 
@@ -95,6 +94,9 @@ export class FindOneQuery extends Query {
 		}
 		if (this.opts.orderBy) {
 			res.opts.orderBy = this.opts.orderBy
+		}
+		if (Object.keys(res.opts).length == 0) {
+			delete res.opts
 		}
 
 		return res

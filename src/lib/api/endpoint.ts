@@ -220,25 +220,6 @@ export class Endpoint {
 		}
 	}
 
-	getMergedParams(onlyRequired) {
-		let res = []
-		this.params.forEach((param) => {
-			if (param.required && onlyRequired || ! onlyRequired) {
-				res.push(param)
-			}
-		})
-		this.data.forEach((data) => {
-			if (data.required && onlyRequired || ! onlyRequired) {
-				res.push(data)
-			}
-		})
-		return res;
-	}
-
-	getRequiredMergedParams() {
-		return this.getMergedParams(true)
-	}
-
 	getAllData(onlyRequired) {
 		let res = []
 		this.data.forEach((data) => {
@@ -310,49 +291,44 @@ export class Endpoint {
 				}
 			}
 			else {
-				let resolvedParams = { params: {}, data: {}, headers: {}, session: {} }
+				let resolvedParams = Object.assign({}, req.query, req.body, req.params)
 				if (this.params.length > 0) {
 					for (let param of this.params) {
-						let v = null
-						if (req.params[param.name] != null) {
-							v = req.params[param.name]
-						} else if (req[param.name] != null) {
-							v = req[param.name]
-						} else if (req.query[param.name] != null) {
-							v = req.query[param.name]
-						} else if (param.required) {
-							return res.status(500).json({
-								error: true,
-								message: 'Missing required parameter:' + param.name
-							})
-						}
-						//handle typeof `v` (number -> parseInt(v), date -> new Date(v) ...)
-						resolvedParams.params[param.name] = v
-					}
-				}
-				if (this.data.length > 0) {
-					for (let d of this.data) {
-						let v = null
-						if (req.body[d.name] !== null) {
-							v = req.body[d.name]
-						}
-						if ( v === null && d.required && this.method.toLowerCase() == 'post') {
-							return res.status(500).json({ error: true, message: 'Missing required data:' + d.name })
-						}
-						if (v !== null) {
-							if (v == 'null' && d.type == 'date') {
-								resolvedParams.data[d.name] = null
+						let v = resolvedParams[param.name]
+						if (v !== undefined) {
+							if (param.type == 'text' || param.type == 'string') {
+								resolvedParams[param.name] = v
+							}
+							else if (v == "null" || v == "") {
+								resolvedParams[param.name] = null
+							}
+							else if (param.type == 'date') {
+								resolvedParams[param.name] = new Date(v)
+							}
+							else if (param.type == 'number') {
+								resolvedParams[param.name] = parseInt(v)
+							}
+							else if (param.type == 'float') {
+								resolvedParams[param.name] = parseFloat(v)
+							}
+							else if (param.type == 'boolean') {
+								resolvedParams[param.name] = ! ( ! v || typeof v == 'string' && v.toLowerCase() == 'false' )
 							}
 							else {
-								resolvedParams.data[d.name] = v
+								resolvedParams[param.name] = v
 							}
+						}
+
+						if ( resolvedParams[param.name] == null && param.required) {
+							let err = {
+								error: true,
+								message: 'Missing required parameter:' + param.name
+							}
+							res.status(500).json(err)
+							return reject(err)
 						}
 					}
 				}
-				resolvedParams.headers = req.headers;
-				resolvedParams.session = req.session;
-				//console.log('Execute query', resolvedParams)
-				//exec query and return result
 
 				this.query.run(resolvedParams).then((data) => {
 					res.status(200).json(data)

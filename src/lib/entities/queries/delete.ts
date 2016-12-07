@@ -31,7 +31,6 @@ export class DeleteQuery extends Query {
 		let res = {
 			id: this.id,
 			type: 'delete',
-			params: this.params,
 			opts: {
 				conditions: this.conditions.toJson()
 			}

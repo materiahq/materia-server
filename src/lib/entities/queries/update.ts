@@ -102,7 +102,6 @@ export class UpdateQuery extends Query {
 		let res = {
 			id: this.id,
 			type: 'update',
-			//params: this.params,
 			opts: {
 				values: this.values,
 				conditions: this.conditions.toJson()

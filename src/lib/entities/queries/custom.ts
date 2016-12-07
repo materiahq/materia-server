@@ -87,12 +87,16 @@ export class CustomQuery extends Query {
 
 	run(params) {
 		let instance = this._getModel().instance()
-		return instance[this.action](params)
+		try {
+			return Promise.resolve(instance[this.action](params))
+		} catch (e) {
+			return Promise.reject(e)
+		}
 	}
 
 	toJson() {
 		let opts : ICustomQueryOpts = {
-			params: this.params,
+			params: this.paramsToJson(),
 			action: this.action
 		}
 		if (this.model != this.entity.name.toLowerCase()) {

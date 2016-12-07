@@ -122,4 +122,31 @@ export abstract class Query {
 			includeArray.push(includePart)
 		}
 	}
+
+	protected paramsToJson() {
+		if ( ! this.params) {
+			return undefined
+		}
+		let _params = []
+		for (let param of this.params) {
+			let _param = {
+				name: param.name,
+				type: param.type
+			}
+			if (param.required) {
+				_param['required'] = param.required
+			}
+			if (param.component) {
+				_param['component'] = param.component
+			}
+			if (param.reference) {
+				_param['reference'] = {
+					entity: param.reference.entity,
+					field: param.reference.field
+				}
+			}
+			_params.push(_param)
+		}
+		return _params
+	}
 }
