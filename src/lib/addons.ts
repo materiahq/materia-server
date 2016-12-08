@@ -208,7 +208,7 @@ module.exports = ${nameCapitalizeFirst};`
 		this.addons.forEach(addon => {
 			p = p.then(() => {
 				if (typeof addon.obj.start == 'function') {
-					let startResult = addon.obj.start(addon.config)
+					let startResult = addon.obj.start()
 					if (this._isPromise(startResult)) {
 						return startResult
 					}
@@ -319,13 +319,6 @@ module.exports = ${nameCapitalizeFirst};`
 					throw err
 				}
 
-				let config;
-				try {
-					config = require(path.join(addon, 'install.json'))
-				}
-				catch (e) {
-					this.app.logger.warn('Addon ' + addonPackage.name + ' not configured')
-				}
 				return {
 					name: addonPackage.name,
 					path: app_path,
@@ -335,7 +328,7 @@ module.exports = ${nameCapitalizeFirst};`
 						author: addonPackage.materia && addonPackage.materia.author,
 						version: addonPackage.version
 					},
-					config: config,
+					config: this.addonsConfig[addon],
 					obj: addonInstance
 				}
 			})
