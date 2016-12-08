@@ -284,36 +284,38 @@ export class Migration {
 				code += `}\nmodule.exports = ${modelName}Model;\n`
 				fs.writeFileSync(path.join(modelsPath, 'queries', name.toLowerCase() + '.js'), code)
 			}
-			let files = fs.readdirSync(modelsPath)
-			for (let file of files) {
-				let file_path = path.resolve(modelsPath, file)
-				if ( ! fs.lstatSync(file_path).isDirectory()) {
-					let content = fs.readFileSync(file_path).toString()
-					let entity
-					try {
-						entity = JSON.parse(content)
-					} catch (e) {
-						entity = {}
-					}
-					let matches = file.match(/^(.*)\.json/)
-					if (matches) {
-						entity.name = matches[1]
-						if (entity.queries) {
-							for (let query of entity.queries) {
-								if (query.opts && query.opts.file) {
-									let modelQuery = modelQueries[query.opts.file.replace('\\', '/').replace(/^entities\//, '') + '.js']
-									if (modelQuery) {
-										if (query.opts.model != entity.name) {
-											query.opts.model = modelQuery.model.toLowerCase()
+			if (fs.existsSync(modelsPath)) {
+				let files = fs.readdirSync(modelsPath)
+				for (let file of files) {
+					let file_path = path.resolve(modelsPath, file)
+					if ( ! fs.lstatSync(file_path).isDirectory()) {
+						let content = fs.readFileSync(file_path).toString()
+						let entity
+						try {
+							entity = JSON.parse(content)
+						} catch (e) {
+							entity = {}
+						}
+						let matches = file.match(/^(.*)\.json/)
+						if (matches) {
+							entity.name = matches[1]
+							if (entity.queries) {
+								for (let query of entity.queries) {
+									if (query.opts && query.opts.file) {
+										let modelQuery = modelQueries[query.opts.file.replace('\\', '/').replace(/^entities\//, '') + '.js']
+										if (modelQuery) {
+											if (query.opts.model != entity.name) {
+												query.opts.model = modelQuery.model.toLowerCase()
+											}
+											query.opts.action = modelQuery.action
+											delete query.opts.file
+											delete query.opts.ext
 										}
-										query.opts.action = modelQuery.action
-										delete query.opts.file
-										delete query.opts.ext
 									}
 								}
 							}
+							fs.writeFileSync(file_path, JSON.stringify(entity, null, '\t'))
 						}
-						fs.writeFileSync(file_path, JSON.stringify(entity, null, '\t'))
 					}
 				}
 			}

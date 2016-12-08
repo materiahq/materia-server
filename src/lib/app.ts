@@ -219,7 +219,9 @@ export default class App extends events.EventEmitter {
 			this.database.load()
 			this.server.load()
 			return this.addons.loadAddons()
-		}).then(() => {
+		}).then(() => this.addons.loadFiles()
+		).then(() => this.entities.loadFiles()
+		).then(() => {
 			if ( ! this.database.disabled) {
 				return this.database.start().then((e) => {
 					warning = e

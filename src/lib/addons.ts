@@ -250,6 +250,15 @@ module.exports = ${nameCapitalizeFirst};`
 		return this.addons.length
 	}
 
+	loadFiles():Promise<any> {
+		let p = Promise.resolve()
+		this.addons.forEach((addon) => {
+			p = p.then(() => {
+				return this.app.entities.loadFiles(addon)
+			})
+		})
+		return p
+	}
 
 	loadEntities():Promise<any> {
 		let p = Promise.resolve()

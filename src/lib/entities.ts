@@ -133,13 +133,11 @@ export class Entities {
 		if (addon) {
 			opts.fromAddon = addon
 		}
-		return this.loadFiles(addon).then(() => {
-			for (let file of this.entitiesJson[basePath]) {
-				promises.push(this.add(file, opts));
-			}
+		for (let file of this.entitiesJson[basePath]) {
+			promises.push(this.add(file, opts));
+		}
 
-			return Promise.all(promises)
-		})
+		return Promise.all(promises)
 	}
 
 	loadQueries(addon?: IAddon):Promise<any> {
