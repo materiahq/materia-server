@@ -272,14 +272,14 @@ export class Migration {
 			for (let name in models) {
 				let modelName = name.replace(/^[a-zA-Z]/, v => v.toUpperCase())
 				let code = `class ${modelName}Model {\n`
-				code += "\tconstructor(app, model) {\n"
+				code += "\tconstructor(app, entity) {\n"
 				code += "\t\tthis.app = app;\n"
-				code += "\t\tthis.model = model;\n"
+				code += "\t\tthis.entity = entity;\n"
 				code += "\t}\n\n"
 				for (let query of models[name]) {
 					code += `\t${query.action}(params) {\n\t\tlet module={};\n`
 					code += query.content
-					code += "\n\t\treturn module.exports(this.model, params, this.app);\n\t}\n"
+					code += "\n\t\treturn module.exports(this.entity.model, params, this.app);\n\t}\n"
 				}
 				code += `}\nmodule.exports = ${modelName}Model;\n`
 				fs.writeFileSync(path.join(modelsPath, 'queries', name.toLowerCase() + '.js'), code)
