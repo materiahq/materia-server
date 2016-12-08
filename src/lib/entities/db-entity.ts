@@ -369,8 +369,12 @@ export class DBEntity extends Entity {
 						let entityFromPk = entityFrom.getPK()[0]
 						return entityFrom.getQuery('list').run({ limit: 1 }).then((list) => {
 							if (!list.rows.length) {
-								field.required = false
-								field.default = false
+								return this.getQuery('list').run({ limit: 1 }).then((from_list) => {
+									if (from_list.rows.length) {
+										field.required = false
+										field.default = false
+									}
+								})
 							}
 							else {
 								field.defaultValue = list.rows[0][entityFromPk.name]
