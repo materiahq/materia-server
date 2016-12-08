@@ -15,18 +15,17 @@ export interface ICustomQueryOpts {
 
 class Model {
 	private app: App
-	private entity: Entity
 	modelClass: any
 	modelStr: string
-	modelInstance: any
+	modelInstances: {[entity:string]:any}
 
-	constructor(entity:Entity) {
-		this.app = entity.app;
-		this.entity = entity;
+	constructor(app) {
+		this.app = app;
+		this.modelInstances = {}
 	}
 
-	load(name:string):void {
-		let basePath = this.entity.fromAddon ? this.entity.fromAddon.path : this.entity.app.path
+	load(name:string, entity:Entity):void {
+		let basePath = entity.fromAddon ? entity.fromAddon.path : entity.app.path
 		let modelPath = require.resolve(path.join(basePath, 'server', 'models', 'queries', name + '.js'))
 		try {
 			if (require.cache[modelPath]) {
@@ -34,19 +33,19 @@ class Model {
 			}
 			this.modelClass = require(modelPath)
 			this.modelStr = fs.readFileSync(modelPath, 'utf8').toString()
-			delete this.modelInstance
+			delete this.modelInstances[entity.name]
 		} catch(e) {
-			let err = new MateriaError('Could not load model ' + name + ' from entity ' + this.entity.name) as any
+			let err = new MateriaError('Could not load model ' + name + ' from entity ' + entity.name) as any
 			err.originalError = e
 			throw err
 		}
 	}
 
-	instance():any {
-		if ( ! this.modelInstance) {
-			this.modelInstance = new this.modelClass(this.app, this.entity)
+	instance(entity:Entity):any {
+		if ( ! this.modelInstances[entity.name]) {
+			this.modelInstances[entity.name] = new this.modelClass(this.app, entity)
 		}
-		return this.modelInstance
+		return this.modelInstances[entity.name]
 	}
 }
 
@@ -76,7 +75,7 @@ export class CustomQuery extends Query {
 	refresh() {
 		let model = this._getModel()
 
-		model.load(this.model)
+		model.load(this.model, this.entity)
 
 		if ( ! model.modelClass.prototype[this.action]) {
 			throw new MateriaError(`cannot find method ${this.action} in model queries/${this.model}.js`)
@@ -86,7 +85,7 @@ export class CustomQuery extends Query {
 	discoverParams() {}
 
 	run(params) {
-		let instance = this._getModel().instance()
+		let instance = this._getModel().instance(this.entity)
 		try {
 			return Promise.resolve(instance[this.action](params || {}))
 		} catch (e) {
