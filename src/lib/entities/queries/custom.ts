@@ -88,7 +88,7 @@ export class CustomQuery extends Query {
 	run(params) {
 		let instance = this._getModel().instance()
 		try {
-			return Promise.resolve(instance[this.action](params))
+			return Promise.resolve(instance[this.action](params || {}))
 		} catch (e) {
 			return Promise.reject(e)
 		}
