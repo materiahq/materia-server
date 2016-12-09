@@ -168,7 +168,7 @@ export class Entity {
 					} catch(e) {
 						let err = e.originalError || e instanceof MateriaError && e
 						if (err) {
-							this.app.logger.warn('Skipped query ' + query.id + ' of entity ' + this.name)
+							this.app.logger.warn(`Skipped query "${query.id}" of entity "${this.name}"`)
 							this.app.logger.warn('due to error: ' + err.stack)
 						}
 						else {

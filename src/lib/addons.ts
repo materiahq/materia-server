@@ -102,7 +102,6 @@ export default class Addons {
 						addons.push(dep)
 					}
 				} catch(e) {
-					console.error('nope,',e)
 				}
 			}
 			return Promise.resolve(addons)

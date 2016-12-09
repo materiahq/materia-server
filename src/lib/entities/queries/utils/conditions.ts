@@ -2,6 +2,7 @@ import { Condition, ICondition } from './condition'
 import { DBEntity } from '../../db-entity'
 
 import { Query, QueryParamResolver, IQueryParam } from '../../query'
+import MateriaError from '../../../error'
 
 /*
 Conditions manage a list of condition (associated with `operand`)
@@ -30,6 +31,9 @@ export class Conditions {
 
 		if (conditions) {
 			for (let condition of conditions) {
+				if (condition.entity && ! entity.app.entities.get(condition.entity)) {
+					throw new MateriaError(`Could not find entity "${condition.entity}" in condition`)
+				}
 				this.conditions.push(new Condition(condition, entity && entity.name))
 			}
 		}
