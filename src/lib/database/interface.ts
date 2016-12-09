@@ -84,7 +84,11 @@ export class DatabaseInterface {
 	define(entity) {
 		let defOptions = {
 			freezeTableName: true,
-			timestamps: false
+			timestamps: false,
+			name: {
+				plural: entity.name,
+				singular: entity.name
+			}
 		}
 
 		let cols = {}
