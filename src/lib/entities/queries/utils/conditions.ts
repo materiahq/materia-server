@@ -28,79 +28,63 @@ export class Conditions {
 	constructor(conditions:Array<ICondition>, private entity: DBEntity) {
 		this.conditions = []
 
-		// if conditions is an object (a single condition)
-		//if (conditions && !Array.isArray(conditions)) {
-		//	conditions = [conditions]
-		//}
-		//else
-		if (!conditions) {
-			conditions = []
+		if (conditions) {
+			for (let condition of conditions) {
+				this.conditions.push(new Condition(condition, entity && entity.name))
+			}
 		}
-		conditions.forEach((condition) => {
-			this.conditions.push(new Condition(condition, entity && entity.name))
-		})
 	}
 
 	toSequelize(params: Array<any>, entityName: string) {
-		let startOperandPriority = false
-		let res = {
-			where: "",
-			params: []
-		}
-		if (!params) {
-			params = []
-		}
+		params = params || []
 
-		this.conditions.forEach((condition, i) => {
+		let startOperandPriority = false
+		let where = ""
+		let sequelizeParams = []
+
+		let dbInterface = this.entity.app.database.interface
+
+		this.conditions.forEach((condition) => {
 			if (condition && condition.name && condition.operator && condition.entity == entityName) {
 				let resolvedParam = QueryParamResolver.resolve(condition, params)
-				if (i > 0) {
-					if (this.conditions[i].entity == entityName && res.where.length > 0) {
-						res.where += ' ' + (this.conditions[i].operand) + ' '
-					}
-
+				if (where.length > 0) {
+					where += ' ' + condition.operand + ' '
 				}
-				if (condition.operandPriority && !startOperandPriority) {
-					res.where += "("
+
+				if (condition.operandPriority && ! startOperandPriority) {
+					where += "("
 					startOperandPriority = true
 				}
 
-				if (condition.operator == 'IS NOT NULL' || condition.operator == 'IS NULL') {
-					res.where += condition.name + ' ' + condition.operator
-				}
-				else {
-					res.where += condition.name + ' ' + condition.operator + ' ?'
+				where += dbInterface.quoteIdentifier(condition.entity) + '.'
+				where += dbInterface.quoteIdentifier(condition.name) + ' '
+				where += condition.operator
+				if (condition.operator != 'IS NOT NULL' && condition.operator != 'IS NULL') {
+					where += ' ?'
+
 					//TODO: resolve param using type to CAST value
-					res.params.push(resolvedParam)
+					sequelizeParams.push(resolvedParam)
 				}
 
-				if (!condition.operandPriority && startOperandPriority) {
-					res.where += ")"
+				if ( ! condition.operandPriority && startOperandPriority) {
+					where += ")"
 					startOperandPriority = false
 				}
 			}
 		})
-		if (this.conditions.length > 2) {
-			if (this.conditions[this.conditions.length - 1].operandPriority) {
-				res.where += ')'
-			}
+		if (startOperandPriority) {
+			where += ')'
 		}
 
-		res.params.unshift(res.where)
-		return res.params
+		sequelizeParams.unshift(where)
+		return sequelizeParams
 	}
 
 	constructConditions(entities, params) {
-		for (let x in entities) {
-			let entity = entities[x]
-			for (let i in this.conditions) {
-				let condition = this.conditions[i]
-				if (this.conditions[i] && this.conditions[i].entity == entity.model.name) {
-					if (entity.model.name != condition.entity) {
-						entity.where = this.toSequelize(params, entity.model.name)
-					} else {
-						entity.where = this.toSequelize(params, entity.model.name)
-					}
+		for (let entity of entities) {
+			for (let condition of this.conditions) {
+				if (condition && condition.entity == entity.model.name) {
+					entity.where = this.toSequelize(params, condition.entity)
 				}
 				if (entity.include) {
 					this.constructConditions(entity.include, params)
