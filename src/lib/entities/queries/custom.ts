@@ -14,13 +14,11 @@ export interface ICustomQueryOpts {
 }
 
 class Model {
-	private app: App
 	modelClass: any
 	modelStr: string
 	modelInstances: {[entity:string]:any}
 
-	constructor(app) {
-		this.app = app;
+	constructor() {
 		this.modelInstances = {}
 	}
 
@@ -43,7 +41,7 @@ class Model {
 
 	instance(entity:Entity):any {
 		if ( ! this.modelInstances[entity.name]) {
-			this.modelInstances[entity.name] = new this.modelClass(this.app, entity)
+			this.modelInstances[entity.name] = new this.modelClass(entity.app, entity)
 		}
 		return this.modelInstances[entity.name]
 	}
@@ -111,7 +109,7 @@ export class CustomQuery extends Query {
 	private _getModel():Model {
 		let model_prefix = this.entity.fromAddon ? this.entity.fromAddon.name + "/" : ""
 		if ( ! CustomQuery.models[model_prefix + this.model]) {
-			CustomQuery.models[model_prefix + this.model] = new Model(this.entity)
+			CustomQuery.models[model_prefix + this.model] = new Model()
 		}
 		return CustomQuery.models[model_prefix + this.model]
 	}
