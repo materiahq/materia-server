@@ -1,4 +1,5 @@
 import { DBEntity } from '../../db-entity'
+import MateriaError from '../../../error'
 
 export interface ICondition {
 	entity: string
@@ -19,14 +20,14 @@ export class Condition {
 	operandPriority: number
 
 	constructor(condition: ICondition, parentEntity) {
-		if ( ! condition.name || ! condition.operator || condition.value === undefined ) {
-			throw new Error('missing required parameter to build a condition')
+		if ( ! condition.name || ! condition.operator ) {
+			throw new MateriaError('missing required parameter to build a condition')
 		}
 		this.entity = condition.entity || parentEntity
 		this.parent = parentEntity
 		this.name = condition.name
 		this.operator = condition.operator
-		this.value = condition.value
+		this.value = condition.value == undefined ? '' : condition.value
 		this.operand = condition.operand
 		//this.priorityLevel = condition.priority || 0
 	}
@@ -38,9 +39,12 @@ export class Condition {
 	toJson():ICondition {
 		let res = {
 			name: this.name,
-			operator: this.operator,
-			value: this.value,
+			operator: this.operator
 		} as ICondition
+
+		if (this.operator.toUpperCase() != "IS NULL" && this.operator.toUpperCase() != "IS NOT NULL") {
+			res.value = this.value
+		}
 
 		if (this.entity && this.parent && this.entity != this.parent) {
 			res.entity = this.entity

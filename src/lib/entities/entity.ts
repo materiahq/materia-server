@@ -903,12 +903,12 @@ export class Entity {
 				if ( ! relation.implicit) {
 					let relCopy = {} as any
 					for (let k in relation) {
-						if (k != "entity") {
+						if (k != "entity" && k != "$$hashKey") {
 							relCopy[k] = relation[k]
 						}
-						if ( ! relCopy.type) {
-							relCopy.type = 'belongsTo'
-						}
+					}
+					if ( ! relCopy.type) {
+						relCopy.type = 'belongsTo'
 					}
 					relJson.push(relCopy)
 				}
