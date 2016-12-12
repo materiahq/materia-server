@@ -198,6 +198,7 @@ export class Field {
 		return this.required
 			&& ! this.unique
 			&& ! this.primary
+			&& ! this.default
 			&& ( ! this.onUpdate || this.onUpdate.toUpperCase() == "CASCADE")
 			&& ( ! this.onDelete || this.onDelete.toUpperCase() == "CASCADE")
 	}
