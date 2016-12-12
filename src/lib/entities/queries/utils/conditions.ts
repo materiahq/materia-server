@@ -21,6 +21,20 @@ Conditions structure:
 ]
 */
 
+
+const SequelizeOperatorsKeys = {
+	'=': '$eq',
+	'!=': '$ne',
+	'>': '$gt',
+	'>=': '$gte',
+	'<': '$lt',
+	'<=': '$lte',
+	'LIKE': '$like',
+	'NOT LIKE': '$notLike',
+	'ILIKE': '$iLike',
+	'NOT ILIKE': '$notILike'
+}
+
 export type IConditions = ICondition[]
 
 export class Conditions {
@@ -39,49 +53,53 @@ export class Conditions {
 		}
 	}
 
-	toSequelize(params: Array<any>, entityName: string) {
+	toSequelize(params: Array<any>, entityName: string): Object {
 		params = params || []
 
-		let startOperandPriority = false
-		let where = ""
-		let sequelizeParams = []
-
-		let dbInterface = this.entity.app.database.interface
-
-		this.conditions.forEach((condition) => {
-			if (condition && condition.name && condition.operator && condition.entity == entityName) {
-				let resolvedParam = QueryParamResolver.resolve(condition, params)
-				if (where.length > 0) {
-					where += ' ' + condition.operand + ' '
+		let $and = [], $or = []
+		for (let condition of this.conditions) {
+			if (condition.name && condition.operator && condition.entity == entityName) {
+				let cond
+				if (condition.operator == 'IS NULL') {
+					cond = { $eq: null }
+				} else if (condition.operator == 'IS NOT NULL') {
+					cond = { $not: null }
+				} else {
+					let resolvedParam = QueryParamResolver.resolve(condition, params)
+					let opkey = SequelizeOperatorsKeys[condition.operator.toUpperCase()]
+					cond = {}
+					cond[opkey] = resolvedParam
 				}
+				cond = { [condition.name]: cond }
 
-				if (condition.operandPriority && ! startOperandPriority) {
-					where += "("
-					startOperandPriority = true
-				}
-
-				where += dbInterface.quoteIdentifier(condition.entity) + '.'
-				where += dbInterface.quoteIdentifier(condition.name) + ' '
-				where += condition.operator
-				if (condition.operator != 'IS NOT NULL' && condition.operator != 'IS NULL') {
-					where += ' ?'
-
-					//TODO: resolve param using type to CAST value
-					sequelizeParams.push(resolvedParam)
-				}
-
-				if ( ! condition.operandPriority && startOperandPriority) {
-					where += ")"
-					startOperandPriority = false
+				if (condition.operand && condition.operand.toUpperCase() == 'OR') {
+					$or.push(cond)
+				} else {
+					$and.push(cond)
 				}
 			}
-		})
-		if (startOperandPriority) {
-			where += ')'
 		}
 
-		sequelizeParams.unshift(where)
-		return sequelizeParams
+		if ($or.length) {
+			if ($and.length) {
+				if ($and.length == 1) {
+					$or.push($and[0])
+				} else {
+					$or.push({ $and: $and })
+				}
+			}
+			if ($or.length == 1) {
+				return $or[0]
+			} else {
+				return { $or: $or }
+			}
+		} else if ($and.length) {
+			if ($and.length == 1) {
+				return $and[0]
+			} else {
+				return { $and: $and }
+			}
+		}
 	}
 
 	constructConditions(entities, params) {

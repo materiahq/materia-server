@@ -13,7 +13,7 @@ export interface IFindAllOpts {
 
 export interface ISequelizeOpts {
 	attributes: string[]
-	where: any[]
+	where: Object
 	include?: any
 	raw?: boolean
 	offset?: number
@@ -31,7 +31,7 @@ export class FindAllQuery extends Query {
 	page: number|string
 	offset: number|string
 	orderBy: any
-	select: any
+	select: string[]
 
 	constructor(entity, id, opts: IFindAllOpts) {
 		super(entity, id)
