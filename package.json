@@ -3,9 +3,6 @@
   "version": "0.5.3",
   "description": "",
   "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
   "bin": {
     "materia": "dist/cli/index.js"
   },
@@ -58,7 +55,7 @@
     "request-promise": "^4.1.1"
   },
   "scripts": {
-    "test": "mocha 'dist/test/**/*.js'"
+    "test": "mocha -R spec 'dist/test/**/*.js'"
   },
   "repository": {
     "type": "git",
