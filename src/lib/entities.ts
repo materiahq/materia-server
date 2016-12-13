@@ -144,7 +144,10 @@ export class Entities {
 		let basePath = addon ? addon.path : this.app.path
 		try {
 			for (let entityJson of this.entitiesJson[basePath]) {
-				this.get(entityJson.name).loadQueries(entityJson.queries)
+				let entity = this.get(entityJson.name)
+				if (entity) {
+					entity.loadQueries(entityJson.queries)
+				}
 			}
 		} catch(e) {
 			return Promise.reject(e)
