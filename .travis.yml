@@ -6,7 +6,7 @@ before_install:
 install:
  - "npm install && sed -i.bak 's/\"watch\": true/\"watch\": false/' tsconfig.json && tsc -p ."
 script:
- - "npm test"
+ - "node node_modules/.bin/mocha -R spec 'dist/test/**/*.js'"
 branches:
   only:
     - master

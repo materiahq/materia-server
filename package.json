@@ -55,7 +55,7 @@
     "request-promise": "^4.1.1"
   },
   "scripts": {
-    "test": "mocha -R spec 'dist/test/**/*.js'"
+    "test": "node node_modules/.bin/mocha -R spec 'dist/test/**/*.js'"
   },
   "repository": {
     "type": "git",
