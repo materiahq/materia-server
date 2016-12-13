@@ -1,0 +1,94 @@
+[
+	{
+		"method": "get",
+		"url": "/test/:id_test",
+		"query": {
+			"entity": "test",
+			"id": "get"
+		}
+	},
+	{
+		"method": "get",
+		"url": "/tests",
+		"query": {
+			"entity": "test",
+			"id": "list"
+		}
+	},
+	{
+		"method": "post",
+		"url": "/test",
+		"query": {
+			"entity": "test",
+			"id": "create"
+		}
+	},
+	{
+		"method": "put",
+		"url": "/test/:id_test",
+		"query": {
+			"entity": "test",
+			"id": "update"
+		}
+	},
+	{
+		"method": "delete",
+		"url": "/test/:id_test",
+		"query": {
+			"entity": "test",
+			"id": "delete"
+		}
+	},
+	{
+		"method": "post",
+		"url": "/params/:param_bool",
+		"query": {
+			"entity": "test",
+			"id": "testParam"
+		}
+	},
+	{
+		"method": "post",
+		"url": "/ctrl/promise",
+		"controller": "mytest",
+		"action": "testPromise"
+	},
+	{
+		"method": "post",
+		"url": "/ctrl/express",
+		"controller": "mytest",
+		"action": "testExpress"
+	},
+	{
+		"method": "post",
+		"url": "/ctrl/params",
+		"params": [
+			{
+				"name": "param_text",
+				"type": "text",
+				"required": true,
+				"component": "input"
+			},
+			{
+				"name": "param_number",
+				"type": "number",
+				"required": false,
+				"component": "input"
+			},
+			{
+				"name": "param_date",
+				"type": "date",
+				"required": true,
+				"component": "datePicker"
+			},
+			{
+				"name": "param_bool",
+				"type": "boolean",
+				"required": false,
+				"component": "switch"
+			}
+		],
+		"controller": "mytest",
+		"action": "testParams"
+	}
+]

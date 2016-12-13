@@ -16,7 +16,7 @@ export class TemplateApp {
 		let app_path = fs.mkdtempSync((process.env.TMPDIR || '/tmp/') + 'materia-test-')
 		fse.copySync(path.join(__dirname, '..', '..', '..', 'src', 'test', 'apps', this.name), app_path, { clobber:true, recursive:true })
 
-		let app = new App(app_path, {})
+		let app = new App(app_path, {logRequests: false})
 		app.logger.setConsole({
 			log: function() {},
 			warn: function() {},

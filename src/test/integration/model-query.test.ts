@@ -84,7 +84,7 @@ describe('[Model Queries]', () => {
 			//	return app.entities.get('test').getQuery('testParam').run({
 			//		type_number: 42,
 			//		type_text: "nope"
-			//	}).should.be.rejected
+			//	}).should.be.rejectedWith('Missing parameter')
 			//})
 			it('should run model action "testConstructor" that returns the entity name and app name', () => {
 				return app.entities.get('test').getQuery('testConstructor').run().should.become({
