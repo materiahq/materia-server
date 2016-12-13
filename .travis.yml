@@ -1,0 +1,13 @@
+language: node_js
+node_js:
+ - "7.0"
+before_install:
+ - "npm install -g typescript"
+install:
+ - "npm install && tsc -p ."
+script:
+ - "npm test"
+branches:
+  only:
+    - master
+    - develop

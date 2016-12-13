@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/webshell/materia-server.svg?branch=master)](https://travis-ci.org/webshell/materia-server) [![npm version](https://badge.fury.io/js/materia-server.svg)](https://badge.fury.io/js/materia-server)
+
 # Materia Server
 
 Materia Server is the core of [Materia](https://getmateria.com). It handles your Materia Application and host them anywhere.
