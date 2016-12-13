@@ -6,7 +6,7 @@ import * as express from 'express'
 import { Endpoint } from './api/endpoint'
 import { Permissions } from './api/permissions'
 
-import App, { IApplyOptions } from './app'
+import App, { AppMode, IApplyOptions } from './app'
 
 import { IAddon } from './addons'
 
@@ -166,7 +166,18 @@ export default class Api {
 		this.endpoints.forEach((endpoint) => {
 			let route = this.router[endpoint.method.toLowerCase()]
 			route.call(this.router, endpoint.url, this.permissions.check(endpoint.permissions), (req, res, next) => {
-				endpoint.handle(req, res, next)
+				endpoint.handle(req, res, next).catch((e) => {
+					if (e instanceof Error) {
+						e = {
+							error: true,
+							message: e.message
+						}
+					}
+					if (this.app.mode != AppMode.PRODUCTION) {
+						e.stack = e.stack
+					}
+					res.status(e.statusCode || 500).send(e)
+				})
 			})
 		})
 	}

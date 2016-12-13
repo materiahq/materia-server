@@ -2,6 +2,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 
 import App, { AppMode } from '../app'
+import MateriaError from '../error'
 
 import { IAddon } from '../addons'
 
@@ -172,37 +173,11 @@ export class Endpoint {
 		return Endpoint.controllers[controller_prefix + this.controller]
 	}
 
-	private _buildParams(params) {
+	private _buildParams(params:Array<any>) {
 		if ( ! params ) {
 			return false
 		}
-		if (this.method == 'post' || this.method == 'put' || this.method == 'patch') {
-			let re = /\:([a-zA-Z_][a-zA-Z0-9_-]*)/g,
-				matchParam,
-				idsToSplice = [];
-
-			params.map(param => {
-				this.data.push(param)
-			})
-
-			while(matchParam = re.exec(this.url)) {
-				this.data.forEach((data, i) => {
-					if (data.name == matchParam[1]) {
-						idsToSplice.push(i)
-						this.params.push(data)
-					}
-				})
-			}
-			idsToSplice.map(id => {
-				this.data.splice(id, 1)
-			})
-		}
-		else {
-			params.map(param => {
-				this.params.push(param)
-			})
-		}
-
+		this.params = params.map(param => param)
 	}
 
 	getParam(name:string):any {
@@ -248,105 +223,66 @@ export class Endpoint {
 	}
 
 	handle(req, res, next):Promise<any> {
-		//if endpoint type javascript
-		return new Promise((resolve, reject) => {
-			if (this.controller && this.action) {
-				//TODO: Handle required params
-				try {
-					let instance = this._getController().instance()
-					let obj = instance[this.action](req, res, next)
-					if (obj && obj.then && obj.catch
-						&& typeof obj.then === 'function'
-						&& typeof obj.catch === 'function') {
-						obj.then((data) => {
-							res.status(200).send(data)
-							resolve(data)
-						}).catch((e) => {
-							if (e instanceof Error) {
-								e = {
-									error: true,
-									message: e.message
-								}
-							}
-							if (this.app.mode != AppMode.PRODUCTION) {
-								e.stack = e.stack
-							}
-							res.status(e.statusCode || 500).send(e)
-							return reject(e)
-						})
+		let resolvedParams = Object.assign({}, req.query, req.body, req.params)
+		if (this.params.length > 0) {
+			for (let param of this.params) {
+				let v = resolvedParams[param.name]
+				if (v !== undefined) {
+					if (param.type == 'text' || param.type == 'string') {
+						resolvedParams[param.name] = v
+					}
+					else if (v == "null" || v == "") {
+						resolvedParams[param.name] = null
+					}
+					else if (param.type == 'date') {
+						resolvedParams[param.name] = new Date(v)
+					}
+					else if (param.type == 'number') {
+						resolvedParams[param.name] = parseInt(v)
+					}
+					else if (param.type == 'float') {
+						resolvedParams[param.name] = parseFloat(v)
+					}
+					else if (param.type == 'boolean') {
+						resolvedParams[param.name] = ! ( ! v || typeof v == 'string' && v.toLowerCase() == 'false' )
+					}
+					else {
+						resolvedParams[param.name] = v
 					}
 				}
-				catch (e) {
-					if (e instanceof Error) {
-						e = {
-							error: true,
-							message: e.message
-						}
-					}
-					if (this.app.mode != AppMode.PRODUCTION) {
-						e.stack = e.stack
-					}
-					res.status(e.statusCode || 500).send(e)
-					return reject(e)
+
+				if ( resolvedParams[param.name] == null && param.required) {
+					return Promise.reject(new MateriaError('Missing required parameter:' + param.name))
 				}
 			}
-			else {
-				let resolvedParams = Object.assign({}, req.query, req.body, req.params)
-				if (this.params.length > 0) {
-					for (let param of this.params) {
-						let v = resolvedParams[param.name]
-						if (v !== undefined) {
-							if (param.type == 'text' || param.type == 'string') {
-								resolvedParams[param.name] = v
-							}
-							else if (v == "null" || v == "") {
-								resolvedParams[param.name] = null
-							}
-							else if (param.type == 'date') {
-								resolvedParams[param.name] = new Date(v)
-							}
-							else if (param.type == 'number') {
-								resolvedParams[param.name] = parseInt(v)
-							}
-							else if (param.type == 'float') {
-								resolvedParams[param.name] = parseFloat(v)
-							}
-							else if (param.type == 'boolean') {
-								resolvedParams[param.name] = ! ( ! v || typeof v == 'string' && v.toLowerCase() == 'false' )
-							}
-							else {
-								resolvedParams[param.name] = v
-							}
-						}
+		}
 
-						if ( resolvedParams[param.name] == null && param.required) {
-							let err = {
-								error: true,
-								message: 'Missing required parameter:' + param.name
-							}
-							res.status(500).json(err)
-							return reject(err)
-						}
-					}
-				}
-
-				this.query.run(resolvedParams).then((data) => {
-					res.status(200).json(data)
-					resolve(data)
-				}).catch((e) => {
-					let err = { error: true, message: e.message }
-					res.status(500).json(err)
-					reject(err)
+		if (this.controller && this.action) {
+			let obj
+			try {
+				let instance = this._getController().instance()
+				obj = instance[this.action](req, res, next)
+			} catch (e) {
+				return Promise.reject(e)
+			}
+			if (obj && obj.then && obj.catch
+				&& typeof obj.then === 'function'
+				&& typeof obj.catch === 'function') {
+				return obj.then((data) => {
+					res.status(200).send(data)
 				})
 			}
-		})
+			return Promise.resolve()
+		}
+		else {
+			return this.query.run(resolvedParams).then(data => {
+				res.status(200).json(data)
+			})
+		}
 	}
 
 	isInUrl(name) {
-		if (this.url.indexOf(':' + name) != -1) {
-			return true
-		}
-		return false
+		return this.url.indexOf(':' + name) != -1
 	}
 
 	toJson() {
