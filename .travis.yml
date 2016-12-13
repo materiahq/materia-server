@@ -4,7 +4,7 @@ node_js:
 before_install:
  - "npm install -g typescript"
 install:
- - "npm install && cat ./tsconfig.json | sed -i.bak 's/"watch": true/"watch": false/' tsconfig.json && tsc -p ."
+ - "npm install && cat ./tsconfig.json | sed -i.bak 's/\"watch\": true/\"watch\": false/' tsconfig.json && tsc -p ."
 script:
  - "npm test"
 branches:
