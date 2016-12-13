@@ -1,0 +1,72 @@
+{
+	"id": "fake-id",
+	"fields": [
+		{
+			"name": "id_test",
+			"type": "number",
+			"read": true,
+			"write": false,
+			"primary": true,
+			"unique": true,
+			"required": true,
+			"autoIncrement": true,
+			"component": "input"
+		}
+	],
+	"queries": [
+		{
+			"id": "testRaw",
+			"type": "custom",
+			"opts": {
+				"action": "testRaw"
+			}
+		},
+		{
+			"id": "testPromise",
+			"type": "custom",
+			"opts": {
+				"action": "testPromise"
+			}
+		},
+		{
+			"id": "testParam",
+			"type": "custom",
+			"opts": {
+				"params": [
+					{
+						"name": "param_text",
+						"type": "text",
+						"required": true,
+						"component": "input"
+					},
+					{
+						"name": "param_number",
+						"type": "number",
+						"required": false,
+						"component": "input"
+					},
+					{
+						"name": "param_date",
+						"type": "date",
+						"required": true,
+						"component": "datePicker"
+					},
+					{
+						"name": "param_bool",
+						"type": "boolean",
+						"required": false,
+						"component": "switch"
+					}
+				],
+				"action": "testParam"
+			}
+		},
+		{
+			"id": "testConstructor",
+			"type": "custom",
+			"opts": {
+				"action": "testConstructor"
+			}
+		}
+	]
+}

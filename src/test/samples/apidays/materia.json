@@ -1,8 +1,0 @@
-{
-    "name": "Apidays",
-    "description": "Materia test for apidays",
-    "author": "team@oauth.io",
-    "addons": {
-        "materia-basic-auth": "thyb/materia-basic-auth#master"
-    }
-}
