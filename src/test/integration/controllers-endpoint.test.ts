@@ -1,6 +1,5 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
-import * as rp from 'request-promise'
 
 import App from '../../lib/app'
 import { TemplateApp } from '../mock/template-app'
@@ -10,6 +9,7 @@ chai.should()
 
 describe('[Controller Endpoints]', () => {
 	let app: App
+	let tpl: TemplateApp
 	let testObject = {
 		param_number: 42,
 		param_text: "foo",
@@ -24,15 +24,11 @@ describe('[Controller Endpoints]', () => {
 		param_date: new Date(10).toJSON(),
 		param_bool: false
 	}
-	let rpdef = rp.defaults({
-		json: true
-	})
-	let baseurl = "http://localhost:8798/api"
 
 	before(() => {
-		let tmpl = new TemplateApp('controller-endpoints')
+		tpl = new TemplateApp('controller-endpoints')
 
-		app = tmpl.createInstance()
+		app = tpl.createInstance()
 	})
 
 	after(() => {
@@ -51,26 +47,26 @@ describe('[Controller Endpoints]', () => {
 		describe('Endpoints', () => {
 			it('should run endpoint for default "create", 4 times', () => {
 				let create = () => {
-					return rpdef.post(baseurl + '/test')
+					return tpl.post('/api/test')
 				}
 				return Promise.all([create(), create(), create(), create()]).should.be.fulfilled
 			})
 			it('should run endpoint for default "get"', () => {
-				return rpdef.get(baseurl + '/test/2').should.become({
+				return tpl.get('/api/test/2').should.become({
 					id_test: 2
 				})
 			})
 			it('should run endpoint for default "update"', () => {
-				return rpdef.put(baseurl + '/test/2', {form: {
+				return tpl.put('/api/test/2', {form: {
 					id_test: 2,
 					new_id_test: 42
 				}}).should.become([1])
 			})
 			it('should run endpoint for default "delete"', () => {
-				return rpdef.del(baseurl + '/test/3').should.become(1)
+				return tpl.del('/api/test/3').should.become(1)
 			})
 			it('should run endpoint for default "list"', () => {
-				return rpdef.get(baseurl + '/tests').should.become({
+				return tpl.get('/api/tests').should.become({
 					count:3,
 					rows:[
 						{ id_test:1 },
@@ -87,28 +83,28 @@ describe('[Controller Endpoints]', () => {
 					param_date: new Date(10).toJSON(),
 					param_bool: true
 				}
-				return rpdef.post(baseurl + '/params/true?param_text=bar', {json: testObject}).should.become(testObjectJson)
+				return tpl.post('/api/params/true?param_text=bar', {json: testObject}).should.become(testObjectJson)
 			})
 			it('should run endpoint for model action "testParam" with a missing parameter', () => {
-				return rpdef.post(baseurl + '/params/true', {json: {
+				tpl.post('/api/params/true', {json: {
 					param_text: "ok"
 				}}).should.be.rejectedWith(Error, 'Missing required parameter')
 			})
 			it('should run endpoint for controller action "testPromise" that returns a promise', () => {
-				return rpdef.post(baseurl + '/ctrl/promise').should.become({ x:42 })
+				return tpl.post('/api/ctrl/promise').should.become({ x:42 })
 			})
 			it('should run endpoint for controller action "testExpress" that use res.send', () => {
-				return rpdef.post(baseurl + '/ctrl/express').should.become("ok")
+				return tpl.post('/api/ctrl/express').should.become("ok")
 			})
 			it('should run endpoint for controller action "testParam" with typed params', () => {
-				return rpdef.post(baseurl + '/ctrl/params', {json: testObject}).should.become({
+				return tpl.post('/api/ctrl/params', {json: testObject}).should.become({
 					body: testObjectJson,
 					query: {},
 					params: {}
 				})
 			})
 			it('should run endpoint for controller action "testParam" with a missing param', () => {
-				return rpdef.post(baseurl + '/ctrl/params', {form: {
+				return tpl.post('/api/ctrl/params', {form: {
 					param_number: 42,
 					param_text: "bar"
 				}}).should.be.rejectedWith(Error, 'Missing required parameter')
