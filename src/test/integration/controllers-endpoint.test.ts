@@ -92,7 +92,7 @@ describe('[Controller Endpoints]', () => {
 			it('should run endpoint for model action "testParam" with a missing parameter', () => {
 				return rpdef.post(baseurl + '/params/true', {json: {
 					param_text: "ok"
-				}}).should.be.rejectedWith('Missing required parameter')
+				}}).should.be.rejectedWith(Error, 'Missing required parameter')
 			})
 			it('should run endpoint for controller action "testPromise" that returns a promise', () => {
 				return rpdef.post(baseurl + '/ctrl/promise').should.become({ x:42 })
@@ -111,7 +111,7 @@ describe('[Controller Endpoints]', () => {
 				return rpdef.post(baseurl + '/ctrl/params', {form: {
 					param_number: 42,
 					param_text: "bar"
-				}}).should.be.rejectedWith('Missing required parameter')
+				}}).should.be.rejectedWith(Error, 'Missing required parameter')
 			})
 		})
 	});
