@@ -38,9 +38,9 @@ export class DBEntity extends Entity {
 		this.currentDiffUndo = []
 	}
 
-	updatePrimary(field, fieldobj, options) {
+	updatePrimary(field, fieldobj, options):Promise<any> {
 		let pks = this.getPK()
-		let p = Promise.resolve()
+		let p:Promise<any> = Promise.resolve()
 
 		let restore_ai:any = false
 
@@ -486,7 +486,7 @@ export class DBEntity extends Entity {
 	loadRelationsInModel() {
 		for (let relation of this.relations) {
 			//console.log('loading relation', this.name, '->', relation)
-			let entityDest = this.app.entities.get(relation.reference.entity)
+			let entityDest = this.app.entities.get(relation.reference.entity) as DBEntity
 			if (!entityDest)
 				continue
 			//@model.hasMany entityDest.model, relation.dstField if relation.type == '1-n' and relation.cardinality == '1'
@@ -527,7 +527,7 @@ export class DBEntity extends Entity {
 				this.model.hasMany(entityDest.model, { foreignKey: relation.reference.field, targetKey: key })
 			}
 			else if (relation.type == 'belongsToMany') {
-				let entityThrough = this.app.entities.get(relation.through)
+				let entityThrough = this.app.entities.get(relation.through) as DBEntity
 				if (!entityThrough) {
 					console.error('Through table not found')
 					continue

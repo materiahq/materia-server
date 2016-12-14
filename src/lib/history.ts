@@ -271,7 +271,7 @@ export class History {
 			})
 		}
 
-		p = p.then((action) => {
+		return p.then((action) => {
 			if (action.type) {
 				actions.push(action)
 			}
@@ -284,8 +284,6 @@ export class History {
 			this.diff = diff_undo
 			throw e
 		})
-
-		return p
 	}
 
 	/**
@@ -318,7 +316,7 @@ export class History {
 			})
 		}
 
-		p = p.then((action) => {
+		return p.then((action) => {
 			if (action.type) {
 				actions.push(action)
 			}
@@ -332,7 +330,5 @@ export class History {
 			console.log('Error while updating', e.stack)
 			throw e
 		})
-
-		return p
 	}
 }

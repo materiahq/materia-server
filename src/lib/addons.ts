@@ -156,7 +156,7 @@ export default class Addons {
 		}
 	}
 
-	create(name:string, description:string, options?: IAddonOptions):Promise<void> {
+	create(name:string, description:string, options?: IAddonOptions):Promise<any> {
 		return this._checkName(name).then(() => {
 			return new Promise((resolve, reject) => {
 				mkdirp(path.join(this.app.path, 'node_modules', name), (err) => {

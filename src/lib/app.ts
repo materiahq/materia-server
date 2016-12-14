@@ -159,7 +159,7 @@ export default class App extends events.EventEmitter {
 	}
 
 	loadMateria():Promise<void> {
-		let p = Promise.resolve()
+		let p:Promise<any> = Promise.resolve()
 		if ( this.migration ) {
 			p = p.then(() => {
 				return this.migration.check()

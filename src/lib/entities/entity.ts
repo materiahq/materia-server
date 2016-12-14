@@ -306,7 +306,7 @@ export class Entity {
 	@param {object} - Action's options
 	@returns {Promise}
 	*/
-	addRelation(relation, options) {
+	addRelation(relation, options):Promise<any> {
 		options = options || {}
 		return new Promise((accept, reject) => {
 			if (relation.field && relation.reference.entity == relation.field) {
@@ -314,7 +314,7 @@ export class Entity {
 			}
 
 			let entityDest = this.app.entities.get(relation.reference.entity)
-			let p = Promise.resolve()
+			let p:Promise<any> = Promise.resolve()
 			if ( ! relation.type || relation.type == 'belongsTo') {
 				relation.type = 'belongsTo'
 
@@ -1111,5 +1111,12 @@ export class Entity {
 
 	getQueryTypes() {
 		return Object.keys(this.queryObjects)
+	}
+
+	loadModel():Promise<any> {
+		return Promise.reject(new MateriaError("Unknown entity type"))
+	}
+
+	loadRelationsInModel() {
 	}
 }

@@ -105,7 +105,7 @@ export abstract class Query {
 
 	_constructInclude(includeArray, includedName) {
 		for (let entity of includedName) {
-			let includeEntity = this.entity.app.entities.get(entity.entity)
+			let includeEntity = this.entity.app.entities.get(entity.entity) as DBEntity
 			if ( ! includeEntity) {
 				throw new MateriaError(`Cannot find included entity ${entity.entity}`)
 			}

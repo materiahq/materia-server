@@ -214,7 +214,7 @@ export class Migration {
 		}).then(() => {
 			if (fs.existsSync(path.join(this.app.path, 'addons'))) {
 				let addons = fs.readdirSync(path.join(this.app.path, 'addons'))
-				let p = Promise.resolve()
+				let p:Promise<any> = Promise.resolve()
 				for (let addon of addons) {
 					if (fs.lstatSync(path.join(this.app.path, 'addons', addon)).isDirectory()) {
 						p = p.then(() => new Promise((accept, reject) => {

@@ -13,7 +13,6 @@ import { MigrationType } from './history'
 
 import { CustomQuery } from './entities/queries/custom'
 
-//TODO: convert in ts
 import { DBEntity } from './entities/db-entity'
 import { Entity } from './entities/entity'
 
@@ -28,7 +27,7 @@ import { Entity } from './entities/entity'
  * Entity manager. This class is relative to all the entities of an app.
  */
 export class Entities {
-	entities: any
+	entities: {[name:string]: Entity}
 	entitiesJson: {[path:string]: Array<any>}
 
 	constructor(public app: App) {
@@ -70,11 +69,13 @@ export class Entities {
 
 
 		this.app.history.register(MigrationType.ADD_QUERY, (data, opts) => {
-			return this.get(data.table).addQuery(data.id, data.values.type, data.values.params, data.values.opts, opts)
+			this.get(data.table).addQuery(data.id, data.values.type, data.values.params, data.values.opts, opts)
+			return Promise.resolve()
 		})
 
 		this.app.history.register(MigrationType.DELETE_QUERY, (data, opts) => {
-			return this.get(data.table).removeQuery(data.id, opts)
+			this.get(data.table).removeQuery(data.id, opts)
+			return Promise.resolve()
 		})
 
 		/*this.app.history.register(MigrationType.ADD_QUERY_PARAM, (data, opts) => {
@@ -196,7 +197,7 @@ export class Entities {
 	@param {object} - Action's options
 	@returns {Promise<Entity>}
 	*/
-	add(entityobj, options):Promise<any> {
+	add(entityobj, options?):Promise<Entity> {
 		options = options || {}
 
 		let entity, createPromise
@@ -279,7 +280,7 @@ export class Entities {
 		})
 	}
 
-	_save_id_map(opts?) {
+	_save_id_map(opts?):Promise<any> {
 		opts = opts || {}
 
 		let name_map = {}
@@ -408,7 +409,7 @@ export class Entities {
 	@param {object} - Action's options
 	@returns {Promise}
 	*/
-	rename(name, new_name, options):any {
+	rename(name, new_name, options?):Promise<any> {
 		options = options || {}
 		let entity = this.get(name)
 
@@ -511,7 +512,7 @@ export class Entities {
 	@param {string} - Entity's name
 	@returns {Entity}
 	*/
-	get(name) { return this.entities[name] }
+	get(name):Entity { return this.entities[name] }
 
 	/**
 	Returns an entity be specifying its name, or create it with its description
@@ -561,16 +562,6 @@ export class Entities {
 				this.entities[ent].loadRelationsInModel()
 			}
 		})
-	}
-
-	toJson() {
-		let res = []
-
-		this.entities.forEach(entity => {
-			res.push(entity.toJson())
-		})
-
-		return res
 	}
 
 	findAllRelations(opts) {

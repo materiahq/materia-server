@@ -20,9 +20,14 @@ export interface IField {
 	read?: boolean
 	write?: boolean
 
-	isRelation?: boolean
+	isRelation?: any
 
 	validators?: Array<Validator>
+}
+
+export interface IFieldReference {
+	entity: string
+	field: string
 }
 
 export const DefaultComponent = Object.freeze({
@@ -46,7 +51,7 @@ export const FieldType = Object.freeze({
 	//URL: 'url'
 })
 
-export class Field {
+export class Field implements IField {
 	name: string
 	type: string
 	primary: boolean
@@ -64,7 +69,8 @@ export class Field {
 	read: boolean
 	write: boolean
 
-	isRelation: boolean
+	isRelation: any
+	references: IFieldReference
 
 	validators: Array<any>
 
