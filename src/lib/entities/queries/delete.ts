@@ -21,9 +21,14 @@ export class DeleteQuery extends Query {
 		this.params = this.params.concat(this.conditions.discoverParams())
 	}
 
-	run(params) {
-		let sequelizeCond = this.conditions.toSequelize(params, this.entity.name)
-		//console.log('delete on condition', sequelizeCond)
+	run(params):Promise<any> {
+		let sequelizeCond
+		try {
+			sequelizeCond = this.conditions.toSequelize(params, this.entity.name)
+		} catch (e) {
+			return Promise.reject(e)
+		}
+
 		return this.entity.model.destroy({ where: sequelizeCond })
 	}
 

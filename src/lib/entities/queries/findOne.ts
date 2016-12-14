@@ -43,7 +43,7 @@ export class FindOneQuery extends Query {
 		this.discoverParams()
 	}
 
-	run(params, options) {
+	constructSequelizeOpts(params, options) {
 		let include = []
 		let includeNames = this.include
 
@@ -72,8 +72,17 @@ export class FindOneQuery extends Query {
 			}
 			opts.order.push([order.field, ascTxt]);
 		})
+		return opts
+	}
 
-		return this.entity.model.findOne(opts)
+	run(params, options):Promise<any> {
+		let sequelizeOpts
+		try {
+			sequelizeOpts = this.constructSequelizeOpts(params, options)
+		} catch (e) {
+			return Promise.reject(e)
+		}
+		return this.entity.model.findOne(sequelizeOpts)
 	}
 
 	toJson() {

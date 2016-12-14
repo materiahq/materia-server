@@ -59,7 +59,7 @@ export class CustomQuery extends Query {
 		this.type = 'custom'
 
 		if ( ! opts || ! opts.action)
-			throw new MateriaError('missing required parameter "action"')
+			throw new MateriaError('Missing required parameter "action"')
 
 		this.params = opts.params
 		this.action = opts.action
@@ -82,7 +82,7 @@ export class CustomQuery extends Query {
 
 	discoverParams() {}
 
-	run(params) {
+	run(params):Promise<any> {
 		let instance = this._getModel().instance(this.entity)
 		try {
 			return Promise.resolve(instance[this.action](params || {}))

@@ -92,9 +92,14 @@ export class UpdateQuery extends Query {
 		return res
 	}
 
-	run(params) {
-		let updates = this.resolveParams(params)
-		let where = this.conditions.toSequelize(params, this.entity.name)
+	run(params):Promise<any> {
+		let updates, where
+		try {
+			updates = this.resolveParams(params)
+			where = this.conditions.toSequelize(params, this.entity.name)
+		} catch (e) {
+			return Promise.reject(e)
+		}
 		return this.entity.model.update(updates, { where: where })
 	}
 

@@ -12,7 +12,7 @@ export class SQLQuery extends Query {
 		super(entity, id)
 
 		if ( ! opts || ! opts.query )
-			throw new Error('missing required parameter "query"')
+			throw new Error('Missing required parameter "query"')
 
 		this.type = 'sql'
 
@@ -69,8 +69,13 @@ export class SQLQuery extends Query {
 		return res
 	}
 
-	run(params) {
-		let resolvedParams = this.resolveParams(params)
+	run(params):Promise<any> {
+		let resolvedParams
+		try {
+			resolvedParams = this.resolveParams(params)
+		} catch (e) {
+			return Promise.reject(e)
+		}
 
 		for (let param of this.params) {
 			if (resolvedParams[param.name]) {

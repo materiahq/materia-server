@@ -19,7 +19,7 @@ export class QueryParamResolver {
 			if (params[paramName] !== undefined) {
 				return params[paramName]
 			}
-			throw new Error("param not found " + paramName)
+			throw new MateriaError("Missing required parameter: " + paramName)
 		}
 
 		if (typeof field.value == 'string' && field.value.substr(0, 1) == '%') {

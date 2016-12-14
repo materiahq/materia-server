@@ -21,7 +21,7 @@ export class Condition {
 
 	constructor(condition: ICondition, parentEntity) {
 		if ( ! condition.name || ! condition.operator ) {
-			throw new MateriaError('missing required parameter to build a condition')
+			throw new MateriaError('Missing required parameter to build a condition')
 		}
 		this.entity = condition.entity || parentEntity
 		this.parent = parentEntity

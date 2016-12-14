@@ -99,7 +99,7 @@ export class FindAllQuery extends Query {
 		}
 	}
 
-	run(params, options) {
+	constructSequelizeOpts(params, options) {
 		let include = []
 		let includeNames = this.include
 
@@ -142,11 +142,17 @@ export class FindAllQuery extends Query {
 			sequelizeOpts.order.push([order.field, ascTxt]);
 		})
 
-		return this.entity.model.findAndCountAll(sequelizeOpts)/*.then((data) => {
-			for (let item in data.rows)
-				data.rows[item] = data.rows[item]
-			return data
-		})*/
+		return sequelizeOpts
+	}
+
+	run(params, options):Promise<any> {
+		let sequelizeOpts
+		try {
+			sequelizeOpts = this.constructSequelizeOpts(params, options)
+		} catch (e) {
+			return Promise.reject(e)
+		}
+		return this.entity.model.findAndCountAll(sequelizeOpts)
 	}
 
 	_paramResolver(name, value, params, defaultValue) {
