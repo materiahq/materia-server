@@ -5,7 +5,7 @@ import App from '../../app'
 import MateriaError from '../../error'
 
 import { Entity } from '../entity'
-import { Query, IQueryParam } from '../query'
+import { Query, IQueryParam, QueryParamResolver } from '../query'
 
 export interface ICustomQueryOpts {
 	action: string
@@ -61,7 +61,7 @@ export class CustomQuery extends Query {
 		if ( ! opts || ! opts.action)
 			throw new MateriaError('Missing required parameter "action"')
 
-		this.params = opts.params
+		this.params = opts.params || []
 		this.action = opts.action
 		this.model = opts.model || entity.name.toLowerCase()
 
@@ -85,6 +85,14 @@ export class CustomQuery extends Query {
 	run(params):Promise<any> {
 		let instance = this._getModel().instance(this.entity)
 		try {
+			for (let field of this.params) {
+				try {
+					QueryParamResolver.resolve({ name: field.name, value: "=" }, params)
+				} catch(e) {
+					if (field.required)
+						throw e
+				}
+			}
 			return Promise.resolve(instance[this.action](params || {}))
 		} catch (e) {
 			return Promise.reject(e)

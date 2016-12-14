@@ -3,10 +3,10 @@ module.exports = class TestModel {
 		this.app = app
 		this.entity = entity
 		this.testObject = {
-			type_number: 42,
-			type_text: "foo",
-			type_float: 0.5,
-			type_date: new Date(10),
+			param_number: 42,
+			param_text: "foo",
+			param_float: 0.5,
+			param_date: new Date(10),
 			bool_false: false,
 			bool_true: true
 		}
