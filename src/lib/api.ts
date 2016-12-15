@@ -96,10 +96,7 @@ export default class Api {
 					this.updateEndpoints()
 				}
 				if (options.save != false) {
-					let opts:IApplyOptions = {}
-					for (let k in options) {
-						opts[k] = options[k]
-					}
+					let opts:IApplyOptions = Object.assign({}, options)
 					opts.fromAddon = endpoint.fromAddon
 					this.save(opts)
 				}

@@ -1,7 +1,7 @@
 import { Entity } from './entity'
 
 import App from '../app'
-import { IField } from './field'
+import { Field, IField, IFieldUpdate } from './field'
 
 import { QueryGenerator } from './query-generator'
 
@@ -48,10 +48,7 @@ export class DBEntity extends Entity {
 		if (this.app.database.type == 'mysql') {
 			for (let pk of pks) {
 				if (pk.autoIncrement) {
-					let pkcpy:any = {}
-					for (let k in pk) {
-						pkcpy[k] = pk[k]
-					}
+					let pkcpy:IFieldUpdate = Object.assign({}, pk)
 					pkcpy.autoIncrement = false
 					restore_ai = pk.name
 					p = this.updateField(pk.name, pkcpy, options)
@@ -98,10 +95,7 @@ export class DBEntity extends Entity {
 			if (pks.find(x => x.name == restore_ai)) {
 				p = p.then(() => {
 					let pk = this.getField(restore_ai)
-					let pkcpy:any = {}
-					for (let k in pk) {
-						pkcpy[k] = pk[k]
-					}
+					let pkcpy:IFieldUpdate = Object.assign({}, pk)
 					pkcpy.autoIncrement = true
 					p = this.updateField(pk.name, pkcpy, options)
 				})
@@ -156,7 +150,7 @@ export class DBEntity extends Entity {
 		return p
 	}
 
-	updateField(name, field, options) {
+	updateField(name:string, field:IFieldUpdate, options?):Promise<Field> {
 		//console.log('updateField dbentity', field.unique)
 		options = options || {}
 
@@ -168,21 +162,14 @@ export class DBEntity extends Entity {
 			}
 
 
-			let fieldobj
+			let fieldobj:Field
 
 			let differ_done
 			options.differ = (done) => {
 				differ_done = done
 			}
 
-			// complete with old values
-			let _field:any = {}
-			for (let k in oldfield) {
-				_field[k] = oldfield[k]
-			}
-			for (let k in field) {
-				_field[k] = field[k]
-			}
+			let _field:IFieldUpdate = Object.assign({}, oldfield, field)
 
 			if (_field.autoIncrement && _field.type.toLowerCase() != "number") {
 				delete _field.autoIncrement
@@ -338,8 +325,10 @@ export class DBEntity extends Entity {
 		})
 	}
 
-	addFieldAt(field, at, options) {
+	addFieldAt(field:IField, at:number, options?):Promise<Field> {
 		options = options || {}
+
+		field = Object.assign({}, field)
 
 		if (field.autoIncrement && field.type.toLowerCase() != "number") {
 			delete field.autoIncrement

@@ -41,7 +41,7 @@ export interface IActionData {
 	id?: string,
 	table: string,
 	type: any,
-	value?: string,
+	value?: any,
 	name?: string,
 	position?: number,
 	values?: {

@@ -16,6 +16,7 @@ import { CustomQuery } from './entities/queries/custom'
 
 import { DBEntity } from './entities/db-entity'
 import { Entity } from './entities/entity'
+import { IField } from './entities/field'
 
 //TODO: add when entities/entity will be converted in ts
 /*export interface IEntities {
@@ -48,7 +49,7 @@ export class Entities {
 		})
 
 		this.app.history.register(MigrationType.ADD_FIELD, (data, opts) => {
-			return this.get(data.table).addFieldAt(data.value, data.position, opts)
+			return this.get(data.table).addFieldAt(data.value as IField, data.position, opts)
 		})
 
 		this.app.history.register(MigrationType.CHANGE_FIELD, (data, opts) => {
@@ -290,8 +291,7 @@ export class Entities {
 			name_map[entity.id] = entity_name
 		}
 
-		let actions = { mkdir: null }
-		for (let k in opts) { actions[k] = opts[k] }
+		let actions = Object.assign({}, opts)
 		actions.mkdir = true
 		return this.app.saveFile(path.join(this.app.path, '.materia', 'ids.json'), JSON.stringify(name_map), actions)
 	}

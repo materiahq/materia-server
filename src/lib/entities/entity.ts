@@ -2,12 +2,12 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as uuid from 'node-uuid'
 
-import App from '../app'
+import App, { IApplyOptions } from '../app'
 import MateriaError from '../error'
 import { MigrationType } from '../history'
 import { IAddon } from '../addons'
 
-import { Field } from './field'
+import { Field, IField, IFieldUpdate } from './field'
 import { QueryGenerator } from './query-generator'
 import { IQueryConstructor } from './query'
 
@@ -554,7 +554,7 @@ export class Entity {
 		})
 	}
 
-	removeRelation(relation, options) {
+	removeRelation(relation, options?:IApplyOptions) {
 		options = options || {}
 
 		let i = this.getRelationIndex(relation)
@@ -596,10 +596,7 @@ export class Entity {
 			let entityThrough = this.app.entities.get(relation.through)
 			if (entityThrough) {
 				p = p.then(() => {
-					let opts = {} as any
-					for (let k in options) {
-						opts[k] = options[k]
-					}
+					let opts:IApplyOptions = Object.assign({}, options)
 					opts.history = false
 					return this.app.entities.remove(relation.through, opts)
 				})
@@ -709,7 +706,7 @@ export class Entity {
 	@param {object} - Action's options
 	@returns {Promise<Field>}
 	*/
-	updateField(name, newfield, options) {
+	updateField(name:string, newfield:IFieldUpdate, options?):Promise<Field> {
 		return new Promise((accept, reject) => {
 			options = options || {}
 
@@ -776,10 +773,10 @@ export class Entity {
 	@param {object} - Action's options
 	@returns {Promise<Field>}
 	*/
-	addFieldAt(field, at, options) {
+	addFieldAt(field:IField, at:number, options?):Promise<Field> {
 		options = options || {}
 
-		let fieldobj
+		let fieldobj:Field
 		try {
 			fieldobj = new Field(this, field)
 		} catch(e) {
@@ -791,7 +788,7 @@ export class Entity {
 			if (oldfield) {
 				if (field.isRelation) {
 					oldfield.isRelation = field.isRelation
-					return Promise.resolve()
+					return Promise.resolve(oldfield)
 				}
 				return Promise.reject(new Error('A field of this name already exists'))
 			}
@@ -815,7 +812,7 @@ export class Entity {
 			this.save(options)
 		}
 
-		if (options.generateQueries !== false) { //!== because null default true
+		if (options.generateQueries !== false) {
 			this.initDefaultQuery()
 		}
 
@@ -828,7 +825,7 @@ export class Entity {
 	@param {object} - Action's options
 	@returns {Promise<Field>}
 	*/
-	addField(field, options) {
+	addField(field:IField, options?):Promise<Field> {
 		return this.addFieldAt(field, this.fields.length, options)
 	}
 
@@ -838,7 +835,7 @@ export class Entity {
 	@param {object} - Action's options
 	@returns {Promise<Field>}
 	*/
-	addFieldFirst(field, options) {
+	addFieldFirst(field:IField, options?):Promise<Field> {
 		return this.addFieldAt(field, 0, options)
 	}
 
@@ -848,7 +845,7 @@ export class Entity {
 	@param {object} - Action's options
 	@returns {Promise}
 	*/
-	removeField(name, options):Promise<void> {
+	removeField(name:string, options?):Promise<void> {
 		options = options || {}
 		if (! name) {
 			return Promise.reject(new Error('The name of the field is required'))
@@ -962,7 +959,7 @@ export class Entity {
 	@param {object} - Query's options
 	@param {object} - Action's options
 	*/
-	addQuery(id:string, type:string, params, opts, options) {
+	addQuery(id:string, type:string, params, opts, options?) {
 		options = options || {}
 
 		if ( ! this.queryObjects[type]) {

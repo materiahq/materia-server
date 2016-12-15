@@ -496,13 +496,7 @@ export class Synchronizer {
 	}
 
 	entitiesToDatabase(diffs, options) {
-		let opts = {}
-		if (options) {
-			for (let k in options) {
-				opts[k] = options[k]
-			}
-		}
-		options = opts
+		options = Object.assign({}, options || {})
 		options.history = false
 		options.apply = false
 		options.save = false
@@ -517,13 +511,7 @@ export class Synchronizer {
 	}
 
 	databaseToEntities(diffs, options) {
-		let opts = {}
-		if (options) {
-			for (let k in options) {
-				opts[k] = options[k]
-			}
-		}
-		options = opts
+		options = Object.assign({}, options || {})
 		options.history = false
 		options.db = false
 

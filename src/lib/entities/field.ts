@@ -21,8 +21,13 @@ export interface IField {
 	write?: boolean
 
 	isRelation?: any
+	generateFrom?: string
 
 	validators?: Array<Validator>
+}
+
+export interface IFieldUpdate extends IField {
+	references?: IFieldReference
 }
 
 export interface IFieldReference {
@@ -51,7 +56,7 @@ export const FieldType = Object.freeze({
 	//URL: 'url'
 })
 
-export class Field implements IField {
+export class Field implements IFieldUpdate {
 	name: string
 	type: string
 	primary: boolean
@@ -89,10 +94,10 @@ export class Field implements IField {
 			if (field.default && field.defaultValue != undefined) {
 				this.defaultValue = field.defaultValue
 			}
-			if (field.type == 'string') {
-				field.type = 'text'
-			}
 			this.type = field.type || FieldType.TEXT
+			if (this.type == 'string') {
+				this.type = FieldType.TEXT
+			}
 			this.autoIncrement = false
 			if (this.type.toLowerCase() == FieldType.NUMBER && field.autoIncrement) {
 				this.autoIncrement = true
