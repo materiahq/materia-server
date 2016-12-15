@@ -3,8 +3,8 @@ import { Entity } from './entity'
 import { IValidator, Validator } from './validator'
 
 export interface IField {
-	name: string
-	type: string
+	name?: string
+	type?: string
 	primary?: boolean
 	unique?: boolean
 	required?: boolean

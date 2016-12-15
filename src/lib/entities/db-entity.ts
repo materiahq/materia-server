@@ -319,7 +319,6 @@ export class DBEntity extends Entity {
 			}).catch((err) => {
 				if (err == null && options.db == false)
 					return accept(fieldobj)
-				console.error('error while updateField', err.stack)
 				reject(err)
 			})
 		})
