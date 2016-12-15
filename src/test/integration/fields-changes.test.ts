@@ -54,7 +54,7 @@ describe('[Fields]', () => {
 				name: "foo",
 				type: "text",
 				read: true,
-				write: false,
+				write: true,
 				default: true,
 				defaultValue: "bar",
 				component: "input"
@@ -83,7 +83,7 @@ describe('[Fields]', () => {
 				name: "foo2",
 				type: "text",
 				read: true,
-				write: false,
+				write: true,
 				required: true,
 				default: false,
 				defaultValue: "bar2",
@@ -102,6 +102,88 @@ describe('[Fields]', () => {
 			}).then(() => {
 				//return app.entities.get('test').getQuery('create').run().should.be.rejectedWith('Missing required parameter')
 				// TODO actual is .rejectedWith('foo2 cannot be null') but it should refresh the query parameters when adding the field.
+			})
+		})
+		it('should delete field "foo2"', () => {
+			return app.entities.get("test").removeField("foo2").then(() => {
+				should.not.exist(app.entities.get('test').getField("foo2"))
+				return app.entities.get('test').getQuery('get').run({ id_test: 1 }, { raw: true }).should.become({
+					id_test: 1,
+					foo: "bar",
+				})
+			})
+		})
+		it('should not update field "foo" to a unique field', () => {
+			return app.entities.get("test").updateField("foo", { unique:true }).should.be.rejectedWith('Validation error')
+		})
+		it('should update field "foo" to a unique field', () => {
+			let fieldjson = {
+				name: "foo",
+				type: "text",
+				unique: true,
+				read: true,
+				write: true,
+				default: true,
+				defaultValue: "bar",
+				component: "input"
+			}
+			return app.entities.get('test').getQuery('delete').run({ id_test: 2 }).then(() => {
+				return app.entities.get("test").updateField("foo", { unique:true })
+			}).then(field => {
+				should.exist(field)
+				field.toJson().should.deep.equal(fieldjson)
+				return app.entities.get('test').getQuery('create').run().should.be.rejectedWith('Validation error')
+			}).then(() => {
+				return app.entities.get('test').getQuery('create').run({
+					foo: "bar2"
+				}).should.be.fulfilled
+			})
+		})
+		it('should add a unique field "foo2" and make a unique group with "foo"', () => {
+			let fieldjson = {
+				name: "foo",
+				type: "text",
+				unique: "uniq_foo",
+				read: true,
+				write: true,
+				default: true,
+				defaultValue: "bar",
+				component: "input"
+			}
+			let fieldjson2 = {
+				name: "foo2",
+				type: "text",
+				unique: "uniq_foo",
+				read: true,
+				write: true,
+				default: true,
+				defaultValue: "bar",
+				component: "input"
+			}
+			return app.entities.get('test').getQuery('delete').run({ id_test: 2 }).then((count) => {
+				should.equal(count, 1)
+				return app.entities.get("test").addField(fieldjson2).should.be.fulfilled
+			}).then(field2 => {
+				should.exist(field2)
+				field2.toJson().should.deep.equal(fieldjson2)
+				return app.entities.get("test").updateField("foo", { unique: "uniq_foo" }).should.be.fulfilled
+			}).then(field => {
+				should.exist(field)
+				field.toJson().should.deep.equal(fieldjson)
+				return app.entities.get('test').getQuery('create').run({
+					foo: "bar2",
+					foo2: "bar3"
+				}).should.be.fulfilled
+			}).then(() => {
+				return app.entities.get('test').getQuery('create').run({
+					foo: "bar2",
+					foo2: "bar4"
+				}).should.be.fulfilled
+			}).then(() => {
+				return app.entities.get('test').getQuery('create').run({
+					foo: "bar2",
+					foo2: "bar3"
+				}).should.be.rejectedWith('Validation error')
 			})
 		})
 	});

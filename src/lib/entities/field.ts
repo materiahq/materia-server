@@ -6,7 +6,7 @@ export interface IField {
 	name?: string
 	type?: string
 	primary?: boolean
-	unique?: boolean
+	unique?: boolean | string
 	required?: boolean
 	default?: boolean
 	defaultValue?: any
@@ -60,7 +60,7 @@ export class Field implements IFieldUpdate {
 	name: string
 	type: string
 	primary: boolean
-	unique: boolean
+	unique: boolean | string
 	required: boolean
 	default: boolean
 	defaultValue: any
