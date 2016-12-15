@@ -6,6 +6,7 @@ import * as fse from 'fs-extra'
 import * as Sequelize from 'sequelize'
 
 import App, { IApplyOptions } from './app'
+import MateriaError from './error'
 
 import { IAddon } from './addons'
 
@@ -295,7 +296,7 @@ export class Entities {
 		return this.app.saveFile(path.join(this.app.path, '.materia', 'ids.json'), JSON.stringify(name_map), actions)
 	}
 
-	detect_rename() {
+	detect_rename():Promise<any> {
 		let name_map
 		try {
 			let content = fs.readFileSync(path.join(this.app.path, '.materia', 'ids.json')).toString()
@@ -342,11 +343,11 @@ export class Entities {
 	@param {object} - Action's options
 	@returns {Promise}
 	*/
-	remove(name: string, options?: IApplyOptions): Promise<any> | boolean {
+	remove(name: string, options?: IApplyOptions): Promise<any> {
 		options = options || {}
 
 		if ( ! name) {
-			return false
+			return Promise.reject(new MateriaError("You must specify a entity name"))
 		}
 
 		let p = Promise.resolve()
@@ -394,7 +395,7 @@ export class Entities {
 			}
 
 			if (options.db == false) {
-				return Promise.reject('db disabled')
+				return Promise.reject(new MateriaError('Cannot delete entity (database is disabled)'))
 			}
 
 			// TODO: remove constraint to avoid force:true ? more tests needed
