@@ -5,6 +5,7 @@ import App from '../../lib/app'
 import MateriaError from '../../lib/app'
 import { TemplateApp } from '../mock/template-app'
 
+chai.config.truncateThreshold = 500
 chai.use(chaiAsPromised)
 const should = chai.should()
 
