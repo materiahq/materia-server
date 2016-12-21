@@ -7,7 +7,7 @@ let topics = {
 		'Usage: materia <command>',
 		'',
 		'Available commands:',
-		'    addons, deploy, help, init, start, version',
+		'    addons, deploy, help, init, install, setup, start, version',
 		'',
 		'materia help <cmd>\tdisplay help on <cmd>',
 		'materia --version\tdisplay materia version'
@@ -65,6 +65,16 @@ let topics = {
 		'Usage: materia init',
 		'',
 		'Initialize a new materia app'
+	],
+	'install': [
+		'Usage: materia install [npmPackage]',
+		'',
+		'Install and setup the app, or a new addon if npmPackage is specified.'
+	],
+	'setup': [
+		'Usage: materia setup [npmPackage]',
+		'',
+		'(Re)configure the addons, or the addon npmPackage if specified.'
 	],
 	'start': [
 		'Usage: materia start [--runtimes=all]',

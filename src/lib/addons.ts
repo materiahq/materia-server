@@ -97,7 +97,7 @@ export default class Addons {
 		})
 	}
 
-	private _searchInstalledAddons():Promise<Array<string>> {
+	searchInstalledAddons():Promise<Array<string>> {
 		let pkg = require(path.join(this.app.path, 'package.json'))
 		let addons = []
 		let dependencies = Object.assign({}, pkg.dependencies || {}, pkg.devDependencies || {})
@@ -142,7 +142,7 @@ export default class Addons {
 	*/
 	loadAddons():Promise<void> {
 		return this.loadConfig().then(config => {
-			return this._searchInstalledAddons()
+			return this.searchInstalledAddons()
 		}).then(addonsName => {
 			return this._initializeAll(addonsName)
 		}).then(addons => {
