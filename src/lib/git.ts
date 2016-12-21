@@ -236,9 +236,13 @@ export default class Git extends EventEmitter {
 		}).then(() => {
 			repoCopy = git(options.to)
 			repoCopy.silent(true)
-			return waitAndSend(()=>repoCopy.fetch(options.remote, options.branch))
+			return waitAndSend(() => repoCopy.fetch(options.remote, options.branch))
 		}).then(() => {
-			return waitAndSend(()=>repoCopy.reset(["--hard", `${options.remote}/${options.branch}`]))
+			return waitAndSend(() => repoCopy.reset(["--hard", `${options.remote}/${options.branch}`]))
+		}).then(() => {
+			if (fse.existsSync(Path.join(options.path, '.materia', 'server.json'))) {
+				fse.copySync(Path.join(options.path, '.materia', 'server.json'), Path.join(options.to, '.materia', 'server.json'))
+			}
 		}).then(() => {
 			if (applyOptions.afterSave)
 				applyOptions.afterSave()

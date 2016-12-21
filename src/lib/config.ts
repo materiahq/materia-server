@@ -58,7 +58,7 @@ export class Config {
 	reloadConfig():void {
 		this.config = {}
 		try {
-			let content = fs.readFileSync(path.join(this.app.path, 'server', 'server.json')).toString()
+			let content = fs.readFileSync(path.join(this.app.path, '.materia', 'server.json')).toString()
 			this.config = JSON.parse(content)
 		}
 		catch (e) {
@@ -159,9 +159,9 @@ export class Config {
 		}
 
 		if (opts && opts.beforeSave) {
-			opts.beforeSave(path.join('server', 'server.json'))
+			opts.beforeSave(path.join('.materia', 'server.json'))
 		}
-		this.app.saveFile(path.join(this.app.path, 'server', 'server.json'), JSON.stringify(this.toJson(), null, '\t'), { mkdir: true }).catch(e => {
+		this.app.saveFile(path.join(this.app.path, '.materia', 'server.json'), JSON.stringify(this.toJson(), null, '\t'), { mkdir: true }).catch(e => {
 			if (opts && opts.afterSave) {
 				opts.afterSave()
 			}

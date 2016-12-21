@@ -331,6 +331,22 @@ export class Migration {
 		})
 	}
 
+	// migration from 0.5.0: move server/server.json to .materia/server.json
+	checkMigrate_0_5():Promise<boolean> {
+		return new Promise((accept, reject) => {
+			if (fs.existsSync(path.join(this.app.path, 'server', 'server.json'))) {
+				fse.move(path.join(this.app.path, 'server', 'server.json'), path.join(this.app.path, '.materia', 'server.json'), (err) => {
+					if (err) {
+						return reject(err)
+					}
+					accept(true)
+				})
+			} else {
+				accept(false)
+			}
+		})
+	}
+
 	check():Promise<any> {
 		return this.checkMigrateDatabaseConf().then(migrate => {
 			if (migrate) {
@@ -340,6 +356,11 @@ export class Migration {
 		}).then(migrate => {
 			if (migrate) {
 				this.app.logger.warn('Migrated from 0.4 structure')
+			}
+			return this.checkMigrate_0_5()
+		}).then(migrate => {
+			if (migrate) {
+				this.app.logger.warn('Migrated from 0.5 structure')
 			}
 		}).catch((e) => {
 			this.app.logger.warn('Error during migration:', e)
