@@ -4,7 +4,8 @@ import * as path from 'path'
 import * as fse from 'fs-extra'
 import * as request from 'request'
 
-import App from '../../lib/app'
+import App, { AppMode } from '../../lib/app'
+import { ConfigType } from '../../lib/config'
 
 export class TemplateApp {
 	private name:string
@@ -18,10 +19,21 @@ export class TemplateApp {
 		let app_path = fs.mkdtempSync((process.env.TMPDIR || '/tmp/') + 'materia-test-')
 		fse.copySync(path.join(__dirname, '..', '..', '..', 'src', 'test', 'apps', this.name), app_path, { clobber:true, recursive:true })
 
-		let app = new App(app_path, {logRequests:false})
 		this.request = request.defaults({
 			json: true
 		})
+
+		let app = new App(app_path, {logRequests:false})
+
+		app.config.set({
+			"host": "localhost",
+			"port": 8798
+		}, AppMode.DEVELOPMENT, ConfigType.WEB)
+
+		app.config.set({
+			"type": "sqlite"
+		}, AppMode.DEVELOPMENT, ConfigType.DATABASE )
+
 		app.logger.setConsole({
 			log: function() {},
 			warn: function() {},

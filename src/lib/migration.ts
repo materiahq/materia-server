@@ -336,6 +336,9 @@ export class Migration {
 		return new Promise((accept, reject) => {
 			if (fs.existsSync(path.join(this.app.path, 'server', 'server.json'))) {
 				fse.move(path.join(this.app.path, 'server', 'server.json'), path.join(this.app.path, '.materia', 'server.json'), (err) => {
+					if (err['code'] == 'EEXIST') {
+						return accept(false)
+					}
 					if (err) {
 						return reject(err)
 					}
