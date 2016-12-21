@@ -1,4 +1,5 @@
 import { AbstractDialect } from './abstract'
+import MateriaError from '../../error'
 
 export class MysqlDialect extends AbstractDialect {
 	constructor(sequelize) {
@@ -140,7 +141,7 @@ export class MysqlDialect extends AbstractDialect {
 				})
 				return res
 			}).catch((e) => {
-				let err = new Error('Error when scanning database')
+				let err = new MateriaError('Error when scanning database')
 				err['originalError'] = e
 				throw err
 			})

@@ -310,7 +310,7 @@ export class Entity {
 		options = options || {}
 		return new Promise((accept, reject) => {
 			if (relation.field && relation.reference.entity == relation.field) {
-				return reject(new Error('The reference field cannot have the same name that its referenced entity'))
+				return reject(new MateriaError('The reference field cannot have the same name that its referenced entity'))
 			}
 
 			let entityDest = this.app.entities.get(relation.reference.entity)
@@ -330,10 +330,10 @@ export class Entity {
 				if (relation.reference.field && relation.reference.field != keyReference.name) {
 					let f = entityDest.getField(relation.reference.field)
 					if ( ! f) {
-						return reject(new Error(`The relation's referenced field ${entityDest.name}.${relation.reference.field} does not exist`))
+						return reject(new MateriaError(`The relation's referenced field ${entityDest.name}.${relation.reference.field} does not exist`))
 					}
 					if ( ! f.unique) {
-						return reject(new Error(`${entityDest.name}.${f.name} cannot be referenced in relation (need to be unique/primary)`))
+						return reject(new MateriaError(`${entityDest.name}.${f.name} cannot be referenced in relation (need to be unique/primary)`))
 					}
 					keyReference = f
 				}
@@ -409,7 +409,7 @@ export class Entity {
 						if (throughEntity.isRelation) {
 							//console.log ('compare relations', throughEntity.isRelation, relation)
 							if (throughEntity.compareIsRelation(relation, this))
-								return reject(new Error('Table ' + relation.through + ' is already used for a different relation'))
+								return reject(new MateriaError('Table ' + relation.through + ' is already used for a different relation'))
 							//console.log('already exists, ok', asField1, asField2)
 							p = Promise.resolve()
 							if ( ! asField1) {
@@ -447,7 +447,7 @@ export class Entity {
 						}
 						else {
 							if ( ! asField1 || ! asField2) {
-								return reject(new Error('Cannot use existing table ' + relation.through + ' for a many to many relation'))
+								return reject(new MateriaError('Cannot use existing table ' + relation.through + ' for a many to many relation'))
 							}
 
 							throughEntity.isRelation = isRelation
@@ -559,7 +559,7 @@ export class Entity {
 
 		let i = this.getRelationIndex(relation)
 		if (i == -1 && options.apply != false)
-			return Promise.reject(new Error('Could not find relation'))
+			return Promise.reject(new MateriaError('Could not find relation'))
 
 		let p = Promise.resolve()
 		if (options.apply != false) {
@@ -790,7 +790,7 @@ export class Entity {
 					oldfield.isRelation = field.isRelation
 					return Promise.resolve(oldfield)
 				}
-				return Promise.reject(new Error('A field of this name already exists'))
+				return Promise.reject(new MateriaError('A field of this name already exists'))
 			}
 			this.fields.splice(at, 0, fieldobj)
 		}
@@ -848,10 +848,10 @@ export class Entity {
 	removeField(name:string, options?):Promise<void> {
 		options = options || {}
 		if (! name) {
-			return Promise.reject(new Error('The name of the field is required'))
+			return Promise.reject(new MateriaError('The name of the field is required'))
 		}
 		if (options.apply != false && ! this.getField(name)) {
-			return Promise.reject(new Error('This field does not exist'))
+			return Promise.reject(new MateriaError('This field does not exist'))
 		}
 		this.fields.forEach((field, k) => {
 			if (field.name == name) {
@@ -963,7 +963,7 @@ export class Entity {
 		options = options || {}
 
 		if ( ! this.queryObjects[type]) {
-			throw new Error('Query type `' + type + '` not defined')
+			throw new MateriaError('Query type `' + type + '` not defined')
 		}
 
 		//To migrate from to November release (remove params OR moved to opts if SQL / Custom queries)
@@ -1004,7 +1004,7 @@ export class Entity {
 
 	getNewQuery(id:string, type: string, opts):IQueryConstructor {
 		if ( ! this.queryObjects[type]) {
-			throw new Error('Query type `' + type + '` not defined')
+			throw new MateriaError('Query type `' + type + '` not defined')
 		}
 
 		let QueryClass = this.queryObjects[type]
@@ -1024,7 +1024,7 @@ export class Entity {
 		let queryobj = this.getQuery(id)
 
 		if ( ! queryobj) {
-			throw new Error('Could node find query `' + id + '`')
+			throw new MateriaError('Could node find query `' + id + '`')
 		}
 
 		if (options.apply != false) {

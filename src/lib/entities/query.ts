@@ -30,7 +30,7 @@ export class QueryParamResolver {
 			if (params.headers)
 				return params.headers[paramName];
 
-			throw new Error("header not found " + paramName)
+			throw new MateriaError("header not found " + paramName)
 		}
 
 		//if field.substr(0, 1) == '$'
@@ -75,7 +75,7 @@ export abstract class Query {
 	abstract refresh();
 
 	updateOption(name, value, options) {
-		return Promise.reject(new Error('not implemented yet'))
+		return Promise.reject(new MateriaError('not implemented yet'))
 	}
 
 	hasParameters():boolean {

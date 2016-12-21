@@ -110,7 +110,7 @@ class Deploy {
 
 			let files = filesNeeded[provider]
 			if ( ! files)
-				return Promise.reject(new Error("unknown deploy provider: " + provider))
+				return Promise.reject(new MateriaError("unknown deploy provider: " + provider))
 			for (let file of files)
 				this._generateFile(file, infos)
 
@@ -147,7 +147,7 @@ class Deploy {
 						if (error || stderr || stdoutstr == '')
 							return reject(error)
 						if ( ! stdoutstr.match(/\sheroku-container-tools@/))
-							return reject(new Error("heroku-container-tools plugin not installed"))
+							return reject(new MateriaError("heroku-container-tools plugin not installed"))
 						accept()
 					})
 				})
@@ -157,12 +157,12 @@ class Deploy {
 					fs.readFile(path.join(homedir, '.netrc'), (err, data) => {
 						const errmsg = 'You must run "heroku login" before deploying your app'
 						if (err)
-							return reject(new Error(errmsg))
+							return reject(new MateriaError(errmsg))
 						let datastr = data.toString()
 						if ( ! datastr.match(/machine api.heroku.com/))
-							return reject(new Error(errmsg))
+							return reject(new MateriaError(errmsg))
 						if ( ! datastr.match(/machine git.heroku.com/))
-							return reject(new Error(errmsg))
+							return reject(new MateriaError(errmsg))
 						accept()
 					})
 				})
@@ -173,10 +173,10 @@ class Deploy {
 					fs.readFile(path.join(this.app.path, '.git', 'config'), (err, data) => {
 						const errmsg = 'No heroku app specified. Use the --heroku-app=APP option or from an heroku app folder'
 						if (err)
-							return reject(new Error(errmsg))
+							return reject(new MateriaError(errmsg))
 						let datastr = data.toString()
 						if ( ! datastr.match(/\s[remote "heroku"]/))
-							return reject(new Error(errmsg))
+							return reject(new MateriaError(errmsg))
 						accept()
 					})
 				})

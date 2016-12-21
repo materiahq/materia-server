@@ -1,4 +1,5 @@
 import { Entity } from './entity'
+import MateriaError from '../error'
 
 import App from '../app'
 import { Field, IField, IFieldUpdate } from './field'
@@ -158,7 +159,7 @@ export class DBEntity extends Entity {
 
 		return new Promise((accept, reject) => {
 			if (!oldfield) {
-				return reject(new Error('This field does not exist'))
+				return reject(new MateriaError('This field does not exist'))
 			}
 
 

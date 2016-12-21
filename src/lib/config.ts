@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import App, { AppMode, ISaveOptions } from './app'
+import MateriaError from './error'
 
 export interface IWebConfig {
 	port: number,
@@ -115,7 +116,7 @@ export class Config {
 		let webConfig = <IWebConfig> config
 		if ( type == ConfigType.WEB && (! webConfig.host || ! webConfig.port) ) {
 			if (mode == AppMode.DEVELOPMENT) {
-				throw new Error('Missing host/port')
+				throw new MateriaError('Missing host/port')
 			} else {
 				config = undefined
 			}

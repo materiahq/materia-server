@@ -74,7 +74,7 @@ class Controller {
 			this.ctrlStr = fs.readFileSync(ctrlPath, 'utf8').toString()
 			delete this.ctrlInstance
 		} catch(e) {
-			let err = new Error('Could not load controller ' + controller) as any
+			let err = new MateriaError('Could not load controller ' + controller) as any
 			err.originalError = e
 			throw err
 		}
@@ -137,7 +137,7 @@ export class Endpoint {
 			ctrl.load(basePath, this.controller)
 
 			if ( ! ctrl.ctrlClass.prototype[this.action]) {
-				throw new Error(`cannot find method ${this.action} in controller ${this.controller}.js`)
+				throw new MateriaError(`cannot find method ${this.action} in controller ${this.controller}.js`)
 			}
 			this._buildParams(endpointConfig.params)
 		}
@@ -153,13 +153,13 @@ export class Endpoint {
 			this.entity = this.app.entities.get(entity_name)
 
 			if ( ! this.entity) {
-				throw new Error('Could not find entity ' + entity_name)
+				throw new MateriaError('Could not find entity ' + entity_name)
 			}
 
 			this.query = this.entity.getQuery(endpointConfig.query.id)
 
 			if ( ! this.query || this.query.error ) {
-				throw new Error('Could not find query "' + endpointConfig.query.id + '" of entity ' + this.entity.name)
+				throw new MateriaError('Could not find query "' + endpointConfig.query.id + '" of entity ' + this.entity.name)
 			}
 			this._buildParams(this.query.params)
 		}

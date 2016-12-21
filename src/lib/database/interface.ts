@@ -1,6 +1,7 @@
 import * as Sequelize from 'sequelize'
 
 import { Database } from '../database'
+import MateriaError from '../error'
 
 import { PostgresDialect } from './dialects/postgres'
 import { MysqlDialect } from './dialects/mysql'
@@ -206,7 +207,7 @@ export class DatabaseInterface {
 		for (let type of (Array.isArray(field.type) ? field.type : [field.type])) {
 			let formattedType = type.toLowerCase().replace(/\(.*\)/g,'').trim()
 			if ( ! typemap[formattedType])
-				throw new Error('Unknown type : "' + formattedType + '"')
+				throw new MateriaError('Unknown type : "' + formattedType + '"')
 			types.push(typemap[formattedType])
 		}
 

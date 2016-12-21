@@ -155,6 +155,11 @@ export default class App extends events.EventEmitter {
 		if (this.options.runtimes != "core") {
 			let Git = require('./git')
 			this.git = new Git.default(this)
+
+			this.deploy = new Deploy(this)
+
+			let AddonsTools = require('./runtimes/tools/addons')
+			this.addonsTools = new AddonsTools(this)
 		}
 	}
 
@@ -187,7 +192,7 @@ export default class App extends events.EventEmitter {
 				return this.git.status().then(status => {
 					for (let file of status.files) {
 						if (file.working_dir == 'U') {
-							throw new Error('Git repo contains unresolved conflicts')
+							throw new MateriaError('Git repo contains unresolved conflicts')
 						}
 					}
 				}).catch(e => {
@@ -208,14 +213,6 @@ export default class App extends events.EventEmitter {
 			p = this.loadMateria()
 		}
 		return p.then(() => {
-			//TODO: need to simplify this.
-			if (this.options.runtimes != "core") {
-				this.deploy = new Deploy(this)
-
-				let AddonsTools = require('./runtimes/tools/addons')
-				this.addonsTools = new AddonsTools(this)
-			}
-		}).then(() => {
 			this.database.load()
 			this.server.load()
 			return this.addons.loadAddons()
@@ -256,14 +253,14 @@ export default class App extends events.EventEmitter {
 					}
 					fs.readFile(path.join(this.path, 'package.json'), 'utf8', (err, conf) => {
 						if (err) {
-							return reject(new Error('Could not load package.json'))
+							return reject(new MateriaError('Could not load package.json'))
 						}
 						let confJson
 						try {
 							confJson = JSON.parse(conf)
 						}
 						catch (e) {
-							return reject(new Error('Could not parse package.json. The JSON seems invalid'))
+							return reject(new MateriaError('Could not parse package.json. The JSON seems invalid'))
 						}
 						confJson.materia = confJson.materia || {}
 						confJson.materia.name = confJson.name
@@ -547,7 +544,7 @@ export default class App extends events.EventEmitter {
 	installLive():Promise<any> {
 		let gitConfig = this.config.get(AppMode.PRODUCTION, ConfigType.GIT) as IGitConfig
 		if ( ! gitConfig || ! gitConfig.remote || ! gitConfig.branch ) {
-			return Promise.reject(new Error('Missing git configuration for production mode.'))
+			return Promise.reject(new MateriaError('Missing git configuration for production mode.'))
 		}
 		return this.git.copyCheckout({
 			path: this.path,

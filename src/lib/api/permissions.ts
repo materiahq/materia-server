@@ -1,4 +1,5 @@
 import App from '../app'
+import MateriaError from '../error'
 
 export interface IPermission {
 	name: string,
@@ -33,7 +34,7 @@ export class Permissions {
 				let permission = this.permissions.find(permission => permission.name == permissionName)
 
 				if ( ! permission) {
-					next(new Error('Could not find permission "' + permissionName + '"'))
+					next(new MateriaError('Could not find permission "' + permissionName + '"'))
 					return false
 				}
 
@@ -89,7 +90,7 @@ export class Permissions {
 		if (this.permissions.find(permission => {
 			return permission.name == name
 		})) {
-			return Promise.reject(new Error(`The permission ${name} already exists`))
+			return Promise.reject(new MateriaError(`The permission ${name} already exists`))
 		}
 		this.permissions.push({
 			name: name,

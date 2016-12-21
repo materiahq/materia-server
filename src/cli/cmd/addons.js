@@ -1,6 +1,6 @@
 'use strict'
 
-let App = require('../../lib/app')
+import App from '../../lib/app'
 
 let msgs = {
 	install: {

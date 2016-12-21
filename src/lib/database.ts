@@ -10,6 +10,7 @@ import App, { AppMode, ISaveOptions } from './app'
 import { ConfigType, IDatabaseConfig, IConfigOptions } from './config'
 
 import { DatabaseInterface } from './database/interface'
+import MateriaError from './error'
 
 export enum Dialect {
 	POSTGRES,
@@ -190,7 +191,7 @@ export class Database {
 			return Promise.resolve()
 		}
 		if ( ! this.interface.hasDialect(this.type)) {
-			return Promise.reject(new Error('The database\'s dialect is not supported'))
+			return Promise.reject(new MateriaError('The database\'s dialect is not supported'))
 		}
 		this.app.emit('db:start')
 		try {

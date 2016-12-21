@@ -1,4 +1,5 @@
 import { Entity } from './entity'
+import MateriaError from '../error'
 
 import { IValidator, Validator } from './validator'
 
@@ -81,7 +82,7 @@ export class Field implements IFieldUpdate {
 
 	constructor(private entity: Entity, field: IField) {
 		if ( ! field || ! field.name) {
-			throw new Error("A field must have a name")
+			throw new MateriaError("A field must have a name")
 		}
 		else {
 			this.name = field.name

@@ -1,4 +1,5 @@
 import * as Sequelize from 'sequelize'
+import MateriaError from '../../error'
 
 export class AbstractDialect {
 	sequelize: Sequelize.Sequelize
@@ -8,7 +9,7 @@ export class AbstractDialect {
 	}
 
 	showTables():Promise<any> {
-		return Promise.reject(new Error('Not implemented method in dialect'))
+		return Promise.reject(new MateriaError('Not implemented method in dialect'))
 	}
 
 	getIndices(table):Promise<any> {
@@ -69,11 +70,11 @@ export class AbstractDialect {
 	}
 
 	dropConstraint(table, constraint):Promise<any> {
-		return Promise.reject(new Error('Not implemented method in dialect'))
+		return Promise.reject(new MateriaError('Not implemented method in dialect'))
 	}
 
 	addConstraint(table, constraint):Promise<any> {
-		return Promise.reject(new Error('Not implemented method in dialect'))
+		return Promise.reject(new MateriaError('Not implemented method in dialect'))
 	}
 
 	castColumnType(table, column_name, old_type, type):Promise<any> {

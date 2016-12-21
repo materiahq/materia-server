@@ -3,6 +3,7 @@ import * as path from 'path'
 
 import App, { AppMode } from './app'
 import { ConfigType, IWebConfig, IConfigOptions } from './config'
+import MateriaError from './error'
 
 import * as express from 'express'
 
@@ -145,10 +146,10 @@ export class Server {
 				let errListener = (e) => {
 					let err
 					if (e.code == 'EADDRINUSE') {
-						err = new Error(`Error while starting the server: The port ${port} is already used by another server.`)
+						err = new MateriaError(`Error while starting the server: The port ${port} is already used by another server.`)
 					}
 					else {
-						err = new Error('Error while starting the server: ' + e.message)
+						err = new MateriaError('Error while starting the server: ' + e.message)
 					}
 					err.originalError = e
 					this.app.logger.error(err)

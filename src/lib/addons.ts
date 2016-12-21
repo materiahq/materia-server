@@ -5,6 +5,7 @@ import * as mkdirp from 'mkdirp'
 import * as rmdir from 'rimraf'
 
 import App from './app'
+import MateriaError from './error'
 
 export interface IAddonInfo {
 	description: string,
@@ -22,6 +23,12 @@ export interface IAddon {
 	obj: any
 }
 
+export interface IAddonConfig {
+	[name:string]: {
+		[param_name:string]: any
+	}
+}
+
 export interface IAddonOptions {
 
 }
@@ -34,7 +41,7 @@ export interface IAddonOptions {
 export default class Addons {
 	addons: IAddon[]
 	addonsObj: any
-	addonsConfig: any
+	addonsConfig: IAddonConfig
 
 	constructor(private app: App) {
 		this.addons = []
@@ -55,7 +62,7 @@ export default class Addons {
 		})
 	}
 
-	private _setupModule(setup:()=>Promise<any>):Promise<any> {
+	setupModule(setup:(require:NodeRequire)=>Promise<any>):Promise<any> {
 		let current = path.resolve(this.app.path, 'node_modules')
 		let old
 		let shifted = 0
@@ -76,7 +83,7 @@ export default class Addons {
 		}
 		let setup_p
 		try {
-			setup_p = setup()
+			setup_p = Promise.resolve(setup(require))
 		} catch (e) {
 			done()
 			return Promise.reject(e)
@@ -93,8 +100,8 @@ export default class Addons {
 	private _searchInstalledAddons():Promise<Array<string>> {
 		let pkg = require(path.join(this.app.path, 'package.json'))
 		let addons = []
-		let dependencies = pkg.dependencies || {}
-		return this._setupModule(() => {
+		let dependencies = Object.assign({}, pkg.dependencies || {}, pkg.devDependencies || {})
+		return this.setupModule(() => {
 			for (let dep in dependencies) {
 				try {
 					let dep_pkg = require(dep + '/package.json')
@@ -108,9 +115,24 @@ export default class Addons {
 		})
 	}
 
-	private _loadConfig():Promise<any> {
+	loadConfig():Promise<IAddonConfig> {
 		let pkg = require(path.join(this.app.path, 'package.json'))
-		this.addonsConfig = pkg.materia.addons || {}
+		this.addonsConfig = pkg.materia && pkg.materia.addons || {}
+		try {
+			let setup:IAddonConfig = require(path.join(this.app.path, '.materia/addons.json'))
+			this.addonsConfig = Object.assign({}, this.addonsConfig)
+			for (let k in setup) {
+				if (this.addonsConfig[k]) {
+					this.addonsConfig[k] = Object.assign(this.addonsConfig[k], setup[k])
+				} else {
+					this.addonsConfig[k] = setup[k]
+				}
+			}
+		} catch(e) {
+			if (e.code != 'MODULE_NOT_FOUND') {
+				return Promise.reject(new MateriaError(`Error in .materia/addons.json`))
+			}
+		}
 		return Promise.resolve(this.addonsConfig)
 	}
 
@@ -119,7 +141,7 @@ export default class Addons {
 	@returns Promise<void>
 	*/
 	loadAddons():Promise<void> {
-		return this._loadConfig().then(config => {
+		return this.loadConfig().then(config => {
 			return this._searchInstalledAddons()
 		}).then(addonsName => {
 			return this._initializeAll(addonsName)
@@ -145,14 +167,14 @@ export default class Addons {
 
 	private _checkName(name:string):Promise<void> {
 		if ( ! name ) {
-			return Promise.reject(new Error('A name is required to create an addon.'))
+			return Promise.reject(new MateriaError('A name is required to create an addon.'))
 		}
 		let regexp = /[a-zA-Z0-9][.a-zA-Z0-9-_]*/g
 		if ( ! regexp.test(name)) {
-			return Promise.reject(new Error('The addon name contains bad characters.'))
+			return Promise.reject(new MateriaError('The addon name contains bad characters.'))
 		}
 		if (fs.exists(path.join(this.app.path, 'node_modules', name))) {
-			return Promise.reject(new Error('The addon already exists: ' + name))
+			return Promise.reject(new MateriaError('The addon already exists: ' + name))
 		}
 	}
 
@@ -291,13 +313,13 @@ module.exports = ${nameCapitalizeFirst};`
 
 	private _initialize(addon:string):Promise<IAddon> {
 		let AddonClass, addonInstance, addonPackage
-		return this._setupModule(() => {
+		return this.setupModule(() => {
 			let app_path, addon_app
 			try {
 				app_path = path.dirname(require.resolve(path.join(addon, 'package.json')))
 				addon_app = new App(app_path, {})
 			} catch (e) {
-				let err = new Error('Impossible to initialize addon ' + addon) as any
+				let err = new MateriaError('Impossible to initialize addon ' + addon) as any
 				err.originalError = e
 				return Promise.reject(err)
 			}
@@ -306,14 +328,14 @@ module.exports = ${nameCapitalizeFirst};`
 					addonPackage = require(path.join(addon, 'package.json'))
 					AddonClass = require(addon)
 				} catch (e) {
-					let err = new Error('Impossible to require addon ' + addon) as any
+					let err = new MateriaError('Impossible to require addon ' + addon) as any
 					err.originalError = e
 					throw err
 				}
 				try {
 					addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp)
 				} catch(e) {
-					let err = new Error('Impossible to create addon ' + addon) as any
+					let err = new MateriaError('Impossible to create addon ' + addon) as any
 					err.originalError = e
 					throw err
 				}

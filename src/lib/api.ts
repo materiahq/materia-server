@@ -7,6 +7,7 @@ import { Endpoint } from './api/endpoint'
 import { Permissions } from './api/permissions'
 
 import App, { AppMode, IApplyOptions } from './app'
+import MateriaError from './error'
 
 import { IAddon } from './addons'
 
@@ -44,7 +45,7 @@ export default class Api {
 		options = options || {}
 
 		if ( ! endpoint.controller && typeof endpoint.query == 'Object' && endpoint.query.entity && this.app.database.disabled ) {
-			throw new Error('The database is disabled and this endpoint rely on it')
+			throw new MateriaError('The database is disabled and this endpoint rely on it')
 		}
 		if (endpoint) {
 			if (options.fromAddon) {

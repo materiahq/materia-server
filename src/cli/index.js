@@ -14,6 +14,8 @@ let cmds = [
 	require('./cmd/deploy'),
 	require('./cmd/init'),
 	require('./cmd/start'),
+	require('./cmd/setup'),
+	require('./cmd/install'),
 ]
 
 let args = argv._

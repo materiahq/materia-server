@@ -1,5 +1,5 @@
 import { Query, QueryParamResolver } from '../query'
-
+import MateriaError from '../../error'
 
 export class SQLQuery extends Query {
 	type: string
@@ -12,7 +12,7 @@ export class SQLQuery extends Query {
 		super(entity, id)
 
 		if ( ! opts || ! opts.query )
-			throw new Error('Missing required parameter "query"')
+			throw new MateriaError('Missing required parameter "query"')
 
 		this.type = 'sql'
 

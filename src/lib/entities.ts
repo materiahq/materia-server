@@ -117,7 +117,7 @@ export class Entities {
 				}
 			} catch (e) {
 				e += ' in ' + file
-				return Promise.reject(new Error(e))
+				return Promise.reject(new MateriaError(e))
 			}
 		}
 
@@ -208,7 +208,7 @@ export class Entities {
 			createPromise = Promise.resolve()
 		} else {
 			if (! entityobj.name)
-				return Promise.reject(new Error('missing entity name'))
+				return Promise.reject(new MateriaError('missing entity name'))
 			entity = new DBEntity(this.app)
 			if ( ! entityobj.isRelation && (! entityobj.fields || ! entityobj.fields.length)) {
 				entityobj.fields = [
@@ -415,10 +415,10 @@ export class Entities {
 		let entity = this.get(name)
 
 		if ( ! entity && options.full_rename != false)
-			return Promise.reject(new Error('Entity ' + name + ' does not exist.'))
+			return Promise.reject(new MateriaError('Entity ' + name + ' does not exist.'))
 
 		if ( entity && this.get(new_name))
-			return Promise.reject(new Error('Entity ' + new_name + ' already exists.'))
+			return Promise.reject(new MateriaError('Entity ' + new_name + ' already exists.'))
 
 		if (options.history != false) {
 			this.app.history.push({
