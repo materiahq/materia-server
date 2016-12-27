@@ -2,11 +2,11 @@ import { DBEntity } from '../../db-entity'
 import MateriaError from '../../../error'
 
 export interface ICondition {
-	entity: string
+	entity?: string
 	name: string
 	operator: string
 	value: any
-	operand: string
+	operand?: string
 	operandPriority?: number
 }
 

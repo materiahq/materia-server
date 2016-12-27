@@ -44,11 +44,7 @@ export interface IActionData {
 	value?: any,
 	name?: string,
 	position?: number,
-	values?: {
-		type: any,
-		params: any,
-		opts: any
-	}
+	values?: any
 }
 
 export interface IMigration {

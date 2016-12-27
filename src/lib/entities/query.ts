@@ -59,6 +59,24 @@ export interface IQueryConstructor {
 	toJson();
 }
 
+interface IQueryInclude {
+	entity: string
+	fields?: Array<string>
+	include?: Array<IQueryInclude>
+}
+
+export interface IQuery {
+	id: string
+	type: string
+	params?: Array<IQueryParam> // migrated in november 2016, to delete for major release.
+	opts?: {
+		params?: Array<IQueryParam>
+		select?: Array<string>
+		conditions?: Array<any>
+		include?: Array<IQueryInclude>
+	}
+}
+
 
 export abstract class Query {
 	params: IQueryParam[]

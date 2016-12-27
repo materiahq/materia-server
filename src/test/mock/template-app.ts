@@ -33,7 +33,8 @@ export class TemplateApp {
 	}
 
 	createApp(app_path:string):App {
-		let app = new App(app_path, {logRequests:false})
+		const debug_mode = !! process.env.DEBUG
+		let app = new App(app_path, {logRequests:debug_mode, logSql:debug_mode})
 
 		app.config.set({
 			"host": "localhost",
@@ -44,11 +45,13 @@ export class TemplateApp {
 			"type": "sqlite"
 		}, AppMode.DEVELOPMENT, ConfigType.DATABASE )
 
-		app.logger.setConsole({
-			log: function() {},
-			warn: function() {},
-			error: function() {}
-		})
+		if ( ! debug_mode) {
+			app.logger.setConsole({
+				log: function() {},
+				warn: function() {},
+				error: function() {}
+			})
+		}
 		return app
 	}
 

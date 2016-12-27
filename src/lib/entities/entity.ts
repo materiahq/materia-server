@@ -9,8 +9,24 @@ import { IAddon } from '../addons'
 
 import { Field, IField, IFieldUpdate } from './field'
 import { QueryGenerator } from './query-generator'
-import { Query, IQueryConstructor } from './query'
+import { Query, IQuery, IQueryConstructor } from './query'
 
+export interface IRelation {
+	type?: string,
+	field?: string,
+	as?: string,
+	through?: string,
+	reference: {
+		entity: string,
+		field?: string,
+		as?: string
+	}
+
+	// internal use
+	implicit?: boolean,
+	entity?: string,
+	paired?: boolean
+}
 
 export interface IEntityConfig {
 	id: string
@@ -26,7 +42,7 @@ export interface IEntityConfig {
  * An entity, in a database this correspond to a table.
  */
 export class Entity {
-	relations_queue: Array<any>
+	relations_queue: Array<{relation:IRelation, options:IApplyOptions}>
 	queryObjects: any
 
 	id: string
@@ -35,7 +51,7 @@ export class Entity {
 	isRelation: any
 
 	fields: Array<Field>
-	relations: Array<any>
+	relations: Array<IRelation>
 	queries: Array<Query>
 
 	fromAddon: IAddon
@@ -56,7 +72,7 @@ export class Entity {
 		}
 	}
 
-	fixIsRelation(options):Promise<void> {
+	fixIsRelation(options?:IApplyOptions):Promise<void> {
 		if ( ! this.isRelation)
 			return Promise.resolve()
 		let entity1 = this.app.entities.get(this.isRelation[0].entity)
@@ -154,7 +170,7 @@ export class Entity {
 		return Promise.all(promises)
 	}
 
-	loadQueries(queries) {
+	loadQueries(queries:Array<IQuery>):void {
 		this.initDefaultQuery()
 		if (queries) {
 			queries.forEach((query) => {
@@ -164,7 +180,7 @@ export class Entity {
 				]
 				if (reservedQueries.indexOf(query.id) == -1) {
 					try {
-						this.addQuery(query.id, query.type, query.params, query.opts, {history:false, save:false})
+						this.addQuery(query, {history:false, save:false})
 					} catch(e) {
 						let err = e.originalError || e instanceof MateriaError && e
 						if (err) {
@@ -216,13 +232,13 @@ export class Entity {
 	Returns a list of the relations
 	@returns {Array<Relation>}
 	*/
-	getRelations() { return this.relations }
+	getRelations():Array<IRelation> { return this.relations }
 
 	/**
 	 Returns all asociated entities
 	 @returns {Array<Relation>}
 	 */
-	getRelatedEntities() {
+	getRelatedEntities():Array<IRelation> {
 		let associatedEntity = {}
 		let entities = this.app.entities.entities
 		for (let name in entities) {
@@ -253,7 +269,7 @@ export class Entity {
 	@param {string} - Entity's field name
 	@returns {Relation}
 	*/
-	getRelation(field) {
+	getRelation(field:string):IRelation {
 		for (let relation of this.relations) {
 			if (field == relation.field)
 				return relation
@@ -266,7 +282,7 @@ export class Entity {
 	@param {Relation} - Relation to find in the relations array.
 	@returns {integer} Index of the relation in the relations array, or -1 if non existant.
 	*/
-	getRelationIndex(relation):number {
+	getRelationIndex(relation:IRelation):number {
 		let res = -1
 		this.relations.forEach((rel, i) => {
 			if (res != -1) {
@@ -306,7 +322,7 @@ export class Entity {
 	@param {object} - Action's options
 	@returns {Promise}
 	*/
-	addRelation(relation, options):Promise<any> {
+	addRelation(relation:IRelation, options?:IApplyOptions):Promise<any> {
 		options = options || {}
 		return new Promise((accept, reject) => {
 			if (relation.field && relation.reference.entity == relation.field) {
@@ -554,7 +570,7 @@ export class Entity {
 		})
 	}
 
-	removeRelation(relation, options?:IApplyOptions) {
+	removeRelation(relation:IRelation, options?:IApplyOptions):Promise<any> {
 		options = options || {}
 
 		let i = this.getRelationIndex(relation)
@@ -633,12 +649,8 @@ export class Entity {
 	@param {string} - Field's name.
 	@returns {Field}
 	*/
-	getField(name) {
-		for (let field of this.fields) {
-			if (field.name == name) {
-				return field
-			}
-		}
+	getField(name:string):Field {
+		return this.fields.find(field => field.name == name)
 	}
 
 	/**
@@ -646,7 +658,7 @@ export class Entity {
 	@param {string} - Field's name
 	@returns {Boolean}
 	*/
-	isField(name) {
+	isField(name:string):boolean {
 		return !! this.getField(name)
 	}
 
@@ -654,20 +666,14 @@ export class Entity {
 	Get the entity's fields.
 	@returns {Array<Field>}
 	*/
-	getFields() { return this.fields }
+	getFields():Array<Field> { return this.fields }
 
 	/**
 	Get the entity's writable fields.
 	@returns {Array<Field>}
 	*/
-	getWritableFields() {
-		let res = []
-		this.fields.forEach((field) => {
-			if (field.write) {
-				res.push(field)
-			}
-		})
-		return res
+	getWritableFields():Array<Field> {
+		return this.fields.filter(field => field.write)
 	}
 
 	/**
@@ -675,28 +681,16 @@ export class Entity {
 	@param {string|boolean} - unique group name, or true for independent uniques fields, or false for non unique fields.
 	@returns {Array<Field>}
 	*/
-	getUniqueFields(group) {
-		let res = []
-		this.fields.forEach((field) => {
-			if (field.unique == group) {
-				res.push(field)
-			}
-		})
-		return res
+	getUniqueFields(group:string | boolean):Array<Field>  {
+		return this.fields.filter(field => field.unique == group)
 	}
 
 	/**
 	Get the entity's readable fields.
 	@returns {Array<Field>}
 	*/
-	getReadableFields() {
-		let res = []
-		this.fields.forEach((field) => {
-			if (field.read) {
-				res.push(field)
-			}
-		})
-		return res
+	getReadableFields():Array<Field>  {
+		return this.fields.filter(field => field.read)
 	}
 
 	/**
@@ -948,35 +942,38 @@ export class Entity {
 	}
 
 	addDefaultQuery(id:string, type:string, params, opts) {
-		return this.addQuery(id, type, params, opts, {history:false, save:false})
+		return this.addQuery({
+			id: id,
+			type: type,
+			params: params,
+			opts: opts
+		}, {history:false, save:false})
 	}
 
 	/**
 	Add a query to the entity
 	@param {string} - Query's name
-	@param {string} - Query's type. can be `findAll`, `findOne`, `create`, `update`, `delete`, `custom` or `sql`
-	@param {Array<object>} - Query's parameters (input)
-	@param {object} - Query's options
+	@param {object} - Query's data
 	@param {object} - Action's options
 	*/
-	addQuery(id:string, type:string, params, opts, options?) {
+	addQuery(query:IQuery, options?:IApplyOptions) {
 		options = options || {}
 
-		if ( ! this.queryObjects[type]) {
-			throw new MateriaError('Query type `' + type + '` not defined')
+		if ( ! this.queryObjects[query.type]) {
+			throw new MateriaError('Query type `' + query.type + '` not defined')
 		}
 
 		//To migrate from to November release (remove params OR moved to opts if SQL / Custom queries)
-		if (params && (type == 'sql' || type == 'custom')) {
-			opts.params = params
+		if (query.params && (query.type == 'sql' || query.type == 'custom')) {
+			query.opts.params = query.params
 		}
 
-		let QueryClass = this.queryObjects[type]
-		let queryobj: Query = new QueryClass(this, id, opts)
+		let QueryClass = this.queryObjects[query.type]
+		let queryobj: Query = new QueryClass(this, query.id, query.opts)
 
 		if (options.apply != false) {
 			//check that query with `id` = id does not exist. if it exists, remove the query
-			let index = this.queries.indexOf(this.queries.find(query => query.id == id))
+			let index = this.queries.indexOf(this.queries.find(q => q.id == query.id))
 			if (index != -1) {
 				this.queries.splice(index, 1)
 			}
@@ -988,12 +985,12 @@ export class Entity {
 			this.app.history.push({
 				type: MigrationType.ADD_QUERY,
 				table: this.name,
-				id: id,
+				id: query.id,
 				value: queryobj.toJson()
 			}, {
 				type: MigrationType.DELETE_QUERY,
 				table: this.name,
-				id: id
+				id: query.id
 			})
 		}
 

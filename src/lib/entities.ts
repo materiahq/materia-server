@@ -71,7 +71,9 @@ export class Entities {
 
 
 		this.app.history.register(MigrationType.ADD_QUERY, (data, opts) => {
-			this.get(data.table).addQuery(data.id, data.values.type, data.values.params, data.values.opts, opts)
+			let query = Object.assign({}, data.values)
+			query.id = data.id
+			this.get(data.table).addQuery(query, opts)
 			return Promise.resolve()
 		})
 
@@ -179,9 +181,10 @@ export class Entities {
 		}
 
 		//detect rename then sync database
-		return this.detect_rename().then(() => {
-			return this._save_id_map()
-		}).then(() => {
+		//return this.detect_rename().then(() => {
+			//return this._save_id_map()
+		return Promise.resolve()
+		.then(() => {
 			//Convert orphan n-n through tables
 			let promises = []
 			for (let name in this.entities) {
@@ -189,7 +192,11 @@ export class Entities {
 			}
 			return Promise.all(promises)
 		}).then(() => {
-			return this.app.database.sync()
+			return this.sync()
+		}).then(() => {
+			return this.detect_rename()
+		}).then(() => {
+			return this.app.database.sequelize.sync()
 		})
 	}
 
@@ -235,16 +242,16 @@ export class Entities {
 		}
 
 		return createPromise.then(() => {
-
-			//maybe we'll have to move this after `if (options.apply != false)` block
-			if (options.save != false) {
-				entity.save(options)
-			}
-
 			if (options.apply != false) {
 				this.entities[entity.name] = entity
 				this.app.emit('entity:added', entity)
 			}
+
+			if (options.save != false) {
+				entity.save(options)
+				return this._save_id_map(options)
+			}
+		}).then(() => {
 
 			if (options.overwritable)
 				return entity
@@ -293,7 +300,7 @@ export class Entities {
 
 		let actions = Object.assign({}, opts)
 		actions.mkdir = true
-		return this.app.saveFile(path.join(this.app.path, '.materia', 'ids.json'), JSON.stringify(name_map), actions)
+		return this.app.saveFile(path.join(this.app.path, '.materia', 'ids.json'), JSON.stringify(name_map, null, '\t'), actions)
 	}
 
 	detect_rename():Promise<any> {
@@ -329,6 +336,10 @@ export class Entities {
 
 		if (diffs.length == 0) {
 			return Promise.resolve()
+		}
+
+		for (let diff of diffs) {
+			this.app.logger.log(`Detected entity rename: ${diff.redo.table} -> ${diff.redo.value}`)
 		}
 
 		return this.app.history.apply(diffs, {
@@ -432,7 +443,7 @@ export class Entities {
 			})
 		}
 
-		let entitiesChanged = [entity]
+		let entitiesChanged = entity ? [entity] : []
 		if (options.apply != false) {
 			for (let entity_name in this.entities) {
 				let entity = this.entities[entity_name]
