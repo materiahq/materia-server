@@ -9,7 +9,7 @@ import { IAddon } from '../addons'
 
 import { Field, IField, IFieldUpdate } from './field'
 import { QueryGenerator } from './query-generator'
-import { IQueryConstructor } from './query'
+import { Query, IQueryConstructor } from './query'
 
 
 export interface IEntityConfig {
@@ -36,7 +36,7 @@ export class Entity {
 
 	fields: Array<Field>
 	relations: Array<any>
-	queries: Array<any>
+	queries: Array<Query>
 
 	fromAddon: IAddon
 
@@ -972,7 +972,7 @@ export class Entity {
 		}
 
 		let QueryClass = this.queryObjects[type]
-		let queryobj = <IQueryConstructor> new QueryClass(this, id, opts)
+		let queryobj: Query = new QueryClass(this, id, opts)
 
 		if (options.apply != false) {
 			//check that query with `id` = id does not exist. if it exists, remove the query
@@ -1057,18 +1057,13 @@ export class Entity {
 	@param {string} - Query's name
 	@returns {Query}
 	*/
-	getQuery(id) {
+	getQuery(id):Query {
 		for (let query of this.queries) {
 			if (query.id == id) {
 				return query
 			}
 		}
-		return {
-			error: true,
-			run: () => {
-				return Promise.reject('Query "' + id + '" not found in entity "' + this.name + '"')
-			}
-		}
+		throw new MateriaError('Query "' + id + '" not found in entity "' + this.name + '"')
 	}
 
 	refreshQueries() {

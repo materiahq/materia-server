@@ -62,8 +62,9 @@ export interface IQueryConstructor {
 
 export abstract class Query {
 	params: IQueryParam[]
+	readonly id: string;
 
-	constructor(protected entity:DBEntity, protected id:string) {
+	constructor(protected entity:DBEntity, id:string) {
 		this.entity = entity
 		//this.history = entity.app.history
 		this.id = id
@@ -71,8 +72,9 @@ export abstract class Query {
 	}
 
 	abstract discoverParams();
-	abstract run(params: any, options?: any)
+	abstract run(params?: any, options?: any):Promise<any>
 	abstract refresh();
+	abstract toJson();
 
 	updateOption(name, value, options) {
 		return Promise.reject(new MateriaError('not implemented yet'))

@@ -10,9 +10,15 @@ import { ConfigType } from '../../lib/config'
 export class TemplateApp {
 	private name:string
 	private request:request.RequestAPI<request.Request, request.CoreOptions, request.RequiredUriUrl>
+	private before_creation: (new_app:App)=>any
 
 	constructor(name) {
 		this.name = name
+		this.before_creation = ()=>{}
+	}
+
+	beforeCreate(before_creation:(new_app:App)=>any) {
+		this.before_creation = before_creation
 	}
 
 	createInstance():App {
@@ -23,6 +29,10 @@ export class TemplateApp {
 			json: true
 		})
 
+		return this.createApp(app_path)
+	}
+
+	createApp(app_path:string):App {
 		let app = new App(app_path, {logRequests:false})
 
 		app.config.set({
@@ -40,6 +50,28 @@ export class TemplateApp {
 			error: function() {}
 		})
 		return app
+	}
+
+	runApp():Promise<App> {
+		let app = this.createInstance()
+		let off = Promise.resolve(this.before_creation(app))
+		return off.then(() => app.load()).then(() => app.start()).then(() => app)
+	}
+
+	resetApp(app:App, while_off?:(new_app:App)=>any):Promise<App> {
+		let new_app: App
+		return app.stop().then(() => {
+			new_app = this.createApp(app.path)
+			return Promise.resolve(this.before_creation(app))
+		}).then(() => while_off ? Promise.resolve(while_off(app)) : Promise.resolve())
+		.then(() => new_app.load()).then(() => new_app.start())
+		.catch(e => {
+			return app.start().then(() => {
+				throw e
+			})
+		}).then(() => {
+			return new_app
+		})
 	}
 
 	private promisifyRequest(method, url, args) {

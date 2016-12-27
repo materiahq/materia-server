@@ -11,22 +11,17 @@ const should = chai.should()
 
 describe('[Entities]', () => {
 	let app: App
+	let tmpl = new TemplateApp('empty-app')
 
 	before(() => {
-		let tmpl = new TemplateApp('empty-app')
-
-		app = tmpl.createInstance()
-		app.server.disabled = true
+		tmpl.beforeCreate(new_app => {
+			new_app.server.disabled = true
+		})
+		return tmpl.runApp().then(_app => app = _app)
 	})
 
 
 	describe('App', () => {
-		it('should load', () => {
-			return app.load().should.be.fulfilled
-		});
-		it('should start', () => {
-			return app.start().should.be.fulfilled
-		});
 
 		it('should create a simple entity "test"', () => {
 			return app.entities.add({

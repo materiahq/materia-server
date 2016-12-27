@@ -10,7 +10,6 @@ chai.should()
 
 describe('[Controller Endpoints]', () => {
 	let app: App
-	let tpl: TemplateApp
 	let testObject = {
 		param_number: 42,
 		param_text: "foo",
@@ -25,11 +24,10 @@ describe('[Controller Endpoints]', () => {
 		param_date: new Date(10).toJSON(),
 		param_bool: false
 	}
+	let tpl = new TemplateApp('controller-endpoints')
 
 	before(() => {
-		tpl = new TemplateApp('controller-endpoints')
-
-		app = tpl.createInstance()
+		return tpl.runApp().then(_app => app = _app)
 	})
 
 	after(() => {
@@ -38,12 +36,6 @@ describe('[Controller Endpoints]', () => {
 
 
 	describe('App', () => {
-		it('should load', () => {
-			return app.load().should.be.fulfilled
-		});
-		it('should start', () => {
-			return app.start().should.be.fulfilled
-		});
 
 		describe('Endpoints', () => {
 			it('should run endpoint for default "create", 4 times', () => {

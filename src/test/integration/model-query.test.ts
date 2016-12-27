@@ -19,22 +19,17 @@ describe('[Model Queries]', () => {
 		bool_false: false,
 		bool_true: true
 	}
+	let tmpl = new TemplateApp('model-queries')
 
 	before(() => {
-		let tmpl = new TemplateApp('model-queries')
-
-		app = tmpl.createInstance()
-		app.server.disabled = true
+		tmpl.beforeCreate(new_app => {
+			new_app.server.disabled = true
+		})
+		return tmpl.runApp().then(_app => app = _app)
 	})
 
 
 	describe('App', () => {
-		it('should load', () => {
-			return app.load().should.be.fulfilled
-		});
-		it('should start', () => {
-			return app.start().should.be.fulfilled
-		});
 
 		describe('Queries', () => {
 			it('should run default "create", 4 times', () => {
