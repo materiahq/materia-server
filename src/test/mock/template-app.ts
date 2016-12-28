@@ -4,8 +4,15 @@ import * as path from 'path'
 import * as fse from 'fs-extra'
 import * as request from 'request'
 
+import * as chaiAsPromised from 'chai-as-promised'
+
 import App, { AppMode } from '../../lib/app'
 import { ConfigType } from '../../lib/config'
+
+chaiAsPromised['transferPromiseness'] = (assertion, promise) => {
+	assertion.then = promise.then.bind(promise);
+	assertion.catch = promise.catch.bind(promise);
+};
 
 export class TemplateApp {
 	private name:string
