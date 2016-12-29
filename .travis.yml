@@ -7,6 +7,8 @@ install:
  - "npm install && sed -i.bak 's/\"watch\": true/\"watch\": false/' tsconfig.json && tsc -p ."
 script:
  - "npm test"
+env:
+ - TRAVIS=true
 branches:
   only:
     - master
