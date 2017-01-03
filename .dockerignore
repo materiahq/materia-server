@@ -1,9 +1,8 @@
 node_modules/
-test/**/*
 .materia
+.git/
 .vscode/
-src/**/*
-dist/test/**/*
+dist/**/*
 *.sqlite
 *.diff
 server.json

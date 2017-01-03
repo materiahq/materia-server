@@ -1,14 +1,33 @@
 language: node_js
+
 node_js:
  - "7.0"
+
+services:
+ - "postgresql": "9.5"
+
+before_script:
+ - psql -c 'create database materia_test;' -U postgres
+
+env:
+ - TRAVIS=true
+ - POSTGRES_HOST=localhost
+ - POSTGRES_PORT=5432
+ - POSTGRES_DATABASE=materia_test
+ - POSTGRES_USERNAME=postgres
+ - POSTGRES_PASSWORD=
+
+matrix:
+ - DIALECT=sqlite
+ - DIALECT=postgres
+
 before_install:
  - "npm install -g typescript@2.0.10"
 install:
  - "npm install && sed -i.bak 's/\"watch\": true/\"watch\": false/' tsconfig.json && tsc -p ."
 script:
  - "npm test"
-env:
- - TRAVIS=true
+
 branches:
   only:
     - master

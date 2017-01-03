@@ -53,7 +53,10 @@
     "request": "^2.79.0"
   },
   "scripts": {
-    "test": "mocha -R spec 'dist/test/**/*.js'"
+    "test": "mocha -R spec 'dist/test/**/*.js'",
+    "test-postgres": "DIALECT=postgres npm test",
+    "test-sqlite": "npm test",
+    "test-all": "npm run test-sqlite -s && npm run test-postgres -s"
   },
   "repository": {
     "type": "git",

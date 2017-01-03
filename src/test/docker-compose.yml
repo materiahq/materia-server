@@ -1,0 +1,26 @@
+version: '2'
+
+services:
+  pg-materia:
+    container_name: pg-materia
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=testpassword
+    ports:
+      - "5432"
+
+  materia-server:
+    container_name: materia-server
+    build: ../..
+    command: npm run test-all -s
+    environment:
+      - POSTGRES_HOST=pg-materia
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=postgres
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=testpassword
+    links:
+      - pg-materia
+    depends_on:
+      - pg-materia
+

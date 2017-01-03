@@ -133,6 +133,11 @@ describe('[Fields]', () => {
 					return app.entities.get('test').getQuery('create').run({
 						foo: "bar2"
 					}).should.be.fulfilled
+				}).then((field) => {
+					should.exist(field)
+					return app.entities.get('test').getQuery('delete').run({ id_test: field.id_test })
+				}).then((count) => {
+					should.equal(count, 1)
 				})
 			})
 			it('should add a unique field "foo2" and make a unique group with "foo"', () => {
@@ -156,10 +161,7 @@ describe('[Fields]', () => {
 					defaultValue: "bar",
 					component: "input"
 				}
-				return app.entities.get('test').getQuery('delete').run({ id_test: 2 }).then((count) => {
-					should.equal(count, 1)
-					return app.entities.get("test").addField(fieldjson2).should.be.fulfilled
-				}).then(field2 => {
+				return app.entities.get("test").addField(fieldjson2).should.be.fulfilled.then(field2 => {
 					should.exist(field2)
 					field2.toJson().should.deep.equal(fieldjson2)
 					return app.entities.get("test").updateField("foo", { unique: "uniq_foo" }).should.be.fulfilled

@@ -48,9 +48,20 @@ export class TemplateApp {
 			"port": 8798
 		}, AppMode.DEVELOPMENT, ConfigType.WEB)
 
-		app.config.set({
-			"type": "sqlite"
-		}, AppMode.DEVELOPMENT, ConfigType.DATABASE )
+		if (process.env.DIALECT == "postgres") {
+			app.config.set({
+				"type": "postgres",
+				"host": process.env.POSTGRES_HOST,
+				"port": process.env.POSTGRES_PORT,
+				"username": process.env.POSTGRES_USERNAME,
+				"password": process.env.POSTGRES_PASSWORD,
+				"database": process.env.POSTGRES_DATABASE,
+			}, AppMode.DEVELOPMENT, ConfigType.DATABASE )
+		} else {
+			app.config.set({
+				"type": "sqlite"
+			}, AppMode.DEVELOPMENT, ConfigType.DATABASE )
+		}
 
 		if ( ! debug_mode) {
 			app.logger.setConsole({
@@ -65,7 +76,18 @@ export class TemplateApp {
 	runApp():Promise<App> {
 		let app = this.createInstance()
 		let off = Promise.resolve(this.before_creation(app))
-		return off.then(() => app.load()).then(() => app.start()).then(() => app)
+		return off.then(() => app.load()).then(() => {
+			if (process.env.DIALECT == "postgres") {
+				let p = Promise.resolve();
+				[
+					"DROP SCHEMA public CASCADE",
+					"CREATE SCHEMA public",
+					"GRANT ALL ON SCHEMA public TO postgres",
+					"GRANT ALL ON SCHEMA public TO public"
+				].forEach(q => p = p.then(() => app.database.sequelize.query(q, {raw: true})))
+				return p
+			}
+		}).then(() => app.start()).then(() => app)
 	}
 
 	resetApp(app:App, while_off?:(new_app:App)=>any):Promise<App> {
