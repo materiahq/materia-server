@@ -17,10 +17,9 @@ env:
    - POSTGRES_DATABASE=materia_test
    - POSTGRES_USERNAME=postgres
    - POSTGRES_PASSWORD=
-
-matrix:
- - DIALECT=sqlite
- - DIALECT=postgres
+  matrix:
+   - DIALECT=sqlite
+   - DIALECT=postgres
 
 before_install:
  - "npm install -g typescript@2.0.10"
