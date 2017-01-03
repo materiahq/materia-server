@@ -108,7 +108,7 @@ describe('[Fields]', () => {
 				})
 			})
 		})
-		if ( ! process.env.TRAVIS ) {
+		//if ( ! process.env.TRAVIS ) {
 			it('should not update field "foo" to a unique field', () => {
 				return app.entities.get("test").updateField("foo", { unique:true }).should.be.rejectedWith('Validation error')
 			})
@@ -184,6 +184,6 @@ describe('[Fields]', () => {
 					}).should.be.rejectedWith('Validation error')
 				})
 			})
-		}
+		//}
 	});
 });
