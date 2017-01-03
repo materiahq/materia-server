@@ -10,12 +10,13 @@ before_script:
  - psql -c 'create database materia_test;' -U postgres
 
 env:
- - TRAVIS=true
- - POSTGRES_HOST=localhost
- - POSTGRES_PORT=5432
- - POSTGRES_DATABASE=materia_test
- - POSTGRES_USERNAME=postgres
- - POSTGRES_PASSWORD=
+  global:
+   - TRAVIS=true
+   - POSTGRES_HOST=localhost
+   - POSTGRES_PORT=5432
+   - POSTGRES_DATABASE=materia_test
+   - POSTGRES_USERNAME=postgres
+   - POSTGRES_PASSWORD=
 
 matrix:
  - DIALECT=sqlite
