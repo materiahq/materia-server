@@ -16,7 +16,6 @@ before_script:
 
 env:
   global:
-   - TRAVIS=true
    - POSTGRES_HOST=localhost
    - POSTGRES_PORT=5432
    - POSTGRES_DATABASE=materia_test
