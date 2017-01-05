@@ -62,9 +62,9 @@ describe('[Model Queries]', () => {
 				})
 			})
 			it('should run default "list"', () => {
-				return app.entities.get('test').getQuery('list').run(null, {raw: true}).should.become({
+				return app.entities.get('test').getQuery('list').run().then(data => data.toJSON()).should.become({
 					count:3,
-					rows:[
+					data:[
 						{ id_test:1 },
 						{ id_test:4 },
 						{ id_test:42 },

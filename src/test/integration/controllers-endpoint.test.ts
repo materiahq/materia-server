@@ -61,7 +61,7 @@ describe('[Controller Endpoints]', () => {
 			it('should run endpoint for default "list"', () => {
 				return tpl.get('/api/tests').should.become({
 					count:3,
-					rows:[
+					data:[
 						{ id_test:1 },
 						{ id_test:4 },
 						{ id_test:42 },

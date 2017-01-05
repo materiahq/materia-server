@@ -152,7 +152,18 @@ export class FindAllQuery extends Query {
 		} catch (e) {
 			return Promise.reject(e)
 		}
-		return this.entity.model.findAndCountAll(sequelizeOpts)
+		return this.entity.model.findAndCountAll(sequelizeOpts).then(res => {
+			res.data = res.rows
+			if ( ! options || ! options.raw) {
+				res.toJSON = () => {
+					return {
+						count: res.count,
+						data: res.data.map(elt => elt.toJSON())
+					}
+				}
+			}
+			return res
+		})
 	}
 
 	_paramResolver(name, value, params, defaultValue) {

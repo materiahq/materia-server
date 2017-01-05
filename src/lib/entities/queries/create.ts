@@ -92,9 +92,13 @@ export class CreateQuery extends Query {
 		return res
 	}
 
-	run(params):Promise<any> {
+	run(params, options):Promise<any> {
+		let raw = options && options.raw
+
 		try {
-			return this.entity.model.create(this.resolveParams(params))
+			return this.entity.model.create(this.resolveParams(params)).then(row => {
+				return raw ? row.toJSON() : row
+			})
 		} catch (e) {
 			return Promise.reject(e)
 		}

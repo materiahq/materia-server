@@ -1015,7 +1015,7 @@ export class Entity {
 	@param {string} - Query's name
 	@param {object} - Action's options
 	*/
-	removeQuery(id:string, options) {
+	removeQuery(id:string, options?:IApplyOptions) {
 		options = options || {}
 
 		let queryobj = this.getQuery(id)

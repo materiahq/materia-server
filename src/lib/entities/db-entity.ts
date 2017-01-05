@@ -356,17 +356,19 @@ export class DBEntity extends Entity {
 					p = p.then(() => {
 						let entityFrom = this.app.entities.get(field.generateFrom)
 						let entityFromPk = entityFrom.getPK()[0]
-						return entityFrom.getQuery('list').run({ limit: 1 }).then((list) => {
-							if (!list.rows.length) {
+						return entityFrom.getQuery('list').run({ limit: 1 }, {raw: true}).then((list) => {
+							if ( ! list.data.length) {
 								return this.getQuery('list').run({ limit: 1 }).then((from_list) => {
-									if (from_list.rows.length) {
+									if (from_list.data.length) {
 										field.required = false
 										field.default = false
+									} else {
+										delete field.defaultValue
 									}
 								})
 							}
 							else {
-								field.defaultValue = list.rows[0][entityFromPk.name]
+								field.defaultValue = list.data[0][entityFromPk.name]
 							}
 						})
 					})
@@ -381,7 +383,7 @@ export class DBEntity extends Entity {
 							'boolean': false,
 							'date': new Date(0)
 						}
-						field.defaultValue = defs[field.type] || ""
+						field.defaultValue = defs[field.type] === undefined ? "" : defs[field.type]
 					}
 
 					return this.app.database.interface.addColumn(this.name, field.name, field)
