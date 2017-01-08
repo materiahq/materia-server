@@ -4,8 +4,6 @@ import App, { IApplyOptions } from './app'
 
 import { EventEmitter } from 'events'
 
-import * as mkdirp from 'mkdirp'
-
 import * as fse from 'fs-extra'
 
 const git = require('simple-git/promise')
@@ -218,7 +216,7 @@ export default class Git extends EventEmitter {
 		let _from = Path.resolve(options.path, '.git')
 		let to = Path.resolve(options.to, '.git')
 		return new Promise((accept, reject) => {
-			mkdirp(options.to, (err) => {
+			fse.mkdirp(options.to, (err) => {
 				if (err) {
 					return reject(err)
 				}

@@ -183,5 +183,23 @@ describe('[Fields]', () => {
 				}).should.be.rejectedWith('Validation error')
 			})
 		})
+
+		// fix pk group
+		/*it('should add a field foo3 and update it to make a primary key group', () => {
+			let fieldjson = {
+				name: "foo3",
+				type: "text",
+				primary: false,
+				read: true,
+				write: true,
+				required: true,
+				component: "input"
+			}
+			return app.entities.get("test").addField(fieldjson).should.be.fulfilled.then(field2 => {
+				should.exist(field2)
+				field2.toJson().should.deep.equal(fieldjson)
+				return app.entities.get("test").updateField("foo", { primary: true }).should.be.fulfilled
+			})
+		})*/
 	});
 });

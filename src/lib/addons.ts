@@ -1,8 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import * as mkdirp from 'mkdirp'
-import * as rmdir from 'rimraf'
+import * as fse from 'fs-extra'
 
 import App from './app'
 import MateriaError from './error'
@@ -181,7 +180,7 @@ export default class Addons {
 	create(name:string, description:string, options?: IAddonOptions):Promise<any> {
 		return this._checkName(name).then(() => {
 			return new Promise((resolve, reject) => {
-				mkdirp(path.join(this.app.path, 'node_modules', name), (err) => {
+				fse.mkdirp(path.join(this.app.path, 'node_modules', name), (err) => {
 					if (err) {
 						return reject(err)
 					}
