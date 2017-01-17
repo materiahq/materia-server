@@ -44,7 +44,7 @@ export class Server {
 		this.expressApp.use(compression())
 		this.expressApp.use(session({
 			secret: 'keyboard cat',
-			cookie: { maxAge: 60000 },
+			cookie: { maxAge: 3600000 },
 			resave: false,
 			saveUninitialized: false
 		}))
