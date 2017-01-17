@@ -165,6 +165,10 @@ export class Endpoint {
 		}
 	}
 
+	static resetControllers():void {
+		Endpoint.controllers = {}
+	}
+
 	private _getController():Controller {
 		let controller_prefix = this.fromAddon ? this.fromAddon.name + "/" : ""
 		if ( ! Endpoint.controllers[controller_prefix + this.controller]) {
