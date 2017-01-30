@@ -131,7 +131,6 @@ export default class Api {
 			opts.fromAddon = addon
 		}
 		this.permissions.clear()
-		Endpoint.resetControllers()
 		let content
 		try {
 			content = fs.readFileSync(path.join(basePath, 'server', 'api.json'))
@@ -179,6 +178,10 @@ export default class Api {
 				})
 			})
 		})
+	}
+
+	resetControllers() {
+		Endpoint.resetControllers()
 	}
 
 	registerEndpoints() {

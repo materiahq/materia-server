@@ -232,6 +232,7 @@ export default class App extends events.EventEmitter {
 			}
 		}).then(() => this.addons.loadQueries()
 		).then(() => this.entities.loadQueries()
+		).then(() => this.api.resetControllers()
 		).then(() => this.addons.loadAPI()
 		).then(() => this.api.load()
 		).then(() => this.history.load()
