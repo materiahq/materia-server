@@ -1,0 +1,42 @@
+{
+	"id": "fake-id",
+	"fields": [
+		{
+			"name": "name",
+			"type": "text",
+			"read": true,
+			"write": true,
+			"primary": true,
+			"unique": true,
+			"required": true,
+			"component": "input"
+		},
+		{
+			"name": "filtered",
+			"type": "boolean",
+			"read": true,
+			"write": true,
+			"required": true,
+			"component": "input"
+		}
+	],
+	"queries": [
+		{
+			"id": "listFilteredBoolValue",
+			"type": "findAll",
+			"opts": {
+				"select": [
+					"name",
+					"filtered"
+				],
+				"conditions": [
+					{
+						"name": "filtered",
+						"operator": "=",
+						"value": true
+					}
+				]
+			}
+		}
+	]
+}

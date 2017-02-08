@@ -136,4 +136,13 @@ export class TemplateApp {
 		return this.promisifyRequest('del', url, args)
 	}
 
+	dbBoolean(val) {
+		if ( val === undefined || val === null )
+			return val
+		if ( ! process.env.DIALECT || process.env.DIALECT == "sqlite") {
+			return val ? 1 : 0
+		} else {
+			return val
+		}
+	}
 }
