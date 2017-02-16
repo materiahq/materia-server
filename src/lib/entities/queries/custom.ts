@@ -70,6 +70,10 @@ export class CustomQuery extends Query {
 		this.discoverParams()
 	}
 
+	static resetModels():void {
+		CustomQuery.models = {}
+	}
+
 	refresh() {
 		let model = this._getModel()
 

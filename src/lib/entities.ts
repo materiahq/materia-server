@@ -95,6 +95,11 @@ export class Entities {
 		})*/
 	}
 
+	clear() {
+		this.entities = {}
+		this.entitiesJson = {}
+	}
+
 	loadFiles(addon?: IAddon):Promise<any> {
 		let basePath = addon ? addon.path : this.app.path
 
@@ -607,5 +612,9 @@ export class Entities {
 			return (addon && value.substr(0, addon.name.length + 1) == addon.name + "/")
 				|| ( ! addon && value.indexOf("/") == -1)
 		})
+	}
+
+	resetModels() {
+		CustomQuery.resetModels()
 	}
 }

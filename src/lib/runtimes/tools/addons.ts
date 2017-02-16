@@ -15,20 +15,39 @@ class AddonsTools {
 	constructor(private app:App) {
 	}
 
-	install(name:string, opts: ISaveOptions):Promise<any> {
-		let proc = cp.spawn('npm', ['install', name, '--save'], {
-			cwd: this.app.path
+	private buffProc(proc:cp.ChildProcess, callback:(code:number, out:string, err:string)=>void) {
+		let out = ""
+		let err = ""
+		proc.stdout.on('data', data => {
+			out += data.toString()
 		})
+		proc.stderr.on('data', data => {
+			err += data.toString()
+		})
+		proc.on('close', code => {
+			callback(code, out, err)
+		})
+		proc.on('error', err => {
+			callback(-1, "", err.message)
+		})
+	}
+
+	install(name:string, opts: ISaveOptions):Promise<any> {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
+		let proc = cp.spawn('npm', ['install', name, '--save'], {
+			cwd: this.app.path
+		})
 		return new Promise((accept, reject) => {
-			proc.on('close', (code) => {
+			this.buffProc(proc, (code, out, err) => {
 				if (opts && opts.afterSave) {
 					opts.afterSave()
 				}
 				if (code != 0) {
-					return reject(new MateriaError('Failed to install addon'))
+					let e = new MateriaError('Failed to install addon')
+					e.debug = err
+					return reject(e)
 				}
 				accept()
 			})
@@ -36,19 +55,21 @@ class AddonsTools {
 	}
 
 	install_all(opts: ISaveOptions):Promise<any> {
-		let proc = cp.spawn('npm', ['install'], {
-			cwd: this.app.path
-		})
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
+		let proc = cp.spawn('npm', ['install'], {
+			cwd: this.app.path
+		})
 		return new Promise((accept, reject) => {
-			proc.on('close', (code) => {
+			this.buffProc(proc, (code, out, err) => {
 				if (opts && opts.afterSave) {
 					opts.afterSave()
 				}
 				if (code != 0) {
-					return reject(new MateriaError('Failed to install app'))
+					let e = new MateriaError('Failed to install app')
+					e.debug = err
+					return reject(e)
 				}
 				accept()
 			})
@@ -148,20 +169,23 @@ class AddonsTools {
 	}
 
 	remove(name:string, opts:ISaveOptions):Promise<any> {
-		let proc = cp.spawn('npm', ['uninstall', name, '--save'], {
-			cwd: this.app.path
-		})
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
+		let proc = cp.spawn('npm', ['uninstall', name, '--save'], {
+			cwd: this.app.path
+		})
 		return new Promise((accept, reject) => {
-			proc.on('close', (code) => {
+			this.buffProc(proc, (code, out, err) => {
 				if (opts && opts.afterSave) {
 					opts.afterSave()
 				}
 				if (code != 0) {
-					return reject(new MateriaError('Failed to uninstall addon'))
+					let e = new MateriaError('Failed to uninstall addon')
+					e.debug = err
+					return reject(e)
 				}
+
 				this.app.addons.unload(name)
 				accept()
 			})

@@ -216,9 +216,11 @@ export default class App extends events.EventEmitter {
 			this.database.load()
 			this.server.load()
 			return this.addons.loadAddons()
-		}).then(() => this.addons.loadFiles()
-		).then(() => this.entities.loadFiles()
-		).then(() => {
+		})
+		.then(() => this.entities.clear())
+		.then(() => this.addons.loadFiles())
+		.then(() => this.entities.loadFiles())
+		.then(() => {
 			if ( ! this.database.disabled) {
 				return this.database.start().then((e) => {
 					warning = e
@@ -230,14 +232,16 @@ export default class App extends events.EventEmitter {
 				this.logger.log('No database configuration for this application - Continue without Entities')
 				return Promise.resolve()
 			}
-		}).then(() => this.addons.loadQueries()
-		).then(() => this.entities.loadQueries()
-		).then(() => this.api.resetControllers()
-		).then(() => this.addons.loadAPI()
-		).then(() => this.api.load()
-		).then(() => this.history.load()
-		).then(() => this.git && this.git.load()
-		).then(() => warning)
+		})
+		.then(() => this.entities.resetModels())
+		.then(() => this.addons.loadQueries())
+		.then(() => this.entities.loadQueries())
+		.then(() => this.api.resetControllers())
+		.then(() => this.addons.loadAPI())
+		.then(() => this.api.load())
+		.then(() => this.history.load())
+		.then(() => this.git && this.git.load())
+		.then(() => warning)
 	}
 
 	private _loadMateriaConfig():Promise<IMateriaConfig> {
