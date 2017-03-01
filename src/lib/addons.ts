@@ -6,20 +6,17 @@ import * as fse from 'fs-extra'
 import App from './app'
 import MateriaError from './error'
 
-export interface IAddonInfo {
+export interface IAddon {
+	package: string
+	name: string
+	path: string
+	published?: any
+	config: any
+	obj: any
 	description: string,
 	logo: string,
 	author: string,
 	version: string
-}
-
-export interface IAddon {
-	name: string
-	path: string
-	info: IAddonInfo
-	published?: any
-	config: any
-	obj: any
 }
 
 export interface IAddonConfig {
@@ -53,12 +50,16 @@ export default class Addons {
 	Unload an addon by its name
 	@returns void
 	*/
-	unload(name:string):void {
+	unload(pkg:string):void {
 		this.addons.forEach((addon, i) => {
-			if (addon.name == name) {
+			if (addon.package == pkg) {
 				this.addons.splice(i, 1);
 			}
 		})
+	}
+
+	isInstalled(pkg:string) {
+
 	}
 
 	setupModule(setup:(require:NodeRequire)=>Promise<any>):Promise<any> {
@@ -204,16 +205,17 @@ class ${nameCapitalizeFirst} {
 module.exports = ${nameCapitalizeFirst};`
 
 				let contentPackageJson = `{
-  "name": "${name}",
-  "version": "0.1.0",
-  "description": ${JSON.stringify(description || '')},
-  "author": {
-	"name": "you@domain.com"
-  },
-  "license": "MIT",
-  "main": "index.js",
-  "dependencies": {
-  }
+	"name": "${name}",
+	"version": "0.1.0",
+	"description": ${JSON.stringify(description || '')},
+	"author": {
+		"name": "you@domain.com"
+	},
+	"license": "MIT",
+	"main": "index.js",
+	"materia": {},
+	"dependencies": {
+	}
 }`
 					fs.writeFileSync(path.join(this.app.path, 'node_modules', name, 'index.js'), content);
 					fs.writeFileSync(path.join(this.app.path, 'node_modules', name, 'package.json'), contentPackageJson);
@@ -251,11 +253,11 @@ module.exports = ${nameCapitalizeFirst};`
 	@param {string} - Addon's name
 	@returns {object}
 	*/
-	get(name):IAddon {
+	get(pkg:string):IAddon {
 		let result:IAddon;
 
 		this.addons.forEach(addon => {
-			if (addon.name == name) {
+			if (addon.package == pkg) {
 				result = addon
 			}
 		})
@@ -310,45 +312,45 @@ module.exports = ${nameCapitalizeFirst};`
 		return p
 	}
 
-	private _initialize(addon:string):Promise<IAddon> {
+	private _initialize(pkg:string):Promise<IAddon> {
 		let AddonClass, addonInstance, addonPackage
 		return this.setupModule(() => {
 			let app_path, addon_app
 			try {
-				app_path = path.dirname(require.resolve(path.join(addon, 'package.json')))
+				app_path = path.dirname(require.resolve(path.join(pkg, 'package.json')))
 				addon_app = new App(app_path, {})
 			} catch (e) {
-				let err = new MateriaError('Impossible to initialize addon ' + addon) as any
+				let err = new MateriaError('Impossible to initialize addon ' + pkg) as any
 				err.originalError = e
 				return Promise.reject(err)
 			}
 			return addon_app.migration.check().then(() => {
 				try {
-					addonPackage = require(path.join(addon, 'package.json'))
-					AddonClass = require(addon)
+					addonPackage = require(path.join(pkg, 'package.json'))
+					AddonClass = require(pkg)
 				} catch (e) {
-					let err = new MateriaError('Impossible to require addon ' + addon) as any
+					let err = new MateriaError('Impossible to require addon ' + pkg) as any
 					err.originalError = e
 					throw err
 				}
 				try {
-					addonInstance = new AddonClass(this.app, this.addonsConfig[addon], this.app.server.expressApp)
+					addonInstance = new AddonClass(this.app, this.addonsConfig[pkg], this.app.server.expressApp)
 				} catch(e) {
-					let err = new MateriaError('Impossible to create addon ' + addon) as any
+					let err = new MateriaError('Impossible to create addon ' + pkg) as any
 					err.originalError = e
 					throw err
 				}
 
 				return {
-					name: addonPackage.name,
+					npm: addonPackage.name,
+					name: addonPackage.materia && addonPackage.materia.display_name || addonPackage.name,
 					path: app_path,
-					info: {
-						description: addonPackage.description,
-						logo: addonPackage.materia && addonPackage.materia.logo,
-						author: addonPackage.materia && addonPackage.materia.author,
-						version: addonPackage.version
-					},
-					config: this.addonsConfig[addon],
+					description: addonPackage.description,
+					logo: addonPackage.materia && addonPackage.materia.logo,
+					author: addonPackage.materia && addonPackage.materia.author,
+					version: addonPackage.version,
+					config: this.addonsConfig[pkg],
+					color: addonPackage.materia && addonPackage.materia.icon && addonPackage.materia.icon.color,
 					obj: addonInstance
 				}
 			})
