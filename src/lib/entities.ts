@@ -8,7 +8,7 @@ import * as Sequelize from 'sequelize'
 import App, { IApplyOptions } from './app'
 import MateriaError from './error'
 
-import { IAddon } from './addons'
+import Addon from './addons/addon'
 
 import { MigrationType } from './history'
 
@@ -81,18 +81,6 @@ export class Entities {
 			this.get(data.table).removeQuery(data.id, opts)
 			return Promise.resolve()
 		})
-
-		/*this.app.history.register(MigrationType.ADD_QUERY_PARAM, (data, opts) => {
-			return this.get(data.table).getQuery(data.id).addParam(data.value, opts)
-		})
-
-		this.app.history.register(MigrationType.DELETE_QUERY_PARAM, (data, opts) => {
-			return this.get(data.table).getQuery(data.id).delParam(data.value, opts)
-		})
-
-		this.app.history.register(MigrationType.UPDATE_QUERY_VALUE, (data, opts) => {
-			return this.get(data.table).getQuery(data.id).updateValue(data.value.name, data.value.value, opts)
-		})*/
 	}
 
 	clear() {
@@ -100,7 +88,7 @@ export class Entities {
 		this.entitiesJson = {}
 	}
 
-	loadFiles(addon?: IAddon):Promise<any> {
+	loadFiles(addon?: Addon):Promise<any> {
 		let basePath = addon ? addon.path : this.app.path
 
 		this.entitiesJson[basePath] = []
@@ -131,7 +119,7 @@ export class Entities {
 		return Promise.resolve()
 	}
 
-	loadEntities(addon?: IAddon):Promise<any> {
+	loadEntities(addon?: Addon):Promise<any> {
 		let basePath = addon ? addon.path : this.app.path
 		let promises = []
 		let opts: IApplyOptions = {
@@ -150,7 +138,7 @@ export class Entities {
 		return Promise.all(promises)
 	}
 
-	loadQueries(addon?: IAddon):Promise<any> {
+	loadQueries(addon?: Addon):Promise<any> {
 		let basePath = addon ? addon.path : this.app.path
 		try {
 			for (let entityJson of this.entitiesJson[basePath]) {
@@ -607,7 +595,7 @@ export class Entities {
 		return res
 	}
 
-	getModels(addon?:IAddon) {
+	getModels(addon?:Addon) {
 		return Object.keys(CustomQuery.models).filter((value) => {
 			return (addon && value.substr(0, addon.name.length + 1) == addon.name + "/")
 				|| ( ! addon && value.indexOf("/") == -1)

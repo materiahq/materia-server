@@ -5,18 +5,22 @@ import * as fse from 'fs-extra'
 
 import App from './app'
 import MateriaError from './error'
+import Addon from './addons/addon'
+
 
 export interface IAddon {
 	package: string
 	name: string
 	path: string
-	published?: any
 	config: any
 	obj: any
-	description: string,
-	logo: string,
-	author: string,
+	description: string
+	logo: string
+	author: string
 	version: string
+	installed: boolean
+	installing: boolean
+	published?: any
 }
 
 export interface IAddonConfig {
@@ -35,7 +39,7 @@ export interface IAddonOptions {
  * This class is used to manage your addons in a materia app.
  */
 export default class Addons {
-	addons: IAddon[]
+	addons: Addon[]
 	addonsObj: any
 	addonsConfig: IAddonConfig
 
@@ -97,7 +101,15 @@ export default class Addons {
 		})
 	}
 
+	/**
+	 * Search installed addons in the current application. It returns an array of addon package name.
+	 * @returns Promise<string[]>
+	 */
 	searchInstalledAddons():Promise<Array<string>> {
+		let packageJsonPath = require.resolve(path.join(this.app.path, 'package.json'))
+		if (require.cache[packageJsonPath]) {
+			delete require.cache[packageJsonPath]
+		}
 		let pkg = require(path.join(this.app.path, 'package.json'))
 		let addons = []
 		let dependencies = Object.assign({}, pkg.dependencies || {}, pkg.devDependencies || {})
@@ -144,10 +156,17 @@ export default class Addons {
 		return this.loadConfig().then(config => {
 			return this.searchInstalledAddons()
 		}).then(addonsName => {
-			return this._initializeAll(addonsName)
-		}).then(addons => {
-			this.addons = addons
+			let addons:Addon[] = []
 
+			this.addons = []
+			let promises:Promise<void>[] = []
+			addonsName.forEach(addonName => {
+				let addon = new Addon(this.app, addonName)
+				this.addons.push(addon)
+				promises.push(addon.loadFromApp())
+			})
+			return Promise.all(promises)
+		}).then(addons => {
 			let p = Promise.resolve()
 			this.addons.forEach(addon => {
 				p = p.then(() => {
@@ -165,6 +184,7 @@ export default class Addons {
 		})
 	}
 
+	//OUT OF DATE
 	private _checkName(name:string):Promise<void> {
 		if ( ! name ) {
 			return Promise.reject(new MateriaError('A name is required to create an addon.'))
@@ -178,6 +198,7 @@ export default class Addons {
 		}
 	}
 
+	//OUT OF DATE
 	create(name:string, description:string, options?: IAddonOptions):Promise<any> {
 		return this._checkName(name).then(() => {
 			return new Promise((resolve, reject) => {
@@ -228,15 +249,7 @@ module.exports = ${nameCapitalizeFirst};`
 	start():Promise<void> {
 		let p = Promise.resolve()
 		this.addons.forEach(addon => {
-			p = p.then(() => {
-				if (typeof addon.obj.start == 'function') {
-					let startResult = addon.obj.start()
-					if (this._isPromise(startResult)) {
-						return startResult
-					}
-				}
-				return Promise.resolve()
-			})
+			p = p.then(() => addon.start())
 		})
 
 		return p
@@ -253,9 +266,8 @@ module.exports = ${nameCapitalizeFirst};`
 	@param {string} - Addon's name
 	@returns {object}
 	*/
-	get(pkg:string):IAddon {
-		let result:IAddon;
-
+	get(pkg:string):Addon {
+		let result;
 		this.addons.forEach(addon => {
 			if (addon.package == pkg) {
 				result = addon
@@ -310,59 +322,6 @@ module.exports = ${nameCapitalizeFirst};`
 			})
 		})
 		return p
-	}
-
-	private _initialize(pkg:string):Promise<IAddon> {
-		let AddonClass, addonInstance, addonPackage
-		return this.setupModule(() => {
-			let app_path, addon_app
-			try {
-				app_path = path.dirname(require.resolve(path.join(pkg, 'package.json')))
-				addon_app = new App(app_path, {})
-			} catch (e) {
-				let err = new MateriaError('Impossible to initialize addon ' + pkg) as any
-				err.originalError = e
-				return Promise.reject(err)
-			}
-			return addon_app.migration.check().then(() => {
-				try {
-					addonPackage = require(path.join(pkg, 'package.json'))
-					AddonClass = require(pkg)
-				} catch (e) {
-					let err = new MateriaError('Impossible to require addon ' + pkg) as any
-					err.originalError = e
-					throw err
-				}
-				try {
-					addonInstance = new AddonClass(this.app, this.addonsConfig[pkg], this.app.server.expressApp)
-				} catch(e) {
-					let err = new MateriaError('Impossible to create addon ' + pkg) as any
-					err.originalError = e
-					throw err
-				}
-
-				return {
-					npm: addonPackage.name,
-					name: addonPackage.materia && addonPackage.materia.display_name || addonPackage.name,
-					path: app_path,
-					description: addonPackage.description,
-					logo: addonPackage.materia && addonPackage.materia.logo,
-					author: addonPackage.materia && addonPackage.materia.author,
-					version: addonPackage.version,
-					config: this.addonsConfig[pkg],
-					color: addonPackage.materia && addonPackage.materia.icon && addonPackage.materia.icon.color,
-					obj: addonInstance
-				}
-			})
-		})
-	}
-
-	private _initializeAll(addons:Array<string>):Promise<Array<IAddon>> {
-		let promises = []
-		addons.forEach(addon => {
-			promises.push(this._initialize(addon))
-		})
-		return Promise.all(promises)
 	}
 
 	private _isPromise(obj:any):boolean {
