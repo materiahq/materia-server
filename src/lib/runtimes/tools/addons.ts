@@ -8,6 +8,7 @@ import * as readline from 'readline'
 import App, { ISaveOptions } from '../../app'
 
 import MateriaError from '../../error'
+import { Dependency } from '../../dependency'
 
 class AddonsTools {
 	addons:any
@@ -36,20 +37,29 @@ class AddonsTools {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
-		let proc = cp.spawn('npm', ['install', name, '--save'], {
-			cwd: this.app.path
-		})
-		return new Promise((accept, reject) => {
-			this.buffProc(proc, (code, out, err) => {
-				if (opts && opts.afterSave) {
-					opts.afterSave()
-				}
-				if (code != 0) {
-					let e = new MateriaError('Failed to install addon')
-					e.debug = err
-					return reject(e)
-				}
-				accept()
+		return Dependency.check('yarn').then(() => {
+			let proc = cp.spawn('yarn', ['add', name], {
+				cwd: this.app.path
+			})
+			return Promise.resolve(proc)
+		}).catch(() => {
+			let proc = cp.spawn('npm', ['install', name, '--save'], {
+				cwd: this.app.path
+			})
+			return Promise.resolve(proc)
+		}).then(proc => {
+			return new Promise((accept, reject) => {
+				this.buffProc(proc, (code, out, err) => {
+					if (opts && opts.afterSave) {
+						opts.afterSave()
+					}
+					if (code != 0) {
+						let e = new MateriaError('Failed to install addon')
+						e.debug = err
+						return reject(e)
+					}
+					accept()
+				})
 			})
 		})
 	}
@@ -58,20 +68,29 @@ class AddonsTools {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
-		let proc = cp.spawn('npm', ['install'], {
-			cwd: this.app.path
-		})
-		return new Promise((accept, reject) => {
-			this.buffProc(proc, (code, out, err) => {
-				if (opts && opts.afterSave) {
-					opts.afterSave()
-				}
-				if (code != 0) {
-					let e = new MateriaError('Failed to install app')
-					e.debug = err
-					return reject(e)
-				}
-				accept()
+		return Dependency.check('yarn').then(() => {
+			let proc = cp.spawn('yarn', [], {
+				cwd: this.app.path
+			})
+			return Promise.resolve(proc)
+		}).catch(() => {
+			let proc = cp.spawn('npm', ['install'], {
+				cwd: this.app.path
+			})
+			return Promise.resolve(proc)
+		}).then(proc => {
+			return new Promise((accept, reject) => {
+				this.buffProc(proc, (code, out, err) => {
+					if (opts && opts.afterSave) {
+						opts.afterSave()
+					}
+					if (code != 0) {
+						let e = new MateriaError('Failed to install app')
+						e.debug = err
+						return reject(e)
+					}
+					accept()
+				})
 			})
 		})
 	}
@@ -172,22 +191,31 @@ class AddonsTools {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
-		let proc = cp.spawn('npm', ['uninstall', name, '--save'], {
-			cwd: this.app.path
-		})
-		return new Promise((accept, reject) => {
-			this.buffProc(proc, (code, out, err) => {
-				if (opts && opts.afterSave) {
-					opts.afterSave()
-				}
-				if (code != 0) {
-					let e = new MateriaError('Failed to uninstall addon')
-					e.debug = err
-					return reject(e)
-				}
+		return Dependency.check('yarn').then(() => {
+			let proc = cp.spawn('yarn', ['remove', name], {
+				cwd: this.app.path
+			})
+			return Promise.resolve(proc)
+		}).catch(() => {
+			let proc = cp.spawn('npm', ['remove'], {
+				cwd: this.app.path
+			})
+			return Promise.resolve(proc)
+		}).then(proc => {
+			return new Promise((accept, reject) => {
+				this.buffProc(proc, (code, out, err) => {
+					if (opts && opts.afterSave) {
+						opts.afterSave()
+					}
+					if (code != 0) {
+						let e = new MateriaError('Failed to uninstall addon')
+						e.debug = err
+						return reject(e)
+					}
 
-				this.app.addons.unload(name)
-				accept()
+					this.app.addons.unload(name)
+					accept()
+				})
 			})
 		})
 	}
