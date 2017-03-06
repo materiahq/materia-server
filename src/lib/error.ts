@@ -2,12 +2,14 @@ interface IErrorOptions {
 	slug?: string
 	issue?: number
 	debug?: string
+	originalError?: Error
 }
 
 export default class MateriaError extends Error {
 	slug: string
 	issue: number
 	debug: string
+	originalError?: Error
 
 	constructor(message, options?:IErrorOptions) {
 		super(message)
@@ -15,6 +17,7 @@ export default class MateriaError extends Error {
 			this.slug = options.slug
 			this.issue = options.issue
 			this.debug = options.debug
+			this.originalError = options.originalError
 		}
 	}
 
