@@ -184,6 +184,15 @@ export default class Addons {
 		})
 	}
 
+	setConfig(pkg:string, config:any) {
+		this.addonsConfig[pkg] = config
+		let p = path.join(this.app.path, '.materia', 'addons.json')
+		let content = JSON.stringify(this.addonsConfig, null, 2)
+		return this.app.saveFile(p, content, {
+			mkdir: true
+		})
+	}
+
 	//OUT OF DATE
 	private _checkName(name:string):Promise<void> {
 		if ( ! name ) {

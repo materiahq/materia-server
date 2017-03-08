@@ -4,10 +4,6 @@ import * as path from 'path'
 import App from '../app'
 import MateriaError from '../error'
 
-export interface IAddonTag {
-	id: string
-}
-
 export interface IAddonInfo {
 	package?: string
 	name: string
@@ -17,6 +13,18 @@ export interface IAddonInfo {
 	version: string
 	tags: IAddonTag[]
 	color: string
+}
+
+export interface IAddonTag {
+	id: string
+}
+
+export interface IAddonSetup {
+	name: string
+	description: string
+	default: any
+	type: string
+	component?: string
 }
 
 export default class Addon {
@@ -39,6 +47,8 @@ export default class Addon {
 	installing: boolean
 	published: any
 
+	setupConfig: any[]
+
 	enabled = true
 
 	constructor(private app: App, pkg) {
@@ -47,7 +57,7 @@ export default class Addon {
 
 	loadFromApp() {
 		let AddonClass, addonInstance, addonPackage
-		return this.app.addons.setupModule((require) => {
+		return this.app.addons.setupModule(require => {
 			let addon_app
 			try {
 				this.path = path.dirname(require.resolve(path.join(this.package, 'package.json')))
@@ -113,6 +123,36 @@ export default class Addon {
 			}
 		}
 		return Promise.resolve()
+	}
+
+	setup(config:any):Promise<any> {
+		console.log('in setup', config);
+		this.config = config
+		return this.app.addons.setConfig(this.package, config)
+	}
+
+	getSetupConfig():Promise<any> {
+		return this.app.addons.setupModule(require => {
+			let setupObj
+			try {
+				console.log('try to get path')
+				let packageJsonPath = require.resolve(path.join(this.package, 'package.json'))
+				console.log('clear cache if exists')
+				if (require.cache[packageJsonPath]) {
+					delete require.cache[packageJsonPath]
+				}
+				console.log('require')
+				let pkgJson = require(path.join(this.package, 'package.json')).materia
+				console.log('get setup', pkgJson, pkgJson.setup, Array.isArray(pkgJson && pkgJson.setup))
+				if ( ! Array.isArray(pkgJson && pkgJson.setup)) {
+					return Promise.resolve([])
+				}
+				return Promise.resolve(pkgJson.setup)
+			} catch(e) {
+				console.log('error', e, e.stack)
+				return Promise.reject(e)
+			}
+		})
 	}
 
 	//TODO
