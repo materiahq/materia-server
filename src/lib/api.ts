@@ -44,7 +44,7 @@ export default class Api {
 	add(endpoint, options:IApplyOptions) {
 		options = options || {}
 
-		if ( ! endpoint.controller && typeof endpoint.query == 'Object' && endpoint.query.entity && this.app.database.disabled ) {
+		if ( ! endpoint.controller && endpoint.query && endpoint.query.entity && this.app.database.disabled ) {
 			throw new MateriaError('The database is disabled and this endpoint rely on it')
 		}
 		if (endpoint) {
@@ -211,8 +211,10 @@ export default class Api {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave(path.join('server', 'api.json'))
 		}
-		let basePath = (opts && opts.fromAddon) ? opts.fromAddon.path : this.app.path
-		fs.writeFileSync(path.join(basePath, 'server', 'api.json'), JSON.stringify(this.toJson(opts), null, '\t'))
+		if ( ! opts.fromAddon) {
+			let basePath = (opts && opts.fromAddon) ? opts.fromAddon.path : this.app.path
+			fs.writeFileSync(path.join(basePath, 'server', 'api.json'), JSON.stringify(this.toJson(opts), null, '\t'))
+		}
 		if (opts && opts.afterSave) {
 			opts.afterSave()
 		}

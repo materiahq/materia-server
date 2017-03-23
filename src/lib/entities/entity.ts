@@ -213,16 +213,22 @@ export class Entity {
 	}
 
 	save(opts?) {
+		if (this.fromAddon ) {
+			return true;
+		}
+
 		let relativePath = path.join('server', 'models', this.name + '.json')
 		let basepath = this.fromAddon ? this.fromAddon.path : this.app.path
 
 		if (opts && opts.beforeSave) {
 			opts.beforeSave(path.join(basepath, relativePath))
 		}
+
 		fs.writeFileSync(
 			path.join(basepath, relativePath),
 			JSON.stringify(this.toJson(), null, '\t')
 		)
+
 		if (opts && opts.afterSave) {
 			opts.afterSave()
 		}
@@ -784,7 +790,12 @@ export class Entity {
 					oldfield.isRelation = field.isRelation
 					return Promise.resolve(oldfield)
 				}
-				return Promise.reject(new MateriaError('A field of this name already exists'))
+				if ( options.noErrors ) {
+					return Promise.resolve(oldfield)
+				}
+				else {
+					return Promise.reject(new MateriaError('A field of this name already exists'))
+				}
 			}
 			this.fields.splice(at, 0, fieldobj)
 		}
