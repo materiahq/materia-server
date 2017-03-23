@@ -135,9 +135,8 @@ export class Endpoint {
 
 			let ctrl = this._getController()
 			ctrl.load(basePath, this.controller)
-
 			if ( ! ctrl.ctrlClass.prototype[this.action]) {
-				throw new MateriaError(`cannot find method ${this.action} in controller ${this.controller}.js`)
+				throw new MateriaError(`cannot find method ${this.action} in controller ${this.controller}.ctrl.js`)
 			}
 			this._buildParams(endpointConfig.params)
 		}
@@ -170,7 +169,7 @@ export class Endpoint {
 	}
 
 	private _getController():Controller {
-		let controller_prefix = this.fromAddon ? this.fromAddon.name + "/" : ""
+		let controller_prefix = this.fromAddon ? this.fromAddon.package + "/" : ""
 		if ( ! Endpoint.controllers[controller_prefix + this.controller]) {
 			Endpoint.controllers[controller_prefix + this.controller] = new Controller(this.app)
 		}
@@ -254,9 +253,8 @@ export class Endpoint {
 						resolvedParams[param.name] = v
 					}
 				}
-
 				if ( resolvedParams[param.name] == null && param.required) {
-					return Promise.reject(new MateriaError('Missing required parameter: ' + param.name))
+					return Promise.reject(new MateriaError('Missing required parameter in endpoint: ' + param.name))
 				}
 			}
 		}
