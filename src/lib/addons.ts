@@ -303,34 +303,59 @@ module.exports = ${nameCapitalizeFirst};`
 		return p
 	}
 
-	loadEntities():Promise<any> {
+	private handleHook(name:string):Promise<any> {
 		let p = Promise.resolve()
-		this.addons.forEach((addon) => {
+		this.addons.forEach(addon => {
 			p = p.then(() => {
-				return this.app.entities.loadEntities(addon)
+				if (typeof addon[name] == 'function') {
+					return addon[name]();
+				}
+				else return Promise.resolve()
 			})
 		})
 		return p
+	}
+
+	loadEntities():Promise<any> {
+		return this.handleHook('beforeLoadEntities').then(() => {
+			let p = Promise.resolve()
+			this.addons.forEach((addon) => {
+				p = p.then(() => {
+					return this.app.entities.loadEntities(addon)
+				})
+			})
+			return p
+		}).then(() => {
+			return this.handleHook('afterLoadEntities')
+		})
 	}
 
 	loadQueries():Promise<void> {
-		let p = Promise.resolve()
-		this.addons.forEach((addon) => {
-			p = p.then(() => {
-				return this.app.entities.loadQueries(addon)
+		return this.handleHook('beforeLoadQueries').then(() => {
+			let p = Promise.resolve()
+			this.addons.forEach((addon) => {
+				p = p.then(() => {
+					return this.app.entities.loadQueries(addon)
+				})
 			})
+			return p
+		}).then(() => {
+			return this.handleHook('afterLoadQueries')
 		})
-		return p
 	}
 
 	loadAPI():Promise<void> {
-		let p = Promise.resolve()
-		this.addons.forEach((addon) => {
-			p = p.then(() => {
-				return this.app.api.load(addon)
+		return this.handleHook('beforeLoadAPI').then(() => {
+			let p = Promise.resolve()
+			this.addons.forEach((addon) => {
+				p = p.then(() => {
+					return this.app.api.load(addon)
+				})
 			})
+			return p
+		}).then(() => {
+			return this.handleHook('afterLoadAPI')
 		})
-		return p
 	}
 
 	private _isPromise(obj:any):boolean {

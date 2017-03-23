@@ -48,7 +48,7 @@ export default class Addon {
 	published: any
 
 	setupConfig: any[]
-
+	packageJsonFile: any
 	enabled = true
 
 	constructor(private app: App, pkg) {
@@ -84,6 +84,7 @@ export default class Addon {
 					})
 				}
 
+				this.packageJsonFile = addonPackage
 				this.package = addonPackage.name,
 				this.name = addonPackage.materia && addonPackage.materia.display_name || addonPackage.name,
 				this.description = addonPackage.description,
@@ -121,8 +122,48 @@ export default class Addon {
 			if (this._isPromise(startResult)) {
 				return startResult
 			}
+			else {
+				return Promise.resolve(startResult)
+			}
 		}
 		return Promise.resolve()
+	}
+
+	private hook(name:string):Promise<any> {
+		if (typeof this.obj[name] == 'function') {
+			let result = this.obj[name]()
+			if (this._isPromise(result)) {
+				return result
+			}
+			else {
+				return Promise.resolve(result)
+			}
+		}
+		return Promise.resolve()
+	}
+
+	beforeLoadEntities():Promise<any> {
+		return this.hook('beforeLoadEntities');
+	}
+
+	afterLoadEntities():Promise<any> {
+		return this.hook('afterLoadEntities');
+	}
+
+	beforeLoadQueries():Promise<any> {
+		return this.hook('beforeLoadQueries');
+	}
+
+	afterLoadQueries():Promise<any> {
+		return this.hook('afterLoadQueries');
+	}
+
+	beforeLoadAPI():Promise<any> {
+		return this.hook('beforeLoadAPI');
+	}
+
+	afterLoadAPI():Promise<any> {
+		return this.hook('afterLoadAPI');
 	}
 
 	setup(config:any):Promise<any> {
@@ -131,28 +172,8 @@ export default class Addon {
 		return this.app.addons.setConfig(this.package, config)
 	}
 
-	getSetupConfig():Promise<any> {
-		return this.app.addons.setupModule(require => {
-			let setupObj
-			try {
-				console.log('try to get path')
-				let packageJsonPath = require.resolve(path.join(this.package, 'package.json'))
-				console.log('clear cache if exists')
-				if (require.cache[packageJsonPath]) {
-					delete require.cache[packageJsonPath]
-				}
-				console.log('require')
-				let pkgJson = require(path.join(this.package, 'package.json')).materia
-				console.log('get setup', pkgJson, pkgJson.setup, Array.isArray(pkgJson && pkgJson.setup))
-				if ( ! Array.isArray(pkgJson && pkgJson.setup)) {
-					return Promise.resolve([])
-				}
-				return Promise.resolve(pkgJson.setup)
-			} catch(e) {
-				console.log('error', e, e.stack)
-				return Promise.reject(e)
-			}
-		})
+	getSetupConfig():any {
+		return this.packageJsonFile.materia.setup || []
 	}
 
 	//TODO
