@@ -39,16 +39,19 @@ export type IConditions = ICondition[]
 
 export class Conditions {
 	conditions: Array<Condition>
+	entity: DBEntity
 
-	constructor(conditions:Array<ICondition>, private entity: DBEntity) {
+	constructor(conditions:Array<ICondition>, private query: Query) {
 		this.conditions = []
+		this.entity = query.entity;
+
 
 		if (conditions) {
 			for (let condition of conditions) {
-				if (condition.entity && ! entity.app.entities.get(condition.entity)) {
+				if (condition.entity && ! this.entity.app.entities.get(condition.entity)) {
 					throw new MateriaError(`Could not find entity "${condition.entity}" in condition`)
 				}
-				this.conditions.push(new Condition(condition, entity && entity.name))
+				this.conditions.push(new Condition(condition, this.entity && this.entity.name))
 			}
 		}
 	}
@@ -125,6 +128,10 @@ export class Conditions {
 				}
 				else {
 					field = this.entity.getField(condition.name)
+				}
+
+				if ( ! field) {
+					console.log(`impossible to find field ${condition.entity}.${condition.name} in query ${this.query.id}`)
 				}
 
 				let paramName = condition.name

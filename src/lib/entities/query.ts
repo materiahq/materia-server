@@ -82,7 +82,7 @@ export abstract class Query {
 	params: IQueryParam[]
 	readonly id: string;
 
-	constructor(protected entity:DBEntity, id:string) {
+	constructor(public entity:DBEntity, id:string) {
 		this.entity = entity
 		//this.history = entity.app.history
 		this.id = id

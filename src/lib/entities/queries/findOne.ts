@@ -18,7 +18,7 @@ export class FindOneQuery extends Query {
 		this.opts = opts
 		this.type = 'findOne'
 		this.include = opts.include || []
-		this.conditions = new Conditions(opts.conditions, entity)
+		this.conditions = new Conditions(opts.conditions, this)
 
 		this.orderBy = opts.orderBy || []
 

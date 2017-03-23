@@ -27,7 +27,7 @@ export class UpdateQuery extends Query {
 			this.values = opts.values
 		}
 
-		this.conditions = new Conditions(opts.conditions, entity)
+		this.conditions = new Conditions(opts.conditions, this)
 
 		this.discoverParams()
 	}

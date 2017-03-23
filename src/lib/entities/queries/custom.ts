@@ -119,7 +119,7 @@ export class CustomQuery extends Query {
 	}
 
 	private _getModel():Model {
-		let model_prefix = this.entity.fromAddon ? this.entity.fromAddon.name + "/" : ""
+		let model_prefix = this.entity.fromAddon ? this.entity.fromAddon.package + "/" : ""
 		if ( ! CustomQuery.models[model_prefix + this.model]) {
 			CustomQuery.models[model_prefix + this.model] = new Model()
 		}

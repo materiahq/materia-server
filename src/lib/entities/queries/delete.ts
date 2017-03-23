@@ -11,7 +11,7 @@ export class DeleteQuery extends Query {
 		if ( ! opts ) {
 			opts = {}
 		}
-		this.conditions = new Conditions(opts.conditions, entity)
+		this.conditions = new Conditions(opts.conditions, this)
 		this.discoverParams()
 	}
 
