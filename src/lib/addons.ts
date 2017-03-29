@@ -123,6 +123,7 @@ export default class Addons {
 				} catch(e) {
 				}
 			}
+			console.log('search addons', addons)
 			return Promise.resolve(addons)
 		})
 	}
@@ -131,15 +132,14 @@ export default class Addons {
 		let pkg = require(path.join(this.app.path, 'package.json'))
 		this.addonsConfig = pkg.materia && pkg.materia.addons || {}
 		try {
-			let setup:IAddonConfig = require(path.join(this.app.path, '.materia/addons.json'))
-			this.addonsConfig = Object.assign({}, this.addonsConfig)
-			for (let k in setup) {
-				if (this.addonsConfig[k]) {
-					this.addonsConfig[k] = Object.assign(this.addonsConfig[k], setup[k])
-				} else {
-					this.addonsConfig[k] = setup[k]
-				}
+			let p = path.join(this.app.path, '.materia', 'addons.json')
+			let addonsConfigPath = require.resolve(p)
+			if (require.cache[addonsConfigPath]) {
+				delete require.cache[addonsConfigPath]
 			}
+
+			let setup:IAddonConfig = require(p)
+			this.addonsConfig = Object.assign({}, this.addonsConfig, setup)
 		} catch(e) {
 			if (e.code != 'MODULE_NOT_FOUND') {
 				return Promise.reject(new MateriaError(`Error in .materia/addons.json`))
@@ -172,7 +172,7 @@ export default class Addons {
 				p = p.then(() => {
 					if (typeof addon.obj.load == 'function') {
 						let obj = addon.obj.load()
-						if (this._isPromise(obj)) { // promise-like simple test
+						if (this._isPromise(obj)) {
 							return obj
 						}
 					}
