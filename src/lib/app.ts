@@ -515,7 +515,7 @@ export default class App extends events.EventEmitter {
 		return fs.readFileSync(fullpath, 'utf8')
 	}
 
-	saveFile(fullpath, content, opts) {
+	saveFile(fullpath:string, content:string, opts?): Promise<any> {
 		let p = Promise.resolve()
 		if (opts && opts.beforeSave) {
 			opts.beforeSave(path.resolve(this.path, fullpath))

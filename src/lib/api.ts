@@ -130,7 +130,7 @@ export default class Api {
 		if (addon) {
 			opts.fromAddon = addon
 		}
-		this.permissions.clear()
+		this.permissions.load()
 		let content
 		try {
 			content = fs.readFileSync(path.join(basePath, 'server', 'api.json'))
