@@ -49,6 +49,7 @@ export interface IEndpoint {
 		id: any
 	},
 	params?: Array<any>,
+	parent?: string,
 	//data?: any[],
 	permissions?: Array<string>,
 	fromAddon?: IAddon
@@ -93,6 +94,7 @@ export class Endpoint {
 	method: string
 	url: string
 	fromAddon?: IAddon
+	parent?: string
 
 	params: Array<IParam>
 	data: Array<IParam>
@@ -115,6 +117,7 @@ export class Endpoint {
 		//this.name = endpointConfig.name
 		//this.desc = endpointConfig.desc
 		this.url = endpointConfig.url
+		this.parent = endpointConfig.parent
 		this.fromAddon = endpointConfig.fromAddon
 
 		this.params = []
