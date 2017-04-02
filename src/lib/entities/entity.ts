@@ -1071,7 +1071,7 @@ export class Entity {
 				return query
 			}
 		}
-		throw new MateriaError('Query "' + id + '" not found in entity "' + this.name + '"')
+		return null
 	}
 
 	refreshQueries() {
