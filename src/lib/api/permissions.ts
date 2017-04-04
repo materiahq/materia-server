@@ -75,14 +75,20 @@ export class Permissions {
 	load():Promise<any> {
 		console.log('loading Permissions')
 		this.clear()
+		let permissionsPath, resolvedPath, permissionsRaw;
 		try {
-			let permissionsPath = path.join(this.app.path, 'server', 'permissions')
-			let resolvedPath = require.resolve(permissionsPath)
+			permissionsPath = path.join(this.app.path, 'server', 'permissions.json')
+			resolvedPath = require.resolve(permissionsPath)
 			if (require.cache[resolvedPath]) {
 				delete require.cache[resolvedPath]
 			}
-			let permissionsRaw = require(permissionsPath)
-			console.log(permissionsRaw);
+			permissionsRaw = require(permissionsPath)
+		}
+		catch (e) {
+			console.log('Permissions: nothing to load');
+			return Promise.resolve()
+		}
+		try {
 			if (permissionsRaw && permissionsRaw.length) {
 				let results = []
 				permissionsRaw.forEach(permissionRaw => {
@@ -95,7 +101,7 @@ export class Permissions {
 				});
 			}
 			else {
-				console.log('Nothing to load')
+				console.log('Permissions.json is empty')
 				return Promise.resolve()
 			}
 		}
