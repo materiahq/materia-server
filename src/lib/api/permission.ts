@@ -34,7 +34,6 @@ export class Permission {
 
 	reload() {
 		if (this.file) {
-			console.log('reload', this.file);
 			let file = this.file
 			if (this.file.indexOf(path.join(this.app.path, 'server', 'permissions')) == -1) {
 				file = path.join(this.app.path, 'server', 'permissions', this.file)

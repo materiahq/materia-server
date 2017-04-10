@@ -167,7 +167,6 @@ export default class Addon {
 	}
 
 	setup(config:any):Promise<any> {
-		console.log('in setup', config);
 		this.config = config
 		return this.app.addons.setConfig(this.package, config)
 	}
