@@ -20,6 +20,11 @@ export interface IDatabaseConfig {
 	database?: string
 	storage?: string
 	live?: IDatabaseConfig
+	gcloud?: {
+		project: string
+		zone: string
+		instanceName: string
+	}
 }
 
 export interface IGitConfig {

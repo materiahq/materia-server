@@ -68,12 +68,10 @@ export class Permissions {
 			middleware: middleware,
 			file: permissionPath
 		}
-		console.log('before add', obj);
 		return obj
 	}
 
 	load():Promise<any> {
-		console.log('loading Permissions')
 		this.clear()
 		let permissionsPath, resolvedPath, permissionsRaw;
 		try {
@@ -85,7 +83,6 @@ export class Permissions {
 			permissionsRaw = require(permissionsPath)
 		}
 		catch (e) {
-			console.log('Permissions: nothing to load');
 			return Promise.resolve()
 		}
 		try {
@@ -96,18 +93,15 @@ export class Permissions {
 					results.push(this.add(obj))
 				})
 				return Promise.all(results).then(() => {
-					console.log(this.permissions);
 					return true
 				});
 			}
 			else {
-				console.log('Permissions.json is empty')
 				return Promise.resolve()
 			}
 		}
 		catch (e) {
 			//no file permissions.js
-			console.log('error with permissions:', e.stack)
 			return Promise.resolve()
 		}
 	}
@@ -187,7 +181,6 @@ export class Permissions {
 					p.name = permission.name
 					p.description = permission.description
 					if (path.join(this.app.path, 'server', 'permissions', permission.file + '.js') != p.file + '.js') {
-						console.log('rename', 'oldFile: ' + p.file + '.js', 'newFile: ' + path.join(this.app.path, 'server', 'permissions', permission.file))
 						fs.rename(p.file + '.js', path.join(this.app.path, 'server', 'permissions', permission.file + '.js'), (err) => {
 							if (err) {
 								return reject(err)
@@ -231,7 +224,6 @@ export class Permissions {
 		let index = this.permissions.indexOf(permission)
 		if (index != -1) {
 			if (opts && opts.removeSource) {
-				console.log('permission file to remove', permission.file)
 				fs.unlinkSync(permission.file + '.js')
 			}
 

@@ -24,6 +24,7 @@ export interface ISequelizeConfig {
 	port: number,
 	logging: any,
 	storage?: string
+	dialectOptions?: any
 }
 
 
@@ -102,6 +103,11 @@ export class Database {
 		if (this.type == 'sqlite') {
 			this.opts.storage = path.resolve(this.app.path, this.storage || 'database.sqlite')
 		}
+
+		if ((this.app.options['gcloud-project'] || settings.gcloud) && this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT) {
+			this.opts.dialectOptions = { socketPath: `/cloudsql/${this.app.options['gcloud-project'] || settings.gcloud.project}:${this.app.options['gcloud-zone'] || settings.gcloud.zone}:${this.app.options['gcloud-instance-name'] || settings.gcloud.instanceName}` }
+		}
+
 		return true
 	}
 

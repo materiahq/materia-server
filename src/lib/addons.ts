@@ -123,7 +123,6 @@ export default class Addons {
 				} catch(e) {
 				}
 			}
-			console.log('search addons', addons)
 			return Promise.resolve(addons)
 		})
 	}
