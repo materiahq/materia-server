@@ -1,22 +1,21 @@
 import * as cp from 'child_process'
 
+import * as which from 'which'
+
 export class Dependency {
 	static check(cmd:string): Promise<any> {
 		return new Promise((resolve, reject) => {
-			let proc = cp.spawn(cmd, ['--version'])
-			let out = ""
-			let err = ""
-			proc.stdout.on('data', data => {
-				out += data.toString()
-			})
-			proc.stderr.on('data', data => {
-				err += data.toString()
-			})
-			proc.on('close', code => {
-				resolve()
-			})
-			proc.on('error', err => {
-				reject()
+			console.log(cmd, which);
+			which(cmd, (err, path) => {
+				console.log(err, path);
+				if (err) {
+					console.log('error', err)
+					return reject(err)
+				}
+				else {
+					console.log('resolve', path)
+					return resolve(path)
+				}
 			})
 		})
 	}

@@ -31,66 +31,59 @@ class AddonsTools {
 		})
 	}
 
+	private _postInstall(proc, opts) {
+		return new Promise((accept, reject) => {
+			this.buffProc(proc, (code, out, err) => {
+				if (opts && opts.afterSave) {
+					opts.afterSave()
+				}
+				if (code != 0) {
+					let e = new MateriaError('Failed to install/uninstall addons')
+					e.debug = err
+					return reject(e)
+				}
+				accept()
+			})
+		})
+	}
+
+	private pmCall(yarnParams, npmParams, opts) {
+		return Dependency.check('yarn').then(path => {
+			let proc = cp.spawn(path, yarnParams, {
+				cwd: this.app.path
+			})
+			return Promise.resolve({proc: proc, opts: opts})
+		}).catch(e => {
+			console.log('Yarn not found, fallback on NPM', e, e.debug)
+			return Dependency.check('npm').then(path => {
+				let proc = cp.spawn(path, yarnParams, {
+					cwd: this.app.path
+				})
+				return Promise.resolve({proc: proc, opts: opts})
+			})
+		}).then(data => this._postInstall(data.proc, data.opts))
+	}
+
 	install(name:string, opts: ISaveOptions):Promise<any> {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
-		return Dependency.check('yarn').then(() => {
-			let proc = cp.spawn('yarn', ['add', name], {
-				cwd: this.app.path
-			})
-			return Promise.resolve(proc)
-		}).catch(() => {
-			let proc = cp.spawn('npm', ['install', name, '--save'], {
-				cwd: this.app.path
-			})
-			return Promise.resolve(proc)
-		}).then(proc => {
-			return new Promise((accept, reject) => {
-				this.buffProc(proc, (code, out, err) => {
-					if (opts && opts.afterSave) {
-						opts.afterSave()
-					}
-					if (code != 0) {
-						let e = new MateriaError('Failed to install addon')
-						e.debug = err
-						return reject(e)
-					}
-					accept()
-				})
-			})
-		})
+		return this.pmCall(['add', name], ['install', name, '--save'], opts)
 	}
 
 	install_all(opts: ISaveOptions):Promise<any> {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
-		return Dependency.check('yarn').then(() => {
-			let proc = cp.spawn('yarn', [], {
-				cwd: this.app.path
-			})
-			return Promise.resolve(proc)
-		}).catch(() => {
-			let proc = cp.spawn('npm', ['install'], {
-				cwd: this.app.path
-			})
-			return Promise.resolve(proc)
-		}).then(proc => {
-			return new Promise((accept, reject) => {
-				this.buffProc(proc, (code, out, err) => {
-					if (opts && opts.afterSave) {
-						opts.afterSave()
-					}
-					if (code != 0) {
-						let e = new MateriaError('Failed to install app')
-						e.debug = err
-						return reject(e)
-					}
-					accept()
-				})
-			})
-		})
+		return this.pmCall([], ['install'], opts);
+	}
+
+	remove(name:string, opts:ISaveOptions):Promise<any> {
+		if (opts && opts.beforeSave) {
+			opts.beforeSave()
+		}
+
+		return this.pmCall(['remove', name], ['uninstall', name, '--save'], opts)
 	}
 
 	setup(name:string, opts: ISaveOptions):Promise<void> {
@@ -173,39 +166,6 @@ class AddonsTools {
 				p = p.then(() => this.setup(addon, opts))
 			}
 			return p
-		})
-	}
-
-	remove(name:string, opts:ISaveOptions):Promise<any> {
-		if (opts && opts.beforeSave) {
-			opts.beforeSave()
-		}
-		return Dependency.check('yarn').then(() => {
-			let proc = cp.spawn('yarn', ['remove', name], {
-				cwd: this.app.path
-			})
-			return Promise.resolve(proc)
-		}).catch(() => {
-			let proc = cp.spawn('npm', ['remove', name, '--save'], {
-				cwd: this.app.path
-			})
-			return Promise.resolve(proc)
-		}).then(proc => {
-			return new Promise((accept, reject) => {
-				this.buffProc(proc, (code, out, err) => {
-					if (opts && opts.afterSave) {
-						opts.afterSave()
-					}
-					if (code != 0) {
-						let e = new MateriaError('Failed to uninstall addon')
-						e.debug = err
-						return reject(e)
-					}
-
-					this.app.addons.unload(name)
-					accept()
-				})
-			})
 		})
 	}
 
