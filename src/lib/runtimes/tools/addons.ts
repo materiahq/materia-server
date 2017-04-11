@@ -47,7 +47,7 @@ class AddonsTools {
 		})
 	}
 
-	private pmCall(yarnParams, npmParams, opts) {
+	private pmCall(yarnParams:string[], npmParams:string[], opts: ISaveOptions) {
 		return Dependency.check('yarn').then(path => {
 			let proc = cp.spawn(path, yarnParams, {
 				cwd: this.app.path
