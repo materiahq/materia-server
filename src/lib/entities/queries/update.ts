@@ -93,6 +93,8 @@ export class UpdateQuery extends Query {
 	}
 
 	run(params):Promise<any> {
+		this.entity.app.logger.log(`(Query) Update - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
 		let updates, where
 		try {
 			updates = this.resolveParams(params)

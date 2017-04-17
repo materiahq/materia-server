@@ -85,7 +85,7 @@ export default class App extends events.EventEmitter {
 	materia_path: string = __dirname
 	mode: AppMode
 
-	loaded: false
+	loaded: boolean = false
 
 	infos: IMateriaConfig
 
@@ -207,8 +207,14 @@ export default class App extends events.EventEmitter {
 	}
 
 	load():Promise<any> {
+		this.logger.log(`(Load) Application: ${this.name}`)
+		this.logger.log(` └── Path: ${this.path}`)
+		this.logger.log(` └── Mode: ${this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' }`)
+
 		let p = Promise.resolve()
-		let warning
+		let warning, elapsedTimeQueries, elapsedTimeEntities, elapsedTimeAPI
+		let elapsedTimeGlobal = new Date().getTime()
+
 		if ( ! this.loaded) {
 			p = this.loadMateria()
 		}
@@ -218,29 +224,41 @@ export default class App extends events.EventEmitter {
 			return this.addons.loadAddons()
 		})
 		.then(() => this.entities.clear())
+		.then(() => this.logger.log(' └── Files'))
 		.then(() => this.addons.loadFiles())
 		.then(() => this.entities.loadFiles())
 		.then(() => {
 			if ( ! this.database.disabled) {
 				return this.database.start().then((e) => {
 					warning = e
+					this.logger.log(' └─┬ Entities')
+					elapsedTimeEntities = new Date().getTime()
 					return this.addons.loadEntities()
-				}).then(() => this.entities.loadEntities()
-				).then(() => this.entities.loadRelations())
+				})
+				.then(() => this.entities.loadEntities())
+				.then(() => this.entities.loadRelations())
+				.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeEntities} ms`))
 			}
 			else {
-				this.logger.log('No database configuration for this application - Continue without Entities')
+				this.logger.log(' └── Entities: (Warning) Skipped. No database configured')
 				return Promise.resolve()
 			}
 		})
 		.then(() => this.entities.resetModels())
+		.then(() => this.logger.log(' └─┬ Queries'))
+		.then(() => elapsedTimeQueries = new Date().getTime())
 		.then(() => this.addons.loadQueries())
 		.then(() => this.entities.loadQueries())
+		.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeQueries} ms`))
 		.then(() => this.api.resetControllers())
+		.then(() => this.logger.log(` └─┬ API`))
+		.then(() => elapsedTimeAPI = new Date().getTime())
 		.then(() => this.addons.loadAPI())
 		.then(() => this.api.load())
+		.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeAPI} ms`))
 		.then(() => this.history.load())
 		.then(() => this.git && this.git.load())
+		.then(() => this.logger.log(` └── Successfully loaded in ${(new Date().getTime()) - elapsedTimeGlobal} ms\n`))
 		.then(() => warning)
 	}
 
@@ -320,32 +338,39 @@ export default class App extends events.EventEmitter {
 	*/
 	start() {
 		let warning
+
+		this.logger.log(`(Start) Application ${this.name}`)
 		let p = this.database.started ? Promise.resolve() : this.database.start()
 		return p.catch((e) => {
 			e.errorType = 'database'
 			throw e
 		}).then((e) => {
+			this.logger.log(` └── Database: OK`)
 			warning = e
 			return this.entities.start().catch((e) => {
 				e.errorType = 'entities'
 				throw e
 			})
 		}).then(() => {
+			this.logger.log(` └── Entities: OK`)
 			return this.addons.start().catch((e) => {
 				e.errorType = 'addons'
 				throw e
 			})
 		}).then(() => {
+			this.logger.log(` └── Addons: OK`)
 			if (this.mode == AppMode.PRODUCTION && ! this.live) {
 				return this.synchronizer.diff().then((diffs) => {
 					if (diffs && diffs.length == 0) {
+						this.logger.log(' └── Synchronize: DB already up to date')
 						return
 					}
-					this.logger.log('INFO: The database structure differs from entities. Syncing...')
+					this.logger.log(' └─┬ Synchronize: The database structure differs from entities.')
 					return this.synchronizer.entitiesToDatabase(diffs, {}).then((actions) => {
-						this.logger.log(`INFO: Successfully updated the database. (Applied ${actions.length} actions)`)
+						this.logger.log(` │ └── Database: Updated successfully. (Applied ${actions.length} actions)`)
 					})
 				}).catch((e) => {
+					this.logger.log(` │ └── Database: Fail - An action could not be applied: ${e}`)
 					e.errorType = 'sync'
 					throw e
 				})
@@ -357,6 +382,7 @@ export default class App extends events.EventEmitter {
 			})
 		}).then(() => {
 			this.status = true
+			this.logger.log('')
 			return warning
 		})
 	}

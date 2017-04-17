@@ -93,6 +93,9 @@ export class CreateQuery extends Query {
 	}
 
 	run(params, options):Promise<any> {
+		this.entity.app.logger.log(`(Query) Create - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
+
 		let raw = options && options.raw
 
 		try {

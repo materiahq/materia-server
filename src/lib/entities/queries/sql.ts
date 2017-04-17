@@ -70,6 +70,8 @@ export class SQLQuery extends Query {
 	}
 
 	run(params):Promise<any> {
+		this.entity.app.logger.log(`(Query) SQL - Run ${this.entity.name}.${this.id}`)
+
 		let resolvedParams
 		try {
 			resolvedParams = this.resolveParams(params)
@@ -85,6 +87,8 @@ export class SQLQuery extends Query {
 				}
 			}
 		}
+		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(resolvedParams)}`)
+		this.entity.app.logger.log(` └── Query: ${this.query}\n`)
 
 		return this.entity.app.database.sequelize.query(this.query, {
 			replacements: resolvedParams,

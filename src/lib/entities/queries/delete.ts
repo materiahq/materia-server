@@ -22,6 +22,9 @@ export class DeleteQuery extends Query {
 	}
 
 	run(params):Promise<any> {
+		this.entity.app.logger.log(`(Query) Delete - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
+
 		let sequelizeCond
 		try {
 			sequelizeCond = this.conditions.toSequelize(params, this.entity.name)

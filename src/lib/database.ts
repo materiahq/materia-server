@@ -73,6 +73,7 @@ export class Database {
 
 		if ( ! settings) {
 			this.disabled = true
+			this.app.logger.log(` └─ Database: No database configured!`)
 			return false
 		}
 
@@ -106,6 +107,15 @@ export class Database {
 
 		if ((this.app.options['gcloud-project'] || settings.gcloud) && this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT) {
 			this.opts.dialectOptions = { socketPath: `/cloudsql/${this.app.options['gcloud-project'] || settings.gcloud.project}:${this.app.options['gcloud-zone'] || settings.gcloud.zone}:${this.app.options['gcloud-instance-name'] || settings.gcloud.instanceName}` }
+		}
+
+		this.app.logger.log(` └─┬ Database: OK`)
+		this.app.logger.log(` │ └── Dialect: ${this.type}`)
+		if (this.type == 'sqlite') {
+			this.app.logger.log(` │ └── File: ${this.storage || 'database.sqlite'}`)
+		}
+		else {
+			this.app.logger.log(` │ └── Connection Info: ${this.host}:${this.port}`)
 		}
 
 		return true
@@ -208,10 +218,13 @@ export class Database {
 		}
 		this.interface.setDialect(this.type)
 		return this.interface.authenticate().then(() => {
+			this.app.logger.log(` └── Database: Authenticated`)
+
 			this.started = true
 		}).catch((e) => {
-			this.app.logger.warn('Impossible to connect the database:', e && e.message)
-			this.app.logger.warn('The database has been disabled')
+			this.app.logger.log(` └── Database: Connection failed`)
+			this.app.logger.warn('    (Warning) Impossible to connect the database:', e && e.message)
+			this.app.logger.warn('    The database has been disabled')
 			this.disabled = true
 			return Promise.resolve(e)
 		})

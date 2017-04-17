@@ -39,7 +39,6 @@
     "@types/compression": "0.0.33",
     "@types/express": "^4.0.34",
     "@types/fs-extra": "^0.0.36",
-    "@types/lodash": "^4.14.47",
     "@types/mocha": "^2.2.36",
     "@types/node": "^6.0.58",
     "@types/node-uuid": "0.0.28",

@@ -76,12 +76,16 @@ export class FindOneQuery extends Query {
 	}
 
 	run(params, options):Promise<any> {
+		this.entity.app.logger.log(`(Query) FindOne - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}`)
+		this.entity.app.logger.log(` └── Options: ${JSON.stringify(options)}`)
 		let sequelizeOpts
 		try {
 			sequelizeOpts = this.constructSequelizeOpts(params, options)
 		} catch (e) {
 			return Promise.reject(e)
 		}
+		this.entity.app.logger.log(` └── Sequelize: findAndCountAll(${JSON.stringify(sequelizeOpts)})\n`)
 		return this.entity.model.findOne(sequelizeOpts)
 	}
 

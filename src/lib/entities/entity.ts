@@ -180,12 +180,14 @@ export class Entity {
 				]
 				if (reservedQueries.indexOf(query.id) == -1) {
 					try {
+						this.app.logger.log(` │ │ └── ${this.name}.${query.id}`)
 						this.addQuery(query, {history:false, save:false})
+
 					} catch(e) {
 						let err = e.originalError || e instanceof MateriaError && e
 						if (err) {
-							this.app.logger.warn(`Skipped query "${query.id}" of entity "${this.name}"`)
-							this.app.logger.warn('due to error: ' + err.stack)
+							this.app.logger.warn(` │ │ │   (Warning) Skipped query "${query.id}" of entity "${this.name}"`)
+							this.app.logger.warn(' │ │ │   due to error: ' + err.stack)
 						}
 						else {
 							throw e

@@ -130,8 +130,17 @@ export class Entities {
 		}
 		if (addon) {
 			opts.fromAddon = addon
+			if (this.entitiesJson[basePath].length > 0) {
+				this.app.logger.log(` │ └─┬ ${addon.package}`)
+			}
 		}
+		else if (this.entitiesJson[basePath].length > 0) {
+			this.app.logger.log(` │ └─┬ Application`)
+		}
+
+
 		for (let file of this.entitiesJson[basePath]) {
+			this.app.logger.log(` │ │ └── ${file.name}`)
 			promises.push(this.add(file, opts));
 		}
 
@@ -140,6 +149,17 @@ export class Entities {
 
 	loadQueries(addon?: Addon):Promise<any> {
 		let basePath = addon ? addon.path : this.app.path
+
+
+		if (this.entitiesJson[basePath].length > 0) {
+			if (addon) {
+				this.app.logger.log(` │ └─┬ ${addon.package}`)
+			}
+			else {
+				this.app.logger.log(` │ └─┬ Application`)
+			}
+		}
+
 		try {
 			for (let entityJson of this.entitiesJson[basePath]) {
 				let entity = this.get(entityJson.name)

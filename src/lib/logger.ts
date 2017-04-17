@@ -45,7 +45,6 @@ export class Logger {
 				args.push(val);
 		})
 
-		args.unshift('WARNING:')
 		this.console.warn.apply(this.console, args)
 	}
 

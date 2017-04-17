@@ -229,6 +229,7 @@ export class Endpoint {
 	}
 
 	handle(req, res, next):Promise<any> {
+		this.app.logger.log(`(Endpoint) Handle ${req.method.toUpperCase()} ${req.url}`)
 		let resolvedParams = Object.assign({}, req.query, req.body, req.params)
 		if (this.params.length > 0) {
 			for (let param of this.params) {
@@ -257,15 +258,18 @@ export class Endpoint {
 					}
 				}
 				if ( resolvedParams[param.name] == null && param.required) {
-					return Promise.reject(new MateriaError('Missing required parameter in endpoint: ' + param.name))
+					let error = new MateriaError(` └── Missing required parameter: ${param.name}`)
+					this.app.logger.log(error)
+					return Promise.reject(error)
 				}
 			}
 		}
-
+		this.app.logger.log(` └── Parameters: ${JSON.stringify(resolvedParams)}`)
 		if (this.controller && this.action) {
 			let obj
 			try {
 				let instance = this._getController().instance()
+				this.app.logger.log(` └── Execute: (Controller) ${instance.constructor.name}.${this.action}\n`)
 				obj = instance[this.action](req, res, next)
 			} catch (e) {
 				return Promise.reject(e)
@@ -280,6 +284,7 @@ export class Endpoint {
 			return Promise.resolve()
 		}
 		else {
+			this.app.logger.log(` └── Execute: (Query) ${this.query.entity.name}.${this.query.id}\n`)
 			return this.query.run(resolvedParams).then(data => {
 				res.status(200).json(data)
 			})

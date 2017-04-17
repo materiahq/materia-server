@@ -167,8 +167,10 @@ export default class Addons {
 			return Promise.all(promises)
 		}).then(addons => {
 			let p = Promise.resolve()
+			this.app.logger.log(` └─┬ Addons: ${this.addons.length}`)
 			this.addons.forEach(addon => {
 				p = p.then(() => {
+					this.app.logger.log(` │ └── ${addon.package}`)
 					if (typeof addon.obj.load == 'function') {
 						let obj = addon.obj.load()
 						if (this._isPromise(obj)) {

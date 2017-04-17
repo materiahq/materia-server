@@ -87,6 +87,9 @@ export class CustomQuery extends Query {
 	discoverParams() {}
 
 	run(params):Promise<any> {
+		this.entity.app.logger.log(`(Query) Javascript - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
+
 		let instance = this._getModel().instance(this.entity)
 		try {
 			for (let field of this.params) {

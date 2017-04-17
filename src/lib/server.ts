@@ -63,6 +63,8 @@ export class Server {
 
 		this.server = require('http').createServer(this.expressApp)
 		enableDestroy(this.server)
+
+		this.app.logger.log(` └── Server: OK`)
 	}
 
 	/**
@@ -135,7 +137,7 @@ export class Server {
 			})
 
 			if (this.disabled) {
-				this.app.logger.log('INFO: The server is disabled on this machine.')
+				this.app.logger.log(' └── Server: Disabled (Warning)')
 				return Promise.resolve()
 			}
 
@@ -158,7 +160,8 @@ export class Server {
 
 				let args = [port, config.host, () => {
 					this.started = true
-					this.app.logger.log(`Server listening on ${config.host}:${port}`)
+					this.app.logger.log(' └─┬ Server: Started')
+					this.app.logger.log(`   └─ Listening on http://${config.host}:${port}`)
 					this.server.removeListener('error', errListener)
 					return resolve()
 				}]

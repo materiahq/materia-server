@@ -40,8 +40,10 @@ class AddonsTools {
 				if (code != 0) {
 					let e = new MateriaError('Failed to install/uninstall addons')
 					e.debug = err
+					this.app.logger.log(' └─ Fail!')
 					return reject(e)
 				}
+				this.app.logger.log(' └─ Success!')
 				accept()
 			})
 		})
@@ -49,17 +51,25 @@ class AddonsTools {
 
 	private pmCall(yarnParams:string[], npmParams:string[], opts: ISaveOptions) {
 		return Dependency.check('yarn').then(path => {
+			this.app.logger.log(' └─ Dependency: Yarn found')
+			this.app.logger.log(` └─ Run: yarn ${yarnParams.join(' ')}`)
 			let proc = cp.spawn(path, yarnParams, {
 				cwd: this.app.path
 			})
 			return Promise.resolve({proc: proc, opts: opts})
 		}).catch(e => {
-			console.log('Yarn not found, fallback on NPM', e, e.debug)
+			this.app.logger.log(' └─ Dependency: Yarn not found, fallback on NPM')
 			return Dependency.check('npm').then(path => {
-				let proc = cp.spawn(path, yarnParams, {
+				this.app.logger.log(' └─ Dependency: NPM found')
+				this.app.logger.log(` └─ Run: npm ${npmParams.join(' ')}`)
+				let proc = cp.spawn(path, npmParams, {
 					cwd: this.app.path
 				})
 				return Promise.resolve({proc: proc, opts: opts})
+			}).catch(e => {
+				this.app.logger.log(' └─ Dependency: NPM not found')
+				this.app.logger.log(' └─ Fail!')
+				return Promise.reject(e)
 			})
 		}).then(data => this._postInstall(data.proc, data.opts))
 	}
@@ -68,6 +78,7 @@ class AddonsTools {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
+		this.app.logger.log(`(Addons) Install ${name}`)
 		return this.pmCall(['add', name], ['install', name, '--save'], opts)
 	}
 
@@ -75,6 +86,7 @@ class AddonsTools {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
+		this.app.logger.log(`(Addons) Install All`)
 		return this.pmCall([], ['install'], opts);
 	}
 
@@ -82,7 +94,7 @@ class AddonsTools {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
-
+		this.app.logger.log(`(Addons) Uninstall ${name}`)
 		return this.pmCall(['remove', name], ['uninstall', name, '--save'], opts)
 	}
 

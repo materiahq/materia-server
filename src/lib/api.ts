@@ -142,17 +142,27 @@ export default class Api {
 		try {
 			let endpoints = JSON.parse(content.toString())
 
+			if (endpoints.length > 0) {
+				if (addon) {
+					this.app.logger.log(` │ └─┬ ${addon.package}`)
+				}
+				else {
+					this.app.logger.log(` │ └─┬ Application`)
+				}
+			}
+
 			endpoints.forEach((endpoint) => {
 				try {
+					this.app.logger.log(` │ │ └── ${endpoint.method.toUpperCase()} /api${endpoint.url}`)
 					this.add(endpoint, opts)
 				} catch (e) {
-					this.app.logger.warn('Skipped endpoint ' + endpoint.method + ' ' + endpoint.url)
-					this.app.logger.warn('due to error ' + e.message, e.stack)
+					this.app.logger.warn(' │ │     Skipped endpoint ' + endpoint.method + ' ' + endpoint.url)
+					this.app.logger.warn(' │ │     due to error ' + e.message, e.stack)
 				}
 			})
 		} catch (e) {
 			if (e.code != 'ENOENT')
-				this.app.logger.error('error loading endpoints', e.stack)
+				this.app.logger.error(' │ │ └── Error loading endpoints', e.stack)
 			else
 				return Promise.reject(e)
 		}
