@@ -184,7 +184,7 @@ export class Server {
 		return new Promise((accept, reject) => {
 			let method = (options && options.force) ? 'destroy' : 'close'
 			this.server[method](() => {
-				this.app.logger.log('Server closed')
+				this.app.logger.log('\n(Stop) Server closed\n')
 				this.started = false
 				accept()
 			})

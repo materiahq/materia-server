@@ -8,86 +8,64 @@ import App, { ISaveOptions } from '../../app'
 import MateriaError from '../../error'
 import { Dependency } from '../../dependency'
 
+import * as npm from 'npm'
+
 class AddonsTools {
 	addons:any
 
 	constructor(private app:App) {
 	}
 
-	private buffProc(proc:cp.ChildProcess, callback:(code:number, out:string, err:string)=>void) {
-		let out = ""
-		let err = ""
-		proc.stdout.on('data', data => {
-			out += data.toString()
-		})
-		proc.stderr.on('data', data => {
-			err += data.toString()
-		})
-		proc.on('close', code => {
-			callback(code, out, err)
-		})
-		proc.on('error', err => {
-			callback(-1, "", err.message)
-		})
-	}
-
-	private _postInstall(proc, opts) {
-		return new Promise((accept, reject) => {
-			this.buffProc(proc, (code, out, err) => {
-				if (opts && opts.afterSave) {
-					opts.afterSave()
+	private npmCall(command:string, params:string[]): Promise<any> {
+		return new Promise((resolve, reject) => {
+			npm.load({
+				prefix: this.app.path,
+				loglevel: 'error',
+				loaded: false,
+				save: true
+			}, err => {
+				if (err) {
+					this.app.logger.log(` └─ Fail: ${err}`)
+					return reject(err)
 				}
-				if (code != 0) {
-					let e = new MateriaError('Failed to install/uninstall addons')
-					e.debug = err
-					this.app.logger.log(' └─ Fail!')
-					return reject(e)
-				}
-				this.app.logger.log(' └─ Success!')
-				accept()
-			})
-		})
-	}
-
-	private pmCall(yarnParams:string[], npmParams:string[], opts: ISaveOptions) {
-		return Dependency.check('yarn').then(path => {
-			this.app.logger.log(' └─ Dependency: Yarn found')
-			this.app.logger.log(` └─ Run: yarn ${yarnParams.join(' ')}`)
-			let proc = cp.spawn(path, yarnParams, {
-				cwd: this.app.path
-			})
-			return Promise.resolve({proc: proc, opts: opts})
-		}).catch(e => {
-			this.app.logger.log(' └─ Dependency: Yarn not found, fallback on NPM')
-			return Dependency.check('npm').then(path => {
-				this.app.logger.log(' └─ Dependency: NPM found')
-				this.app.logger.log(` └─ Run: npm ${npmParams.join(' ')}`)
-				let proc = cp.spawn(path, npmParams, {
-					cwd: this.app.path
+				this.app.logger.log(` └─ Run: npm ${command} ${params.join(' ')}`)
+				npm.commands[command](params, (err, data) => {
+					if (err) {
+						this.app.logger.log(` └─ Fail: ${err}`)
+						return reject(err)
+					}
+					this.app.logger.log(` └─ Done: ${data}`)
+					return resolve(data)
 				})
-				return Promise.resolve({proc: proc, opts: opts})
-			}).catch(e => {
-				this.app.logger.log(' └─ Dependency: NPM not found')
-				this.app.logger.log(' └─ Fail!')
-				return Promise.reject(e)
 			})
-		}).then(data => this._postInstall(data.proc, data.opts))
+		})
 	}
+
 
 	install(name:string, opts: ISaveOptions):Promise<any> {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
 		this.app.logger.log(`(Addons) Install ${name}`)
-		return this.pmCall(['add', name], ['install', name, '--save'], opts)
+		return this.npmCall('install', [name]).then(() => {
+			if (opts && opts.afterSave) {
+				opts.afterSave()
+			}
+			return true
+		})
 	}
 
 	install_all(opts: ISaveOptions):Promise<any> {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
-		this.app.logger.log(`(Addons) Install All`)
-		return this.pmCall([], ['install'], opts);
+		this.app.logger.log(`(Addons) Install all dependencies`)
+		return this.npmCall('install', []).then(() => {
+			if (opts && opts.afterSave) {
+				opts.afterSave()
+			}
+			return true
+		})
 	}
 
 	remove(name:string, opts:ISaveOptions):Promise<any> {
@@ -95,7 +73,12 @@ class AddonsTools {
 			opts.beforeSave()
 		}
 		this.app.logger.log(`(Addons) Uninstall ${name}`)
-		return this.pmCall(['remove', name], ['uninstall', name, '--save'], opts)
+		return this.npmCall('uninstall', [name]).then(() => {
+			if (opts && opts.afterSave) {
+				opts.afterSave()
+			}
+			return true
+		})
 	}
 
 	setup(name:string, opts: ISaveOptions):Promise<void> {
@@ -185,6 +168,90 @@ class AddonsTools {
 		/* Receive addons from npm @materia scope */
 		return Promise.reject(new MateriaError('Not implemented yet', { slug: 'addons_search' }))
 	}
+
+	/**
+	 * Call to npm/yarn using child process
+	 * Tried 15000 things and couldn't find a way to make it work in the packaged asar file.
+	 */
+	/*private buffProc(proc:cp.ChildProcess, callback:(code:number, out:string, err:string)=>void) {
+		let out = ""
+		let err = ""
+
+		proc.stdout.on('data', data => {
+			out += data.toString()
+		})
+		proc.stderr.on('data', data => {
+			err += data.toString()
+		})
+		proc.on('close', code => {
+			callback(code, out, err)
+		})
+		proc.on('error', err => {
+			callback(-1, "", err.message)
+		})
+	}
+	private _postInstall(proc, opts) {
+		return new Promise((accept, reject) => {
+
+			this.buffProc(proc, (code, out, err) => {
+				if (opts && opts.afterSave) {
+					opts.afterSave()
+				}
+				if (code != 0) {
+					let e = new MateriaError('Failed to install/uninstall addons')
+					e.debug = err
+					this.app.logger.log(` └─ Fail: ${e} (${out}, ${err})`)
+					return reject(e)
+				}
+				this.app.logger.log(' └─ Success!')
+				accept()
+			})
+		})
+	}
+
+	private findPath(parent = '..') {
+		this.app.logger.log(`trying... ${path.join(__dirname, parent)}`)
+		if (fs.existsSync(path.join(__dirname, parent, 'node_modules/.bin/yarn'))) {
+			return path.join(__dirname, parent, 'node_modules/.bin/yarn')
+		}
+		else if (fs.existsSync(path.join(__dirname, parent, 'app.asar.unpacked/node_modules/.bin/yarn'))) {
+			return path.join(__dirname, parent, 'app.asar.unpacked/node_modules/.bin/yarn')
+		}
+		else if (fs.existsSync(path.join(__dirname, parent, 'app.asar/node_modules/.bin/yarn'))) {
+			return path.join(__dirname, parent, 'app.asar/node_modules/.bin/yarn')
+		}
+		else {
+			if (path.join(__dirname, parent, 'node_modules/.bin/yarn') == '/node_modules/.bin/yarn') {
+				return false
+			}
+			return this.findPath(parent + '/..')
+		}
+	}
+
+	private pmCall(yarnParams:string[], opts: ISaveOptions) {
+		return Promise.resolve({proc: null, opts: null})
+		.then(() => {
+			this.app.logger.log(__dirname)
+
+			let p = this.findPath()
+			console.log(`found path ${p}`)
+			if ( ! p) {
+				return Promise.reject(new Error('Yarn not found'))
+			}
+			else {
+				this.app.logger.log(` └─ Run: yarn ${yarnParams.join(' ')}`)
+			}
+			let proc = cp.exec(`cd ${this.app.path} && ${p} ${yarnParams.join(' ')}`)
+			return Promise.resolve({proc: proc, opts: opts})
+		})
+		.then(data => this._postInstall(data.proc, data.opts))
+		.catch(e => {
+			this.app.logger.log(` └─ Fail: ${e}`)
+			return Promise.reject(e)
+		})
+	}
+*/
+
 }
 
 module.exports = AddonsTools
