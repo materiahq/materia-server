@@ -41,13 +41,35 @@ class AddonsTools {
 		})
 	}
 
+	private getPkg() {
+		let packageJsonPath = require.resolve(path.join(this.app.path, 'package.json'))
+		if (require.cache[packageJsonPath]) {
+			delete require.cache[packageJsonPath]
+		}
+		let pkg = require(path.join(this.app.path, 'package.json'))
+		return pkg
+	}
+
+	private savePkg(pkg) {
+		fs.writeFileSync(path.join(this.app.path, 'package.json'), JSON.stringify(pkg, null, 2))
+	}
 
 	install(name:string, opts: ISaveOptions):Promise<any> {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
 		this.app.logger.log(`(Addons) Install ${name}`)
-		return this.npmCall('install', [name]).then(() => {
+		return this.npmCall('install', [name]).then(data => {
+			let pkg = this.getPkg()
+			if ( ! pkg.dependencies ) {
+				pkg.dependencies = {}
+			}
+			console.log('data from npm', data)
+			console.log(data[data.length - 1])
+			let tmp = data[data.length - 1][0].split('@')
+			pkg.dependencies[name] = tmp[tmp.length - 1]
+			console.log(tmp, tmp[tmp.length - 1], tmp.length - 1)
+			this.savePkg(pkg);
 			if (opts && opts.afterSave) {
 				opts.afterSave()
 			}
@@ -73,7 +95,15 @@ class AddonsTools {
 			opts.beforeSave()
 		}
 		this.app.logger.log(`(Addons) Uninstall ${name}`)
-		return this.npmCall('uninstall', [name]).then(() => {
+		return this.npmCall('uninstall', [name]).then(data => {
+			let pkg = this.getPkg()
+			if ( ! pkg.dependencies ) {
+				pkg.dependencies = {}
+			}
+			delete pkg.dependencies[name]
+
+			this.savePkg(pkg);
+
 			if (opts && opts.afterSave) {
 				opts.afterSave()
 			}

@@ -153,6 +153,7 @@ export class FindAllQuery extends Query {
 		try {
 			sequelizeOpts = this.constructSequelizeOpts(params, options)
 		} catch (e) {
+			this.entity.app.logger.log(` └── Error: ${e}\n`)
 			return Promise.reject(e)
 		}
 		this.entity.app.logger.log(` └── Sequelize: findAndCountAll(${JSON.stringify(sequelizeOpts)})\n`)
