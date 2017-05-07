@@ -146,15 +146,20 @@ export class FindAllQuery extends Query {
 	}
 
 	run(params, options):Promise<any> {
-		this.entity.app.logger.log(`(Query) FindAll - Run ${this.entity.name}.${this.id}`)
-		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}`)
-		this.entity.app.logger.log(` └── Options: ${JSON.stringify(options)}`)
+		if ( ! options.silent) {
+			this.entity.app.logger.log(`(Query) FindAll - Run ${this.entity.name}.${this.id}`)
+			this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}`)
+			this.entity.app.logger.log(` └── Options: ${JSON.stringify(options)}`)
+		}
 		let sequelizeOpts
 		try {
 			sequelizeOpts = this.constructSequelizeOpts(params, options)
 		} catch (e) {
 			this.entity.app.logger.log(` └── Error: ${e}\n`)
 			return Promise.reject(e)
+		}
+		if ( ! options.silent) {
+			this.entity.app.logger.log("");
 		}
 		//this.entity.app.logger.log(` └── Sequelize: findAndCountAll(${JSON.stringify(sequelizeOpts)})\n`)
 		return this.entity.model.findAndCountAll(sequelizeOpts).then(res => {
