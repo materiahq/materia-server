@@ -85,7 +85,7 @@ export class FindOneQuery extends Query {
 		} catch (e) {
 			return Promise.reject(e)
 		}
-		this.entity.app.logger.log(` └── Sequelize: findAndCountAll(${JSON.stringify(sequelizeOpts)})\n`)
+		//this.entity.app.logger.log(` └── Sequelize: findAndCountAll(${JSON.stringify(sequelizeOpts)})\n`)
 		return this.entity.model.findOne(sequelizeOpts)
 	}
 

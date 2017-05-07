@@ -156,7 +156,7 @@ export class FindAllQuery extends Query {
 			this.entity.app.logger.log(` └── Error: ${e}\n`)
 			return Promise.reject(e)
 		}
-		this.entity.app.logger.log(` └── Sequelize: findAndCountAll(${JSON.stringify(sequelizeOpts)})\n`)
+		//this.entity.app.logger.log(` └── Sequelize: findAndCountAll(${JSON.stringify(sequelizeOpts)})\n`)
 		return this.entity.model.findAndCountAll(sequelizeOpts).then(res => {
 			res.data = res.rows
 			if ( ! options || ! options.raw) {

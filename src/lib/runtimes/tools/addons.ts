@@ -64,11 +64,8 @@ class AddonsTools {
 			if ( ! pkg.dependencies ) {
 				pkg.dependencies = {}
 			}
-			console.log('data from npm', data)
-			console.log(data[data.length - 1])
 			let tmp = data[data.length - 1][0].split('@')
 			pkg.dependencies[name] = tmp[tmp.length - 1]
-			console.log(tmp, tmp[tmp.length - 1], tmp.length - 1)
 			this.savePkg(pkg);
 			if (opts && opts.afterSave) {
 				opts.afterSave()
