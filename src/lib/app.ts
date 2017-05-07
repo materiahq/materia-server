@@ -582,6 +582,10 @@ export default class App extends events.EventEmitter {
 			to: path.resolve(this.path, '.materia', 'live'),
 			remote: gitConfig.remote,
 			branch: gitConfig.branch
+		}).then(() => {
+			return this.addonsTools.install_all({
+				cwd: path.join(this.path, '.materia', 'live')
+			})
 		})
 	}
 }

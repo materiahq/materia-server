@@ -3,12 +3,18 @@ import * as path from 'path'
 import * as cp from 'child_process'
 import * as readline from 'readline'
 
-import App, { ISaveOptions } from '../../app'
+import App from '../../app'
 
 import MateriaError from '../../error'
 import { Dependency } from '../../dependency'
 
 import * as npm from 'npm'
+
+interface IAddonInstallOptions {
+	beforeSave?: (path?: string) => Object,
+	afterSave?: (lock?: Object) => void
+	cwd?: string
+}
 
 class AddonsTools {
 	addons:any
@@ -16,10 +22,10 @@ class AddonsTools {
 	constructor(private app:App) {
 	}
 
-	private npmCall(command:string, params:string[]): Promise<any> {
+	private npmCall(command:string, params:string[], cwd?:string): Promise<any> {
 		return new Promise((resolve, reject) => {
 			npm.load({
-				prefix: this.app.path,
+				prefix: cwd || this.app.path,
 				loglevel: 'error',
 				loaded: false,
 				save: true
@@ -54,12 +60,12 @@ class AddonsTools {
 		fs.writeFileSync(path.join(this.app.path, 'package.json'), JSON.stringify(pkg, null, 2))
 	}
 
-	install(name:string, opts: ISaveOptions):Promise<any> {
+	install(name:string, opts: IAddonInstallOptions):Promise<any> {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
 		this.app.logger.log(`(Addons) Install ${name}`)
-		return this.npmCall('install', [name]).then(data => {
+		return this.npmCall('install', [name], opts && opts.cwd).then(data => {
 			let pkg = this.getPkg()
 			if ( ! pkg.dependencies ) {
 				pkg.dependencies = {}
@@ -74,12 +80,12 @@ class AddonsTools {
 		})
 	}
 
-	install_all(opts: ISaveOptions):Promise<any> {
+	install_all(opts?: IAddonInstallOptions):Promise<any> {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
 		this.app.logger.log(`(Addons) Install all dependencies`)
-		return this.npmCall('install', []).then(() => {
+		return this.npmCall('install', [], opts && opts.cwd).then(() => {
 			if (opts && opts.afterSave) {
 				opts.afterSave()
 			}
@@ -87,12 +93,12 @@ class AddonsTools {
 		})
 	}
 
-	remove(name:string, opts:ISaveOptions):Promise<any> {
+	remove(name:string, opts?:IAddonInstallOptions):Promise<any> {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave()
 		}
 		this.app.logger.log(`(Addons) Uninstall ${name}`)
-		return this.npmCall('uninstall', [name]).then(data => {
+		return this.npmCall('uninstall', [name], opts && opts.cwd).then(data => {
 			let pkg = this.getPkg()
 			if ( ! pkg.dependencies ) {
 				pkg.dependencies = {}
@@ -108,7 +114,7 @@ class AddonsTools {
 		})
 	}
 
-	setup(name:string, opts: ISaveOptions):Promise<void> {
+	setup(name:string, opts: IAddonInstallOptions):Promise<void> {
 		return this.app.addons.setupModule((require) => {
 			return this.app.addons.get(name).getSetupConfig().then(setupObj => {
 				if (setupObj.length == 0) {
@@ -181,7 +187,7 @@ class AddonsTools {
 		})
 	}
 
-	setup_all(opts: ISaveOptions):Promise<void> {
+	setup_all(opts: IAddonInstallOptions):Promise<void> {
 		return this.app.addons.searchInstalledAddons().then((addons) => {
 			let p = Promise.resolve()
 			for (let addon of addons) {
