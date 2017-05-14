@@ -452,6 +452,9 @@ export class Entity {
 									}, options)
 								})
 							}
+							else {
+								asField1.isRelation = implicitRelation[0]
+							}
 							if ( ! asField2) {
 								p = p.then(() => {
 									return throughEntity.addField({
@@ -467,6 +470,9 @@ export class Entity {
 										isRelation: implicitRelation[1]
 									}, options)
 								})
+							}
+							else {
+								asField2.isRelation = implicitRelation[1]
 							}
 						}
 						else {
