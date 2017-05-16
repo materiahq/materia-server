@@ -81,6 +81,7 @@ export enum AppMode {
  */
 export default class App extends events.EventEmitter {
 	name: string
+	package: string
 
 	materia_path: string = __dirname
 	mode: AppMode
@@ -271,7 +272,7 @@ export default class App extends events.EventEmitter {
 				fs.exists(path.join(this.path, 'package.json'), exists => {
 					if ( ! exists ) {
 						return reject(new MateriaError('package.json does not exists', {
-							debug: `Please provide a valid package description in package.json or use "npm init"`
+							debug: `package.json does not exists, please use "npm init"`
 						}))
 					}
 					fs.readFile(path.join(this.path, 'package.json'), 'utf8', (err, conf) => {
@@ -286,7 +287,10 @@ export default class App extends events.EventEmitter {
 							return reject(new MateriaError('Could not parse package.json. The JSON seems invalid'))
 						}
 						confJson.materia = confJson.materia || {}
-						confJson.materia.name = confJson.name
+						this.package = confJson.name
+						if ( ! confJson.materia.name ) {
+							confJson.materia.name = confJson.name
+						}
 						return resolve(confJson.materia)
 					})
 				})
@@ -303,7 +307,7 @@ export default class App extends events.EventEmitter {
 		let pkg
 		try {
 			let content = fs.readFileSync(path.join(this.path, 'package.json')).toString()
-			let pkg = JSON.parse(content)
+			pkg = JSON.parse(content)
 		}
 		catch (e) {
 			if (e.code != 'ENOENT') {
@@ -313,6 +317,7 @@ export default class App extends events.EventEmitter {
 		if (this.infos.addons && Object.keys(this.infos.addons).length == 0) {
 			delete this.infos.addons
 		}
+		pkg.name = this.package
 		pkg.materia = this.infos
 		fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2))
 		if (opts && opts.afterSave) {
@@ -328,6 +333,8 @@ export default class App extends events.EventEmitter {
 	updateInfo(key, value) {
 		if (key == "name") {
 			this.name = this.infos.name = value
+		} else if (key == 'package') {
+			this.package = value
 		} else {
 			this.infos[key] = value
 		}
