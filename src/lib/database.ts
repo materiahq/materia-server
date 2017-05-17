@@ -105,8 +105,17 @@ export class Database {
 			this.opts.storage = path.resolve(this.app.path, this.storage || 'database.sqlite')
 		}
 
-		if ((this.app.options['gcloud-project'] || settings.gcloud) && this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT) {
-			this.opts.dialectOptions = { socketPath: `/cloudsql/${this.app.options['gcloud-project'] || settings.gcloud.project}:${this.app.options['gcloud-zone'] || settings.gcloud.zone}:${this.app.options['gcloud-instance-name'] || settings.gcloud.instanceName}` }
+		if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT) {
+			try {
+				let gcloudJsonPath = path.join(this.app.path, '.materia', 'gcloud.json')
+				if (fs.exists(gcloudJsonPath)) {
+					let gcloudSettings = JSON.parse(fs.readFileSync(gcloudJsonPath, 'utf-8'))
+					this.opts.dialectOptions = { socketPath: `/cloudsql/${gcloudSettings.project}:${gcloudSettings.region}:${gcloudSettings.instance}` }
+				}
+			}
+			catch (e) {
+				this.app.logger.log(` └── Warning: Impossible to load GCloud database settings`, e)
+			}
 		}
 
 		this.app.logger.log(` └─┬ Database: OK`)
