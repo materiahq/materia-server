@@ -298,6 +298,43 @@ export default class App extends events.EventEmitter {
 		})
 	}
 
+	createAppYaml() {
+		let appyaml = path.join(this.path, 'app.yaml')
+		if ( ! fs.existsSync(appyaml)) {
+			fs.writeFileSync(appyaml, `runtime: nodejs
+env: flex
+
+skip_files:
+ - ^node_modules$
+ - ^.materia/live$
+ - ^.git$
+
+env_variables:
+  MATERIA_MODE: 'production'
+
+manual_scaling:
+  instances: 1`, 'utf-8')
+		}
+	}
+
+	saveGCloudSettings(settings) {
+		fs.writeFileSync(path.join(this.path, '.materia', 'gcloud.json'), JSON.stringify(settings, null, 2), 'utf-8')
+	}
+
+	setPackageScript(name, script) {
+		let pkg
+		try {
+			let content = fs.readFileSync(path.join(this.path, 'package.json')).toString()
+			pkg = JSON.parse(content)
+			pkg.scripts[name] = script
+			fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2), 'utf-8')
+		}
+		catch (e) {
+			if (e.code != 'ENOENT') {
+				throw e
+			}
+		}
+	}
 
 	saveMateria(opts?: ISaveOptions) {
 		if (opts && opts.beforeSave) {
