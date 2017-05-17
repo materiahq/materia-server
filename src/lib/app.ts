@@ -298,10 +298,9 @@ export default class App extends events.EventEmitter {
 		})
 	}
 
-	createAppYaml() {
+	createAppYaml(options) {
 		let appyaml = path.join(this.path, 'app.yaml')
-		if ( ! fs.existsSync(appyaml)) {
-			fs.writeFileSync(appyaml, `runtime: nodejs
+		fs.writeFileSync(appyaml, `runtime: nodejs
 env: flex
 
 skip_files:
@@ -312,9 +311,11 @@ skip_files:
 env_variables:
   MATERIA_MODE: 'production'
 
+beta_settings:
+ cloud_sql_instances: ${options.project}:${options.region}:${options.instance}
+
 manual_scaling:
-  instances: 1`, 'utf-8')
-		}
+  instances: ${options.scale}`, 'utf-8')
 	}
 
 	saveGCloudSettings(settings) {
