@@ -208,10 +208,6 @@ export default class App extends events.EventEmitter {
 	}
 
 	load():Promise<any> {
-		this.logger.log(`(Load) Application: ${this.name}`)
-		this.logger.log(` └── Path: ${this.path}`)
-		this.logger.log(` └── Mode: ${this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' }`)
-
 		let p = Promise.resolve()
 		let warning, elapsedTimeQueries, elapsedTimeEntities, elapsedTimeAPI
 		let elapsedTimeGlobal = new Date().getTime()
@@ -220,6 +216,10 @@ export default class App extends events.EventEmitter {
 			p = this.loadMateria()
 		}
 		return p.then(() => {
+			this.logger.log(`(Load) Application: ${this.name || this.package }`)
+			this.logger.log(` └── Path: ${this.path}`)
+			this.logger.log(` └── Mode: ${this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' }`)
+
 			this.database.load()
 			this.server.load()
 			return this.addons.loadAddons()
@@ -356,6 +356,7 @@ manual_scaling:
 			delete this.infos.addons
 		}
 		pkg.name = this.package
+
 		pkg.materia = this.infos
 		fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2))
 		if (opts && opts.afterSave) {
@@ -383,7 +384,6 @@ manual_scaling:
 	*/
 	start() {
 		let warning
-
 		this.logger.log(`(Start) Application ${this.name}`)
 		let p = this.database.started ? Promise.resolve() : this.database.start()
 		return p.catch((e) => {
