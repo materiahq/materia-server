@@ -101,49 +101,52 @@ export class Server {
 
 	/**
 	Starts the server and listen on its endpoints.
-	@returns {Promise}
+	@returns {Promise<void>}
 	*/
-	start() {
-		return this.stop().then(() => {
-			this.app.api.registerEndpoints()
-			this.expressApp.all('/api/*', (req, res) => {
-				res.status(404).send({
-					error: true,
-					message: 'API endpoint not found'
-				})
-			})
-
-			this.expressApp.all('/*', (req, res) => {
-				if (fs.existsSync(path.join(this.app.path, 'web', '404.html'))) {
-					res.sendFile(path.join(this.app.path, 'web', '404.html'))
-				}
-				else if (this.hasStatic()) {
-					res.sendFile(path.join(this.app.path, 'web', 'index.html'))
-				}
-				else {
+	start():Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			this.stop().then(() => {
+				this.app.api.registerEndpoints()
+				this.expressApp.all('/api/*', (req, res) => {
 					res.status(404).send({
 						error: true,
 						message: 'API endpoint not found'
 					})
-				}
-			})
-
-			this.expressApp.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-				res.status(500).send({
-					error: true,
-					message: (err && err.message) || "Unexpected error"
 				})
-				return this.expressApp
-			})
 
-			if (this.disabled) {
-				this.app.logger.log(' └── Server: Disabled (Warning)')
-				return Promise.resolve()
-			}
+				this.expressApp.all('/*', (req, res) => {
+					if (fs.existsSync(path.join(this.app.path, 'web', '404.html'))) {
+						res.sendFile(path.join(this.app.path, 'web', '404.html'))
+					}
+					else if (this.hasStatic()) {
+						res.sendFile(path.join(this.app.path, 'web', 'index.html'))
+					}
+					else {
+						res.status(404).send({
+							error: true,
+							message: 'API endpoint not found'
+						})
+					}
+				})
 
-			let config = this.app.config.get<IWebConfig>()
-			return new Promise((resolve, reject) => {
+				this.expressApp.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+					res.status(500).send({
+						error: true,
+						message: (err && err.message) || "Unexpected error"
+					})
+					return this.expressApp
+				})
+
+				if (this.disabled) {
+					this.app.logger.log(' └── Server: Disabled (Warning)')
+					return Promise.resolve()
+				}
+
+				let config = this.app.config.get<IWebConfig>()
 				let port = this.app.options.port || config.port
+				if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT && process.env.PORT) {
+					port = process.env.PORT
+				}
 
 				let errListener = (e) => {
 					let err
@@ -158,7 +161,7 @@ export class Server {
 					return reject(err)
 				}
 
-				let args = [port, config.host, () => {
+				let args = [port, config.host || 'localhost', () => {
 					this.started = true
 					this.app.logger.log(' └─┬ Server: Started')
 					this.app.logger.log(`   └─ Listening on http://${config.host}:${port}`)
@@ -176,12 +179,12 @@ export class Server {
 	/**
 	Stops the server.
 	*/
-	stop(options?):Promise<any> {
+	stop(options?):Promise<void> {
 		if ( ! this.server || ! this.started) {
 			return Promise.resolve()
 		}
 
-		return new Promise((accept, reject) => {
+		return new Promise<void>((accept, reject) => {
 			let method = (options && options.force) ? 'destroy' : 'close'
 			this.server[method](() => {
 				this.app.logger.log('\n(Stop) Server closed\n')
