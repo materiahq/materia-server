@@ -390,14 +390,21 @@ manual_scaling:
 			e.errorType = 'database'
 			throw e
 		}).then((e) => {
-			this.logger.log(` └── Database: OK`)
+			if (this.database.disabled) {
+				this.logger.log(` └── Database: Disabled`)
+			}
+			else {
+				this.logger.log(` └── Database: OK`)
+			}
 			warning = e
 			return this.entities.start().catch((e) => {
 				e.errorType = 'entities'
 				throw e
 			})
 		}).then(() => {
-			this.logger.log(` └── Entities: OK`)
+			if ( ! this.database.disabled ) {
+				this.logger.log(` └── Entities: OK`)
+			}
 			return this.addons.start().catch((e) => {
 				e.errorType = 'addons'
 				throw e
