@@ -73,7 +73,7 @@ export class Database {
 
 		if ( ! settings) {
 			this.disabled = true
-			this.app.logger.log(` └─ Database: No database configured!`)
+			this.app.logger.log(` └── Database: No database configured!`)
 			return false
 		}
 
@@ -105,12 +105,14 @@ export class Database {
 			this.opts.storage = path.resolve(this.app.path, this.storage || 'database.sqlite')
 		}
 
-		if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT) {
+		if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT && this.type == 'mysql') {
 			try {
 				let gcloudJsonPath = path.join(this.app.path, '.materia', 'gcloud.json')
 				if (fs.exists(gcloudJsonPath)) {
 					let gcloudSettings = JSON.parse(fs.readFileSync(gcloudJsonPath, 'utf-8'))
 					this.opts.dialectOptions = { socketPath: `/cloudsql/${gcloudSettings.project}:${gcloudSettings.region}:${gcloudSettings.instance}` }
+					delete this.opts.host
+					delete this.opts.port
 				}
 			}
 			catch (e) {
@@ -120,12 +122,7 @@ export class Database {
 
 		this.app.logger.log(` └─┬ Database: OK`)
 		this.app.logger.log(` │ └── Dialect: ${this.type}`)
-		if (this.type == 'sqlite') {
-			this.app.logger.log(` │ └── File: ${this.storage || 'database.sqlite'}`)
-		}
-		else {
-			this.app.logger.log(` │ └── Connection Info: ${this.host}:${this.port}`)
-		}
+		this.app.logger.log(` │ └── Options: ${JSON.stringify(this.opts)}`)
 
 		return true
 	}
@@ -231,9 +228,9 @@ export class Database {
 
 			this.started = true
 		}).catch((e) => {
-			this.app.logger.log(` └── Database: Connection failed`)
-			this.app.logger.warn('    (Warning) Impossible to connect the database:', e && e.message)
-			this.app.logger.warn('    The database has been disabled')
+			this.app.logger.error(` └── Database: Connection failed`)
+			this.app.logger.error('    (Warning) Impossible to connect the database:', e && e.message)
+			this.app.logger.error('    The database has been disabled')
 			this.disabled = true
 			return Promise.resolve(e)
 		})
