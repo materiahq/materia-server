@@ -108,15 +108,18 @@ export class Database {
 		if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT && this.type == 'mysql') {
 			try {
 				let gcloudJsonPath = path.join(this.app.path, '.materia', 'gcloud.json')
-				if (fs.exists(gcloudJsonPath)) {
+				if (fs.existsSync(gcloudJsonPath)) {
 					let gcloudSettings = JSON.parse(fs.readFileSync(gcloudJsonPath, 'utf-8'))
 					this.opts.dialectOptions = { socketPath: `/cloudsql/${gcloudSettings.project}:${gcloudSettings.region}:${gcloudSettings.instance}` }
 					delete this.opts.host
 					delete this.opts.port
 				}
+				else {
+					throw 'gcloud.json not found'
+				}
 			}
 			catch (e) {
-				this.app.logger.log(` └── Warning: Impossible to load GCloud database settings`, e)
+				this.app.logger.log(` └── Warning: Impossible to load GCloud database settings - ${e}`)
 			}
 		}
 
