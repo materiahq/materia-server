@@ -246,6 +246,7 @@ export default class App extends events.EventEmitter {
 			}
 		})
 		.then(() => this.entities.resetModels())
+		.then(() => this.server.session.initialize())
 		.then(() => this.logger.log(' └─┬ Queries'))
 		.then(() => elapsedTimeQueries = new Date().getTime())
 		.then(() => this.addons.loadQueries())
@@ -310,6 +311,7 @@ skip_files:
 
 env_variables:
   MATERIA_MODE: 'production'
+  NO_HOST: true
 
 beta_settings:
  cloud_sql_instances: ${options.project}:${options.region}:${options.instance}

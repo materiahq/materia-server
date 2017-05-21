@@ -20,7 +20,7 @@ export class DBEntity extends Entity {
 	currentDiff: Array<any>
 	currentDiffUndo: Array<any>
 
-	model: any
+	public model: any
 
 	constructor(app: App) {
 		super(app, {

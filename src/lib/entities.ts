@@ -246,11 +246,10 @@ export class Entities {
 				]
 			}
 
-			//this.apply is not used anywhere else ? I change this.apply by options.apply
 			if (entityobj.overwritable && this.entities[entity.name] && options.apply)
 				return Promise.resolve(entity)
 			if (entityobj.isRelation && entityobj.relations)
-				delete entityobj.relations
+				delete entityobj.relations //NEED TO CHECK THIS / NOT SURE ITS GOOD AS A RELATION TABLE CAN ALSO HAVE RELATIONS
 			createPromise = entity.create(entityobj, {wait_relations:options.wait_relations, fromAddon: options.fromAddon})
 		}
 

@@ -27,12 +27,14 @@
     "pretty-error": "^2.0.2",
     "request": "^2.79.0",
     "sequelize": "^3.29.0",
+    "sequelstore-connect": "^1.1.5",
     "server-destroy": "^1.0.1",
     "simple-git": "^1.65.0",
     "sqlite3": "3.1.8",
     "tedious": "^1.14.0",
     "whereis": "^0.4.0",
-    "which": "^1.2.14"
+    "which": "^1.2.14",
+    "winston": "^2.3.1"
   },
   "devDependencies": {
     "@types/chai": "^3.4.34",

@@ -13,8 +13,9 @@ import * as cookieParser from 'cookie-parser'
 import * as methodOverride from 'method-override'
 import * as bodyParser from 'body-parser'
 import * as errorHandler from 'errorhandler'
-import * as session from 'express-session'
 import * as compression from 'compression'
+
+import {Session} from './session'
 
 var enableDestroy = require('server-destroy')
 
@@ -29,9 +30,12 @@ export class Server {
 	expressApp: express.Application
 	server: any
 
+	session: Session
+
 	disabled: boolean = false
 
 	constructor(private app: App) {
+		this.session = new Session(app)
 	}
 
 	load() {
@@ -42,12 +46,7 @@ export class Server {
 		this.expressApp.use(methodOverride())
 		this.expressApp.use(cookieParser())
 		this.expressApp.use(compression())
-		this.expressApp.use(session({
-			secret: 'keyboard cat',
-			cookie: { maxAge: 3600000 },
-			resave: false,
-			saveUninitialized: false
-		}))
+
 		this.expressApp.use(express.static(path.join(this.app.path, 'web')));
 		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
 			this.expressApp.use(morgan('dev'))
@@ -59,12 +58,11 @@ export class Server {
 			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 			next();
 		});
+
 		this.expressApp.use(errorHandler())
 
 		this.server = require('http').createServer(this.expressApp)
 		enableDestroy(this.server)
-
-		this.app.logger.log(` └── Server: OK`)
 	}
 
 	/**
@@ -161,14 +159,22 @@ export class Server {
 					return reject(err)
 				}
 
-				let args = [port, config.host || 'localhost', () => {
+				let args = [port, config.host, () => {
 					this.started = true
 					this.app.logger.log(' └─┬ Server: Started')
-					this.app.logger.log(`   └─ Listening on http://${config.host}:${port}`)
+					if (config.host == '0.0.0.0' || process.env.NO_HOST) {
+						this.app.logger.log(`   └─ Listening on http://localhost:${port}`)
+					}
+					else {
+						this.app.logger.log(`   └─ Listening on http://${config.host}:${port}`)
+					}
 					this.server.removeListener('error', errListener)
 					return resolve()
 				}]
-				if (config.host == '0.0.0.0') {
+
+				//special IP - "no host"
+				if (config.host == '0.0.0.0' || process.env.NO_HOST) {
+					//remove the host from args
 					args[1] = args.pop()
 				}
 				this.server.listen.apply(this.server, args).on('error', errListener);

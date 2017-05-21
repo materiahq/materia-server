@@ -20,11 +20,11 @@ export interface IDatabaseConfig {
 	database?: string
 	storage?: string
 	live?: IDatabaseConfig
-	gcloud?: {
-		project: string
-		zone: string
-		instanceName: string
-	}
+}
+
+export interface ISessionConfig {
+	secret?: string,
+	maxAge?: number
 }
 
 export interface IGitConfig {
@@ -36,18 +36,21 @@ export interface IFullServerConfig {
 	dev?: {
 		web: IWebConfig
 		database?: IDatabaseConfig
+		session?: ISessionConfig
 	}
 	prod?: {
 		web: IWebConfig
 		database?: IDatabaseConfig
 		git?: IGitConfig
+		session?: ISessionConfig
 	}
 }
 
 export enum ConfigType {
 	WEB = <any>"web",
 	DATABASE = <any>"database",
-	GIT = <any>"git"
+	GIT = <any>"git",
+	SESSION = <any>"session"
 }
 
 export interface IConfigOptions {
@@ -116,7 +119,7 @@ export class Config {
 	@param {object} - The configuration object
 	@param {string} - The environment mode. `development` or `production`.
 	*/
-	set(config: IWebConfig|IDatabaseConfig|IGitConfig, mode: AppMode, type?:ConfigType, options?: IConfigOptions, opts?: ISaveOptions):void {
+	set(config: IWebConfig|IDatabaseConfig|ISessionConfig|IGitConfig, mode: AppMode, type?:ConfigType, options?: IConfigOptions, opts?: ISaveOptions):void {
 		options = options || {}
 		let webConfig = <IWebConfig> config
 		if ( type == ConfigType.WEB && (! webConfig.host || ! webConfig.port) ) {
@@ -134,7 +137,7 @@ export class Config {
 			this.config[mode] = {}
 		}
 
-		let conf: IWebConfig|IDatabaseConfig|IGitConfig
+		let conf: IWebConfig|IDatabaseConfig|ISessionConfig|IGitConfig
 		if (type == ConfigType.WEB) {
 			conf = webConfig && {
 				host: webConfig.host,
@@ -142,6 +145,12 @@ export class Config {
 			}
 		} else if (type == ConfigType.DATABASE) {
 			conf = this.app.database._confToJson(<IDatabaseConfig> config)
+		} else if (type == ConfigType.SESSION) {
+			let sessionConfig = <ISessionConfig> config
+			conf = sessionConfig && {
+				secret: sessionConfig.secret,
+				maxAge: sessionConfig.maxAge,
+			}
 		} else if (type == ConfigType.GIT) {
 			let gitConfig = <IGitConfig> config
 			conf = gitConfig && {
