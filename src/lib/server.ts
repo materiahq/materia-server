@@ -137,7 +137,7 @@ export class Server {
 
 				if (this.disabled) {
 					this.app.logger.log(' └── Server: Disabled (Warning)')
-					return Promise.resolve()
+					return resolve()
 				}
 
 				let config = this.app.config.get<IWebConfig>()
