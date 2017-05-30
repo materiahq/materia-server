@@ -22,6 +22,8 @@ export interface IRelation {
 		as?: string
 	}
 
+	unique?: boolean,
+
 	// internal use
 	implicit?: boolean,
 	entity?: string,
@@ -364,6 +366,11 @@ export class Entity {
 				if (options.apply != false)
 					this.relations.push(relation)
 
+				let uniqueField = false
+				if (relation.unique !== undefined) {
+					uniqueField = relation.unique
+				}
+
 				p = this.addField({
 					name: relation.field,
 					type: keyReference.type,
@@ -373,11 +380,11 @@ export class Entity {
 					read: true,
 					write: true,
 					primary: false,
-					unique: false,
+					unique: uniqueField,
 					isRelation: relation
 				}, options)
 			}
-			else if (relation.type == 'hasMany') {
+			else if (relation.type == 'hasMany' || relation.type == 'hasOne') {
 				if (options.apply != false) {
 					this.relations.push(relation)
 				}
