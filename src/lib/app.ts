@@ -7,7 +7,7 @@ import * as fse from 'fs-extra'
 
 import { Logger } from './logger'
 
-import { Config, ConfigType, IGitConfig } from './config'
+import { Config, ConfigType, IGitConfig, IWebConfig, IDatabaseConfig } from './config'
 import { Server } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
@@ -157,7 +157,7 @@ export default class App extends events.EventEmitter {
 			let Git = require('./git')
 			this.git = new Git.default(this)
 
-			this.deploy = new Deploy(this)
+			//this.deploy = new Deploy(this)
 
 			let AddonsTools = require('./runtimes/tools/addons')
 			this.addonsTools = new AddonsTools(this)
@@ -299,6 +299,69 @@ export default class App extends events.EventEmitter {
 		})
 	}
 
+	createDockerfile(options) {
+		let dockerfile = path.join(this.path, 'Dockerfile')
+		let dbProd = this.config.get<IDatabaseConfig>(AppMode.PRODUCTION, ConfigType.DATABASE)
+		let webProd = this.config.get<IWebConfig>(AppMode.PRODUCTION, ConfigType.WEB)
+		fs.writeFileSync(dockerfile, `FROM node:7.10-alpine
+MAINTAINER ${options.author}
+
+RUN mkdir -p /app
+
+# invalidate cache
+RUN uptime
+
+COPY . /app
+
+WORKDIR /app
+
+RUN npm install
+
+ENV MATERIA_MODE production
+
+EXPOSE ${webProd.port}
+CMD ["npm", "start"]`)
+
+		let dbstr = '', dbport;
+		if (dbProd.type == 'postgres') {
+			dbport = 5432
+			dbstr = `
+    image: postgres:9.6.3-alpine
+    environment:
+      POSTGRES_USER: "${dbProd.username}"
+      POSTGRES_PASSWORD: "${dbProd.password}"
+      POSTGRES_DB: "${dbProd.database}"`
+		}
+		else if (dbProd.type == 'mysql') {
+			dbport = 3306
+			dbstr = `
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "${dbProd.password}"
+      MYSQL_DATABASE: "${dbProd.database}"`
+			if (dbProd.username != 'root') {
+				dbstr += `
+      MYSQL_USER: "${dbProd.username}"
+      MYSQL_PASSWORD: "${dbProd.password}"`
+			}
+		}
+
+		fs.writeFileSync(path.join(this.path, 'docker-compose.yaml'), `version: "3"
+services:
+  db: ${dbstr}
+  web:
+    build: .
+    ports:
+      - "${webProd.port}:${webProd.port}"
+    links:
+      - db
+    depends_on:
+      - db
+    environment:
+      MATERIA_MODE: "production"
+      NO_HOST: "true"`)
+	}
+
 	createAppYaml(options) {
 		let appyaml = path.join(this.path, 'app.yaml')
 		fs.writeFileSync(appyaml, `runtime: nodejs
@@ -317,11 +380,11 @@ beta_settings:
  cloud_sql_instances: ${options.project}:${options.region}:${options.instance}
 
 manual_scaling:
-  instances: ${options.scale}`, 'utf-8')
+  instances: ${options.scale}`)
 	}
 
 	saveGCloudSettings(settings) {
-		fs.writeFileSync(path.join(this.path, '.materia', 'gcloud.json'), JSON.stringify(settings, null, 2), 'utf-8')
+		fs.writeFileSync(path.join(this.path, '.materia', 'gcloud.json'), JSON.stringify(settings, null, 2), 'utf8')
 	}
 
 	setPackageScript(name, script) {
@@ -330,7 +393,7 @@ manual_scaling:
 			let content = fs.readFileSync(path.join(this.path, 'package.json')).toString()
 			pkg = JSON.parse(content)
 			pkg.scripts[name] = script
-			fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2), 'utf-8')
+			fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2), 'utf8')
 		}
 		catch (e) {
 			if (e.code != 'ENOENT') {
@@ -624,22 +687,5 @@ manual_scaling:
 	getMateriaVersion() {
 		let pkg = require('../../package')
 		return pkg.version
-	}
-
-	installLive():Promise<any> {
-		let gitConfig = this.config.get(AppMode.PRODUCTION, ConfigType.GIT) as IGitConfig
-		if ( ! gitConfig || ! gitConfig.remote || ! gitConfig.branch ) {
-			return Promise.reject(new MateriaError('Missing git configuration for production mode.'))
-		}
-		return this.git.copyCheckout({
-			path: this.path,
-			to: path.resolve(this.path, '.materia', 'live'),
-			remote: gitConfig.remote,
-			branch: gitConfig.branch
-		}).then(() => {
-			return this.addonsTools.install_all({
-				cwd: path.join(this.path, '.materia', 'live')
-			})
-		})
 	}
 }

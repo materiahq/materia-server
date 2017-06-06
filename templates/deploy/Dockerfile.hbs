@@ -6,20 +6,11 @@ RUN mkdir -p /app
 # invalidate cache
 RUN uptime
 
-# RUN npm install -g materia
-RUN git clone https://github.com/webshell/materia-server.git /app/materia && cd /app/materia && npm install
+COPY . /app
 
-RUN mkdir -p /app/user
-COPY . /app/user
+WORKDIR /app
 
-{{#if instance.use_runnable}}
-WORKDIR /app/user
-
-ENV PATH /app/materia:$PATH
-ENV MATERIA_MODE prod
-
-ENTRYPOINT ["/app/user/docker-entrypoint.sh"]
+ENV MATERIA_MODE production
 
 EXPOSE {{instance.port}}
-CMD ["materia", "start"]
-{{/if}}
+CMD ["yarn", "start"]

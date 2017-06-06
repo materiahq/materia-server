@@ -8,113 +8,14 @@ import App from '../../app'
 import MateriaError from '../../error'
 import { Dependency } from '../../dependency'
 
-import * as npm from 'npm'
-
-interface IAddonInstallOptions {
-	beforeSave?: (path?: string) => Object,
-	afterSave?: (lock?: Object) => void
-	cwd?: string
-}
-
+//TODO: need to move this in materia-cli to keep materia-server clean
 class AddonsTools {
 	addons:any
 
 	constructor(private app:App) {
 	}
 
-	private npmCall(command:string, params:string[], cwd?:string): Promise<any> {
-		return new Promise((resolve, reject) => {
-			npm.load({
-				prefix: cwd || this.app.path,
-				loglevel: 'error',
-				loaded: false,
-				save: true
-			}, err => {
-				if (err) {
-					this.app.logger.log(` └─ Fail: ${err}`)
-					return reject(err)
-				}
-				this.app.logger.log(` └─ Run: npm ${command} ${params.join(' ')}`)
-				npm.commands[command](params, (err, data) => {
-					if (err) {
-						this.app.logger.log(` └─ Fail: ${err}`)
-						return reject(err)
-					}
-					this.app.logger.log(` └─ Done: ${data}`)
-					return resolve(data)
-				})
-			})
-		})
-	}
-
-	private getPkg() {
-		let packageJsonPath = require.resolve(path.join(this.app.path, 'package.json'))
-		if (require.cache[packageJsonPath]) {
-			delete require.cache[packageJsonPath]
-		}
-		let pkg = require(path.join(this.app.path, 'package.json'))
-		return pkg
-	}
-
-	private savePkg(pkg) {
-		fs.writeFileSync(path.join(this.app.path, 'package.json'), JSON.stringify(pkg, null, 2))
-	}
-
-	install(name:string, opts: IAddonInstallOptions):Promise<any> {
-		if (opts && opts.beforeSave) {
-			opts.beforeSave()
-		}
-		this.app.logger.log(`(Addons) Install ${name}`)
-		return this.npmCall('install', [name], opts && opts.cwd).then(data => {
-			let pkg = this.getPkg()
-			if ( ! pkg.dependencies ) {
-				pkg.dependencies = {}
-			}
-			let tmp = data[data.length - 1][0].split('@')
-			pkg.dependencies[name] = tmp[tmp.length - 1]
-			this.savePkg(pkg);
-			if (opts && opts.afterSave) {
-				opts.afterSave()
-			}
-			return true
-		})
-	}
-
-	install_all(opts?: IAddonInstallOptions):Promise<any> {
-		if (opts && opts.beforeSave) {
-			opts.beforeSave()
-		}
-		this.app.logger.log(`(Addons) Install all dependencies`)
-		return this.npmCall('install', [], opts && opts.cwd).then(() => {
-			if (opts && opts.afterSave) {
-				opts.afterSave()
-			}
-			return true
-		})
-	}
-
-	remove(name:string, opts?:IAddonInstallOptions):Promise<any> {
-		if (opts && opts.beforeSave) {
-			opts.beforeSave()
-		}
-		this.app.logger.log(`(Addons) Uninstall ${name}`)
-		return this.npmCall('uninstall', [name], opts && opts.cwd).then(data => {
-			let pkg = this.getPkg()
-			if ( ! pkg.dependencies ) {
-				pkg.dependencies = {}
-			}
-			delete pkg.dependencies[name]
-
-			this.savePkg(pkg);
-
-			if (opts && opts.afterSave) {
-				opts.afterSave()
-			}
-			return true
-		})
-	}
-
-	setup(name:string, opts: IAddonInstallOptions):Promise<void> {
+	setup(name:string):Promise<void> {
 		return this.app.addons.setupModule((require) => {
 			return this.app.addons.get(name).getSetupConfig().then(setupObj => {
 				if (setupObj.length == 0) {

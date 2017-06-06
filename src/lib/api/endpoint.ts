@@ -75,7 +75,7 @@ class Controller {
 			this.ctrlStr = fs.readFileSync(ctrlPath, 'utf8').toString()
 			delete this.ctrlInstance
 		} catch(e) {
-			let err = new MateriaError('Could not load controller ' + controller) as any
+			let err = new MateriaError(`Could not load controller ${controller}: ${e}`) as any
 			err.originalError = e
 			throw err
 		}

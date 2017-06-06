@@ -2,13 +2,15 @@
   "name": "{{app.name}}",
   "version": "1.0.0",
   "description": "{{app.description}}",
-  "main": "/app/materia/cli/index.js",
   "engines": {
     "node": "5.7.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "materia start"
   },
+  "dependencies": {
+    "materia-server": "^0.8.0"
+  }
   "author": "{{app.author}}",
   "private": true,
   "license": "UNLICENSED"
