@@ -88,11 +88,11 @@ class AddonsTools {
 		})
 	}
 
-	setup_all(opts: IAddonInstallOptions):Promise<void> {
+	setup_all():Promise<void> {
 		return this.app.addons.searchInstalledAddons().then((addons) => {
 			let p = Promise.resolve()
 			for (let addon of addons) {
-				p = p.then(() => this.setup(addon, opts))
+				p = p.then(() => this.setup(addon))
 			}
 			return p
 		})
