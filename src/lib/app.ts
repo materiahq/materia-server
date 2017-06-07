@@ -21,7 +21,6 @@ import Api from './api'
 import MateriaError from './error'
 
 //TODO: convert to ts
-let Deploy = require('./runtimes/tools/deploy')
 let AddonsTools = require('./runtimes/tools/addons')
 
 export interface IAppOptions {
@@ -104,7 +103,6 @@ export default class App extends events.EventEmitter {
 	status: boolean
 	live: boolean = false
 
-	deploy: any
 	addonsTools: any
 	synchronizer: Synchronizer
 
