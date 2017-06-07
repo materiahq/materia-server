@@ -164,27 +164,64 @@ export default class App extends events.EventEmitter {
 		}
 	}
 
-	loadMateria():Promise<void> {
-		let p:Promise<any> = Promise.resolve()
+	private doMigrations() {
 		if ( this.migration ) {
-			p = p.then(() => {
-				return this.migration.check()
-			}).then(() => {
+			return this.migration.check().then(() => {
 				delete this.migration
 			})
 		}
-		return p.then(() => this._loadMateriaConfig()).then((materiaConf) => {
-			if ( ! materiaConf.name) {
-				return Promise.reject(new MateriaError('Missing "name" field in package.json', {
-					debug: `Please provide a valid package description in package.json or use "npm init"`
+		return Promise.resolve()
+	}
+
+	private loadMateriaConfig():Promise<IMateriaConfig> {
+		return new Promise((resolve, reject) => {
+			if ( ! fs.existsSync(this.path) ) {
+				return reject(new MateriaError('The application directory has not been found. The folder has been moved or removed'))
+			}
+			if ( ! fs.existsSync(path.join(this.path, 'package.json')) ) {
+				return reject(new MateriaError('package.json does not exists', {
+					debug: `package.json does not exists, please use "npm init"`
 				}))
 			}
-
-			this.infos = materiaConf
-			this.infos.addons = this.infos.addons || {}
-			this.name = this.infos.name
-			return Promise.resolve()
+			fs.readFile(path.join(this.path, 'package.json'), 'utf8', (err, conf) => {
+				if (err) {
+					return reject(new MateriaError('Could not load package.json'))
+				}
+				let confJson
+				try {
+					confJson = JSON.parse(conf)
+				}
+				catch (e) {
+					return reject(new MateriaError('Could not parse package.json. The JSON seems invalid'))
+				}
+				confJson.materia = confJson.materia || {}
+				this.package = confJson.name
+				if ( ! confJson.materia.name ) {
+					confJson.materia.name = confJson.name
+				}
+				return resolve(confJson.materia)
+			})
 		})
+	}
+
+
+	loadMateria():Promise<void> {
+		let p:Promise<any> = Promise.resolve()
+
+		return this.doMigrations()
+			.then(() => this.loadMateriaConfig())
+			.then(materiaConf => {
+				if ( ! materiaConf.name) {
+					return Promise.reject(new MateriaError('Missing "name" field in package.json', {
+						debug: `Please provide a valid package description in package.json or use "npm init"`
+					}))
+				}
+
+				this.infos = materiaConf
+				this.infos.addons = this.infos.addons || {}
+				this.name = this.infos.name
+				return Promise.resolve()
+			})
 	}
 
 	check():Promise<any> {
@@ -208,14 +245,10 @@ export default class App extends events.EventEmitter {
 	}
 
 	load():Promise<any> {
-		let p = Promise.resolve()
 		let warning, elapsedTimeQueries, elapsedTimeEntities, elapsedTimeAPI
 		let elapsedTimeGlobal = new Date().getTime()
 
-		if ( ! this.loaded) {
-			p = this.loadMateria()
-		}
-		return p.then(() => {
+		return this.loadMateria().then(() => {
 			this.logger.log(`(Load) Application: ${this.name || this.package }`)
 			this.logger.log(` └── Path: ${this.path}`)
 			this.logger.log(` └── Mode: ${this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' }`)
@@ -262,41 +295,6 @@ export default class App extends events.EventEmitter {
 		.then(() => this.git && this.git.load())
 		.then(() => this.logger.log(` └── Successfully loaded in ${(new Date().getTime()) - elapsedTimeGlobal} ms\n`))
 		.then(() => warning)
-	}
-
-	private _loadMateriaConfig():Promise<IMateriaConfig> {
-		return new Promise((resolve, reject) => {
-			fs.exists(this.path, exists => {
-				if ( ! exists ) {
-					return reject(new MateriaError('The application directory has not been found. The folder has been moved or removed'))
-				}
-				fs.exists(path.join(this.path, 'package.json'), exists => {
-					if ( ! exists ) {
-						return reject(new MateriaError('package.json does not exists', {
-							debug: `package.json does not exists, please use "npm init"`
-						}))
-					}
-					fs.readFile(path.join(this.path, 'package.json'), 'utf8', (err, conf) => {
-						if (err) {
-							return reject(new MateriaError('Could not load package.json'))
-						}
-						let confJson
-						try {
-							confJson = JSON.parse(conf)
-						}
-						catch (e) {
-							return reject(new MateriaError('Could not parse package.json. The JSON seems invalid'))
-						}
-						confJson.materia = confJson.materia || {}
-						this.package = confJson.name
-						if ( ! confJson.materia.name ) {
-							confJson.materia.name = confJson.name
-						}
-						return resolve(confJson.materia)
-					})
-				})
-			})
-		})
 	}
 
 	createDockerfile(options) {
