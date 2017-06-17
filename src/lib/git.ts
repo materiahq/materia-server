@@ -45,7 +45,9 @@ export default class Git extends EventEmitter {
 	}
 
 	init():Promise<any> {
-		return waitAndSend(()=>this.repo.init())
+		return waitAndSend(()=>this.repo.init()).then(() => {
+			return this.addBranch('master')
+		})
 	}
 
 	status():Promise<number> {
@@ -73,6 +75,14 @@ export default class Git extends EventEmitter {
 			return this.unstage(status.path)
 		}
 		return this.stage(status.path)
+	}
+
+	diffLocal(status):Promise<any> {
+		return this.repo.diff(['HEAD:./', '--', status.path])
+	}
+
+	diffCommitFile(commit:any, file:string):Promise<any> {
+		return waitAndSend(()=>this.repo.diff([commit.parents, commit.hash, '--', file]))
 	}
 
 	logs(options?:{branch?:string}):Promise<any> {
@@ -128,12 +138,29 @@ export default class Git extends EventEmitter {
 		})
 	}
 
+
 	commit(message:string):Promise<any> {
 		return waitAndSend(()=>this.repo.commit(message))
 	}
 
 	setUpstream(branch:string, upstream:string):Promise<any> {
 		return waitAndSend(()=>this.repo.branch(['--set-upstream-to=' + upstream, branch]))
+	}
+
+	pull(remote?:string, branch?:string, set_tracking?:boolean) {
+		if (set_tracking) {
+			return this.repo.pull(remote, branch)
+		} else {
+			return this.repo.pull()
+		}
+	}
+
+	push(remote?:string, branch?:string, set_tracking?:boolean) {
+		if (set_tracking) {
+			return this.repo.push(['-u', remote, branch])
+		} else {
+			return this.repo.push()
+		}
 	}
 
 	sync(options:{remote:string, branch:string, set_tracking?:boolean}, applyOptions?:IApplyOptions):Promise<any> {
@@ -205,6 +232,10 @@ export default class Git extends EventEmitter {
 				applyOptions.afterSave()
 			throw e
 		})
+	}
+
+	fetch(remote:string):Promise<any> {
+		return waitAndSend(() => this.repo.fetch())
 	}
 
 	copyCheckout(options:{path:string, to:string, remote:string, branch:string}, applyOptions?:IApplyOptions):Promise<any> {
