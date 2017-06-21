@@ -98,7 +98,7 @@ export default class App extends events.EventEmitter {
 	logger: Logger
 	config: Config
 	migration: Migration
-	git: any
+	//git: any
 
 	status: boolean
 	live: boolean = false
@@ -152,8 +152,8 @@ export default class App extends events.EventEmitter {
 		this.migration = new Migration(this)
 
 		if (this.options.runtimes != "core") {
-			let Git = require('./git')
-			this.git = new Git.default(this)
+			//let Git = require('./git')
+			//this.git = new Git.default(this)
 
 			//this.deploy = new Deploy(this)
 
@@ -220,26 +220,6 @@ export default class App extends events.EventEmitter {
 				this.name = this.infos.name
 				return Promise.resolve()
 			})
-	}
-
-	check():Promise<any> {
-		if (this.git) {
-			return this.git.load().then(() => {
-				return this.git.status().then(status => {
-					for (let file of status.files) {
-						if (file.working_dir == 'U') {
-							throw new MateriaError('Git repo contains unresolved conflicts')
-						}
-					}
-				}).catch(e => {
-					if (e && e.message && e.message.match(/This operation must be run in a work tree/)) {
-						return Promise.resolve()
-					}
-					throw e
-				})
-			})
-		}
-		return Promise.resolve()
 	}
 
 	load():Promise<any> {
