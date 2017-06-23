@@ -20,7 +20,7 @@ RUN set -ex \
   done
 
 ENV NPM_CONFIG_LOGLEVEL warn
-ENV NODE_VERSION 7.3.0
+ENV NODE_VERSION 8.1.2
 
 RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
   && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \
@@ -31,16 +31,13 @@ RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
 
-RUN npm install -g typescript@2.1.4
+RUN npm install -g typescript@2.3.4
 
 RUN mkdir /materia-server
 WORKDIR "/materia-server"
 
 COPY package.json /materia-server
-RUN npm install
-
 COPY . /materia-server
-RUN sed -i.bak 's/"watch": true/"watch": false/' tsconfig.json
-RUN tsc -p .
+RUN npm install && tsc -p .
 
 CMD ["npm", "test"]
