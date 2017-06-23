@@ -3,7 +3,7 @@ dist: trusty
 language: node_js
 
 node_js:
- - "7.0"
+ - "8.1"
 
 services:
  - postgresql
@@ -26,9 +26,9 @@ env:
    - DIALECT=postgres
 
 before_install:
- - "npm install -g typescript@2.0.10"
+ - "npm install -g typescript@2.3.4"
 install:
- - "npm install && sed -i.bak 's/\"watch\": true/\"watch\": false/' tsconfig.json && tsc -p ."
+ - "npm install && tsc -p ."
 script:
  - "npm test"
 
