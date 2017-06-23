@@ -270,7 +270,6 @@ export default class App extends events.EventEmitter {
 		.then(() => this.api.load())
 		.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeAPI} ms`))
 		.then(() => this.history.load())
-		.then(() => this.git && this.git.load())
 		.then(() => this.logger.log(` └── Successfully loaded in ${(new Date().getTime()) - elapsedTimeGlobal} ms\n`))
 		.then(() => warning)
 	}
