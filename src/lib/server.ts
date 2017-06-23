@@ -75,7 +75,7 @@ export class Server {
 		if ( ! conf) {
 			return ""
 		}
-		let url = 'http://' + conf.host;
+		let url = `${conf.ssl ? 'https' : 'http'}://${conf.host}`;
 		if (conf.port != 80) {
 			url += ':' + conf.port
 		}
