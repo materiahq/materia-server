@@ -24,10 +24,12 @@ module.exports = class MyTestCtrl {
 	testSessionInit(req, res, next) {
 		req.session.test = 'Hello World'
 		console.log(`Save session with: ${req.session.test}`)
+		console.log("Req.session :", req.session)
 		return Promise.resolve(req.session.test)
 	}
 
 	testSessionFetch(req, res, next) {
+		console.log("Req session in fetch :", req.session)
 		return Promise.resolve(req.session.test)
 	}
 }

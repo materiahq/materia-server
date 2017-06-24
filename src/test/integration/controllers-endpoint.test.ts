@@ -45,27 +45,30 @@ describe('[Controller Endpoints]', () => {
 				return Promise.all([create(), create(), create(), create()]).should.be.fulfilled
 			})
 			it('should run endpoint for default "get"', () => {
-				return tpl.get('/api/test/2').should.become({
-					id_test: 2
+				tpl.get('/api/test/2').then(res => {
+					let body = res["body"]
+					return body.should.equal({
+						id_test: 2
+					})
 				})
 			})
 			it('should run endpoint for default "update"', () => {
-				return tpl.put('/api/test/2', {form: {
+				return tpl.put('/api/test/2', {
 					id_test: 2,
 					new_id_test: 42
-				}}).should.become([1])
+				}).should.become([1])
 			})
 			it('should run endpoint for default "delete"', () => {
-				return tpl.del('/api/test/3').should.become(1)
+				tpl.del('/api/test/3').then(res => {
+					return res['body'].should.equal(1)
+				})
 			})
 			it('should run endpoint for default "list"', () => {
-				return tpl.get('/api/tests').should.become({
-					count:3,
-					data:[
-						{ id_test:1 },
-						{ id_test:4 },
-						{ id_test:42 },
-					]
+				tpl.get('/api/tests').then(res => {
+					return res['body'].should.equal({
+						count: 3,
+						data: [{ id_test: 1 }, { id_test: 4 }, { id_test: 42 }]
+					})
 				})
 			})
 			it('should run endpoint for model action "testParam" that returns params', () => {
@@ -76,48 +79,59 @@ describe('[Controller Endpoints]', () => {
 					param_date: new Date(10).toJSON(),
 					param_bool: true
 				}
-				return tpl.post('/api/params/true?param_text=bar', {json: testObject}).should.become(testObjectJson)
+				tpl.postQuery('/api/params/true?param_text=bar', testObject).then(res => {
+					return res.should.become(testObjectJson)
+				})
 			})
 			it('should run endpoint for model action "testParam" with a missing parameter', () => {
-				tpl.post('/api/params/true', {json: {
+				tpl.postQuery('/api/params/true', {
 					param_text: "ok"
-				}}).should.be.rejectedWith(Error, 'Missing required parameter')
+				}).then(res => {
+					console.log("REs misssing :", res)
+					return res.should.be.rejectedWith(Error, 'Missing required parameter')
+				})
 			})
 			it('should run endpoint for controller action "testPromise" that returns a promise', () => {
-				return tpl.post('/api/ctrl/promise').should.become({ x:42 })
+				tpl.post('/api/ctrl/promise').then(res => {
+					return res["body"].should.become({ x: 42 })
+				})
 			})
 			it('should run endpoint for controller action "testExpress" that use res.send', () => {
-				return tpl.post('/api/ctrl/express').should.become("ok")
+				tpl.post('/api/ctrl/express').then(res => {
+					return res["text"].should.become("ok")
+				})
 			})
 			it('should run endpoint for controller action "testParam" with typed params', () => {
-				return tpl.post('/api/ctrl/params', {json: testObject}).should.become({
-					body: testObjectJson,
-					query: {},
-					params: {}
+				tpl.post('/api/ctrl/params', { json: testObject }).then(res => {
+					res.should.become({
+						body: testObjectJson,
+						query: {},
+						params: {}
+					})
 				})
 			})
 			it('should run endpoint for controller action "testParam" with a missing param', () => {
-				return tpl.post('/api/ctrl/params', {form: {
-					param_number: 42,
-					param_text: "bar"
-				}}).should.be.rejectedWith(Error, 'Missing required parameter')
+				return tpl.post('/api/ctrl/params', {
+					form: {
+						param_number: 42,
+						param_text: "bar"
+					}
+				}).should.be.rejectedWith(Error, 'Internal Server Error')
 			})
-
 			// This does NOT pass - I don't know why...
-			// it('should run endpoint using session', (done) => {
-			// 	tpl.get('/api/session/init').then(res => {
-			// 		console.log(`after init: ${res}`)
-			// 		res.should.equal('Hello World')
+			it('should run endpoint using session', (done) => {
+				tpl.get('/api/session/init').then(res => {
+					console.log(`after init:`, res['text'])
+					res['text'].should.equal('Hello World')
+					console.log(`fetching session on another route...`)
+					tpl.get('/api/session/fetch').then(res => {
+						return res["text"].should.equel("Hello World")
 
-			// 		console.log(`fetching session on another route...`)
-			// 		return tpl.get('/api/session/fetch')
-			// 	}).then(resSession => {
-			// 		console.log(`Fetched data: ${resSession}`)
-			// 		should.exist(resSession)
-			// 		resSession.should.equal('Hello World')
-			// 		done()
-			// 	}).catch(e => done(e))
-			// })
+					})
+				}).then(() => {
+					done()
+				}).catch(e => done(e))
+			})
 		})
 	});
 });
