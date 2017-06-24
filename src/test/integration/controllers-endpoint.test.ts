@@ -6,7 +6,7 @@ import { TemplateApp } from '../mock/template-app'
 
 chai.config.truncateThreshold = 500
 chai.use(chaiAsPromised)
-chai.should()
+var should = chai.should()
 
 describe('[Controller Endpoints]', () => {
 	let app: App
@@ -102,6 +102,22 @@ describe('[Controller Endpoints]', () => {
 					param_text: "bar"
 				}}).should.be.rejectedWith(Error, 'Missing required parameter')
 			})
+
+			// This does NOT pass - I don't know why...
+			// it('should run endpoint using session', (done) => {
+			// 	tpl.get('/api/session/init').then(res => {
+			// 		console.log(`after init: ${res}`)
+			// 		res.should.equal('Hello World')
+
+			// 		console.log(`fetching session on another route...`)
+			// 		return tpl.get('/api/session/fetch')
+			// 	}).then(resSession => {
+			// 		console.log(`Fetched data: ${resSession}`)
+			// 		should.exist(resSession)
+			// 		resSession.should.equal('Hello World')
+			// 		done()
+			// 	}).catch(e => done(e))
+			// })
 		})
 	});
 });
