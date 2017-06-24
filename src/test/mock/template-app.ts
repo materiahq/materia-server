@@ -92,26 +92,24 @@ export class TemplateApp {
 				].forEach(q => p = p.then(() => app.database.sequelize.query(q, { raw: true })))
 				return p
 			}
-		}).then(() => app.start()).then(() => {
-
-			return app
-		})
+		}).then(() => app.start()).then(() => app)
 	}
 
 	resetApp(app: App, while_off?: (new_app: App) => any): Promise<App> {
 		let new_app: App
-		return app.stop().then(() => {
+		return app.stop()
+		.then(() => {
 			new_app = this.createApp(app.path)
 			return Promise.resolve(this.before_creation(app))
-		}).then(() => while_off ? Promise.resolve(while_off(app)) : Promise.resolve())
-			.then(() => new_app.load()).then(() => new_app.start())
-			.catch(e => {
-				return app.start().then(() => {
-					throw e
-				})
-			}).then(() => {
-				return new_app
+		})
+		.then(() => while_off ? Promise.resolve(while_off(app)) : Promise.resolve())
+		.then(() => new_app.load()).then(() => new_app.start())
+		.catch(e => {
+			return app.start().then(() => {
+				throw e
 			})
+		})
+		.then(() => new_app)
 	}
 
 	private promisifyRequest(method, url, args) {
@@ -129,20 +127,22 @@ export class TemplateApp {
 	get(url, ...args) {
 		return this.promisifyRequest('get', url, args)
 	}
+
 	post(url, ...args) {
 		return this.promisifyRequest('post', url, args)
 	}
+
 	postQuery(url, queryParams) {
 		return new Promise((resolve, reject) => {
 			agent["post"](url).query(queryParams).end((err, res) => {
 				if(err){
-					console.log("ERRRROOORR :", err.response.body)
 					reject(err.response.body)
 				}
 				resolve(res.body)
 			})
 		})
 	}
+
 	put(url, args) {
 		return new Promise((resolve, reject) => {
 			agent["put"](url).send(args).type("form").end((err, res) => {
@@ -152,6 +152,7 @@ export class TemplateApp {
 			})
 		})
 	}
+
 	del(url, ...args) {
 		return this.promisifyRequest('del', url, args)
 	}
