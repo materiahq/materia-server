@@ -8,6 +8,7 @@ import MateriaError from './error'
 export interface IWebConfig {
 	port: number,
 	host: string,
+	ssl?: boolean,
 	live?: IWebConfig
 }
 
@@ -141,7 +142,8 @@ export class Config {
 		if (type == ConfigType.WEB) {
 			conf = webConfig && {
 				host: webConfig.host,
-				port: webConfig.port
+				port: webConfig.port,
+				ssl: !! webConfig.ssl
 			}
 		} else if (type == ConfigType.DATABASE) {
 			conf = this.app.database._confToJson(<IDatabaseConfig> config)
