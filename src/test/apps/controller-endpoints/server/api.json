@@ -90,5 +90,17 @@
 		],
 		"controller": "mytest",
 		"action": "testParams"
+	},
+	{
+		"method": "get",
+		"url": "/session/init",
+		"controller": "mytest",
+		"action": "testSessionInit"
+	},
+	{
+		"method": "get",
+		"url": "/session/fetch",
+		"controller": "mytest",
+		"action": "testSessionFetch"
 	}
 ]

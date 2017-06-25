@@ -11,7 +11,7 @@ export class Session {
 	}
 
 	initialize():Promise<any> {
-		if (this.app.mode == AppMode.PRODUCTION && ! this.app.database.disabled) {
+		if (this.app.mode == AppMode.PRODUCTION && ! this.app.database.disabled && ! this.app.live) {
 			return this.app.entities.add({
 				name: 'materia_session',
 				fields: [
@@ -79,7 +79,7 @@ export class Session {
 		let sessionConfig = this.app.config.get<ISessionConfig>(this.app.mode, ConfigType.SESSION)
 
 		let store;
-		if (this.app.mode == AppMode.PRODUCTION && ! this.app.database.disabled) {
+		if (this.app.mode == AppMode.PRODUCTION && ! this.app.database.disabled && ! this.app.live) {
 			let entity = this.app.entities.get('materia_session') as DBEntity
 			store = new SequelStore({
 				database: this.app.database.sequelize,
@@ -97,12 +97,17 @@ export class Session {
 			maxAge = sessionConfig.maxAge
 		}
 
-		this.app.server.expressApp.use(session({
+		let config = {
 			secret: secret,
 			cookie: { maxAge: maxAge },
-			store: store,
 			resave: false,
 			saveUninitialized: false
-		}))
+		} as any
+
+		if (store) {
+			config.store = store
+		}
+
+		this.app.server.expressApp.use(session(config))
 	}
 }

@@ -232,11 +232,13 @@ export default class App extends events.EventEmitter {
 			this.logger.log(` └── Mode: ${this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' }`)
 
 			this.database.load()
-			this.server.load()
-			return this.addons.loadAddons()
+			return this.server.load()
 		})
 		.then(() => this.entities.clear())
-		.then(() => this.logger.log(' └── Files'))
+		.then(() => this.server.session.initialize())
+		.then(() => this.logger.log(' └── Sessions: OK'))
+		.then(() => this.logger.log(' └── Loading files'))
+		.then(() => this.addons.loadAddons())
 		.then(() => this.addons.loadFiles())
 		.then(() => this.entities.loadFiles())
 		.then(() => {
@@ -257,7 +259,6 @@ export default class App extends events.EventEmitter {
 			}
 		})
 		.then(() => this.entities.resetModels())
-		.then(() => this.server.session.initialize())
 		.then(() => this.logger.log(' └─┬ Queries'))
 		.then(() => elapsedTimeQueries = new Date().getTime())
 		.then(() => this.addons.loadQueries())
