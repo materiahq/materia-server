@@ -112,48 +112,40 @@ export class TemplateApp {
 		.then(() => new_app)
 	}
 
-	private promisifyRequest(method, url, args) {
+	private promisifyRequest(method:string, url:string, args?:any, type?:string) {
 		return new Promise((resolve, reject) => {
-			args = args.map(arg => arg)
-			agent[method](url).send(args).end((err, res) => {
+			let request = agent[method](url)
+			if (type) {
+				request.type(type)
+			}
+			request.send(args).end((err, res) => {
+				//if (method == 'post' && url == '/api/ctrl/params') {
+				//	console.log(err, '|||||', res)
+				//}
 				if (err) {
-					reject(err)
+					return reject(JSON.parse(res.text))
 				}
-				resolve(res)
+				if (res.body && ((Object.keys(res.body).length > 0 && res.body.constructor === Object) || res.body.constructor != Object)) {
+					return resolve(res.body)
+				}
+				return resolve(res.text)
 			})
 		})
 	}
 
-	get(url, ...args) {
+	get(url:string, args?:any) {
 		return this.promisifyRequest('get', url, args)
 	}
 
-	post(url, ...args) {
+	post(url:string, args?:any) {
 		return this.promisifyRequest('post', url, args)
 	}
 
-	postQuery(url, queryParams) {
-		return new Promise((resolve, reject) => {
-			agent["post"](url).query(queryParams).end((err, res) => {
-				if(err){
-					reject(err.response.body)
-				}
-				resolve(res.body)
-			})
-		})
+	put(url, args?) {
+		return this.promisifyRequest('put', url, args, 'form')
 	}
 
-	put(url, args) {
-		return new Promise((resolve, reject) => {
-			agent["put"](url).send(args).type("form").end((err, res) => {
-				if (err)
-					reject(err)
-				resolve(res.body)
-			})
-		})
-	}
-
-	del(url, ...args) {
+	del(url, args?) {
 		return this.promisifyRequest('del', url, args)
 	}
 

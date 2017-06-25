@@ -45,7 +45,7 @@ describe('[Controller Endpoints]', () => {
 				return Promise.all([create(), create(), create(), create()]).should.be.fulfilled
 			})
 			it('should run endpoint for default "get"', () => {
-				tpl.get('/api/test/2').then(res => res["body"].should.equal({id_test: 2}))
+				return tpl.get('/api/test/2').should.become({id_test: 2})
 			})
 			it('should run endpoint for default "update"', () => {
 				return tpl.put('/api/test/2', {
@@ -54,10 +54,17 @@ describe('[Controller Endpoints]', () => {
 				}).should.become([1])
 			})
 			it('should run endpoint for default "delete"', () => {
-				tpl.del('/api/test/3').then(res => res['body'].should.equal(1))
+				return tpl.del('/api/test/3').should.become(1)
 			})
 			it('should run endpoint for default "list"', () => {
-				tpl.get('/api/tests').then(res => res['body'].should.equal({count: 3, data: [{ id_test: 1 }, { id_test: 4 }, { id_test: 42 }]}))
+				return tpl.get('/api/tests').should.become({
+					count: 3,
+					data: [
+						{ id_test: 1 },
+						{ id_test: 4 },
+						{ id_test: 42 }
+					]
+				})
 			})
 			it('should run endpoint for model action "testParam" that returns params', () => {
 				let testObjectJson = {
@@ -67,43 +74,45 @@ describe('[Controller Endpoints]', () => {
 					param_date: new Date(10).toJSON(),
 					param_bool: true
 				}
-				tpl.postQuery('/api/params/true?param_text=bar', testObject).then(res => res.should.equal(testObjectJson))
+				return tpl.post('/api/params/true?param_text=bar', testObject)
+					.should.become(testObjectJson)
 			})
 			it('should run endpoint for model action "testParam" with a missing parameter', () => {
-				tpl.postQuery('/api/params/true', {
+				return tpl.post('/api/params/true', {
 					param_text: "ok"
-				}).then(res => res.should.be.rejectedWith(Error, 'Missing required parameter'))
+				}).should.be.rejectedWith({
+					error: true,
+					message: 'Missing required parameter'
+				})
 			})
 			it('should run endpoint for controller action "testPromise" that returns a promise', () => {
-				tpl.post('/api/ctrl/promise').then(res => res["body"].should.become({ x: 42 }))
+				return tpl.post('/api/ctrl/promise').should.become({ x: 42 })
 			})
 			it('should run endpoint for controller action "testExpress" that use res.send', () => {
-				tpl.post('/api/ctrl/express').then(res => res["text"].should.become("ok"))
+				return tpl.post('/api/ctrl/express').should.become("ok")
 			})
 			it('should run endpoint for controller action "testParam" with typed params', () => {
-				tpl.post('/api/ctrl/params', { json: testObject }).then(res => {
-					res.should.equal({
-						body: testObjectJson,
-						query: {},
-						params: {}
-					})
+				return tpl.post('/api/ctrl/params', testObject).should.become({
+					body: testObjectJson,
+					query: {},
+					params: {}
 				})
 			})
 			it('should run endpoint for controller action "testParam" with a missing param', () => {
 				return tpl.post('/api/ctrl/params', {
-					form: {
-						param_number: 42,
-						param_text: "bar"
-					}
-				}).should.be.rejectedWith(Error, 'Internal Server Error')
+					param_number: 42,
+					param_text: "bar"
+				}).should.be.rejectedWith({
+					error: true,
+					message: 'Missing required parameter: param_date'
+				})
 			})
 			// This does NOT pass - I don't know why...
 			it('should run endpoint using session', (done) => {
 				tpl.get('/api/session/init').then(res => {
-					res['text'].should.equal('Hello World')
+					res.should.equal('Hello World')
 					return tpl.get('/api/session/fetch')
-				})
-				.then(res => res["text"].should.equal("Hello World"))
+				}).then(res => res.should.equal("Hello World"))
 				.then(() => done())
 				.catch(e => done(e))
 			})

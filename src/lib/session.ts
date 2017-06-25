@@ -108,8 +108,6 @@ export class Session {
 			config.store = store
 		}
 
-		console.log(config)
-
 		this.app.server.expressApp.use(session(config))
 	}
 }

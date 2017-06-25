@@ -258,8 +258,8 @@ export class Endpoint {
 					}
 				}
 				if ( resolvedParams[param.name] == null && param.required) {
-					let error = new MateriaError(` └── Missing required parameter: ${param.name}`)
-					this.app.logger.log(error)
+					let error = new MateriaError(`Missing required parameter: ${param.name}`)
+					this.app.logger.log(` └── ${error.message}`)
 					return Promise.reject(error)
 				}
 			}
