@@ -6,10 +6,9 @@ import { ConfigType, IWebConfig, IConfigOptions } from './config'
 import MateriaError from './error'
 
 import * as express from 'express'
+import * as session from 'express-session'
 
-//var compression = require('compression')
 import * as morgan from 'morgan'
-import * as cookieParser from 'cookie-parser'
 import * as methodOverride from 'method-override'
 import * as bodyParser from 'body-parser'
 import * as errorHandler from 'errorhandler'
@@ -40,11 +39,9 @@ export class Server {
 
 	load() {
 		this.expressApp = express()
-
 		this.expressApp.use(bodyParser.urlencoded({ extended: false }))
 		this.expressApp.use(bodyParser.json())
 		this.expressApp.use(methodOverride())
-		this.expressApp.use(cookieParser())
 		this.expressApp.use(compression())
 
 		this.expressApp.use(express.static(path.join(this.app.path, 'web')));
@@ -75,7 +72,7 @@ export class Server {
 		if ( ! conf) {
 			return ""
 		}
-		let url = 'http://' + conf.host;
+		let url = `${conf.ssl ? 'https' : 'http'}://${conf.host}`;
 		if (conf.port != 80) {
 			url += ':' + conf.port
 		}

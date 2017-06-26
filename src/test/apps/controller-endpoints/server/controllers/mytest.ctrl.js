@@ -10,7 +10,7 @@ module.exports = class MyTestCtrl {
 	}
 
 	testExpress(req, res, next) {
-		res.send("ok")
+		res.status(200).send("ok")
 	}
 
 	testParams(req, res, next) {
@@ -19,5 +19,14 @@ module.exports = class MyTestCtrl {
 			query: req.query,
 			params: req.params
 		})
+	}
+
+	testSessionInit(req, res, next) {
+		req.session.test = 'Hello World'
+		return Promise.resolve(req.session.test)
+	}
+
+	testSessionFetch(req, res, next) {
+		return Promise.resolve(req.session.test)
 	}
 }

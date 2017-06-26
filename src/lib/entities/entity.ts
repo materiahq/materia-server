@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import * as uuid from 'node-uuid'
+import * as uuid from 'uuid/v4'
 
 import App, { IApplyOptions } from '../app'
 import MateriaError from '../error'
@@ -145,7 +145,7 @@ export class Entity {
 		options = options || {}
 
 		this.name = entityobj.name
-		this.id = entityobj.id || uuid.v4()
+		this.id = entityobj.id || uuid()
 		this.fields = []
 		this.relations = []
 		this.queries = []
