@@ -14,6 +14,7 @@ import { Database } from './database'
 import { Synchronizer } from './synchronizer'
 import { Migration } from './migration'
 import { History } from './history'
+import { Client } from './client'
 
 import Addons, { IAddon } from './addons'
 import Api from './api'
@@ -95,6 +96,7 @@ export default class App extends events.EventEmitter {
 	database: Database
 	api: Api
 	server: Server
+	client: Client
 	logger: Logger
 	config: Config
 	migration: Migration
@@ -144,6 +146,7 @@ export default class App extends events.EventEmitter {
 		this.database = new Database(this)
 		this.api = new Api(this)
 		this.server = new Server(this)
+		this.client = new Client(this)
 		this.synchronizer = new Synchronizer(this)
 		this.config = new Config(this)
 
@@ -271,6 +274,8 @@ export default class App extends events.EventEmitter {
 		.then(() => this.api.load())
 		.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeAPI} ms`))
 		.then(() => this.history.load())
+		.then(() => this.logger.log(` └── Client`))
+		.then(() => this.client.load())
 		.then(() => this.logger.log(` └── Successfully loaded in ${(new Date().getTime()) - elapsedTimeGlobal} ms\n`))
 		.then(() => warning)
 	}

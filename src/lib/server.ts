@@ -44,7 +44,7 @@ export class Server {
 		this.expressApp.use(methodOverride())
 		this.expressApp.use(compression())
 
-		this.expressApp.use(express.static(path.join(this.app.path, 'web')));
+		this.expressApp.use(express.static(path.join(this.app.client.config.build)));
 		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
 			this.expressApp.use(morgan('dev'))
 		}
@@ -91,7 +91,7 @@ export class Server {
 	@returns {boolean}
 	*/
 	hasStatic() {
-		return fs.existsSync(path.join(this.app.path, 'web', 'index.html'))
+		return fs.existsSync(path.join(this.app.client.config.build, 'index.html'))
 	}
 
 	/**
@@ -110,11 +110,11 @@ export class Server {
 				})
 
 				this.expressApp.all('/*', (req, res) => {
-					if (fs.existsSync(path.join(this.app.path, 'web', '404.html'))) {
-						res.sendFile(path.join(this.app.path, 'web', '404.html'))
+					if (fs.existsSync(path.join(this.app.client.config.build, '404.html'))) {
+						res.sendFile(path.join(this.app.client.config.build, '404.html'))
 					}
 					else if (this.hasStatic()) {
-						res.sendFile(path.join(this.app.path, 'web', 'index.html'))
+						res.sendFile(path.join(this.app.client.config.build, 'index.html'))
 					}
 					else {
 						res.status(404).send({
