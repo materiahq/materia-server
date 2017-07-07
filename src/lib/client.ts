@@ -38,4 +38,22 @@ export class Client {
 
 		return Promise.resolve()
 	}
+
+	hasBuildScript() {
+		if ( ! this.config || ! this.config.src) {
+			return false
+		}
+		try {
+			if (fs.existsSync(path.join(this.config.src, 'package.json'))) {
+				let pkg = JSON.parse(fs.readFileSync(path.join(this.config.src, 'package.json'), 'utf-8'))
+				console.log(pkg)
+				if (pkg && pkg.scripts && pkg.scripts.build) {
+					return true
+				}
+			}
+		}
+		catch (e) {
+		}
+		return false
+	}
 }
