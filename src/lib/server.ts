@@ -74,7 +74,12 @@ export class Server {
 	@returns {boolean}
 	*/
 	hasStatic() {
-		return fs.existsSync(path.join(this.app.client.config.build, 'index.html'))
+		let p = path.join(this.app.path, 'web')
+		if ( this.app.client.config && this.app.client.config.build ) {
+			p = this.app.client.config.build
+		}
+
+		return fs.existsSync(path.join(p, 'index.html'))
 	}
 
 	/**
