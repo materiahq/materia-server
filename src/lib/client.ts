@@ -4,9 +4,11 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 export interface IClientConfig {
-	src?:string
+	src?: string
 	build?: string
 	buildScript?: string
+	watchScript?: string
+	autoWatch?: boolean
 }
 
 export class Client {
@@ -72,10 +74,42 @@ export class Client {
 		return false
 	}
 
-	set(src, script, build) {
+	hasWatchScript(script?: string) {
+		if (!this.config || !this.config.src) {
+			return false
+		}
+		try {
+			let pkgTxt = ''
+			if (fs.existsSync(path.join(this.config.src, 'package.json'))) {
+				pkgTxt = fs.readFileSync(path.join(this.config.src, 'package.json'), 'utf-8')
+				this.pkgPath = this.config.src
+			}
+			else if (fs.existsSync(path.join(this.app.path, 'package.json'))) {
+				pkgTxt = fs.readFileSync(path.join(this.app.path, 'package.json'), 'utf-8')
+				this.pkgPath = this.app.path
+			}
+			else {
+				return false
+			}
+			let pkg = JSON.parse(pkgTxt)
+
+			let scriptToRun = script || this.config.watchScript
+
+			if (pkg && pkg.scripts && pkg.scripts[scriptToRun]) {
+				return true
+			}
+		}
+		catch (e) {
+		}
+		return false
+	}
+
+	set(src, script, build, watchScript, autoWatch) {
 		this.config.src = path.join(this.app.path, src)
 		this.config.buildScript = script || 'watch'
 		this.config.build = path.join(this.app.path, build)
+		this.config.watchScript = watchScript
+		this.config.autoWatch = autoWatch
 		this.watching = false
 		return this.save()
 	}
@@ -97,6 +131,16 @@ export class Client {
 			if (this.config.buildScript) {
 				res.buildScript = this.config.buildScript
 			}
+
+			if (this.config.watchScript) {
+				res.watchScript = this.config.watchScript
+			}
+
+			if (this.config.autoWatch) {
+				res.autoWatch = this.config.autoWatch
+			}
+
+
 
 			fs.writeFileSync(path.join(this.app.path, '.materia', 'client.json'), JSON.stringify(res, null, 2), 'utf-8')
 		}
