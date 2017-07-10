@@ -235,8 +235,10 @@ export default class App extends events.EventEmitter {
 			this.logger.log(` └── Mode: ${this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' }`)
 
 			this.database.load()
-			return this.server.load()
+			this.logger.log(` └── Client`)
+			return this.client.load()
 		})
+		.then(() => this.server.load())
 		.then(() => this.entities.clear())
 		.then(() => this.server.session.initialize())
 		.then(() => this.logger.log(' └── Sessions: OK'))
@@ -274,8 +276,6 @@ export default class App extends events.EventEmitter {
 		.then(() => this.api.load())
 		.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeAPI} ms`))
 		.then(() => this.history.load())
-		.then(() => this.logger.log(` └── Client`))
-		.then(() => this.client.load())
 		.then(() => this.logger.log(` └── Successfully loaded in ${(new Date().getTime()) - elapsedTimeGlobal} ms\n`))
 		.then(() => warning)
 	}

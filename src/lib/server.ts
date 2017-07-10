@@ -43,6 +43,23 @@ export class Server {
 		this.expressApp.use(bodyParser.json())
 		this.expressApp.use(methodOverride())
 		this.expressApp.use(compression())
+
+		this.expressApp.use(express.static(path.join(this.app.client.config.build)));
+		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
+			this.expressApp.use(morgan('dev'))
+		}
+
+		//TODO: Option to enable / disable CORS API call
+		this.expressApp.use(function(req, res, next) {
+			res.header("Access-Control-Allow-Origin", "*");
+			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+			next();
+		});
+
+		this.expressApp.use(errorHandler())
+
+		this.server = require('http').createServer(this.expressApp)
+		enableDestroy(this.server)
 	}
 
 	/**
@@ -87,23 +104,6 @@ export class Server {
 	@returns {Promise<void>}
 	*/
 	start():Promise<void> {
-		this.expressApp.use(express.static(path.join(this.app.client.config.build)));
-		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
-			this.expressApp.use(morgan('dev'))
-		}
-
-		//TODO: Option to enable / disable CORS API call
-		this.expressApp.use(function(req, res, next) {
-			res.header("Access-Control-Allow-Origin", "*");
-			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-			next();
-		});
-
-		this.expressApp.use(errorHandler())
-
-		this.server = require('http').createServer(this.expressApp)
-		enableDestroy(this.server)
-
 		return new Promise<void>((resolve, reject) => {
 			this.stop().then(() => {
 				this.app.api.registerEndpoints()
