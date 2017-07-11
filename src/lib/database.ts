@@ -199,8 +199,53 @@ export class Database {
 		})
 	}
 
+	/**
+	Try to connect database server default database with username password
+	@param {object} - The configuration object
+	@returns {Promise}
+	 */
+
+	static tryServer(settings: IDatabaseConfig, app?: App) {
+		let opts: ISequelizeConfig = {
+			dialect: settings.type,
+			host: settings.host,
+			port: settings.port,
+			logging: false
+		}
+		let tmp
+		let defaultDatabase
+		if (settings.type == 'mysql') {
+			defaultDatabase = 'sys'
+		} else if (settings.type == 'postgres') {
+			defaultDatabase = 'postgres'
+		}
+		return new Promise((accept, reject) => {
+			let d = domain.create()
+			try {
+				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
+			} catch (e) {
+				return reject(e)
+			}
+			d.add(tmp.query)
+			d.on('error', (e) => {
+				d.remove(tmp.query)
+				return reject(e)
+			})
+			d.run(() => {
+				return tmp.authenticate().then(() => {
+					tmp.close()
+					accept()
+				}).catch((e) => { reject(e) })
+			})
+		})
+	}
+
 	tryDatabase(settings) {
 		return Database.tryDatabase(settings, this.app)
+	}
+
+	tryServer(settings) {
+		return Database.tryServer(settings, this.app)
 	}
 
 	/**
