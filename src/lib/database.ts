@@ -160,7 +160,7 @@ export class Database {
 	@param {object} - The configuration object
 	@returns {Promise}
 	*/
-	static try(settings: IDatabaseConfig, app?: App) {
+	static tryDatabase(settings: IDatabaseConfig, app?: App) {
 
 		//TODO: check settings.storage to be a real path
 		if (settings.type == 'sqlite' && settings.storage) {
@@ -199,8 +199,8 @@ export class Database {
 		})
 	}
 
-	try(settings) {
-		return Database.try(settings, this.app)
+	tryDatabase(settings) {
+		return Database.tryDatabase(settings, this.app)
 	}
 
 	/**
