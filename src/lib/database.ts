@@ -289,6 +289,38 @@ export class Database {
 		})
 	}
 
+	/**
+	 Create new database in mysql or postgresql instances
+	 @param settings - The configuration object
+	 @param name - Name for the new database
+	 */
+	static createDatabase(settings, name) {
+		let opts: ISequelizeConfig = {
+			dialect: settings.type,
+			host: settings.host,
+			port: settings.port,
+			logging: false
+		}
+		let tmp
+		let defaultDatabase
+		if (settings.type == 'mysql') {
+			defaultDatabase = 'sys'
+		} else if (settings.type == 'postgres') {
+			defaultDatabase = 'postgres'
+		}
+		return new Promise((accept, reject) => {
+			let d = domain.create()
+			try {
+				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
+				tmp.query(`CREATE DATABASE ` + name).spread((results, metadata)=> {
+					return accept()
+				})
+			} catch (e) {
+				return reject(e)
+			}
+		})
+	}
+
 	tryDatabase(settings) {
 		return Database.tryDatabase(settings, this.app)
 	}
@@ -299,6 +331,10 @@ export class Database {
 
 	listDatabases(settings) {
 		return Database.listDatabases(settings)
+	}
+
+	createDatabase(settings, name) {
+		return Database.createDatabase(settings, name)
 	}
 
 	/**
