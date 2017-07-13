@@ -314,6 +314,8 @@ export class Database {
 				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
 				tmp.query(`CREATE DATABASE ` + name).spread((results, metadata)=> {
 					return accept()
+				}).catch((e) => {
+					reject(e)
 				})
 			} catch (e) {
 				return reject(e)
