@@ -1,7 +1,7 @@
 {
   "name": "materia-server",
-  "version": "0.7.5",
-  "description": "",
+  "version": "0.8.0",
+  "description": "Build scalable and secure SAAS applications effortlessly - https://getmateria.com",
   "main": "index.js",
   "bin": {
     "materia": "dist/cli/index.js"
