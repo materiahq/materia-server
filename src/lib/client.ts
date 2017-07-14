@@ -38,6 +38,7 @@ export class Client {
 		if ( ! this.config ) {
 			this.config = { buildEnabled: false }
 		}
+
 		if ( ! this.config.build ) {
 			this.config.build = 'web'
 		}
@@ -47,27 +48,28 @@ export class Client {
 		if ( ! this.config.scripts ) {
 			this.config.scripts = {}
 		}
-		if ( ! this.config.scripts.build ) {
+		else {
+			this.config.buildEnabled = true
+		}
+		/*
+		if ( ! this.config.scripts.build && this.hasBuildScript(ScriptMode.BUILD, 'build') ) {
 			this.config.scripts.build = 'build'
 		}
-		if ( ! this.config.scripts.prod ) {
+		if ( ! this.config.scripts.prod && this.hasBuildScript(ScriptMode.PROD, 'prod') ) {
 			this.config.scripts.prod = 'prod'
 		}
-		if ( ! this.config.scripts.watch ) {
+		if ( ! this.config.scripts.watch && this.hasBuildScript(ScriptMode.WATCH, 'watch') ) {
 			this.config.scripts.watch = 'watch'
-		}
+		}*/
 		if ( ! this.config.autoWatch ) {
 			this.config.autoWatch = false
 		}
-
-		this.config.src = path.join(this.app.path, this.config.src)
-		this.config.build = path.join(this.app.path, this.config.build)
 
 		return Promise.resolve()
 	}
 
 	hasOneScript() {
-		return (this.hasBuildScript(ScriptMode.BUILD) || this.hasBuildScript(ScriptMode.WATCH) || this.hasBuildScript(ScriptMode.PROD)) && this.config.build
+		return !!((this.hasBuildScript(ScriptMode.BUILD) || this.hasBuildScript(ScriptMode.WATCH) || this.hasBuildScript(ScriptMode.PROD)) && this.config.build)
 	}
 
 	hasBuildScript(mode?:ScriptMode, script?:string) {
@@ -76,9 +78,9 @@ export class Client {
 		}
 		try {
 			let pkgTxt = ''
-			if (fs.existsSync(path.join(this.config.src, 'package.json'))) {
-				pkgTxt = fs.readFileSync(path.join(this.config.src, 'package.json'), 'utf-8')
-				this.pkgPath = this.config.src
+			if (fs.existsSync(path.join(this.app.path, this.config.src, 'package.json'))) {
+				pkgTxt = fs.readFileSync(path.join(this.app.path, this.config.src, 'package.json'), 'utf-8')
+				this.pkgPath = path.join(this.app.path, this.config.src)
 			}
 			else if (fs.existsSync(path.join(this.app.path, 'package.json'))) {
 				pkgTxt = fs.readFileSync(path.join(this.app.path, 'package.json'), 'utf-8')
@@ -113,9 +115,8 @@ export class Client {
 	}
 
 	set(src, build, scripts, autoWatch) {
-		this.config.src = path.join(this.app.path, src)
-		this.config.build = path.join(this.app.path, build)
-
+		this.config.src = src
+		this.config.build = build
 		if ( ! this.config.scripts ) {
 			this.config.scripts = {}
 		}
@@ -130,28 +131,28 @@ export class Client {
 
 	save() {
 		if ( this.config ) {
-			if ( this.config.src.substr(this.app.path.length + 1) == 'web' && this.config.build.substr(this.app.path.length + 1) == 'web' && ! this.hasBuildScript(ScriptMode.WATCH) ) {
+			if ( this.config.src == 'web' && this.config.build == 'web' && ! this.hasOneScript() ) {
 				return Promise.resolve()
 			}
 
 			let res = {
-				src: this.config.src.substr(this.app.path.length + 1),
+				src: this.config.src,
 				scripts: {}
 			} as IClientConfig
 
 			if (this.config.build != this.config.src && this.config.build) {
-				res.build = this.config.build.substr(this.app.path.length + 1)
+				res.build = this.config.build
 			}
 
-			if (this.config.scripts.build) {
+			if (this.hasBuildScript(ScriptMode.BUILD)) {
 				res.scripts.build = this.config.scripts.build
 			}
 
-			if (this.config.scripts.prod) {
+			if (this.hasBuildScript(ScriptMode.PROD)) {
 				res.scripts.prod = this.config.scripts.prod
 			}
 
-			if (this.config.scripts.watch) {
+			if (this.hasBuildScript(ScriptMode.WATCH)) {
 				res.scripts.watch = this.config.scripts.watch
 			}
 
@@ -159,7 +160,7 @@ export class Client {
 				res.autoWatch = this.config.autoWatch
 			}
 
-			fs.writeFileSync(path.join(this.app.path, '.materia', 'client.json'), JSON.stringify(res, null, 2), 'utf-8')
+			fs.writeFileSync(path.join(this.app.path, '.materia', 'client.json'), JSON.stringify(res, null, 2))
 		}
 		return Promise.resolve()
 	}
