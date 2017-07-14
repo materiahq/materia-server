@@ -51,16 +51,7 @@ export class Client {
 		else {
 			this.config.buildEnabled = true
 		}
-		/*
-		if ( ! this.config.scripts.build && this.hasBuildScript(ScriptMode.BUILD, 'build') ) {
-			this.config.scripts.build = 'build'
-		}
-		if ( ! this.config.scripts.prod && this.hasBuildScript(ScriptMode.PROD, 'prod') ) {
-			this.config.scripts.prod = 'prod'
-		}
-		if ( ! this.config.scripts.watch && this.hasBuildScript(ScriptMode.WATCH, 'watch') ) {
-			this.config.scripts.watch = 'watch'
-		}*/
+
 		if ( ! this.config.autoWatch ) {
 			this.config.autoWatch = false
 		}
