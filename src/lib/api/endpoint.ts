@@ -72,7 +72,7 @@ class Controller {
 				delete require.cache[ctrlPath]
 			}
 			this.ctrlClass = require(ctrlPath)
-			this.ctrlStr = fs.readFileSync(ctrlPath, 'utf8').toString()
+			this.ctrlStr = fs.readFileSync(ctrlPath, 'utf-8').toString()
 			delete this.ctrlInstance
 		} catch(e) {
 			let err = new MateriaError(`Could not load controller ${controller}: ${e}`) as any

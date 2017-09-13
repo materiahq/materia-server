@@ -184,7 +184,7 @@ export default class App extends events.EventEmitter {
 					debug: `package.json does not exists, please use "npm init"`
 				}))
 			}
-			fs.readFile(path.join(this.path, 'package.json'), 'utf8', (err, conf) => {
+			fs.readFile(path.join(this.path, 'package.json'), 'utf-8', (err, conf) => {
 				if (err) {
 					return reject(new MateriaError('Could not load package.json'))
 				}
@@ -365,7 +365,7 @@ manual_scaling:
 	}
 
 	saveGCloudSettings(settings) {
-		fs.writeFileSync(path.join(this.path, '.materia', 'gcloud.json'), JSON.stringify(settings, null, 2), 'utf8')
+		fs.writeFileSync(path.join(this.path, '.materia', 'gcloud.json'), JSON.stringify(settings, null, 2), 'utf-8')
 	}
 
 	setPackageScript(name, script) {
@@ -374,7 +374,7 @@ manual_scaling:
 			let content = fs.readFileSync(path.join(this.path, 'package.json')).toString()
 			pkg = JSON.parse(content)
 			pkg.scripts[name] = script
-			fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2), 'utf8')
+			fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2), 'utf-8')
 		}
 		catch (e) {
 			if (e.code != 'ENOENT') {
@@ -636,7 +636,7 @@ manual_scaling:
 	}
 
 	readFile(fullpath) {
-		return fs.readFileSync(fullpath, 'utf8')
+		return fs.readFileSync(fullpath, 'utf-8')
 	}
 
 	saveFile(fullpath:string, content:string, opts?): Promise<any> {

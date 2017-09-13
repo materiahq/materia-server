@@ -30,7 +30,7 @@ class Model {
 				delete require.cache[modelPath]
 			}
 			this.modelClass = require(modelPath)
-			this.modelStr = fs.readFileSync(modelPath, 'utf8').toString()
+			this.modelStr = fs.readFileSync(modelPath, 'utf-8').toString()
 			delete this.modelInstances[entity.name]
 		} catch(e) {
 			let err = new MateriaError('Could not load model ' + name + ' from entity ' + entity.name) as any

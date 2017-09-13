@@ -109,7 +109,7 @@ export class Database {
 			try {
 				let gcloudJsonPath = path.join(this.app.path, '.materia', 'gcloud.json')
 				if (fs.existsSync(gcloudJsonPath)) {
-					let gcloudSettings = JSON.parse(fs.readFileSync(gcloudJsonPath, 'utf8'))
+					let gcloudSettings = JSON.parse(fs.readFileSync(gcloudJsonPath, 'utf-8'))
 					this.opts.dialectOptions = { socketPath: `/cloudsql/${gcloudSettings.project}:${gcloudSettings.region}:${gcloudSettings.instance}` }
 					delete this.opts.host
 					delete this.opts.port
