@@ -239,6 +239,7 @@ export default class App extends events.EventEmitter {
 			return this.client.load()
 		})
 		.then(() => this.server.load())
+		.then(() => this.database.start())
 		.then(() => this.entities.clear())
 		.then(() => this.server.session.initialize())
 		.then(() => this.logger.log(' └── Sessions: OK'))
@@ -246,23 +247,12 @@ export default class App extends events.EventEmitter {
 		.then(() => this.addons.loadAddons())
 		.then(() => this.addons.loadFiles())
 		.then(() => this.entities.loadFiles())
-		.then(() => {
-			if ( ! this.database.disabled) {
-				return this.database.start().then((e) => {
-					warning = e
-					this.logger.log(' └─┬ Entities')
-					elapsedTimeEntities = new Date().getTime()
-					return this.addons.loadEntities()
-				})
-				.then(() => this.entities.loadEntities())
-				.then(() => this.entities.loadRelations())
-				.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeEntities} ms`))
-			}
-			else {
-				this.logger.log(' └── Entities: (Warning) Skipped. No database configured')
-				return Promise.resolve()
-			}
-		})
+		.then(() => console.log(' └── Loading entities'))
+		.then(() => elapsedTimeEntities = new Date().getTime())
+		.then(() => this.addons.loadEntities())
+		.then(() => this.entities.loadEntities())
+		.then(() => this.entities.loadRelations())
+		.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeEntities} ms`))
 		.then(() => this.entities.resetModels())
 		.then(() => this.logger.log(' └─┬ Queries'))
 		.then(() => elapsedTimeQueries = new Date().getTime())
@@ -365,7 +355,7 @@ manual_scaling:
 	}
 
 	saveGCloudSettings(settings) {
-		fs.writeFileSync(path.join(this.path, '.materia', 'gcloud.json'), JSON.stringify(settings, null, 2), 'utf-8')
+		fs.writeFileSync(path.join(this.path, '.materia', 'gcloud.json'), JSON.stringify(settings, null, 2))
 	}
 
 	setPackageScript(name, script) {
@@ -374,7 +364,7 @@ manual_scaling:
 			let content = fs.readFileSync(path.join(this.path, 'package.json')).toString()
 			pkg = JSON.parse(content)
 			pkg.scripts[name] = script
-			fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2), 'utf-8')
+			fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2))
 		}
 		catch (e) {
 			if (e.code != 'ENOENT') {
@@ -488,12 +478,10 @@ manual_scaling:
 	/**
 	Stops the materia app
 	*/
-	stop() {
-		return this.server.stop().then(() => {
-			return this.database.stop()
-		}).then(() => {
-			this.status = false
-		})
+	stop():Promise<void> {
+		return this.server.stop()
+			.then(() => this.database.stop())
+			.then(() => { this.status = false; })
 	}
 
 	_getFile(file, p) {

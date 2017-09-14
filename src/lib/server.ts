@@ -44,6 +44,14 @@ export class Server {
 		this.expressApp.use(methodOverride())
 		this.expressApp.use(compression())
 
+		let webDir = this.app.client.config.build
+		if ( ! this.app.client.config.build && this.app.client.config.src) {
+			webDir = this.app.client.config.src
+		}
+		else {
+			webDir = 'web'
+		}
+
 		this.expressApp.use(express.static(path.join(this.app.path, this.app.client.config.build)));
 		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
 			this.expressApp.use(morgan('dev'))

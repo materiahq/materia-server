@@ -382,6 +382,7 @@ export class Database {
 			this.sequelize.close()
 			this.sequelize = null
 		}
+		return Promise.resolve()
 	}
 
 

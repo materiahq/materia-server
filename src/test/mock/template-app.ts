@@ -33,7 +33,7 @@ export class TemplateApp {
 		this.before_creation = before_creation
 	}
 
-	createInstance(): App {
+	createInstance(mode?: string): App {
 		let app_path = fs.mkdtempSync((process.env.TMPDIR || '/tmp/') + 'materia-test-')
 		fse.copySync(path.join(__dirname, '..', '..', '..', 'src', 'test', 'apps', this.name), app_path, { clobber: true, recursive: true })
 
@@ -41,17 +41,23 @@ export class TemplateApp {
 			json: true
 		})
 
-		return this.createApp(app_path)
+		return this.createApp(app_path, mode)
 	}
 
-	createApp(app_path: string): App {
+	createApp(app_path: string, mode?: string): App {
 		const debug_mode = !!process.env.DEBUG
-		let app = new App(app_path, { logRequests: debug_mode, logSql: debug_mode })
+
+		mode = mode || 'dev';
+		let app = new App(app_path, {
+			logRequests: debug_mode,
+			logSql: debug_mode,
+			mode: mode
+		})
 
 		app.config.set({
 			"host": "localhost",
 			"port": 8798
-		}, AppMode.DEVELOPMENT, ConfigType.WEB)
+		}, mode, ConfigType.WEB)
 
 		if (process.env.DIALECT == "postgres") {
 			app.config.set({
@@ -61,11 +67,11 @@ export class TemplateApp {
 				"username": process.env.POSTGRES_USERNAME,
 				"password": process.env.POSTGRES_PASSWORD,
 				"database": process.env.POSTGRES_DATABASE,
-			}, AppMode.DEVELOPMENT, ConfigType.DATABASE)
+			}, mode, ConfigType.DATABASE)
 		} else {
 			app.config.set({
 				"type": "sqlite"
-			}, AppMode.DEVELOPMENT, ConfigType.DATABASE)
+			}, mode, ConfigType.DATABASE)
 		}
 
 		if (!debug_mode) {
@@ -78,8 +84,8 @@ export class TemplateApp {
 		return app
 	}
 
-	runApp(): Promise<App> {
-		let app = this.createInstance()
+	runApp(mode?: string): Promise<App> {
+		let app = this.createInstance(mode || 'dev')
 		let off = Promise.resolve(this.before_creation(app))
 		return off.then(() => app.load()).then(() => {
 			if (process.env.DIALECT == "postgres") {

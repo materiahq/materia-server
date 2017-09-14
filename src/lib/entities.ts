@@ -120,6 +120,9 @@ export class Entities {
 	}
 
 	loadEntities(addon?: Addon):Promise<any> {
+		if ( this.app.database.disabled ) {
+			return Promise.resolve()
+		}
 		let basePath = addon ? addon.path : this.app.path
 		let promises = []
 		let opts: IApplyOptions = {
@@ -174,6 +177,10 @@ export class Entities {
 	}
 
 	loadRelations():Promise<any> {
+		if ( this.app.database.disabled ) {
+			return Promise.resolve()
+		}
+
 		let promises = []
 		for (let name in this.entities) {
 			let entity = this.entities[name]
@@ -622,6 +629,10 @@ export class Entities {
 	}
 
 	resetModels() {
+		if ( this.app.database.disabled ) {
+			return Promise.resolve()
+		}
+
 		CustomQuery.resetModels()
 	}
 }
