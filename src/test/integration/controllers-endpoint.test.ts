@@ -116,6 +116,23 @@ describe('[Controller Endpoints]', () => {
 				.then(() => done())
 				.catch(e => done(e))
 			})
+
+			it('should run endpoint using session in production', (done) => {
+				let tplProd = new TemplateApp('controller-endpoints')
+				return app.stop()
+					.then(() => tpl.runApp('prod'))
+					.then(_app => {
+						app = _app;
+						return tpl.get('/api/session/init')
+					})
+					.then(res => {
+						res.should.equal('Hello World')
+						return tpl.get('/api/session/fetch')
+					})
+					.then(res => res.should.equal("Hello World"))
+					.then(() => done())
+					.catch(e => done(e))
+			})
 		})
 	});
 });
