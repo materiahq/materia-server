@@ -64,8 +64,8 @@ export class Session {
 				]
 			}, {
 				apply: true
-			}).then(obj => {
-				let ent = obj as DBEntity
+			}).then((obj: DBEntity) => {
+				let ent = obj
 				this.setupMiddleware(ent)
 			})
 		}
@@ -79,12 +79,11 @@ export class Session {
 		let sessionConfig = this.app.config.get<ISessionConfig>(this.app.mode, ConfigType.SESSION)
 
 		let store;
-		if (this.app.mode == AppMode.PRODUCTION && ! this.app.database.disabled && ! this.app.live) {
-			let entity = this.app.entities.get('materia_session') as DBEntity
-			store = new SequelStore({
-				database: this.app.database.sequelize,
-				sessionModel: entity.model
-			})
+		if (obj) {
+			// store = new SequelStore({
+			// 	database: this.app.database.sequelize,
+			// 	sessionModel: obj.model
+			// })
 		}
 
 		let secret = 'keyboard cat'
