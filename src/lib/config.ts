@@ -91,7 +91,7 @@ export class Config {
 	@param {string} - The environment mode. AppMode.DEVELOPMENT or AppMode.PRODUCTION.
 	@returns {object}
 	*/
-	get<T>(mode?:AppMode, type?:ConfigType, options?:IConfigOptions):T {
+	get<T>(mode?:AppMode|string, type?:ConfigType, options?:IConfigOptions):T {
 		type = type || ConfigType.WEB
 		options = options || {live: this.app.live}
 		if ( ! this.config) {
@@ -120,7 +120,7 @@ export class Config {
 	@param {object} - The configuration object
 	@param {string} - The environment mode. `development` or `production`.
 	*/
-	set(config: IWebConfig|IDatabaseConfig|ISessionConfig|IGitConfig, mode: AppMode, type?:ConfigType, options?: IConfigOptions, opts?: ISaveOptions):void {
+	set(config: IWebConfig|IDatabaseConfig|ISessionConfig|IGitConfig, mode: AppMode|string, type?:ConfigType, options?: IConfigOptions, opts?: ISaveOptions):void {
 		options = options || {}
 		let webConfig = <IWebConfig> config
 		if ( type == ConfigType.WEB && (! webConfig.host || ! webConfig.port) ) {

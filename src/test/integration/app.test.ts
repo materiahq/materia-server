@@ -18,11 +18,5 @@ describe('[App]', () => {
 				.then(done)
 				.catch(done)
 		})
-		it('should load & start the application in prod mode', (done) => {
-			tpl.runApp('prod')
-				.then(app => app.stop())
-				.then(done)
-				.catch(done)
-		})
 	})
 })
