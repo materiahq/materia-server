@@ -2,48 +2,46 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch tests",
 			"type": "node",
 			"request": "launch",
-			"program": "node_modules/mocha/bin/mocha",
-			"stopOnEntry": false,
-			"args": ["--debug-brk", "--compilers", "js:babel/register"],
-			"cwd": ".",
-			"runtimeExecutable": null,
-			"runtimeArgs": [
-				"--nolazy"
+			"name": "Mocha Tests",
+			"program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+			"args": [
+				"--timeout",
+				"999999",
+				"--colors",
+				"${workspaceRoot}/dist/test/**/*.test.js"
 			],
-			"env": {
-				"NODE_ENV": "development"
-			},
-			"externalConsole": false,
-			"sourceMaps": false,
-			"outDir": null
+			"outFiles": [
+				"${workspaceRoot}/dist"
+			],
+
+			"protocol": "inspector",
+			"sourceMaps": true,
+			"skipFiles": [
+				"node_modules/**/*.js",
+				"<node_internals>/**/*.js"
+			]
 		},
 		{
-			"name": "Launch apidays",
 			"type": "node",
 			"request": "launch",
-			"program": "cli/index.js",
-			"stopOnEntry": false,
-			"args": ["start"],
-			"cwd": "./test/samples/apidays",
-			"runtimeExecutable": null,
-			"runtimeArgs": [
-				"--nolazy"
+			"name": "Launch Program",
+			"program": "${workspaceRoot}/src/cli/index.js",
+			"cwd": "${workspaceRoot}/../apps/todo",
+			"args": [
+				"start",
+				"--mode=prod",
+				"--port=8090"
 			],
-			"env": {
-				"NODE_ENV": "development"
-			},
-			"externalConsole": false,
-			"sourceMaps": false,
-			"outDir": null
-		},  
-		{
-			"name": "Attach",
-			"type": "node",
-			"request": "attach",
-			"port": 5858
+			"outFiles": [
+				"${workspaceRoot}/dist/**/*.js"
+			],
+			"sourceMaps": true,
+			"skipFiles": [
+				"node_modules/**/*.js",
+				"<node_internals>/**/*.js"
+			]
 		}
 	]
 }
