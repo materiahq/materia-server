@@ -8,7 +8,7 @@
 			"program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
 			"args": [
 				"--timeout",
-				"999999",
+				"5000",
 				"--colors",
 				"${workspaceRoot}/dist/test/**/*.test.js"
 			],
@@ -26,12 +26,31 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch Program",
+			"name": "Launch Program (prod)",
 			"program": "${workspaceRoot}/src/cli/index.js",
 			"cwd": "${workspaceRoot}/../apps/todo",
 			"args": [
 				"start",
 				"--mode=prod",
+				"--port=8090"
+			],
+			"outFiles": [
+				"${workspaceRoot}/dist/**/*.js"
+			],
+			"sourceMaps": true,
+			"skipFiles": [
+				"node_modules/**/*.js",
+				"<node_internals>/**/*.js"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Launch Program (dev)",
+			"program": "${workspaceRoot}/src/cli/index.js",
+			"cwd": "${workspaceRoot}/../apps/todo",
+			"args": [
+				"start",
 				"--port=8090"
 			],
 			"outFiles": [

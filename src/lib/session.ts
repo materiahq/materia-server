@@ -3,7 +3,7 @@ import { ConfigType, ISessionConfig } from './config'
 import {DBEntity} from './entities/db-entity'
 import * as session from 'express-session'
 
-const SequelStore = require('sequelstore-connect')(session)
+const SequelizeStore = require('connect-session-sequelize')(session.Store)
 
 export class Session {
 	constructor(private app: App) {
@@ -16,7 +16,7 @@ export class Session {
 				name: 'materia_session',
 				fields: [
 					{
-						"name": "session_id",
+						"name": "sid",
 						"type": "text",
 						"required": true,
 						"primary": true,
@@ -28,7 +28,7 @@ export class Session {
 					},
 					{
 						"name": "expires",
-						"type": "number",
+						"type": "date",
 						"required": true,
 						"primary": false,
 						"unique": false,
@@ -78,14 +78,6 @@ export class Session {
 	setupMiddleware(obj?:DBEntity) {
 		let sessionConfig = this.app.config.get<ISessionConfig>(this.app.mode, ConfigType.SESSION)
 
-		let store;
-		if (obj) {
-			// store = new SequelStore({
-			// 	database: this.app.database.sequelize,
-			// 	sessionModel: obj.model
-			// })
-		}
-
 		let secret = 'keyboard cat'
 		if (sessionConfig && sessionConfig.secret) {
 			secret = sessionConfig.secret
@@ -94,6 +86,14 @@ export class Session {
 		let maxAge = 3600000
 		if (sessionConfig && sessionConfig.maxAge) {
 			maxAge = sessionConfig.maxAge
+		}
+
+		let store;
+		if (obj) {
+			store = new SequelizeStore({
+				db: this.app.database.sequelize,
+				table: 'materia_session'
+			})
 		}
 
 		let config = {
@@ -108,5 +108,7 @@ export class Session {
 		}
 
 		this.app.server.expressApp.use(session(config))
+
+
 	}
 }
