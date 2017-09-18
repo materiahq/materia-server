@@ -12,7 +12,7 @@ import { Server } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
 import { Synchronizer } from './synchronizer'
-import { Migration } from './migration'
+import { Migration } from './self-migration'
 import { History } from './history'
 import { Client } from './client'
 
