@@ -638,7 +638,7 @@ export class Entity {
 					return this.app.entities.remove(relation.through, opts)
 				})
 			}
-		} else if (relation.type == 'belongsTo' || ! relation.type) {
+		} else if ((relation.type == 'belongsTo' || ! relation.type) && !! this.fields.find(field => field.name == relation.field)) {
 			p = p.then(() => {
 				return this.removeField(relation.field, options)
 			})
