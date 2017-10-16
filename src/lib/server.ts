@@ -123,11 +123,11 @@ export class Server {
 				})
 
 				this.expressApp.all('/*', (req, res) => {
-					if (fs.existsSync(path.join(this.app.client.config.build, '404.html'))) {
-						res.sendFile(path.join(this.app.client.config.build, '404.html'))
+					if (fs.existsSync(path.join(this.app.path, this.app.client.config.build, '404.html'))) {
+						res.sendFile(path.join(this.app.path, this.app.client.config.build, '404.html'))
 					}
 					else if (this.hasStatic()) {
-						res.sendFile(path.join(this.app.client.config.build, 'index.html'))
+						res.sendFile(path.join(this.app.path, this.app.client.config.build, 'index.html'))
 					}
 					else {
 						res.status(404).send({
