@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as uuid from 'uuid/v4'
 
-import App, { IApplyOptions } from '../app'
+import { App, IApplyOptions } from '../app'
 import MateriaError from '../error'
 import { MigrationType } from '../history'
 import { IAddon } from '../addons'

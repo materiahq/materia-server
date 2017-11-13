@@ -1,7 +1,7 @@
 let fs = require('fs')
 let path = require('path')
 
-import App, { ISaveOptions } from './app'
+import { App, ISaveOptions } from './app'
 
 /**
  * Default action types

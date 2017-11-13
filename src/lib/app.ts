@@ -79,7 +79,7 @@ export enum AppMode {
  * @property {Addons} addons - Access to the addons methods
  * @property {Entities} entities - Access to the app's entities
  */
-export default class App extends events.EventEmitter {
+export class App extends events.EventEmitter {
 	name: string
 	package: string
 

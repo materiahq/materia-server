@@ -1,4 +1,4 @@
-import App from './app'
+import { App } from './app'
 import { MigrationType } from './history'
 
 export class Synchronizer {

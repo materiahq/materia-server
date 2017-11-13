@@ -5,7 +5,7 @@ import * as Sequelize from 'sequelize'
 
 let domain = require('domain')
 
-import App, { AppMode, ISaveOptions } from './app'
+import { App, AppMode, ISaveOptions } from './app'
 
 import { ConfigType, IDatabaseConfig, IConfigOptions } from './config'
 

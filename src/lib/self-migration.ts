@@ -2,7 +2,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import App, { AppMode } from './app'
+import { App, AppMode } from './app'
 
 import * as fse from 'fs-extra'
 

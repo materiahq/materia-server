@@ -5,7 +5,7 @@ import * as fse from 'fs-extra'
 
 import * as Sequelize from 'sequelize'
 
-import App, { IApplyOptions } from './app'
+import { App, IApplyOptions } from './app'
 import MateriaError from './error'
 
 import Addon from './addons/addon'
@@ -395,8 +395,7 @@ export class Entities {
 		return p.then(() => {
 			let entity = this.entities[name]
 
-			//hm ca marche pas ca ?
-			/*if (options.history != false) {
+			if (options.history != false) {
 				this.app.history.push({
 					type: MigrationType.DELETE_ENTITY,
 					table: name
@@ -405,7 +404,7 @@ export class Entities {
 					table: name,
 					value: entity.toJson()
 				})
-			}*/
+			}
 
 			if (options.apply != false) {
 				delete this.entities[name]

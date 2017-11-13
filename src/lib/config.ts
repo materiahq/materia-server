@@ -2,7 +2,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import App, { AppMode, ISaveOptions } from './app'
+import { App, AppMode, ISaveOptions } from './app'
 import MateriaError from './error'
 
 export interface IWebConfig {

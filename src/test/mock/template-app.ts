@@ -7,7 +7,7 @@ import * as request from 'request'
 
 import * as chaiAsPromised from 'chai-as-promised'
 
-import App, { AppMode } from '../../lib/app'
+import { App, AppMode } from '../../lib/app'
 import { ConfigType } from '../../lib/config'
 
 chaiAsPromised['transferPromiseness'] = (assertion, promise) => {

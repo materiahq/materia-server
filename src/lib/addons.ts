@@ -3,7 +3,7 @@ import * as path from 'path'
 
 import * as fse from 'fs-extra'
 
-import App from './app'
+import { App } from './app'
 import MateriaError from './error'
 import Addon from './addons/addon'
 

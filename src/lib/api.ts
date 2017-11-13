@@ -3,10 +3,10 @@ import * as path from 'path'
 
 import * as express from 'express'
 
-import { Endpoint } from './api/endpoint'
+import { Endpoint, IEndpoint } from './api/endpoint'
 import { Permissions } from './api/permissions'
 
-import App, { AppMode, IApplyOptions } from './app'
+import { App, AppMode, IApplyOptions } from './app'
 import MateriaError from './error'
 
 import { IAddon } from './addons'
@@ -32,7 +32,7 @@ export default class Api {
 	@param {object} - Endpoint's description. must contain at leat `method` and `url`
 	@returns {boolean}
 	*/
-	exists(endpoint):boolean {
+	exists(endpoint: IEndpoint):boolean {
 		return !! this.get(endpoint.method, endpoint.url)
 	}
 
@@ -41,7 +41,7 @@ export default class Api {
 	@param {object} - Endpoint's description
 	@param {object} - Action's options
 	*/
-	add(endpoint, options:IApplyOptions) {
+	add(endpoint: IEndpoint, options:IApplyOptions) {
 		options = options || {}
 
 		if ( ! endpoint.controller && endpoint.query && endpoint.query.entity && this.app.database.disabled ) {
@@ -71,7 +71,7 @@ export default class Api {
 	@param {integer} - Position in the array
 	@param {object} - Action's options
 	*/
-	put(endpoint, pos, options:IApplyOptions) {
+	put(endpoint: IEndpoint, pos, options:IApplyOptions) {
 		options = options || {}
 		this.endpoints[pos] = new Endpoint(this.app, endpoint)
 		if (options.apply != false) {
@@ -88,7 +88,7 @@ export default class Api {
 	@param {string} - HTTP url relative to the API base.
 	@param {object} - Action's options
 	*/
-	remove(method, url, options:IApplyOptions) {
+	remove(method: string, url: string, options:IApplyOptions) {
 		options = options || {}
 		this.endpoints.forEach((endpoint, i) => {
 			if (endpoint.url == url && endpoint.method == method) {
@@ -112,7 +112,7 @@ export default class Api {
 	@param {string} - HTTP url relative to the API base.
 	@returns {Endpoint}
 	*/
-	get(method, url) {
+	get(method: string, url: string): Endpoint {
 		return this.endpoints.find(endpoint => endpoint.url == url && endpoint.method == method)
 	}
 

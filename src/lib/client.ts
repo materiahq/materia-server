@@ -1,4 +1,4 @@
-import App from './app'
+import { App } from './app'
 
 import * as fs from 'fs'
 import * as path from 'path'
@@ -22,8 +22,9 @@ export enum ScriptMode {
 }
 
 export class Client {
-	config:IClientConfig
+	config:IClientConfig = {}
 	pkgPath:string
+	pkgScripts:string[]
 	watching:boolean
 
 	constructor(private app: App) {
@@ -34,17 +35,29 @@ export class Client {
 		if (fs.existsSync(path.join(this.app.path, '.materia', 'client.json'))) {
 			this.config = JSON.parse(fs.readFileSync(path.join(this.app.path, '.materia', 'client.json'), 'utf-8'))
 		}
+		const packageJson = JSON.parse(fs.readFileSync(path.join(this.app.path, 'package.json'), 'utf-8'))
+		if (packageJson && packageJson.scripts) {
+			this.config.scripts = {
+				build: packageJson.scripts.build,
+				watch: packageJson.scripts.watch,
+				prod: packageJson.scripts.prod
+			}
+		}
 
 		if ( ! this.config ) {
 			this.config = { buildEnabled: false }
 		}
 
-		if ( ! this.config.build ) {
+		/*if ( ! this.config.build ) {
 			this.config.build = 'web'
-		}
+		}*/
 		if ( ! this.config.src ) {
-			this.config.src = this.config.build
+			this.config.src = 'web'
 		}
+		if ( ! this.config.build) {
+			this.config.build = this.config.src
+		}
+
 		if ( ! this.config.scripts ) {
 			this.config.scripts = {}
 		}

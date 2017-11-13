@@ -1,4 +1,4 @@
-import App, { AppMode } from './app'
+import { App, AppMode } from './app'
 
 var prettyError:any = require('pretty-error');
 
