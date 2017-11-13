@@ -24,6 +24,8 @@ import { MateriaError } from './error'
 //TODO: convert to ts
 let AddonsTools = require('./runtimes/tools/addons')
 
+export * from "./addons/helpers";
+
 export interface IAppOptions {
 	mode?: string,
 	runtimes?: string,
