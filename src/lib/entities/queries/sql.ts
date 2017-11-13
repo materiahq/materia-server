@@ -1,5 +1,5 @@
 import { Query, QueryParamResolver } from '../query'
-import MateriaError from '../../error'
+import { MateriaError } from '../../error'
 
 export class SQLQuery extends Query {
 	type: string

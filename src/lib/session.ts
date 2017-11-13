@@ -1,6 +1,6 @@
-import App, {AppMode} from './app'
+import { App, AppMode } from './app'
 import { ConfigType, ISessionConfig } from './config'
-import {DBEntity} from './entities/db-entity'
+import { DBEntity } from './entities/db-entity'
 import * as session from 'express-session'
 
 const SequelizeStore = require('connect-session-sequelize')(session.Store)

@@ -10,7 +10,7 @@ import { App, AppMode, ISaveOptions } from './app'
 import { ConfigType, IDatabaseConfig, IConfigOptions } from './config'
 
 import { DatabaseInterface } from './database/interface'
-import MateriaError from './error'
+import { MateriaError } from './error'
 
 export enum Dialect {
 	POSTGRES,

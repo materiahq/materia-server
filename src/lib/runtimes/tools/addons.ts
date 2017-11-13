@@ -3,9 +3,9 @@ import * as path from 'path'
 import * as cp from 'child_process'
 import * as readline from 'readline'
 
-import App from '../../app'
+import { App } from '../../app'
 
-import MateriaError from '../../error'
+import { MateriaError } from '../../error'
 import { Dependency } from '../../dependency'
 
 //TODO: need to move this in materia-cli to keep materia-server clean

@@ -2,8 +2,8 @@ import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 import * as fse from 'fs-extra'
 
-import App from '../../lib/app'
-import MateriaError from '../../lib/app'
+import { App } from '../../lib/app'
+import { MateriaError } from '../../lib/error'
 
 import { TemplateApp } from '../mock/template-app'
 

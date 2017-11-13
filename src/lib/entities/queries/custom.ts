@@ -1,8 +1,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import App from '../../app'
-import MateriaError from '../../error'
+import { App } from '../../app'
+import { MateriaError } from '../../error'
 
 import { Entity } from '../entity'
 import { Query, IQueryParam, QueryParamResolver } from '../query'

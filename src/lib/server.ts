@@ -3,7 +3,7 @@ import * as path from 'path'
 
 import { App, AppMode } from './app'
 import { ConfigType, IWebConfig, IConfigOptions } from './config'
-import MateriaError from './error'
+import { MateriaError } from './error'
 
 import * as express from 'express'
 import * as session from 'express-session'

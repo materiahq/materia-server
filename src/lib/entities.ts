@@ -6,9 +6,9 @@ import * as fse from 'fs-extra'
 import * as Sequelize from 'sequelize'
 
 import { App, IApplyOptions } from './app'
-import MateriaError from './error'
+import { MateriaError } from './error'
 
-import Addon from './addons/addon'
+import { Addon } from './addons/addon'
 
 import { MigrationType } from './history'
 

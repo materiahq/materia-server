@@ -4,8 +4,8 @@ import * as path from 'path'
 import * as fse from 'fs-extra'
 
 import { App } from './app'
-import MateriaError from './error'
-import Addon from './addons/addon'
+import { MateriaError } from './error'
+import { Addon } from './addons/addon'
 
 
 export interface IAddon {
@@ -38,7 +38,7 @@ export interface IAddonOptions {
  * @classdesc
  * This class is used to manage your addons in a materia app.
  */
-export default class Addons {
+export class Addons {
 	addons: Addon[]
 	addonsObj: any
 	addonsConfig: IAddonConfig

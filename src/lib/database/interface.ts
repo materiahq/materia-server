@@ -1,7 +1,7 @@
 import * as Sequelize from 'sequelize'
 
 import { Database } from '../database'
-import MateriaError from '../error'
+import { MateriaError } from '../error'
 
 import { PostgresDialect } from './dialects/postgres'
 import { MysqlDialect } from './dialects/mysql'

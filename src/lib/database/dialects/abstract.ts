@@ -1,5 +1,5 @@
 import * as Sequelize from 'sequelize'
-import MateriaError from '../../error'
+import { MateriaError } from '../../error'
 
 export class AbstractDialect {
 	sequelize: Sequelize.Sequelize

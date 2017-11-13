@@ -1,5 +1,5 @@
 import { Entity } from './entity'
-import MateriaError from '../error'
+import { MateriaError } from '../error'
 
 import { IValidator, Validator } from './validator'
 

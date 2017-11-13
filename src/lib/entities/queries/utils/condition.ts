@@ -1,5 +1,5 @@
 import { DBEntity } from '../../db-entity'
-import MateriaError from '../../../error'
+import { MateriaError } from '../../../error'
 
 export interface ICondition {
 	entity?: string

@@ -1,8 +1,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import App from '../app'
-import MateriaError from '../error'
+import { App } from '../app'
+import { MateriaError } from '../error'
 
 export interface IAddonInfo {
 	package?: string
@@ -27,7 +27,7 @@ export interface IAddonSetup {
 	component?: string
 }
 
-export default class Addon {
+export class Addon {
 	package: string
 
 	path: string

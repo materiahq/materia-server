@@ -1,7 +1,7 @@
 import { Entity } from './entity'
-import MateriaError from '../error'
+import { MateriaError } from '../error'
 
-import App from '../app'
+import { App } from '../app'
 import { Field, IField, IFieldUpdate } from './field'
 
 import { QueryGenerator } from './query-generator'

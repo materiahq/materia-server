@@ -1,5 +1,5 @@
-import App from '../app'
-import MateriaError from '../error'
+import { App } from '../app'
+import { MateriaError } from '../error'
 import * as fs from 'fs'
 import * as path from 'path'
 

@@ -2,7 +2,7 @@ import { Condition, ICondition } from './condition'
 import { DBEntity } from '../../db-entity'
 
 import { Query, QueryParamResolver, IQueryParam } from '../../query'
-import MateriaError from '../../../error'
+import { MateriaError } from '../../../error'
 
 /*
 Conditions manage a list of condition (associated with `operand`)

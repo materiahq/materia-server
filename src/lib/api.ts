@@ -7,7 +7,7 @@ import { Endpoint, IEndpoint } from './api/endpoint'
 import { Permissions } from './api/permissions'
 
 import { App, AppMode, IApplyOptions } from './app'
-import MateriaError from './error'
+import { MateriaError } from './error'
 
 import { IAddon } from './addons'
 
@@ -17,7 +17,7 @@ import { IAddon } from './addons'
  * This class is used to set the endpoints on the server
  * @property {Permissions} permissions - The access to the permission filters
  */
-export default class Api {
+export class Api {
 	endpoints: Endpoint[]
 	permissions: any
 	router: express.Router

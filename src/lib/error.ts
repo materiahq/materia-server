@@ -5,7 +5,7 @@ interface IErrorOptions {
 	originalError?: Error
 }
 
-export default class MateriaError extends Error {
+export class MateriaError extends Error {
 	slug: string
 	issue: number
 	debug: string

@@ -1,5 +1,5 @@
 import { AbstractDialect } from './abstract'
-import MateriaError from '../../error'
+import { MateriaError } from '../../error'
 
 export class MysqlDialect extends AbstractDialect {
 	constructor(sequelize) {

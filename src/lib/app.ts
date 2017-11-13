@@ -16,10 +16,10 @@ import { Migration } from './self-migration'
 import { History } from './history'
 import { Client } from './client'
 
-import Addons, { IAddon } from './addons'
-import Api from './api'
+import { Addons, IAddon } from './addons'
+import { Api } from './api'
 
-import MateriaError from './error'
+import { MateriaError } from './error'
 
 //TODO: convert to ts
 let AddonsTools = require('./runtimes/tools/addons')

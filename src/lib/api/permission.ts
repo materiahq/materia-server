@@ -1,4 +1,4 @@
-import App from '../app'
+import { App } from '../app'
 import * as path from 'path'
 
 export interface IPermission {
