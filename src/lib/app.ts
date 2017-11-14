@@ -249,7 +249,7 @@ export class App extends events.EventEmitter {
 		.then(() => this.addons.loadAddons())
 		.then(() => this.addons.loadFiles())
 		.then(() => this.entities.loadFiles())
-		.then(() => console.log(' └── Loading entities'))
+		.then(() => this.logger.log(' └─┬ Entities'))
 		.then(() => elapsedTimeEntities = new Date().getTime())
 		.then(() => this.addons.loadEntities())
 		.then(() => this.entities.loadEntities())
