@@ -10,10 +10,13 @@ export interface MateriaAddon {
 	displayName: string,
 	logo: string,
 	constructor(app: App, config: any)
+
 	getModule(): any
 	getViewComponent(): any
 	getInstallComponent?(): any
 	getInstallConfig?(): AddonSetupField[]
+
+	load?(): Promise<void>
 
 	start?(): Promise<void>
 	uninstall?(): Promise<void>

@@ -3,7 +3,7 @@ import * as path from 'path'
 
 import { App } from '../app'
 import { MateriaError } from '../error'
-
+import { MateriaAddon } from "./helpers";
 export interface IAddonInfo {
 	package?: string
 	name: string
@@ -32,7 +32,7 @@ export class Addon {
 
 	path: string
 	config: any
-	obj: any
+	obj: MateriaAddon
 
 	name: string
 	description: string
@@ -70,7 +70,7 @@ export class Addon {
 			return addon_app.migration.check().then(() => {
 				try {
 					addonPackage = require(path.join(this.package, 'package.json'))
-					AddonClass = require(this.package)
+					AddonClass = require(this.package).default
 				} catch (e) {
 					throw new MateriaError('Impossible to require addon ' + this.package, {
 						originalError: e
@@ -86,10 +86,10 @@ export class Addon {
 
 				this.packageJsonFile = addonPackage
 				this.package = addonPackage.name,
-				this.name = addonPackage.materia && addonPackage.materia.display_name || addonPackage.name,
+				this.name = addonInstance.displayName || addonPackage.name,
 				this.description = addonPackage.description,
-				this.logo = addonPackage.materia && addonPackage.materia.logo,
-				this.author = addonPackage.materia && addonPackage.materia.author,
+				this.logo = addonInstance.logo,
+				this.author = addonPackage.materia && addonPackage.materia.author || addonPackage.author,
 				this.version = addonPackage.version,
 				this.color = addonPackage.materia && addonPackage.materia.icon && addonPackage.materia.icon.color,
 				this.tags = addonPackage.keywords && addonPackage.keywords.map(keyword => {
