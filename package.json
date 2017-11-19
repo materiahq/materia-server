@@ -2,9 +2,10 @@
   "name": "materia-server",
   "version": "0.8.0",
   "description": "Build scalable and secure SAAS applications effortlessly - https://getmateria.com",
-  "main": "index.js",
+  "main": "./dist/lib/app.js",
+  "typings": "./dist/lib/app.d.ts",
   "bin": {
-    "materia": "dist/cli/index.js"
+    "materia": "./dist/cli/index.js"
   },
   "dependencies": {
     "body-parser": "^1.17.2",
@@ -41,7 +42,6 @@
     "@types/express": "^4.0.34",
     "@types/fs-extra": "^0.0.36",
     "@types/mocha": "^2.2.36",
-    "@types/node": "^7.0.33",
     "@types/node-uuid": "0.0.28",
     "@types/request": "0.0.45",
     "@types/sequelize": "^4.0.39",

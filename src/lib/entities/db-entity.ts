@@ -1,4 +1,4 @@
-import { Entity } from './entity'
+import { Entity, IEntityConfig } from './entity'
 import { MateriaError } from '../error'
 
 import { App } from '../app'
@@ -534,7 +534,7 @@ export class DBEntity extends Entity {
 		}
 	}
 
-	toJson() {
+	toJson(): IEntityConfig {
 		let json = super.toJson()
 		return json
 	}

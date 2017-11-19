@@ -59,7 +59,7 @@ export interface IQueryConstructor {
 	toJson();
 }
 
-interface IQueryInclude {
+export interface IQueryInclude {
 	entity: string
 	fields?: Array<string>
 	include?: Array<IQueryInclude>

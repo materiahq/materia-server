@@ -7,19 +7,19 @@ export interface AddonSetupField {
 }
 
 export interface MateriaAddon {
-	displayName: string,
-	logo: string,
-	constructor(app: App, config: any)
+	displayName: string;
+	logo: string;
+	constructor(app: App, config: any):void;
 
-	getModule(): any
-	getViewComponent(): any
-	getInstallComponent?(): any
-	getInstallConfig?(): AddonSetupField[]
+	getModule(): any;
+	getViewComponent(): any;
+	getInstallComponent?(): any;
+	getInstallConfig?(): AddonSetupField[];
 
-	load?(): Promise<void>
+	load?(): Promise<void>;
 
-	start?(): Promise<void>
-	uninstall?(): Promise<void>
+	start?(): Promise<void>;
+	uninstall?(): Promise<void>;
 }
 
 export interface AddonEntitiesHook {

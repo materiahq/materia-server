@@ -13,7 +13,7 @@ export interface ICustomQueryOpts {
 	params: IQueryParam[]
 }
 
-class Model {
+export class Model {
 	modelClass: any
 	modelStr: string
 	modelInstances: {[entity:string]:any}

@@ -6,6 +6,7 @@ import { App, IApplyOptions } from '../app'
 import { MateriaError } from '../error'
 import { MigrationType } from '../history'
 import { IAddon } from '../addons'
+import { Addon } from '../addons/addon';
 
 import { Field, IField, IFieldUpdate } from './field'
 import { QueryGenerator } from './query-generator'
@@ -56,7 +57,7 @@ export class Entity {
 	relations: Array<IRelation>
 	queries: Array<Query>
 
-	fromAddon: IAddon
+	fromAddon: Addon
 
 	constructor(public app: App, queryTypes) {
 		this.relations_queue = []
@@ -904,7 +905,7 @@ export class Entity {
 	Return the entity's description
 	@returns {object}
 	*/
-	toJson() {
+	toJson(): IEntityConfig {
 		let fieldsJson = []
 		if (this.fields) {
 			for (let field of this.fields) {

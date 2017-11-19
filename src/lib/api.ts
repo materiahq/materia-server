@@ -41,7 +41,7 @@ export class Api {
 	@param {object} - Endpoint's description
 	@param {object} - Action's options
 	*/
-	add(endpoint: IEndpoint, options:IApplyOptions) {
+	add(endpoint: IEndpoint, options?:IApplyOptions) {
 		options = options || {}
 
 		if ( ! endpoint.controller && endpoint.query && endpoint.query.entity && this.app.database.disabled ) {
@@ -88,7 +88,7 @@ export class Api {
 	@param {string} - HTTP url relative to the API base.
 	@param {object} - Action's options
 	*/
-	remove(method: string, url: string, options:IApplyOptions) {
+	remove(method: string, url: string, options?:IApplyOptions) {
 		options = options || {}
 		this.endpoints.forEach((endpoint, i) => {
 			if (endpoint.url == url && endpoint.method == method) {

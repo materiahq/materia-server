@@ -1,7 +1,7 @@
 import { Entity } from './entity'
 import { Field } from './field'
 
-interface IQueryParam {
+export interface IQueryParam {
 	name: string,
 	type: string,
 	required: boolean,

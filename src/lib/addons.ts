@@ -203,7 +203,7 @@ export class Addons {
 		if ( ! regexp.test(name)) {
 			return Promise.reject(new MateriaError('The addon name contains bad characters.'))
 		}
-		if (fs.exists(path.join(this.app.path, 'node_modules', name))) {
+		if (fs.existsSync(path.join(this.app.path, 'node_modules', name))) {
 			return Promise.reject(new MateriaError('The addon already exists: ' + name))
 		}
 	}

@@ -82,6 +82,7 @@ export enum AppMode {
  * @property {Entities} entities - Access to the app's entities
  */
 export class App extends events.EventEmitter {
+	id: number
 	name: string
 	package: string
 
@@ -110,7 +111,11 @@ export class App extends events.EventEmitter {
 	addonsTools: any
 	synchronizer: Synchronizer
 
-	constructor(public path: string, public options: IAppOptions) {
+	invalid: boolean
+	error: Error
+	stack: any
+
+	constructor(public path: string, public options?: IAppOptions) {
 		super()
 		process.env.TZ = 'UTC'
 
@@ -656,7 +661,7 @@ manual_scaling:
 	}
 
 	getMateriaVersion() {
-		let pkg = require('../../package')
+		let pkg = require('../../package.json')
 		return pkg.version
 	}
 }

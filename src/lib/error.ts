@@ -1,4 +1,4 @@
-interface IErrorOptions {
+export interface IErrorOptions {
 	slug?: string
 	issue?: number
 	debug?: string

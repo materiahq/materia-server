@@ -8,7 +8,7 @@ import * as request from 'request'
 import * as chaiAsPromised from 'chai-as-promised'
 
 import { App, AppMode } from '../../lib/app'
-import { ConfigType } from '../../lib/config'
+import { ConfigType, IDatabaseConfig } from '../../lib/config'
 
 chaiAsPromised['transferPromiseness'] = (assertion, promise) => {
 	assertion.then = promise.then.bind(promise);
@@ -60,14 +60,15 @@ export class TemplateApp {
 		}, mode, ConfigType.WEB)
 
 		if (process.env.DIALECT == "postgres") {
-			app.config.set({
-				"type": "postgres",
-				"host": process.env.POSTGRES_HOST,
-				"port": process.env.POSTGRES_PORT,
-				"username": process.env.POSTGRES_USERNAME,
-				"password": process.env.POSTGRES_PASSWORD,
-				"database": process.env.POSTGRES_DATABASE,
-			}, mode, ConfigType.DATABASE)
+			const cnf: IDatabaseConfig = {
+				type: "postgres",
+				host: process.env.POSTGRES_HOST,
+				port: +process.env.POSTGRES_PORT,
+				username: process.env.POSTGRES_USERNAME,
+				password: process.env.POSTGRES_PASSWORD,
+				database: process.env.POSTGRES_DATABASE,
+			}
+			app.config.set(cnf, mode, ConfigType.DATABASE)
 		} else {
 			app.config.set({
 				"type": "sqlite"

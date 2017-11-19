@@ -1,5 +1,5 @@
 import { App } from './app'
-import { MigrationType } from './history'
+import { MigrationType, IActionData } from './history'
 
 export class Synchronizer {
 	constructor(private app: App) {}
@@ -495,7 +495,7 @@ export class Synchronizer {
 		})
 	}
 
-	entitiesToDatabase(diffs, options) {
+	entitiesToDatabase(diffs, options): Promise<IActionData[]> {
 		options = Object.assign({}, options || {})
 		options.history = false
 		options.apply = false
@@ -510,7 +510,7 @@ export class Synchronizer {
 		return this.app.history.revert(actions, options)
 	}
 
-	databaseToEntities(diffs, options) {
+	databaseToEntities(diffs, options): Promise<IActionData[]> {
 		options = Object.assign({}, options || {})
 		options.history = false
 		options.db = false

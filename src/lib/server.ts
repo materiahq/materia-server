@@ -153,7 +153,7 @@ export class Server {
 				let config = this.app.config.get<IWebConfig>()
 				let port = this.app.options.port || config.port
 				if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT && process.env.PORT) {
-					port = process.env.PORT
+					port = +process.env.PORT
 				}
 
 				let errListener = (e) => {

@@ -4,7 +4,7 @@
         "rootDir": "./src/",
         "outDir": "./dist/",
         "sourceMap": true,
-        "allowJs": true,
+        "declaration": true,
         "module": "commonjs",
         "moduleResolution": "node",
         "target": "ES6"

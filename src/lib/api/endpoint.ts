@@ -39,7 +39,7 @@ export interface IParam {
 	}
 */
 export interface IEndpoint {
-	name: string,
+	name?: string,
 	method: string,
 	url: string,
 	controller?: string,
@@ -55,7 +55,7 @@ export interface IEndpoint {
 	fromAddon?: IAddon
 }
 
-class Controller {
+export class Controller {
 	private app: App
 	ctrlClass: any
 	ctrlStr: string
@@ -201,7 +201,7 @@ export class Endpoint {
 		}
 	}
 
-	getAllData(onlyRequired) {
+	getAllData(onlyRequired?: boolean) {
 		let res = []
 		this.data.forEach((data) => {
 			if (data.required && onlyRequired || ! onlyRequired) {
@@ -212,7 +212,7 @@ export class Endpoint {
 	}
 
 
-	getAllParams(onlyRequired) {
+	getAllParams(onlyRequired?: boolean) {
 		let res = []
 		this.params.forEach((param) => {
 			if (param.required && onlyRequired || ! onlyRequired) {

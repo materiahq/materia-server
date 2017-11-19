@@ -5,7 +5,7 @@ import { App } from '../app'
 import { MateriaError } from '../error'
 import { MateriaAddon } from "./helpers";
 export interface IAddonInfo {
-	package?: string
+	package: string
 	name: string
 	description: string
 	logo: string
@@ -69,8 +69,12 @@ export class Addon {
 			}
 			return addon_app.migration.check().then(() => {
 				try {
+					this.app.logger.log('before require')
 					addonPackage = require(path.join(this.package, 'package.json'))
+					this.app.logger.log(this.package, JSON.stringify(addonPackage, null, 2))
+					console.log(this.package)
 					AddonClass = require(this.package).default
+					console.log(AddonClass)
 				} catch (e) {
 					throw new MateriaError('Impossible to require addon ' + this.package, {
 						originalError: e
@@ -83,7 +87,7 @@ export class Addon {
 						originalError: e
 					})
 				}
-
+				console.log('instance', addonInstance);
 				this.packageJsonFile = addonPackage
 				this.package = addonPackage.name,
 				this.name = addonInstance.displayName || addonPackage.name,
