@@ -77,10 +77,10 @@ export class Addon {
 					)
 				);
 			}
-			return addon_app.migration.check().then(async () => {
+			return addon_app.migration.check().then(() => {
 				let mod;
 				try {
-					console.group(`Loading addon ${this.package}`);
+					console.group(`(Server) Loading addon ${this.package}`);
 					addonPackage = require(path.join(
 						this.package,
 						"package.json"
@@ -88,7 +88,7 @@ export class Addon {
 					console.log("package", addonPackage);
 					const pkg = this.package;
 					console.log("pkg", this.package, pkg);
-					mod = await import(pkg);
+					mod = require(pkg);
 					console.log("module", mod);
 				} catch (e) {
 					console.log(e);
