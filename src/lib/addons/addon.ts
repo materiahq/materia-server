@@ -88,7 +88,7 @@ export class Addon {
 					console.log("package", addonPackage);
 					const pkg = this.package;
 					console.log("pkg", this.package, pkg);
-					mod = require(pkg);
+					AddonClass = require(pkg).default;
 					console.log("module", mod);
 				} catch (e) {
 					console.log(e);
@@ -100,7 +100,6 @@ export class Addon {
 					);
 				}
 				try {
-					AddonClass = mod[addonPackage.materia.addon];
 					console.log("class", AddonClass);
 					this.obj = new AddonClass(
 						this.app,
@@ -123,15 +122,12 @@ export class Addon {
 				console.groupEnd();
 				this.packageJsonFile = addonPackage;
 				this.package = addonPackage.name;
-				this.name = AddonClass.displayName || addonPackage.name;
+				this.name = addonPackage.materia.displayName || addonPackage.name;
 				this.description = addonPackage.description;
-				this.logo = AddonClass.logo;
-				this.author =
-					(addonPackage.materia && addonPackage.materia.author) ||
-					addonPackage.author;
+				this.logo = addonPackage.materia.logo; // TODO: default addon logo
+				this.author = addonPackage.materia.author || addonPackage.author;
 				this.version = addonPackage.version;
 				this.color =
-					addonPackage.materia &&
 					addonPackage.materia.icon &&
 					addonPackage.materia.icon.color;
 				this.tags =
