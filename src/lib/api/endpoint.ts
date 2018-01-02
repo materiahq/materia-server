@@ -299,6 +299,7 @@ export class Endpoint {
 		}
 		else {
 			this.app.logger.log(` └── Execute: (Query) ${this.query.entity.name}.${this.query.id}\n`)
+			this.query = this.app.entities.get(this.entity.name).getQuery(this.query.id) // Get latest query version (Fix issue where query change is not immediately reflected in endpoint result)
 			return this.query.run(params.resolvedParams).then(data => {
 				res.status(200).json(data)
 			})
