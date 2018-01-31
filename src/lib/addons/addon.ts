@@ -87,8 +87,8 @@ export class Addon {
 					));
 					console.log("package", addonPackage);
 					const pkg = this.package;
-					console.log("pkg", this.package, pkg, path.join(pkg, 'index'));
-					mod = require(path.join(pkg, 'index'));
+					console.log("pkg", this.package, pkg, path.join(pkg, 'server'));
+					mod = require(path.join(pkg, 'server'));
 					console.log("module", mod);
 				} catch (e) {
 					console.log(e);
