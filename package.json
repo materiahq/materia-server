@@ -1,11 +1,11 @@
 {
-  "name": "materia-server",
+  "name": "@materia/server",
   "version": "0.8.0",
   "description": "Build scalable and secure SAAS applications effortlessly - https://getmateria.com",
-  "main": "./dist/lib/app.js",
-  "typings": "./dist/lib/app.d.ts",
+  "main": "./lib/index.js",
+  "typings": "./lib/app.d.ts",
   "bin": {
-    "materia": "./dist/cli/index.js"
+    "materia": "./cli/index.js"
   },
   "dependencies": {
     "body-parser": "^1.17.2",
@@ -49,6 +49,7 @@
     "chai-as-promised": "^6.0.0",
     "chai-http": "^3.0.0",
     "mocha": "^3.2.0",
+    "ncp": "^2.0.0",
     "request": "^2.79.0",
     "ts-node": "^3.3.0",
     "typescript": "^2.5.2"
@@ -59,7 +60,7 @@
     "test-postgres": "DIALECT=postgres npm test",
     "test-sqlite": "npm test",
     "test-all": "npm run test-sqlite -s && npm run test-postgres -s",
-    "build": "tsc -p .",
+    "build": "tsc -p . && ncp package.json dist/package.json",
     "watch": "tsc -p . -w"
   },
   "repository": {
