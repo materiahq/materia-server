@@ -25,7 +25,6 @@ export * from "./entities/queries/custom";
 export * from "./error";
 export * from "./history";
 export * from "./logger";
-export * from "./scaffolder";
 // export * from "./migrations";
 export * from "./server";
 export * from "./synchronizer";
