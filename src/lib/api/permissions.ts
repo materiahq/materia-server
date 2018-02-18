@@ -40,10 +40,11 @@ export class Permissions {
 				chain = (req, res, next) => {
 					let _next = (e) => {
 						if (e) {
-							return res.status(500).json(JSON.stringify(e.message));
+							return res.status(401).json(JSON.stringify(e.message));
 						}
 						nextchain(req, res, next)
 					}
+					req.app = this.app;
 					permission.middleware(req, res, _next)
 				}
 				return true
