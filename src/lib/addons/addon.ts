@@ -34,7 +34,6 @@ export class Addon {
 	config: any;
 
 	obj: MateriaAddon;
-	ngModule: any;
 
 	name: string;
 	description: string;
@@ -100,7 +99,12 @@ export class Addon {
 					);
 				}
 				try {
-					AddonClass = mod[addonPackage.materia.addon];
+					console.log()
+					if (mod.default) {
+						AddonClass = mod.default;
+					} else {
+						AddonClass = addonPackage.materia.addon;
+					}
 					console.log("class", AddonClass);
 					this.obj = new AddonClass(
 						this.app,
@@ -115,11 +119,7 @@ export class Addon {
 						}
 					);
 				}
-				if (addonPackage.materia.module) {
-					this.ngModule = mod[addonPackage.materia.module];
-				}
 				console.log("instance", this.obj);
-				console.log("ngModule", this.ngModule);
 				console.groupEnd();
 				this.packageJsonFile = addonPackage;
 				this.package = addonPackage.name;

@@ -14,7 +14,6 @@ export interface IAddon {
 	path: string
 	config: any
 	obj: any,
-	ngModule: any,
 	description: string
 	logo: string
 	author: string
