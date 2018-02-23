@@ -121,6 +121,8 @@ export class Client {
 	set(src, build, scripts, autoWatch) {
 		this.config.src = src
 		this.config.build = build
+		// UPDATE STATIC FOLDER AT RUNTIME
+		this.app.server.dynamicStatic.setPath(path.join(this.app.path, build));
 		if ( ! this.config.scripts ) {
 			this.config.scripts = {}
 		}

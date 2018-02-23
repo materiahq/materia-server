@@ -603,6 +603,7 @@ manual_scaling:
 </body>
 </html>`)
 		}
+		this.server.dynamicStatic.setPath(path.join(this.path , "web"));
 		if (opts && opts.afterSave) {
 			opts.afterSave()
 		}

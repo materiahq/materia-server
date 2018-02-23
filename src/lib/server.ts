@@ -14,7 +14,7 @@ import * as bodyParser from 'body-parser'
 import * as errorHandler from 'errorhandler'
 import * as compression from 'compression'
 
-import {Session} from './session'
+import { Session } from './session'
 
 var enableDestroy = require('server-destroy')
 
@@ -24,6 +24,7 @@ var enableDestroy = require('server-destroy')
  * Represent the server
  */
 export class Server {
+	dynamicStatic: any;
 	started: boolean = false
 
 	expressApp: express.Application
@@ -45,20 +46,23 @@ export class Server {
 		this.expressApp.use(compression())
 
 		let webDir = this.app.client.config.build
-		if ( ! this.app.client.config.build && this.app.client.config.src) {
+		if (!this.app.client.config.build && this.app.client.config.src) {
 			webDir = this.app.client.config.src
 		}
 		else {
 			webDir = 'web'
 		}
+		// INITIALIZE DYNAMIC EXPRESS STATIC OBJ
+		this.createDynamicStatic(path.join(this.app.path, this.app.client.config.build));
 
-		this.expressApp.use(express.static(path.join(this.app.path, this.app.client.config.build)));
+		this.expressApp.use(this.dynamicStatic);
+
 		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
 			this.expressApp.use(morgan('dev'))
 		}
 
 		//TODO: Option to enable / disable CORS API call
-		this.expressApp.use(function(req, res, next) {
+		this.expressApp.use(function (req, res, next) {
 			res.header("Access-Control-Allow-Origin", "*");
 			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 			next();
@@ -70,14 +74,27 @@ export class Server {
 		enableDestroy(this.server)
 	}
 
+	createDynamicStatic(path) {
+		let staticFolder = express.static(path)
+		this.dynamicStatic = function (req, res, next) {
+			return staticFolder(req, res, next)
+		}
+
+		// Method to change static path at runtime
+		this.dynamicStatic.setPath = (newPath) => {
+			staticFolder = express.static(newPath);
+		}
+		return this.dynamicStatic;
+	}
+
 	/**
 	Get the base url for endpoints
 	@returns {string}
 	*/
-	getBaseUrl(path?:string, mode?:AppMode, options?:IConfigOptions) {
+	getBaseUrl(path?: string, mode?: AppMode, options?: IConfigOptions) {
 		path = path || '/api'
 		let conf = this.app.config.get<IWebConfig>(mode, ConfigType.WEB, options)
-		if ( ! conf) {
+		if (!conf) {
 			return ""
 		}
 		let url = `${conf.ssl ? 'https' : 'http'}://${conf.host}`;
@@ -92,7 +109,7 @@ export class Server {
 	Return true if the server is started
 	@returns {boolean}
 	*/
-	isStarted():boolean { return this.started }
+	isStarted(): boolean { return this.started }
 
 	/**
 	Return true if the server has a static page
@@ -100,10 +117,9 @@ export class Server {
 	*/
 	hasStatic() {
 		let p = path.join(this.app.path, 'web')
-		if ( this.app.client.config && this.app.client.config.build ) {
+		if (this.app.client.config && this.app.client.config.build) {
 			p = path.join(this.app.path, this.app.client.config.build)
 		}
-
 		return fs.existsSync(path.join(p, 'index.html'))
 	}
 
@@ -111,7 +127,7 @@ export class Server {
 	Starts the server and listen on its endpoints.
 	@returns {Promise<void>}
 	*/
-	start():Promise<void> {
+	start(): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 			this.stop().then(() => {
 				this.app.api.registerEndpoints()
@@ -195,8 +211,8 @@ export class Server {
 	/**
 	Stops the server.
 	*/
-	stop(options?):Promise<void> {
-		if ( ! this.server || ! this.started) {
+	stop(options?): Promise<void> {
+		if (!this.server || !this.started) {
 			return Promise.resolve()
 		}
 
