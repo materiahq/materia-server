@@ -3,7 +3,7 @@
   "version": "0.8.0",
   "description": "Build scalable and secure SAAS applications effortlessly - https://getmateria.com",
   "main": "./lib/index.js",
-  "typings": "./lib/app.d.ts",
+  "typings": "./lib/index.d.ts",
   "bin": {
     "materia": "./cli/index.js"
   },
