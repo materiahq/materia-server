@@ -1,6 +1,6 @@
 'use strict'
 
-import { App } from '../../lib/app'
+const { App } = require('../../lib/app');
 
 let msgs = {
 	install: {

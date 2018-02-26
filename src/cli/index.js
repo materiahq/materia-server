@@ -3,7 +3,6 @@
 'use strict'
 
 let argv = require('minimist')(process.argv.slice(2))
-let colors = require('colors')
 
 let help = require('./cmd/help')
 let cmds = [
