@@ -1,6 +1,8 @@
 import * as path from 'path'
 import * as fs from 'fs'
 
+import chalk from 'chalk'
+
 import { App, AppMode } from '../app'
 import { MateriaError } from '../error'
 
@@ -268,7 +270,7 @@ export class Endpoint {
 	}
 
 	handle(req, res, next):Promise<any> {
-		this.app.logger.log(`(Endpoint) Handle ${req.method.toUpperCase()} ${req.url}`)
+		this.app.logger.log(`${chalk.bold('(Endpoint)')} Handle ${this.app.api.getMethodColor(req.method.toUpperCase())} ${chalk.bold(req.url)}`)
 
 		let params = this.handleParams(req, this.params)
 
@@ -283,7 +285,7 @@ export class Endpoint {
 			let obj
 			try {
 				let instance = this._getController().instance()
-				this.app.logger.log(` └── Execute: (Controller) ${instance.constructor.name}.${this.action}\n`)
+				this.app.logger.log(` └── Execute: (Controller) ${chalk.bold(instance.constructor.name)}.${chalk.bold(this.action)}\n`)
 				obj = instance[this.action](req, res, next)
 			} catch (e) {
 				return Promise.reject(e)
@@ -298,7 +300,7 @@ export class Endpoint {
 			return Promise.resolve()
 		}
 		else {
-			this.app.logger.log(` └── Execute: (Query) ${this.query.entity.name}.${this.query.id}\n`)
+			this.app.logger.log(` └── Execute: (Query) ${chalk.bold(this.query.entity.name)}.${chalk.bold(this.query.id)}\n`)
 			this.query = this.app.entities.get(this.entity.name).getQuery(this.query.id) // Get latest query version (Fix issue where query change is not immediately reflected in endpoint result)
 			return this.query.run(params.resolvedParams).then(data => {
 				res.status(200).json(data)
