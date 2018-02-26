@@ -169,7 +169,7 @@ export class Api {
 		return Promise.resolve()
 	}
 
-	private getMethodColor(method) {
+	getMethodColor(method) {
 		if (method == "GET") {
 			return chalk.green.bold("GET");
 		} else if (method == "POST") {
