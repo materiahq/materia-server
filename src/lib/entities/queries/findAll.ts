@@ -1,5 +1,6 @@
 import { Query, QueryParamResolver } from '../query'
 import { Conditions } from './utils/conditions'
+import chalk from 'chalk'
 
 export interface IFindAllOpts {
 	select?: Array<any>
@@ -147,7 +148,7 @@ export class FindAllQuery extends Query {
 
 	run(params, options):Promise<any> {
 		if ( ! options || ! options.silent ) {
-			this.entity.app.logger.log(`(Query) FindAll - Run ${this.entity.name}.${this.id}`)
+			this.entity.app.logger.log(`${chalk.bold('(Query)')} FindAll - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 			this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}`)
 			this.entity.app.logger.log(` └── Options: ${JSON.stringify(options)}`)
 		}

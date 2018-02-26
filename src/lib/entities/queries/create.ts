@@ -1,4 +1,5 @@
 import { Query, QueryParamResolver } from '../query'
+import chalk from "chalk";
 
 export class CreateQuery extends Query {
 	type: string
@@ -93,7 +94,7 @@ export class CreateQuery extends Query {
 	}
 
 	run(params, options):Promise<any> {
-		this.entity.app.logger.log(`(Query) Create - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(`${chalk.bold('(Query)')} Create - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
 
 		let raw = options && options.raw

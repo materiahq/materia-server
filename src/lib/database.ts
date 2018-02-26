@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import chalk from 'chalk'
 
 import * as Sequelize from 'sequelize'
 
@@ -27,6 +28,11 @@ export interface ISequelizeConfig {
 	dialectOptions?: any
 }
 
+const dialect = {
+	postgres: "PostgreSQL",
+	mysql: "MySQL",
+	sqlite: "SQLite"
+}
 
 /**
  * @class Database
@@ -73,7 +79,7 @@ export class Database {
 
 		if ( ! settings) {
 			this.disabled = true
-			this.app.logger.log(` └── Database: No database configured!`)
+			this.app.logger.log(` └── Database: ${chalk.yellow.bold('No database configured!')}`)
 			return false
 		}
 
@@ -119,13 +125,18 @@ export class Database {
 				}
 			}
 			catch (e) {
-				this.app.logger.log(` └── Warning: Impossible to load GCloud database settings - ${e}`)
+				this.app.logger.log(chalk.yellow(` └── Warning: Impossible to load GCloud database settings - ${chalk.bold(e)}`))
 			}
 		}
 
-		this.app.logger.log(` └─┬ Database: OK`)
-		this.app.logger.log(` │ └── Dialect: ${this.type}`)
-		this.app.logger.log(` │ └── Options: ${JSON.stringify(this.opts)}`)
+		this.app.logger.log(` └─┬ Database: ${chalk.green.bold('OK')}`)
+		this.app.logger.log(` │ └── Dialect: ${chalk.bold(dialect[this.type])}`)
+		if (this.type == 'sqlite') {
+			this.app.logger.log(` │ └── File: ${chalk.bold(this.storage)}`)
+		} else {
+			this.app.logger.log(` │ └── Host: ${chalk.bold(this.host)}`)
+			this.app.logger.log(` │ └── Port: ${chalk.bold(this.port.toString())}`)
+		}
 
 		return true
 	}
@@ -361,13 +372,13 @@ export class Database {
 		}
 		this.interface.setDialect(this.type)
 		return this.interface.authenticate().then(() => {
-			this.app.logger.log(` └── Database: Authenticated`)
+			this.app.logger.log(` └── Database: ${chalk.green.bold('Authenticated')}`)
 
 			this.started = true
 		}).catch((e) => {
-			this.app.logger.error(` └── Database: Connection failed`)
-			this.app.logger.error('    (Warning) Impossible to connect the database:', e && e.message)
-			this.app.logger.error('    The database has been disabled')
+			this.app.logger.error(` └── Database: ${chalk.red.bold('Connection failed')}`)
+			this.app.logger.error(chalk.red('    (Warning) Impossible to connect the database: ') + chalk.red.bold(e && e.message))
+			this.app.logger.error(chalk.red('    The database has been disabled'))
 			this.disabled = true
 			return Promise.resolve(e)
 		})

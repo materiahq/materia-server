@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import * as fse from 'fs-extra'
+import chalk from "chalk";
 
 import { App } from './app'
 import { MateriaError } from './error'
@@ -152,6 +153,7 @@ export class Addons {
 	@returns Promise<void>
 	*/
 	loadAddons():Promise<void> {
+		const elapsedTimeAddons = new Date().getTime()
 		return this.loadConfig().then(config => {
 			return this.searchInstalledAddons()
 		}).then(addonsName => {
@@ -167,10 +169,10 @@ export class Addons {
 			return Promise.all(promises)
 		}).then(addons => {
 			let p = Promise.resolve()
-			this.app.logger.log(` └─${this.addons.length == 0 ? '─' : '┬'} Addons: ${this.addons.length}`)
+			this.app.logger.log(` └─${this.addons.length == 0 ? '─' : '┬'} Addons: ${chalk.bold(this.addons.length.toString())}`)
 			this.addons.forEach(addon => {
 				p = p.then(() => {
-					this.app.logger.log(` │ └── ${addon.package}`)
+					this.app.logger.log(` │ └── ${chalk.bold(addon.package)}`)
 					if (typeof addon.obj.load == 'function') {
 						let obj = addon.obj.load()
 						if (this._isPromise(obj)) {
@@ -181,7 +183,7 @@ export class Addons {
 				})
 			})
 
-			return p
+			return p.then(() => this.app.logger.log(` │ └── ${chalk.green.bold("OK")} - Completed in ${chalk.bold(((new Date().getTime()) - elapsedTimeAddons).toString() + 'ms')}`))
 		})
 	}
 

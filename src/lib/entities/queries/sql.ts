@@ -1,5 +1,6 @@
 import { Query, QueryParamResolver } from '../query'
 import { MateriaError } from '../../error'
+import chalk from 'chalk'
 
 export class SQLQuery extends Query {
 	type: string
@@ -70,7 +71,7 @@ export class SQLQuery extends Query {
 	}
 
 	run(params):Promise<any> {
-		this.entity.app.logger.log(`(Query) SQL - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(`${chalk.bold('(Query)')} SQL - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 
 		let resolvedParams
 		try {

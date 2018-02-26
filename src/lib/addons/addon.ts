@@ -79,18 +79,18 @@ export class Addon {
 			return addon_app.migration.check().then(() => {
 				let mod;
 				try {
-					console.group(`(Server) Loading addon ${this.package}`);
+					// console.group(`(Server) Loading addon ${this.package}`);
 					addonPackage = require(path.join(
 						this.package,
 						"package.json"
 					));
-					console.log("package", addonPackage);
+					// console.log("package", addonPackage);
 					const pkg = this.package;
-					console.log("pkg", this.package, pkg, path.join(pkg, 'server'));
+					// console.log("pkg", this.package, pkg, path.join(pkg, 'server'));
 					mod = require(path.join(pkg, 'server'));
-					console.log("module", mod);
+					// console.log("module", mod);
 				} catch (e) {
-					console.log(e);
+					// console.log(e);
 					throw new MateriaError(
 						"Impossible to require addon " + this.package,
 						{
@@ -99,13 +99,13 @@ export class Addon {
 					);
 				}
 				try {
-					console.log()
+					// console.log()
 					if (mod.default) {
 						AddonClass = mod.default;
 					} else {
 						AddonClass = addonPackage.materia.addon;
 					}
-					console.log("class", AddonClass);
+					// console.log("class", AddonClass);
 					this.obj = new AddonClass(
 						this.app,
 						this.app.addons.addonsConfig[this.package],
@@ -119,8 +119,8 @@ export class Addon {
 						}
 					);
 				}
-				console.log("instance", this.obj);
-				console.groupEnd();
+				// console.log("instance", this.obj);
+				// console.groupEnd();
 				this.packageJsonFile = addonPackage;
 				this.package = addonPackage.name;
 				this.name = AddonClass.displayName || addonPackage.name;

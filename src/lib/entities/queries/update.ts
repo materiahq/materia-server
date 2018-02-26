@@ -1,6 +1,7 @@
 import { Query, QueryParamResolver } from '../query'
 import { Conditions, IConditions } from './utils/conditions'
 import { DBEntity } from '../db-entity'
+import chalk from 'chalk'
 
 export interface IUpdateQueryOpts {
 	values: any,
@@ -93,7 +94,7 @@ export class UpdateQuery extends Query {
 	}
 
 	run(params):Promise<any> {
-		this.entity.app.logger.log(`(Query) Update - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(`${chalk.bold('(Query)')} Update - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
 		let updates, where
 		try {

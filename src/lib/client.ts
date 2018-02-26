@@ -2,6 +2,7 @@ import { App } from './app'
 
 import * as fs from 'fs'
 import * as path from 'path'
+import chalk from 'chalk'
 
 export interface IClientConfig {
 	src?:string
@@ -32,6 +33,7 @@ export class Client {
 	}
 
 	load() {
+		this.app.logger.log(` └─┬ Client `)
 		if (fs.existsSync(path.join(this.app.path, '.materia', 'client.json'))) {
 			this.config = JSON.parse(fs.readFileSync(path.join(this.app.path, '.materia', 'client.json'), 'utf-8'))
 		}
@@ -43,9 +45,9 @@ export class Client {
 				prod: packageJson.scripts.prod
 			}
 		}
-
 		if ( ! this.config ) {
 			this.config = { buildEnabled: false }
+			this.app.logger.log(` │ └── ${chalk.bold('No build scripts detected')}`)
 		}
 
 		/*if ( ! this.config.build ) {
@@ -63,12 +65,13 @@ export class Client {
 		}
 		else {
 			this.config.buildEnabled = true
+			this.app.logger.log(` │ └── Build scripts detected in ${chalk.bold('package.json')}`)
 		}
 
 		if ( ! this.config.autoWatch ) {
 			this.config.autoWatch = false
 		}
-
+		this.app.logger.log(` │ └── ${chalk.green.bold('OK')}`)
 		return Promise.resolve()
 	}
 

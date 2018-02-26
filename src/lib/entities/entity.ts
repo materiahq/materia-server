@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as uuid from 'uuid/v4'
+import chalk from 'chalk'
 
 import { App, IApplyOptions } from '../app'
 import { MateriaError } from '../error'
@@ -183,7 +184,7 @@ export class Entity {
 				]
 				if (reservedQueries.indexOf(query.id) == -1) {
 					try {
-						this.app.logger.log(` │ │ └── ${this.name}.${query.id}`)
+						this.app.logger.log(` │ │ └── ${chalk.bold(this.name)}.${chalk.bold(query.id)}`)
 						this.addQuery(query, {history:false, save:false})
 
 					} catch(e) {

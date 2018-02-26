@@ -13,7 +13,6 @@ module.exports = {
 			cwd = args[1]
 		}
 		options['runtimes'] = options['runtimes'] || 'core'
-		console.log('Starting ' + 'materia'.yellow + ' in ' + cwd.green)
 		let app = new App(cwd, options)
 		app.load().catch((e) => {
 			console.error('Could not load app:', e && e.message)

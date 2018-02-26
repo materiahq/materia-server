@@ -1,5 +1,6 @@
 import { Query } from '../query'
 import { Conditions } from './utils/conditions'
+import chalk from 'chalk'
 
 export class DeleteQuery extends Query {
 	type: string
@@ -22,7 +23,7 @@ export class DeleteQuery extends Query {
 	}
 
 	run(params):Promise<any> {
-		this.entity.app.logger.log(`(Query) Delete - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(`${chalk.bold('(Query)')} Delete - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
 
 		let sequelizeCond

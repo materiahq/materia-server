@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import chalk from 'chalk'
 
 import { App } from '../../app'
 import { MateriaError } from '../../error'
@@ -87,7 +88,7 @@ export class CustomQuery extends Query {
 	discoverParams() {}
 
 	run(params):Promise<any> {
-		this.entity.app.logger.log(`(Query) Javascript - Run ${this.entity.name}.${this.id}`)
+		this.entity.app.logger.log(`${chalk.bold('(Query)')} Javascript - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
 
 		let instance = this._getModel().instance(this.entity)

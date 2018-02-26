@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 
 import * as fse from 'fs-extra'
+import chalk from 'chalk'
 
 import * as Sequelize from 'sequelize'
 
@@ -143,7 +144,7 @@ export class Entities {
 
 
 		for (let file of this.entitiesJson[basePath]) {
-			this.app.logger.log(` │ │ └── ${file.name}`)
+			this.app.logger.log(` │ │ └── ${chalk.bold(file.name)}`)
 			promises.push(this.add(file, opts));
 		}
 
@@ -358,7 +359,7 @@ export class Entities {
 		}
 
 		for (let diff of diffs) {
-			this.app.logger.log(`Detected entity rename: ${diff.redo.table} -> ${diff.redo.value}`)
+			this.app.logger.log(chalk.bold(`Detected entity rename: ${chalk.yellow(diff.redo.table)} -> ${chalk.yellow(diff.redo.value)}`))
 		}
 
 		return this.app.history.apply(diffs, {

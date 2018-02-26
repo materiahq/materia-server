@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import * as express from 'express'
-
+import chalk from 'chalk'
 import { Endpoint, IEndpoint } from './api/endpoint'
 import { Permissions } from './api/permissions'
 
@@ -153,7 +153,7 @@ export class Api {
 
 			endpoints.forEach((endpoint) => {
 				try {
-					this.app.logger.log(` │ │ └── ${endpoint.method.toUpperCase()} /api${endpoint.url}`)
+					this.app.logger.log(` │ │ └── ${this.getMethodColor(endpoint.method.toUpperCase())} ${chalk.bold('/api' + endpoint.url)}`)
 					this.add(endpoint, opts)
 				} catch (e) {
 					this.app.logger.warn(' │ │     Skipped endpoint ' + endpoint.method + ' ' + endpoint.url)
@@ -167,6 +167,18 @@ export class Api {
 				return Promise.reject(e)
 		}
 		return Promise.resolve()
+	}
+
+	private getMethodColor(method) {
+		if (method == "GET") {
+			return chalk.green.bold("GET");
+		} else if (method == "POST") {
+			return chalk.blue.bold("POST");
+		} else if (method == "PUT") {
+			return chalk.yellow.bold("PUT");
+		} else if (method == "DELETE") {
+			return chalk.red.bold("DELETE");
+		} else { return chalk.bold("method"); }
 	}
 
 	updateEndpoints() {

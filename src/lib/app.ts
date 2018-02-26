@@ -1,5 +1,5 @@
 import * as events from 'events'
-
+import chalk from 'chalk'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -237,20 +237,18 @@ export class App extends events.EventEmitter {
 		let elapsedTimeGlobal = new Date().getTime()
 
 		return this.loadMateria().then(() => {
-			this.logger.log(`(Load) Application: ${this.name || this.package }`)
-			this.logger.log(` └── Path: ${this.path}`)
-			this.logger.log(` └── Mode: ${this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' }`)
+			this.logger.log(`${chalk.bold('(Load)')} Application: ${chalk.yellow.bold(this.name || this.package)}`)
+			this.logger.log(` └── Path: ${chalk.bold(this.path)}`)
+			this.logger.log(` └── Mode: ${chalk.bold(this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' )}`)
 
 			this.database.load()
-			this.logger.log(` └── Client`)
 			return this.client.load()
 		})
 		.then(() => this.server.load())
 		.then(() => this.database.start())
 		.then(() => this.entities.clear())
 		.then(() => this.server.session.initialize())
-		.then(() => this.logger.log(' └── Sessions: OK'))
-		.then(() => this.logger.log(' └── Loading files'))
+		.then(() => this.logger.log(` └── Sessions: ${chalk.green.bold('OK')}`))
 		.then(() => this.addons.loadAddons())
 		.then(() => this.addons.loadFiles())
 		.then(() => this.entities.loadFiles())
@@ -259,21 +257,21 @@ export class App extends events.EventEmitter {
 		.then(() => this.addons.loadEntities())
 		.then(() => this.entities.loadEntities())
 		.then(() => this.entities.loadRelations())
-		.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeEntities} ms`))
+		.then(() => this.logger.log(` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeEntities).toString() + 'ms')}`))
 		.then(() => this.entities.resetModels())
 		.then(() => this.logger.log(' └─┬ Queries'))
 		.then(() => elapsedTimeQueries = new Date().getTime())
 		.then(() => this.addons.loadQueries())
 		.then(() => this.entities.loadQueries())
-		.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeQueries} ms`))
+		.then(() => this.logger.log(` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeQueries).toString() + 'ms')}`))
 		.then(() => this.api.resetControllers())
 		.then(() => this.logger.log(` └─┬ API`))
 		.then(() => elapsedTimeAPI = new Date().getTime())
 		.then(() => this.addons.loadAPI())
 		.then(() => this.api.load())
-		.then(() => this.logger.log(` │ └── Completed in ${(new Date().getTime()) - elapsedTimeAPI} ms`))
+		.then(() => this.logger.log(` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeAPI).toString() + 'ms')}`))
 		.then(() => this.history.load())
-		.then(() => this.logger.log(` └── Successfully loaded in ${(new Date().getTime()) - elapsedTimeGlobal} ms\n`))
+		.then(() => this.logger.log(` └── ${chalk.green.bold("Successfully loaded in " + ((new Date().getTime()) - elapsedTimeGlobal).toString() + 'ms')}\n`))
 		.then(() => warning)
 	}
 
@@ -427,17 +425,17 @@ manual_scaling:
 	*/
 	start() {
 		let warning
-		this.logger.log(`(Start) Application ${this.name}`)
+		this.logger.log(`${chalk.bold('(Start)')} Application ${chalk.yellow.bold(this.name)}`)
 		let p = this.database.started ? Promise.resolve() : this.database.start()
 		return p.catch((e) => {
 			e.errorType = 'database'
 			throw e
 		}).then((e) => {
 			if (this.database.disabled) {
-				this.logger.log(` └── Database: Disabled`)
+				this.logger.log(` └── Database: ${chalk.red.bold('Disabled')}`)
 			}
 			else {
-				this.logger.log(` └── Database: OK`)
+				this.logger.log(` └── Database: ${chalk.green.bold('OK')}`)
 			}
 			warning = e
 			return this.entities.start().catch((e) => {
@@ -446,26 +444,26 @@ manual_scaling:
 			})
 		}).then(() => {
 			if ( ! this.database.disabled ) {
-				this.logger.log(` └── Entities: OK`)
+				this.logger.log(` └── Entities: ${chalk.green.bold('OK')}`)
 			}
 			return this.addons.start().catch((e) => {
 				e.errorType = 'addons'
 				throw e
 			})
 		}).then(() => {
-			this.logger.log(` └── Addons: OK`)
+			this.logger.log(` └── Addons: ${chalk.bold.green('OK')}`)
 			if (this.mode == AppMode.PRODUCTION && ! this.live) {
 				return this.synchronizer.diff().then((diffs) => {
 					if (diffs && diffs.length == 0) {
-						this.logger.log(' └── Synchronize: DB already up to date')
+						this.logger.log(` └── Synchronize: ${chalk.bold('DB already up to date')}`)
 						return
 					}
-					this.logger.log(' └─┬ Synchronize: The database structure differs from entities.')
+					this.logger.log(` └─┬ Synchronize: ${chalk.yellow.bold('The database structure differs from entities.')}`)
 					return this.synchronizer.entitiesToDatabase(diffs, {}).then((actions) => {
-						this.logger.log(` │ └── Database: Updated successfully. (Applied ${actions.length} actions)`)
+						this.logger.log(` │ └── Database: ${chalk.green.bold('Updated successfully')}. (Applied ${chalk.bold(actions.length.toString())} actions)`)
 					})
 				}).catch((e) => {
-					this.logger.log(` │ └── Database: Fail - An action could not be applied: ${e}`)
+					this.logger.log(` │ └── Database: ${chalk.red.bold('Fail - An action could not be applied: ' + e)}`)
 					e.errorType = 'sync'
 					throw e
 				})

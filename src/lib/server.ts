@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import chalk from 'chalk'
 
 import { App, AppMode } from './app'
 import { ConfigType, IWebConfig, IConfigOptions } from './config'
@@ -187,12 +188,12 @@ export class Server {
 
 				let args = [port, config.host, () => {
 					this.started = true
-					this.app.logger.log(' └─┬ Server: Started')
+					this.app.logger.log(` └─┬ Server: ${chalk.green.bold('Started')}`)
 					if (config.host == '0.0.0.0' || process.env.NO_HOST) {
-						this.app.logger.log(`   └─ Listening on http://localhost:${port}`)
+						this.app.logger.log(`   └─ Listening on ${chalk.blue.bold.underline('http://localhost:${port}')}`)
 					}
 					else {
-						this.app.logger.log(`   └─ Listening on http://${config.host}:${port}`)
+						this.app.logger.log(`   └─ Listening on ${chalk.blue.bold.underline('http://' + config.host + ':' + port)}`)
 					}
 					this.server.removeListener('error', errListener)
 					return resolve()
