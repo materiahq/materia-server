@@ -190,10 +190,10 @@ export class Server {
 					this.started = true
 					this.app.logger.log(` └─┬ Server: ${chalk.green.bold('Started')}`)
 					if (config.host == '0.0.0.0' || process.env.NO_HOST) {
-						this.app.logger.log(`   └─ Listening on ${chalk.blue.bold.underline('http://localhost:${port}')}`)
+						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline(`http://localhost:${port}`) + '\n')
 					}
 					else {
-						this.app.logger.log(`   └─ Listening on ${chalk.blue.bold.underline('http://' + config.host + ':' + port)}`)
+						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline('http://' + config.host + ':' + port) + '\n')
 					}
 					this.server.removeListener('error', errListener)
 					return resolve()
