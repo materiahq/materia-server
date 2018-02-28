@@ -74,7 +74,7 @@ export class Logger {
 		lines.some(line => {
 			const res = line.match(/   at ([a-zA-Z0-9._]+) \(([^:]+):([0-9]+):([0-9]+)\)/)
 			if (res) {
-				result = `    - ${chalk.bold(res[1])}: ${this.replacePath(res[2])} (line ${res[3]})`
+				result = `    - ${chalk.bold(res[1])}: ${this.replacePath(res[2])} - line ${res[3]}`
 				return true
 			}
 			return false;
