@@ -176,10 +176,10 @@ export class Server {
 				let errListener = (e) => {
 					let err
 					if (e.code == 'EADDRINUSE') {
-						err = new MateriaError(`Error while starting the server: The port ${port} is already used by another server.`)
+						err = new MateriaError(`Impossible to start the server - The port ${port} is already used by another server.`)
 					}
 					else {
-						err = new MateriaError('Error while starting the server: ' + e.message)
+						err = new MateriaError('Impossible to start the server - ' + e.message)
 					}
 					err.originalError = e
 					this.app.logger.error(err)

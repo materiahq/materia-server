@@ -132,7 +132,7 @@ export class Database {
 		this.app.logger.log(` └─┬ Database: ${chalk.green.bold('OK')}`)
 		this.app.logger.log(` │ └── Dialect: ${chalk.bold(dialect[this.type])}`)
 		if (this.type == 'sqlite') {
-			this.app.logger.log(` │ └── File: ${chalk.bold(this.storage)}`)
+			this.app.logger.log(` │ └── File: ${chalk.bold(this.storage || 'database.sqlite')}`)
 		} else {
 			this.app.logger.log(` │ └── Host: ${chalk.bold(this.host)}`)
 			this.app.logger.log(` │ └── Port: ${chalk.bold(this.port.toString())}`)
