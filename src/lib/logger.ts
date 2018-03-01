@@ -9,11 +9,9 @@ export class Logger {
 	constructor(private app: App) {
 		this.console = console
 
-		if (app.options.nocolors) {
-			chalk.enabled = false;
-		} else {
-			chalk.enabled = true;
-			chalk.level = 3;
+		chalk.enabled = ! app.options.nocolors;
+		if (app.options.level) {
+			chalk.level = app.options.level;
 		}
 	}
 

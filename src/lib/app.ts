@@ -30,6 +30,7 @@ export interface IAppOptions {
 	mode?: string,
 	runtimes?: string,
 	nocolors?: boolean,
+	level?: number,
 	silent?: boolean,
 	logSql?: boolean,
 	logRequests?: boolean,
