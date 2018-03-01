@@ -17,8 +17,6 @@ import * as compression from 'compression'
 
 import { Session } from './session'
 
-var enableDestroy = require('server-destroy')
-
 /**
  * @class Server
  * @classdesc
@@ -30,7 +28,8 @@ export class Server {
 
 	expressApp: express.Application
 	server: any
-
+	private sockets = new Map();
+	private stopped = false;
 	session: Session
 
 	disabled: boolean = false
@@ -53,9 +52,9 @@ export class Server {
 		else {
 			webDir = 'web'
 		}
-		// INITIALIZE DYNAMIC EXPRESS STATIC OBJ
-		this.createDynamicStatic(path.join(this.app.path, this.app.client.config.build));
 
+		// Initialize dynamic Express static Object.
+		this.createDynamicStatic(path.join(this.app.path, this.app.client.config.build));
 		this.expressApp.use(this.dynamicStatic);
 
 		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
@@ -71,8 +70,33 @@ export class Server {
 
 		this.expressApp.use(errorHandler())
 
-		this.server = require('http').createServer(this.expressApp)
-		enableDestroy(this.server)
+		this.server = require('http').createServer(this.expressApp);
+		this.sockets = new Map();
+		this.stopped = false;
+		this.listenConnections();
+	}
+
+	private onConnection(socket) {
+		this.sockets.set(socket, 0);
+		socket.once("close", () => this.sockets.delete(socket));
+	}
+
+	private onRequest(req, res) {
+		this.sockets.set(req.socket, this.sockets.get(req.socket) + 1);
+		res.once("finish", () => {
+			const pending = this.sockets.get(req.socket) - 1;
+			this.sockets.set(req.socket, pending);
+			if (this.stopped && pending === 0) {
+				req.socket.end();
+				req.socket.destroy();
+			}
+		});
+	}
+
+	private listenConnections() {
+		this.server.on("connection", socket => this.onConnection(socket));
+		this.server.on("secureConnection", socket => this.onConnection(socket));
+		this.server.on("request", (req, res) => this.onRequest(req, res));
 	}
 
 	createDynamicStatic(path) {
@@ -212,18 +236,24 @@ export class Server {
 	/**
 	Stops the server.
 	*/
-	stop(options?): Promise<void> {
+	stop(): Promise<void> {
 		if (!this.server || !this.started) {
 			return Promise.resolve()
 		}
 
 		return new Promise<void>((accept, reject) => {
-			let method = (options && options.force) ? 'destroy' : 'close'
-			this.server[method](() => {
-				this.app.logger.log('\n(Stop) Server closed\n')
-				this.started = false
+			this.server.close(() => {
+				this.app.logger.log('\n' + chalk.bold('(Stop)') + ' Server closed\n')
+				this.started = false;
 				accept()
 			})
+			this.stopped = true;
+			setImmediate(() => {
+				this.sockets.forEach((reqs, socket) => {
+					socket.end()
+					socket.destroy()
+				});
+			});
 		})
 	}
 }
