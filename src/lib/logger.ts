@@ -11,6 +11,9 @@ export class Logger {
 
 		if (app.options.nocolors) {
 			chalk.enabled = false;
+		} else {
+			chalk.enabled = true;
+			chalk.level = 3;
 		}
 	}
 
@@ -64,8 +67,8 @@ export class Logger {
 	}
 
 	private renderError(error: Error) {
-		return chalk.underline.red.bold("\nError: ") + chalk.underline.bold(error.message) + '\n' +
-			this.parseStacktrace(error.stack)
+		return chalk.underline.red.bold('\nError: ') + chalk.underline.bold(error.message) + '\n' +
+			this.parseStacktrace(error.stack) + '\n'
 	}
 
 	private parseStacktrace(stacktrace: string) {
