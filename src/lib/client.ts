@@ -39,6 +39,9 @@ export class Client {
 		}
 		const packageJson = JSON.parse(fs.readFileSync(path.join(this.app.path, 'package.json'), 'utf-8'))
 		if (packageJson && packageJson.scripts) {
+			if (!this.config.scripts) {
+				this.config.scripts = {}
+			}
 			if (! this.config.scripts.build) {
 				this.config.scripts.build = packageJson.scripts.build ? "build" : null;
 			}
