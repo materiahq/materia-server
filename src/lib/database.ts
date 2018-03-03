@@ -323,7 +323,7 @@ export class Database {
 			let d = domain.create()
 			try {
 				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
-				tmp.query(`CREATE DATABASE ` + name).spread((results, metadata)=> {
+				tmp.query(`CREATE DATABASE "${name}"`).spread((results, metadata)=> {
 					return accept()
 				})
 			} catch (e) {
