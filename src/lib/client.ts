@@ -39,10 +39,14 @@ export class Client {
 		}
 		const packageJson = JSON.parse(fs.readFileSync(path.join(this.app.path, 'package.json'), 'utf-8'))
 		if (packageJson && packageJson.scripts) {
-			this.config.scripts = {
-				build: packageJson.scripts.build,
-				watch: packageJson.scripts.watch,
-				prod: packageJson.scripts.prod
+			if (! this.config.scripts.build) {
+				this.config.scripts.build = packageJson.scripts.build ? "build" : null;
+			}
+			if (! this.config.scripts.watch) {
+				this.config.scripts.watch = packageJson.scripts.watch ? "watch" : null;
+			}
+			if (! this.config.scripts.prod) {
+				this.config.scripts.prod = packageJson.scripts.prod ? "prod" : null;
 			}
 		}
 		if ( ! this.config ) {
