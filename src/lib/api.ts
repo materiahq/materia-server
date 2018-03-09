@@ -156,15 +156,17 @@ export class Api {
 					this.app.logger.log(` │ │ └── ${this.getMethodColor(endpoint.method.toUpperCase())} ${chalk.bold('/api' + endpoint.url)}`)
 					this.add(endpoint, opts)
 				} catch (e) {
-					this.app.logger.warn(' │ │     Skipped endpoint ' + endpoint.method + ' ' + endpoint.url)
-					this.app.logger.warn(' │ │     due to error ' + e.message, e.stack)
+					this.app.logger.warn(`┬┴─┴─┴   ${chalk.bold.yellow('Skipped')} due to the following error`)
+					this.app.logger.warn(e)
 				}
 			})
 		} catch (e) {
-			if (e.code != 'ENOENT')
-				this.app.logger.error(' │ │ └── Error loading endpoints', e.stack)
-			else
+			if (e.code != 'ENOENT') {
+				this.app.logger.error(' │ │ └── Error loading endpoints')
+				this.app.logger.error(e.stack)
+			} else {
 				return Promise.reject(e)
+			}
 		}
 		return Promise.resolve()
 	}

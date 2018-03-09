@@ -4,17 +4,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import chalk from 'chalk'
 
-export interface IClientConfig {
-	src?:string
-	build?:string
-	buildEnabled?: boolean
-	scripts?: {
-		watch?:string
-		build?:string
-		prod?:string
-	}
-	autoWatch?: boolean
-}
+import { IClientConfig } from "@materia/interfaces";
+import { ConfigType } from "./config";
 
 export enum ScriptMode {
 	WATCH = <any>'watch',
@@ -34,7 +25,8 @@ export class Client {
 
 	load() {
 		this.app.logger.log(` └─┬ Client `)
-		if (fs.existsSync(path.join(this.app.path, '.materia', 'client.json'))) {
+		this.config = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
+		/*if (fs.existsSync(path.join(this.app.path, '.materia', 'client.json'))) {
 			this.config = JSON.parse(fs.readFileSync(path.join(this.app.path, '.materia', 'client.json'), 'utf-8'))
 		}
 		const packageJson = JSON.parse(fs.readFileSync(path.join(this.app.path, 'package.json'), 'utf-8'))
@@ -51,7 +43,7 @@ export class Client {
 			if (! this.config.scripts.prod) {
 				this.config.scripts.prod = packageJson.scripts.prod ? "prod" : null;
 			}
-		}
+		}*/
 		if ( ! this.config ) {
 			this.config = { buildEnabled: false }
 			this.app.logger.log(` │ └── ${chalk.bold('No build scripts detected')}`)
@@ -61,7 +53,7 @@ export class Client {
 			this.config.build = 'web'
 		}*/
 		if ( ! this.config.src ) {
-			this.config.src = 'web'
+			this.config.src = 'client'
 		}
 		if ( ! this.config.build) {
 			this.config.build = this.config.src

@@ -8,7 +8,9 @@ let domain = require('domain')
 
 import { App, AppMode, ISaveOptions } from './app'
 
-import { ConfigType, IDatabaseConfig, IConfigOptions } from './config'
+import { ConfigType, IConfigOptions } from './config'
+
+import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfaces'
 
 import { DatabaseInterface } from './database/interface'
 import { MateriaError } from './error'
@@ -32,6 +34,13 @@ const dialect = {
 	postgres: "PostgreSQL",
 	mysql: "MySQL",
 	sqlite: "SQLite"
+}
+
+function isSQLite(x: IDatabaseConfig): x is ISQLiteDatabase {
+	return "storage" in x
+}
+function isSQL(x: IDatabaseConfig): x is ISQLDatabase {
+	return "host" in x
 }
 
 /**
@@ -62,6 +71,13 @@ export class Database {
 		this.interface = new DatabaseInterface(this)
 	}
 
+	static isSQL(settings: IDatabaseConfig): settings is ISQLDatabase {
+		return settings.type != "sqlite"
+	}
+	static isSQLite(settings: IDatabaseConfig): settings is ISQLiteDatabase {
+		return settings.type == "sqlite"
+	}
+
 	/**
 	Load the database configuration
 	@param {object} - *optional* The settings of the database
@@ -82,13 +98,16 @@ export class Database {
 			this.app.logger.log(` └── Database: ${chalk.yellow.bold('No database configured!')}`)
 			return false
 		}
+		if (Database.isSQL(settings)) {
+			this.host = this.app.options['database-host'] || settings.host || 'localhost'
+			this.port = Number(this.app.options['database-port'] || settings.port)
+			this.username = this.app.options['database-username'] || settings.username
+			this.password = this.app.options['database-password'] || settings.password
+			this.database = this.app.options['database-db'] || settings.database
+		} else if (Database.isSQLite(settings)) {
+			this.storage = this.app.options['storage'] || settings.storage
+		}
 
-		this.host = this.app.options['database-host'] || settings.host || 'localhost'
-		this.port = Number(this.app.options['database-port'] || settings.port)
-		this.username = this.app.options['database-username'] || settings.username
-		this.password = this.app.options['database-password'] || settings.password
-		this.database = this.app.options['database-db'] || settings.database
-		this.storage = this.app.options['storage'] || settings.storage
 		this.type = settings.type
 		this.started = false
 
@@ -107,7 +126,7 @@ export class Database {
 			logging: logging
 		}
 
-		if (this.type == 'sqlite') {
+		if (Database.isSQLite(settings)) {
 			this.opts.storage = path.resolve(this.app.path, this.storage || 'database.sqlite')
 		}
 
@@ -145,7 +164,7 @@ export class Database {
 		if ( ! conf ) {
 			return null
 		}
-		if (conf.type != 'sqlite') {
+		if (Database.isSQL(conf)) {
 			return {
 				type: conf.type,
 				host: conf.host,
@@ -153,16 +172,13 @@ export class Database {
 				database: conf.database,
 				username: conf.username,
 				password: conf.password
-			} as IDatabaseConfig
+			}
 		}
-		else {
-			let res: IDatabaseConfig = {
-				type: conf.type
-			}
-			if (conf.storage && conf.storage != "database.sqlite") {
-				res.storage = conf.storage
-			}
-			return res
+		else if (Database.isSQLite(conf)) {
+			return {
+				type: conf.type,
+				storage: conf.storage
+			};
 		}
 	}
 
@@ -174,25 +190,32 @@ export class Database {
 	static tryDatabase(settings: IDatabaseConfig, app?: App): Promise<void> {
 
 		//TODO: check settings.storage to be a real path
-		if (settings.type == 'sqlite' && settings.storage) {
+		if (this.isSQLite(settings) && settings.storage) {
 			return Promise.resolve()
 		}
 
-		let opts: ISequelizeConfig = {
+		const optsDialect = {
 			dialect: settings.type,
-			host: settings.host,
-			port: settings.port,
 			logging: false
 		}
-
-		if (settings.type == 'sqlite' && app) {
+		let opts: ISequelizeConfig;
+		if (Database.isSQL(settings)) {
+			opts = Object.assign({}, optsDialect, {
+				host: settings.host,
+				port: settings.port
+			})
+		} else if (Database.isSQLite(settings) && app) {
 			opts.storage = path.resolve(app.path, settings.storage || 'database.sqlite')
 		}
 		let tmp
 		return new Promise((accept, reject) => {
 			let d = domain.create()
 			try {
-				tmp = new Sequelize(settings.database, settings.username, settings.password, opts)
+				if (Database.isSQL(settings)) {
+					tmp = new Sequelize(settings.database, settings.username, settings.password, opts)
+				} else if (Database.isSQLite(settings)) {
+					tmp = new Sequelize(null, null, null, opts)
+				}
 			} catch (e) {
 				return reject(e)
 			}
@@ -212,92 +235,102 @@ export class Database {
 
 	/**
 	Try to connect database server default database with username password
+	MySQL or PostgreSQL only
 	@param {object} - The configuration object
 	@returns {Promise}
 	 */
 
 	static tryServer(settings: IDatabaseConfig, app?: App) {
-		let opts: ISequelizeConfig = {
-			dialect: settings.type,
-			host: settings.host,
-			port: settings.port,
-			logging: false
-		}
-		let tmp
-		let defaultDatabase
-		if (settings.type == 'mysql') {
-			defaultDatabase = 'sys'
-		} else if (settings.type == 'postgres') {
-			defaultDatabase = 'postgres'
-		}
-		return new Promise((accept, reject) => {
-			let d = domain.create()
-			try {
-				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
-			} catch (e) {
-				return reject(e)
+		if (Database.isSQL(settings)) {
+			let opts: ISequelizeConfig = {
+				dialect: settings.type,
+				host: settings.host,
+				port: settings.port,
+				logging: false
 			}
-			d.add(tmp.query)
-			d.on('error', (e) => {
-				d.remove(tmp.query)
-				return reject(e)
+			let tmp
+			let defaultDatabase
+			if (settings.type == 'mysql') {
+				defaultDatabase = 'sys'
+			} else if (settings.type == 'postgres') {
+				defaultDatabase = 'postgres'
+			}
+			return new Promise((accept, reject) => {
+				let d = domain.create()
+				try {
+					tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
+				} catch (e) {
+					return reject(e)
+				}
+				d.add(tmp.query)
+				d.on('error', (e) => {
+					d.remove(tmp.query)
+					return reject(e)
+				})
+				d.run(() => {
+					return tmp.authenticate().then(() => {
+						tmp.close()
+						accept()
+					}).catch((e) => { reject(e) })
+				})
 			})
-			d.run(() => {
-				return tmp.authenticate().then(() => {
-					tmp.close()
-					accept()
-				}).catch((e) => { reject(e) })
-			})
-		})
+		} else {
+			return Promise.reject(new Error("You can't try to connect to SQLite with username/password"));
+		}
 	}
 
 
 	/**
 	List databases in mysql or postgres instances
+	MySQL and PostgreSQL only
 	@param settings - The configuration object
 	@returns {Promise}
 	 */
 	static listDatabases(settings: IDatabaseConfig) {
-		let opts: ISequelizeConfig = {
-			dialect: settings.type,
-			host: settings.host,
-			port: settings.port,
-			logging: false
-		}
-		let tmp
-		let defaultDatabase
-		if (settings.type == 'mysql') {
-			defaultDatabase = 'sys'
-		} else if (settings.type == 'postgres') {
-			defaultDatabase = 'postgres'
-		}
-		return new Promise((accept, reject) => {
-			let d = domain.create()
-			try {
-				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
-				if (settings.type == 'mysql') {
-					tmp.query(`SHOW DATABASES`).spread((results, metadata)=> {
-								let formatedResult = []
-						for (let i in results) {
-							let result = results[i]
-							formatedResult.push(result.Database)
-						}
-						return accept(formatedResult)
-					})
-				} else if (settings.type == 'postgres') {
-					tmp.query(`SELECT datname FROM pg_database`).spread((results, metadata)=> {
-						let formatedResult = []
-						for (let i in results) {
-							let result = results[i]
-							formatedResult.push(result.datname)
-						}
-						return accept(formatedResult)
-					})
-				}
-			} catch (e) {
-				return reject(e)
+		if (Database.isSQL(settings)) {
+			let opts: ISequelizeConfig = {
+				dialect: settings.type,
+				host: settings.host,
+				port: settings.port,
+				logging: false
 			}
-		})
+			let tmp
+			let defaultDatabase
+			if (settings.type == 'mysql') {
+				defaultDatabase = 'sys'
+			} else if (settings.type == 'postgres') {
+				defaultDatabase = 'postgres'
+			}
+			return new Promise((accept, reject) => {
+				let d = domain.create()
+				try {
+					tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
+					if (settings.type == 'mysql') {
+						tmp.query(`SHOW DATABASES`).spread((results, metadata)=> {
+									let formatedResult = []
+							for (let i in results) {
+								let result = results[i]
+								formatedResult.push(result.Database)
+							}
+							return accept(formatedResult)
+						})
+					} else if (settings.type == 'postgres') {
+						tmp.query(`SELECT datname FROM pg_database`).spread((results, metadata)=> {
+							let formatedResult = []
+							for (let i in results) {
+								let result = results[i]
+								formatedResult.push(result.datname)
+							}
+							return accept(formatedResult)
+						})
+					}
+				} catch (e) {
+					return reject(e)
+				}
+			})
+		} else {
+			return Promise.reject(new Error(`You can't list database on a SQLite database`))
+		}
 	}
 
 	/**

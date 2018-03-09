@@ -1093,8 +1093,12 @@ export class Entity {
 
 	refreshQueries() {
 		for (let query of this.queries) {
-			query.refresh()
-			query.discoverParams()
+			try {
+				query.refresh()
+				query.discoverParams()
+			} catch (e) {
+				this.app.logger.error(e);
+			}
 		}
 	}
 

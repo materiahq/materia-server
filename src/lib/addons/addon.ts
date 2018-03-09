@@ -76,7 +76,7 @@ export class Addon {
 					)
 				);
 			}
-			return addon_app.migration.check().then(() => {
+			return addon_app.selfMigration.check().then(() => {
 				let mod;
 				try {
 					// console.group(`(Server) Loading addon ${this.package}`);

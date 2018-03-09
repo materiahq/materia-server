@@ -3,7 +3,8 @@ import * as path from 'path'
 import chalk from 'chalk'
 
 import { App, AppMode } from './app'
-import { ConfigType, IWebConfig, IConfigOptions } from './config'
+import { IServerConfig } from '@materia/interfaces'
+import { ConfigType, IConfigOptions } from './config'
 import { MateriaError } from './error'
 
 import * as express from 'express'
@@ -31,6 +32,7 @@ export class Server {
 	private sockets = new Map();
 	private stopped = false;
 	session: Session
+	private config: any = {};
 
 	disabled: boolean = false
 
@@ -45,13 +47,13 @@ export class Server {
 		this.expressApp.use(methodOverride())
 		this.expressApp.use(compression())
 
-		let webDir = this.app.client.config.build
-		if (!this.app.client.config.build && this.app.client.config.src) {
-			webDir = this.app.client.config.src
-		}
-		else {
-			webDir = 'web'
-		}
+		// let webDir = this.app.client.config.build
+		// if (!this.app.client.config.build && this.app.client.config.src) {
+		// 	webDir = this.app.client.config.src
+		// }
+		// else {
+		// 	webDir = 'web'
+		// }
 
 		// Initialize dynamic Express static Object.
 		this.createDynamicStatic(path.join(this.app.path, this.app.client.config.build));
@@ -118,7 +120,7 @@ export class Server {
 	*/
 	getBaseUrl(path?: string, mode?: AppMode, options?: IConfigOptions) {
 		path = path || '/api'
-		let conf = this.app.config.get<IWebConfig>(mode, ConfigType.WEB, options)
+		let conf = this.app.config.get<IServerConfig>(mode, ConfigType.SERVER, options)
 		if (!conf) {
 			return ""
 		}
@@ -191,8 +193,8 @@ export class Server {
 					return resolve()
 				}
 
-				let config = this.app.config.get<IWebConfig>()
-				let port = this.app.options.port || config.port
+				this.config = this.app.config.get<IServerConfig>(this.app.mode, ConfigType.SERVER)
+				let port = this.app.options.port || this.config.port
 				if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT && process.env.PORT) {
 					port = +process.env.PORT
 				}
@@ -210,21 +212,20 @@ export class Server {
 					return reject(err)
 				}
 
-				let args = [port, config.host, () => {
+				let args = [port, this.config.host, () => {
 					this.started = true
 					this.app.logger.log(` └─┬ Server: ${chalk.green.bold('Started')}`)
-					if (config.host == '0.0.0.0' || process.env.NO_HOST) {
+					if (this.config.host == '0.0.0.0' || process.env.NO_HOST) {
 						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline(`http://localhost:${port}`) + '\n')
-					}
-					else {
-						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline('http://' + config.host + ':' + port) + '\n')
+					} else {
+						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline('http://' + this.config.host + ':' + port) + '\n')
 					}
 					this.server.removeListener('error', errListener)
 					return resolve()
 				}]
 
 				//special IP - "no host"
-				if (config.host == '0.0.0.0' || process.env.NO_HOST) {
+				if (this.config.host == '0.0.0.0' || process.env.NO_HOST) {
 					//remove the host from args
 					args[1] = args.pop()
 				}

@@ -8,7 +8,8 @@ import * as request from 'request'
 import * as chaiAsPromised from 'chai-as-promised'
 
 import { App, AppMode } from '../../lib/app'
-import { ConfigType, IDatabaseConfig } from '../../lib/config'
+import { ConfigType } from '../../lib/config'
+import { IDatabaseConfig } from "@materia/interfaces"
 
 chaiAsPromised['transferPromiseness'] = (assertion, promise) => {
 	assertion.then = promise.then.bind(promise);
@@ -57,7 +58,7 @@ export class TemplateApp {
 		app.config.set({
 			"host": "localhost",
 			"port": 8798
-		}, mode, ConfigType.WEB)
+		}, mode, ConfigType.SERVER)
 
 		if (process.env.DIALECT == "postgres") {
 			const cnf: IDatabaseConfig = {
@@ -70,9 +71,11 @@ export class TemplateApp {
 			}
 			app.config.set(cnf, mode, ConfigType.DATABASE)
 		} else {
-			app.config.set({
-				"type": "sqlite"
-			}, mode, ConfigType.DATABASE)
+			const cnf: IDatabaseConfig = {
+				type: "sqlite",
+				storage: "database.sqlite"
+			};
+			app.config.set(cnf, mode, ConfigType.DATABASE)
 		}
 
 		if (!debug_mode) {

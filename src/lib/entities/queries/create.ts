@@ -94,6 +94,7 @@ export class CreateQuery extends Query {
 	}
 
 	run(params, options):Promise<any> {
+		this.entity.app.logger.log(` ${chalk.black('│')}`);
 		this.entity.app.logger.log(`${chalk.bold('(Query)')} Create - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
 

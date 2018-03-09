@@ -65,10 +65,12 @@ export class CustomQuery extends Query {
 		this.params = opts.params || []
 		this.action = opts.action
 		this.model = opts.model || entity.name.toLowerCase()
-
-		this.refresh()
-
-		this.discoverParams()
+		try {
+			this.refresh()
+			this.discoverParams()
+		} catch(e) {
+			this.entity.app.logger.error(e);
+		}
 	}
 
 	static resetModels():void {
@@ -88,6 +90,7 @@ export class CustomQuery extends Query {
 	discoverParams() {}
 
 	run(params):Promise<any> {
+		this.entity.app.logger.log(` ${chalk.black('│')}`);
 		this.entity.app.logger.log(`${chalk.bold('(Query)')} Javascript - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
 

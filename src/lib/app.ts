@@ -7,12 +7,13 @@ import * as fse from 'fs-extra'
 
 import { Logger } from './logger'
 
-import { Config, ConfigType, IGitConfig, IWebConfig, IDatabaseConfig } from './config'
+import { IGitConfig, IServer, IDatabase, IAppConfig, IDatabaseConfig, IServerConfig } from "@materia/interfaces";
+import { Config, ConfigType } from './config'
 import { Server } from './server'
 import { Entities } from './entities'
 import { Database } from './database'
 import { Synchronizer } from './synchronizer'
-import { Migration } from './self-migration'
+import { SelfMigration } from './self-migration'
 import { History } from './history'
 import { Client } from './client'
 
@@ -86,6 +87,9 @@ export class App extends events.EventEmitter {
 	id: number
 	name: string
 	package: string
+	version?: string
+	icon?: string
+	private packageJsonCache?: string
 
 	materia_path: string = __dirname
 	mode: AppMode
@@ -103,7 +107,7 @@ export class App extends events.EventEmitter {
 	client: Client
 	logger: Logger
 	config: Config
-	migration: Migration
+	selfMigration: SelfMigration
 	//git: any
 
 	status: boolean
@@ -113,8 +117,7 @@ export class App extends events.EventEmitter {
 	synchronizer: Synchronizer
 
 	invalid: boolean
-	error: Error
-	stack: any
+	error: string
 
 	constructor(public path: string, public options?: IAppOptions) {
 		super()
@@ -160,7 +163,7 @@ export class App extends events.EventEmitter {
 
 		this.status = false
 
-		this.migration = new Migration(this)
+		this.selfMigration = new SelfMigration(this)
 
 		if (this.options.runtimes != "core") {
 			//let Git = require('./git')
@@ -173,63 +176,26 @@ export class App extends events.EventEmitter {
 		}
 	}
 
-	private doMigrations() {
-		if ( this.migration ) {
-			return this.migration.check().then(() => {
-				delete this.migration
+	private doSelfMigrations() {
+		if ( this.selfMigration ) {
+			return this.selfMigration.check().then(() => {
+				delete this.selfMigration
 			})
 		}
 		return Promise.resolve()
-	}
-
-	private loadMateriaConfig():Promise<IMateriaConfig> {
-		return new Promise((resolve, reject) => {
-			if ( ! fs.existsSync(this.path) ) {
-				return reject(new MateriaError('The application directory has not been found. The folder has been moved or removed'))
-			}
-			if ( ! fs.existsSync(path.join(this.path, 'package.json')) ) {
-				return reject(new MateriaError('package.json does not exists', {
-					debug: `package.json does not exists, please use "npm init"`
-				}))
-			}
-			fs.readFile(path.join(this.path, 'package.json'), 'utf-8', (err, conf) => {
-				if (err) {
-					return reject(new MateriaError('Could not load package.json'))
-				}
-				let confJson
-				try {
-					confJson = JSON.parse(conf)
-				}
-				catch (e) {
-					return reject(new MateriaError('Could not parse package.json. The JSON seems invalid'))
-				}
-				confJson.materia = confJson.materia || {}
-				this.package = confJson.name
-				if ( ! confJson.materia.name ) {
-					confJson.materia.name = confJson.name
-				}
-				return resolve(confJson.materia)
-			})
-		})
 	}
 
 
 	loadMateria():Promise<void> {
 		let p:Promise<any> = Promise.resolve()
 
-		return this.doMigrations()
-			.then(() => this.loadMateriaConfig())
-			.then(materiaConf => {
-				if ( ! materiaConf.name) {
-					return Promise.reject(new MateriaError('Missing "name" field in package.json', {
-						debug: `Please provide a valid package description in package.json or use "npm init"`
-					}))
-				}
-
-				this.infos = materiaConf
-				this.infos.addons = this.infos.addons || {}
-				this.name = this.infos.name
-				return Promise.resolve()
+		return this.doSelfMigrations()
+			.then(() => {
+				const appConfig = this.config.get<IAppConfig>(this.mode, ConfigType.APP);
+				this.package = appConfig.package
+				this.name = appConfig.name
+				this.version = appConfig.version
+				this.icon = appConfig.icon
 			})
 	}
 
@@ -237,7 +203,9 @@ export class App extends events.EventEmitter {
 		let warning, elapsedTimeQueries, elapsedTimeEntities, elapsedTimeAPI
 		let elapsedTimeGlobal = new Date().getTime()
 
-		return this.loadMateria().then(() => {
+		return this.doSelfMigrations()
+		.then(() => this.loadMateria())
+		.then(() => {
 			this.logger.log(`${chalk.bold('(Load)')} Application: ${chalk.yellow.bold(this.name || this.package)}`)
 			this.logger.log(` └── Path: ${chalk.bold(this.path)}`)
 			this.logger.log(` └── Mode: ${chalk.bold(this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' )}`)
@@ -279,7 +247,7 @@ export class App extends events.EventEmitter {
 	createDockerfile(options) {
 		let dockerfile = path.join(this.path, 'Dockerfile')
 		let dbProd = this.config.get<IDatabaseConfig>(AppMode.PRODUCTION, ConfigType.DATABASE)
-		let webProd = this.config.get<IWebConfig>(AppMode.PRODUCTION, ConfigType.WEB)
+		let webProd = this.config.get<IServerConfig>(AppMode.PRODUCTION, ConfigType.SERVER)
 		fs.writeFileSync(dockerfile, `FROM node:7.10-alpine
 MAINTAINER ${options.author}
 
@@ -300,7 +268,7 @@ EXPOSE ${webProd.port}
 CMD ["npm", "start"]`)
 
 		let dbstr = '', dbport;
-		if (dbProd.type == 'postgres') {
+		if (Database.isSQL(dbProd) && dbProd.type == 'postgres') {
 			dbport = 5432
 			dbstr = `
     image: postgres:9.6.3-alpine
@@ -309,7 +277,7 @@ CMD ["npm", "start"]`)
       POSTGRES_PASSWORD: "${dbProd.password}"
       POSTGRES_DB: "${dbProd.database}"`
 		}
-		else if (dbProd.type == 'mysql') {
+		else if (Database.isSQL(dbProd) && dbProd.type == 'mysql') {
 			dbport = 3306
 			dbstr = `
     image: mysql
@@ -394,12 +362,8 @@ manual_scaling:
 				throw e
 			}
 		}
-		if (this.infos.addons && Object.keys(this.infos.addons).length == 0) {
-			delete this.infos.addons
-		}
 		pkg.name = this.package
 
-		pkg.materia = this.infos
 		fs.writeFileSync(path.join(this.path, 'package.json'), JSON.stringify(pkg, null, 2))
 		if (opts && opts.afterSave) {
 			opts.afterSave()
@@ -426,6 +390,7 @@ manual_scaling:
 	*/
 	start() {
 		let warning
+		this.logger.log(` ${chalk.black('│')} `)
 		this.logger.log(`${chalk.bold('(Start)')} Application ${chalk.yellow.bold(this.name)}`)
 		let p = this.database.started ? Promise.resolve() : this.database.start()
 		return p.catch((e) => {
@@ -661,7 +626,7 @@ manual_scaling:
 	}
 
 	getMateriaVersion() {
-		let pkg = require('../../package.json')
+		let pkg = require('../package.json')
 		return pkg.version
 	}
 }
