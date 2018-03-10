@@ -148,7 +148,6 @@ export class FindAllQuery extends Query {
 
 	run(params, options):Promise<any> {
 		if ( ! options || ! options.silent ) {
-			this.entity.app.logger.log(` ${chalk.black('│')}`);
 			this.entity.app.logger.log(`${chalk.bold('(Query)')} FindAll - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 			this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}`)
 			this.entity.app.logger.log(` └── Options: ${JSON.stringify(options)}`)

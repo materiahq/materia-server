@@ -71,7 +71,6 @@ export class SQLQuery extends Query {
 	}
 
 	run(params):Promise<any> {
-		this.entity.app.logger.log(` ${chalk.black('│')}`);
 		this.entity.app.logger.log(`${chalk.bold('(Query)')} SQL - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 
 		let resolvedParams

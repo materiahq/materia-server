@@ -77,7 +77,6 @@ export class FindOneQuery extends Query {
 	}
 
 	run(params, options):Promise<any> {
-		this.entity.app.logger.log(` ${chalk.black('│')}`);
 		this.entity.app.logger.log(`${chalk.bold('(Query)')} FindOne - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}`)
 		this.entity.app.logger.log(` └── Options: ${JSON.stringify(options)}`)

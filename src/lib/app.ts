@@ -390,7 +390,6 @@ manual_scaling:
 	*/
 	start() {
 		let warning
-		this.logger.log(` ${chalk.black('│')} `)
 		this.logger.log(`${chalk.bold('(Start)')} Application ${chalk.yellow.bold(this.name)}`)
 		let p = this.database.started ? Promise.resolve() : this.database.start()
 		return p.catch((e) => {

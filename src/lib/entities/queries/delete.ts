@@ -23,7 +23,6 @@ export class DeleteQuery extends Query {
 	}
 
 	run(params):Promise<any> {
-		this.entity.app.logger.log(` ${chalk.black('│')}`);
 		this.entity.app.logger.log(`${chalk.bold('(Query)')} Delete - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
 		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
 
