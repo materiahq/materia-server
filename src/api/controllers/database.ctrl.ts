@@ -47,6 +47,16 @@ export class DatabaseController {
 		.catch(e => res.status(500).json(e));
 	}
 
+	moveEntity(req, res) {
+		const {x, y} = req.body;
+		const entity = this.app.entities.get(req.params.entity);
+		if ( ! entity ) {
+			return res.status(500).json(new Error(`Entity ${req.params.entity} does not exist`));
+		}
+		entity.move(x, y);
+		res.status(200).json(entity.toJson());
+	}
+
 	renameEntity(req, res) {
 		const oldName = req.params.entity;
 		const {new_name} = req.body;

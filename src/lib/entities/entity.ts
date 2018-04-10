@@ -148,6 +148,12 @@ export class Entity {
 		return p
 	}
 
+	move(x, y) {
+		this.x = x;
+		this.y = y;
+		this.save()
+	}
+
 	create(entityobj, options) {
 		options = options || {}
 
@@ -227,6 +233,7 @@ export class Entity {
 
 	save(opts?) {
 		if (this.fromAddon ) {
+			// TODO: save position in materia.json
 			return true;
 		}
 

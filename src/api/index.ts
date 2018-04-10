@@ -106,6 +106,7 @@ export class MateriaApi {
 		this.api.post('/materia/entities', this.oauth.isAuth, this.databaseCtrl.createEntity.bind(this.databaseCtrl));
 		this.api.delete('/materia/entities/:entity', this.oauth.isAuth, this.databaseCtrl.removeEntity.bind(this.databaseCtrl));
 		this.api.put('/materia/entities/:entity', this.oauth.isAuth, this.databaseCtrl.renameEntity.bind(this.databaseCtrl));
+		this.api.put('/materia/entities/:entity/position', this.oauth.isAuth, this.databaseCtrl.moveEntity.bind(this.databaseCtrl));
 		// Fields
 		this.api.post('/materia/entities/:entity/fields', this.oauth.isAuth, this.databaseCtrl.saveField.bind(this.databaseCtrl));
 		this.api.delete('/materia/entities/:entities/fields/:field', this.oauth.isAuth, this.databaseCtrl.removeField.bind(this.databaseCtrl));
