@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import chalk from 'chalk'
 
-import { IClientConfig } from "@materia/interfaces";
+import { IClientBuild } from "@materia/interfaces";
 import { ConfigType } from "./config";
 
 export enum ScriptMode {
@@ -14,7 +14,7 @@ export enum ScriptMode {
 }
 
 export class Client {
-	config:IClientConfig = {}
+	config:IClientBuild = {}
 	pkgPath:string
 	pkgScripts:string[]
 	watching:boolean
@@ -25,7 +25,7 @@ export class Client {
 
 	load() {
 		this.app.logger.log(` └─┬ Client `)
-		this.config = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
+		this.config = this.app.config.get<IClientBuild>(this.app.mode, ConfigType.CLIENT);
 		/*if (fs.existsSync(path.join(this.app.path, '.materia', 'client.json'))) {
 			this.config = JSON.parse(fs.readFileSync(path.join(this.app.path, '.materia', 'client.json'), 'utf-8'))
 		}
@@ -55,8 +55,8 @@ export class Client {
 		if ( ! this.config.src ) {
 			this.config.src = 'client'
 		}
-		if ( ! this.config.build) {
-			this.config.build = this.config.src
+		if ( ! this.config.dist) {
+			this.config.dist = this.config.src
 		}
 
 		if ( ! this.config.scripts ) {
@@ -75,7 +75,7 @@ export class Client {
 	}
 
 	hasOneScript() {
-		return !!((this.hasBuildScript(ScriptMode.BUILD) || this.hasBuildScript(ScriptMode.WATCH) || this.hasBuildScript(ScriptMode.PROD)) && this.config.build)
+		return !!((this.hasBuildScript(ScriptMode.BUILD) || this.hasBuildScript(ScriptMode.WATCH) || this.hasBuildScript(ScriptMode.PROD)) && this.config.dist)
 	}
 
 	hasBuildScript(mode?:ScriptMode, script?:string) {
@@ -120,7 +120,7 @@ export class Client {
 		return false
 	}
 
-	set(src, build, scripts, autoWatch) {
+	/*set(src, build, scripts, autoWatch) {
 		this.config.src = src
 		this.config.build = build
 		// UPDATE STATIC FOLDER AT RUNTIME
@@ -139,7 +139,7 @@ export class Client {
 
 	save() {
 		if ( this.config ) {
-			if ( this.config.src == 'web' && this.config.build == 'web' && ! this.hasOneScript() ) {
+			if ( this.config.src == 'client' && this.config.dist == 'client' && ! this.hasOneScript() ) {
 				return Promise.resolve()
 			}
 
@@ -148,8 +148,8 @@ export class Client {
 				scripts: {}
 			} as IClientConfig
 
-			if (this.config.build != this.config.src && this.config.build) {
-				res.build = this.config.build
+			if (this.config.dist != this.config.src && this.config.dist) {
+				res.dist = this.config.dist
 			}
 
 			if (this.hasBuildScript(ScriptMode.BUILD)) {
@@ -171,5 +171,5 @@ export class Client {
 			fs.writeFileSync(path.join(this.app.path, '.materia', 'client.json'), JSON.stringify(res, null, 2))
 		}
 		return Promise.resolve()
-	}
+	}*/
 }

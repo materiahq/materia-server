@@ -28,3 +28,4 @@ export * from "./logger";
 // export * from "./migrations";
 export * from "./server";
 export * from "./synchronizer";
+export { DatabaseLib } from "../api/controllers/database.ctrl";

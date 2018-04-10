@@ -93,7 +93,7 @@ export class Database {
 			settings = settings || this.app.config.get<IDatabaseConfig>(this.app.mode, ConfigType.DATABASE)
 		}
 
-		if ( ! settings) {
+		if ( ! settings || ! settings.type ) {
 			this.disabled = true
 			this.app.logger.log(` └── Database: ${chalk.yellow.bold('No database configured!')}`)
 			return false

@@ -6,7 +6,7 @@ import * as readline from 'readline'
 import { App } from '../../app'
 
 import { MateriaError } from '../../error'
-import { Dependency } from '../../dependency'
+// import { Dependency } from '../../dependency'
 
 //TODO: need to move this in materia-cli to keep materia-server clean
 class AddonsTools {

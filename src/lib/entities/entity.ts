@@ -34,6 +34,8 @@ export interface IRelation {
 
 export interface IEntityConfig {
 	id: string
+	x: number
+	y: number
 	fields?: Array<Field>
 	relations?: Array<any>
 	queries?: Array<any>
@@ -51,6 +53,9 @@ export class Entity {
 
 	id: string
 	name: string
+
+	x: number
+	y: number
 
 	isRelation: any
 
@@ -148,6 +153,8 @@ export class Entity {
 
 		this.name = entityobj.name
 		this.id = entityobj.id || uuid()
+		this.x = entityobj.x
+		this.y = entityobj.y
 		this.fields = []
 		this.relations = []
 		this.queries = []
@@ -945,6 +952,8 @@ export class Entity {
 
 		let res: IEntityConfig = {
 			id: this.id,
+			x: this.x,
+			y: this.y,
 			fields: [],
 			relations: [],
 			queries: []

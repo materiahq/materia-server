@@ -16,22 +16,26 @@ import {
 	IMateriaJson,
 	IDatabaseConfig,
 	IDatabase,
-	ISession
+	ISession,
+	IDependencyMap,
+	IScriptsMap
 } from "@materia/interfaces";
 
+export interface IAddonsConfig {
+	[addon: string]: any;
+}
+
+export interface IDependenciesConfig {
+	dev?: IDependencyMap;
+	prod?: IDependencyMap;
+}
 export interface IFullConfig {
 	app: IAppConfig;
 	git?: IGitConfig;
 	server: IServer;
 	session?: ISession;
-	dependencies?: {
-		dev: {
-			[command: string]: string;
-		}
-		prod: {
-			[command: string]: string;
-		}
-	};
+	dependencies?: IDependenciesConfig;
+	scripts?: IScriptsMap;
 	database?: IDatabase;
 	addons?: any;
 	client?: IClientConfig;
@@ -45,6 +49,7 @@ export enum ConfigType {
 	SESSION = <any>"session",
 	CLIENT = <any>"client",
 	DEPENDENCIES = <any>"dependencies",
+	SCRIPTS = <any>"scripts",
 	ADDONS = <any>"addons",
 	DEPLOYMENT = <any>"deployment"
 }
@@ -114,7 +119,7 @@ export class Config {
 
 	reloadConfig(): void {
 		this.loadConfigurationFiles();
-
+		// console.log('load', this.materiaJson);
 		this.config = {
 			app: {
 				name: this.materiaJson.name,
@@ -148,6 +153,7 @@ export class Config {
 				dev: this.packageJson.devDependencies,
 				prod: this.packageJson.dependencies
 			},
+			scripts: this.packageJson.scripts,
 			addons: this.materiaJson.addons
 		};
 	}
@@ -172,6 +178,7 @@ export class Config {
 			mode = this.app.mode;
 		}
 
+		// console.log('get', this.config, mode, type);
 		if (!this.config[type]) {
 			return null;
 		}
@@ -179,6 +186,7 @@ export class Config {
 		if ([ConfigType.SERVER,
 			ConfigType.DATABASE,
 			ConfigType.DEPENDENCIES,
+			ConfigType.ADDONS,
 			ConfigType.SESSION].find(t => t == type)) {
 			result = this.config[type][mode];
 		} else {
@@ -198,22 +206,12 @@ export class Config {
 	@param {string} - The environment mode. `development` or `production`.
 	*/
 	set(
-		config: IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig,
+		config: IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig | IClientConfig | IDependenciesConfig | IScriptsMap,
 		mode: AppMode | string,
 		type?: ConfigType,
 		options?: IConfigOptions,
-		opts?: ISaveOptions
 	): void {
 		options = options || {};
-		let webConfig = <IServerConfig>config;
-		if (type == ConfigType.SERVER && (!webConfig.host || !webConfig.port)) {
-			if (mode == AppMode.DEVELOPMENT) {
-				throw new MateriaError("Missing host/port");
-			} else {
-				config = undefined;
-			}
-		}
-
 		if (!this.config) {
 			this.reloadConfig();
 		}
@@ -221,50 +219,84 @@ export class Config {
 			this.config[type] = {};
 		}
 
-		let conf: IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig;
-		if (type == ConfigType.SERVER) {
-			conf = webConfig && {
-				host: webConfig.host,
-				port: webConfig.port,
-				ssl: !!webConfig.ssl
-			};
-		} else if (type == ConfigType.DATABASE) {
-			conf = this.app.database._confToJson(<IDatabaseConfig>config);
-		} else if (type == ConfigType.SESSION) {
-			let sessionConfig = <ISessionConfig>config;
-			conf = sessionConfig && {
-				secret: sessionConfig.secret,
-				maxAge: sessionConfig.maxAge
-			};
-		} else if (type == ConfigType.GIT) {
-			let gitConfig = <IGitConfig>config;
-			conf = gitConfig && {
-				defaultRemote: gitConfig.defaultRemote
-				// branch: gitConfig.branch
-			};
-		}
+		// let conf: IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig | IClientConfig | IDependenciesConfig | IScriptsMap;
+		// if (type == ConfigType.SERVER) {
+		// 	let serverConfig = <IServerConfig>config;
+		// 	conf = serverConfig && {
+		// 		host: serverConfig.host,
+		// 		port: serverConfig.port,
+		// 		ssl: !!serverConfig.ssl
+		// 	};
+		// } else if (type == ConfigType.DATABASE) {
+		// 	conf = this.app.database._confToJson(<IDatabaseConfig>config);
+		// } else if (type == ConfigType.SESSION) {
+		// 	let sessionConfig = <ISessionConfig>config;
+		// 	conf = sessionConfig && {
+		// 		secret: sessionConfig.secret,
+		// 		maxAge: sessionConfig.maxAge
+		// 	};
+		// } else if (type == ConfigType.GIT) {
+		// 	let gitConfig = <IGitConfig>config;
+		// 	conf = gitConfig && {
+		// 		defaultRemote: gitConfig.defaultRemote
+		// 		// branch: gitConfig.branch
+		// 	};
+		// } else if (type == ConfigType.CLIENT) {
+		// 	conf = <IClientConfig>config;
+		// } else if (type == ConfigType.DEPENDENCIES) {
+		// 	conf = <IDependenciesConfig>config;
+		// } else if (type == ConfigType.SCRIPTS) {
+		// 	conf = <IScriptsMap>config;
+		// }
 
-		if (options.live) {
-			if (!this.config[mode][type]) {
-				this.config[mode][type] = {};
-			}
-			this.config[mode][type].live = conf;
+		if ([
+			ConfigType.SERVER,
+			ConfigType.DATABASE,
+			ConfigType.SESSION,
+			ConfigType.DEPENDENCIES,
+			ConfigType.ADDONS
+		].indexOf(type) != -1) {
+			this.config[type][mode] = config;
 		} else {
-			let live = this.config[mode][type] && this.config[mode][type].live;
-			this.config[mode][type] = conf;
-			if (this.config[mode][type] && live) {
-				this.config[mode][type].live = live;
-			}
+			this.config[type] = config;
 		}
+		// if (options.live) {
+		// 	if (!this.config[mode][type]) {
+		// 		this.config[mode][type] = {};
+		// 	}
+		// 	this.config[mode][type].live = conf;
+		// } else {
+			// let live = this.config[mode][type] && this.config[mode][type].live;
+			// this.config[mode][type] = conf;
+			// if (this.config[mode][type] && live) {
+			// 	this.config[mode][type].live = live;
+			// }
+		//}
+	}
 
+	save(opts?: ISaveOptions) {
 		if (opts && opts.beforeSave) {
-			opts.beforeSave(path.join(".materia", "server.json"));
+			opts.beforeSave("materia.json");
+			opts.beforeSave("package.json");
 		}
-		this.app
+		const res = this.toJson()
+		// console.log('save', res);
+		return this.app
 			.saveFile(
-				path.join(this.app.path, ".materia", "server.json"),
-				JSON.stringify(this.toJson(), null, "\t"),
-				{ mkdir: true }
+				path.join(this.app.path, "materia.json"),
+				JSON.stringify(res.materia, null, "\t")
+			)
+			.then(() =>
+				this.app.saveFile(
+					path.join(this.app.path, "materia.prod.json"),
+					JSON.stringify(res.materiaProd, null, "\t")
+				)
+			)
+			.then(() =>
+				this.app.saveFile(
+					path.join(this.app.path, "package.json"),
+					JSON.stringify(res.package, null, "\t")
+				)
 			)
 			.catch(e => {
 				if (opts && opts.afterSave) {
@@ -273,6 +305,7 @@ export class Config {
 				throw e;
 			})
 			.then(() => {
+				// console.log('SAVED');
 				if (opts && opts.afterSave) {
 					opts.afterSave();
 				}
@@ -284,6 +317,32 @@ export class Config {
 	@returns {object}
 	*/
 	toJson() {
-		return this.config;
+		// const newMateriaJson: any = {};
+		return {
+			materia: Object.assign({}, this.materiaJson, {
+				name: this.app.name,
+				icon: this.app.icon,
+				server: this.config.server && this.config.server.dev,
+				database: this.config.database && this.config.database.dev,
+				session: this.config.session && this.config.session.dev,
+				client: this.config.client,
+				addons: this.config.addons && this.config.addons.dev,
+				git: this.config.git
+			}),
+			materiaProd: Object.assign({}, this.materiaProdJson, {
+				server: this.config.server && this.config.server.prod,
+				database: this.config.database && this.config.database.prod,
+				session: this.config.session && this.config.session.prod,
+				addons: this.config.addons && this.config.addons.prod
+			}),
+			package: Object.assign({}, this.packageJson, {
+				name: this.app.package,
+				version: this.app.version,
+				scripts: this.config.scripts,
+				dependencies: this.config.dependencies.prod,
+				devDependencies: this.config.dependencies.dev
+			})
+		};
+		// return this.config;
 	}
 }

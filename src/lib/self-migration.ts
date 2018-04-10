@@ -101,7 +101,15 @@ export class SelfMigration {
 					.catch(() => {})
 					.then(() => this.readJsonFile(path.join(".materia", "client.json")))
 					.then(clientContent => {
-						config.client = clientContent;
+						config.client = {
+							src: clientContent.src,
+							scripts: clientContent.scripts,
+							autoWatch: clientContent.autoWatch
+						}
+						if (clientContent.src != clientContent.build) {
+							config.client['dist'] = clientContent.build
+						}
+
 					})
 					.catch(() => {})
 					.then(() => this.readJsonFile(path.join(".materia", "addons.json")))

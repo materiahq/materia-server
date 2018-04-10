@@ -21,6 +21,7 @@ import { Addons, IAddon } from './addons'
 import { Api } from './api'
 
 import { MateriaError } from './error'
+import { MateriaApi } from '../api';
 
 //TODO: convert to ts
 let AddonsTools = require('./runtimes/tools/addons')
@@ -84,7 +85,7 @@ export enum AppMode {
  * @property {Entities} entities - Access to the app's entities
  */
 export class App extends events.EventEmitter {
-	id: number
+	id: string
 	name: string
 	package: string
 	version?: string
@@ -92,11 +93,11 @@ export class App extends events.EventEmitter {
 	private packageJsonCache?: string
 
 	materia_path: string = __dirname
-	mode: AppMode
 
-	loaded: boolean = false
+	mode = AppMode.DEVELOPMENT
+	loaded = false
 
-	infos: IMateriaConfig
+	// infos: IMateriaConfig
 
 	history: History
 	entities: Entities
@@ -108,6 +109,7 @@ export class App extends events.EventEmitter {
 	logger: Logger
 	config: Config
 	selfMigration: SelfMigration
+	materiaApi: MateriaApi
 	//git: any
 
 	status: boolean
@@ -118,6 +120,8 @@ export class App extends events.EventEmitter {
 
 	invalid: boolean
 	error: string
+
+	masterPassword: string
 
 	constructor(public path: string, public options?: IAppOptions) {
 		super()
@@ -160,6 +164,7 @@ export class App extends events.EventEmitter {
 		this.client = new Client(this)
 		this.synchronizer = new Synchronizer(this)
 		this.config = new Config(this)
+		this.materiaApi = new MateriaApi(this)
 
 		this.status = false
 
@@ -217,6 +222,7 @@ export class App extends events.EventEmitter {
 		.then(() => this.database.start())
 		.then(() => this.entities.clear())
 		.then(() => this.server.session.initialize())
+		.then(() => this.materiaApi.initialize())
 		.then(() => this.logger.log(` └── Sessions: ${chalk.green.bold('OK')}`))
 		.then(() => this.addons.loadAddons())
 		.then(() => this.addons.loadFiles())
@@ -375,15 +381,15 @@ manual_scaling:
 	@param {string} - The configuration key
 	@param {value} - The value to set
 	*/
-	updateInfo(key, value) {
-		if (key == "name") {
-			this.name = this.infos.name = value
-		} else if (key == 'package') {
-			this.package = value
-		} else {
-			this.infos[key] = value
-		}
-	}
+	// updateInfo(key, value) {
+	// 	if (key == "name") {
+	// 		this.name = this.infos.name = value
+	// 	} else if (key == 'package') {
+	// 		this.package = value
+	// 	} else {
+	// 		this.infos[key] = value
+	// 	}
+	// }
 
 	/**
 	Starts the materia app
@@ -547,7 +553,7 @@ manual_scaling:
 		}
 	}
 
-	initializeStaticDirectory(opts) {
+	initializeStaticDirectory(opts?) {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave('web')
 		}

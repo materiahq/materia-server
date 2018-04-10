@@ -3,7 +3,7 @@ import * as path from 'path'
 import chalk from 'chalk'
 
 import { App, AppMode } from './app'
-import { IServerConfig } from '@materia/interfaces'
+import { IServerConfig, IClientConfig } from '@materia/interfaces'
 import { ConfigType, IConfigOptions } from './config'
 import { MateriaError } from './error'
 
@@ -47,16 +47,20 @@ export class Server {
 		this.expressApp.use(methodOverride())
 		this.expressApp.use(compression())
 
-		// let webDir = this.app.client.config.build
-		// if (!this.app.client.config.build && this.app.client.config.src) {
-		// 	webDir = this.app.client.config.src
-		// }
-		// else {
-		// 	webDir = 'web'
-		// }
+		const clientConfig = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
+
+		let webDir;
+		// console.log(clientConfig);
+		if (clientConfig && clientConfig.dist) {
+			webDir = clientConfig.dist
+		} else if (clientConfig && !clientConfig.dist && clientConfig.src) {
+			webDir = clientConfig.src
+		} else {
+			webDir = 'client'
+		}
 
 		// Initialize dynamic Express static Object.
-		this.createDynamicStatic(path.join(this.app.path, this.app.client.config.build));
+		this.createDynamicStatic(path.join(this.app.path, webDir));
 		this.expressApp.use(this.dynamicStatic);
 
 		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
@@ -143,11 +147,17 @@ export class Server {
 	@returns {boolean}
 	*/
 	hasStatic() {
-		let p = path.join(this.app.path, 'web')
-		if (this.app.client.config && this.app.client.config.build) {
-			p = path.join(this.app.path, this.app.client.config.build)
+		// DEPRECATED or should call this.app.client.hasIndexFile() as it's not the concern of the server implementation to know about the client
+		const clientConfig: IClientConfig = this.app.config.get(this.app.mode, ConfigType.CLIENT);
+		let p;
+		if (clientConfig && clientConfig.dist) {
+			p = clientConfig.dist
+		} else if ( clientConfig && ! clientConfig.dist && clientConfig.src) {
+			p = clientConfig.src;
+		} else {
+			p = 'client';
 		}
-		return fs.existsSync(path.join(p, 'index.html'))
+		return fs.existsSync(path.join(this.app.path, p, 'index.html'))
 	}
 
 	/**
@@ -155,6 +165,8 @@ export class Server {
 	@returns {Promise<void>}
 	*/
 	start(): Promise<void> {
+		const clientConfig: IClientConfig = this.app.config.get(this.app.mode, ConfigType.CLIENT)
+
 		return new Promise<void>((resolve, reject) => {
 			this.stop().then(() => {
 				this.app.api.registerEndpoints()
@@ -166,11 +178,11 @@ export class Server {
 				})
 
 				this.expressApp.all('/*', (req, res) => {
-					if (fs.existsSync(path.join(this.app.path, this.app.client.config.build, '404.html'))) {
-						res.sendFile(path.join(this.app.path, this.app.client.config.build, '404.html'))
+					if (fs.existsSync(path.join(this.app.path, clientConfig.dist, '404.html'))) {
+						res.sendFile(path.join(this.app.path, clientConfig.dist, '404.html'))
 					}
 					else if (this.hasStatic()) {
-						res.sendFile(path.join(this.app.path, this.app.client.config.build, 'index.html'))
+						res.sendFile(path.join(this.app.path, clientConfig.dist, 'index.html'))
 					}
 					else {
 						res.status(404).send({
