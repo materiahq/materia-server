@@ -13,22 +13,27 @@ export class FilesController {
 	constructor(private app: App) {
 	}
 
-	read(req, res) {
+	getFullPath(relativePath) {
 		let p = this.app.path;
-		if (req.query.path) {
-			if (req.query.path.includes(this.app.path)) {
-				p = req.query.path;
+		if (relativePath && relativePath !== '/') {
+			if (relativePath.includes(this.app.path)) {
+				p = relativePath;
 			} else {
-				p = path.join(this.app.path, req.query.path);
+				p = path.join(this.app.path, relativePath);
 			}
 		}
-		console.log('read', p, fse.existsSync(p), fse.lstatSync(p).isDirectory())
+		return p;
+	}
+
+	read(req, res) {
+		const p = this.getFullPath(req.query.path);
+
 		if (req.query.path && fse.existsSync(p)) {
 			if (fse.lstatSync(p).isDirectory()) {
 				const splittedName = p.split('/');
 				const length = splittedName.length;
 				const filename = splittedName[length - 1];
-				res.send(200, this.app.getFiles(req.query.depth, filename, path.join(...splittedName)))
+				res.send(200, this.app.getFiles(req.query.depth || 1, filename, p))
 			}
 			else {
 				res.send(200, this.app.readFile(p))
