@@ -42,7 +42,7 @@ export class OAuth {
 
 					this.tokens.push({
 						token: tokenHash,
-						expires_in: new Date(new Date().getTime() + 3600 * 48),
+						expires_in: new Date(new Date().getTime() + 3600 * 48 * 1000),
 						username: 'admin',
 						scope: ["*"]
 					});
