@@ -82,22 +82,21 @@ export class MateriaApi {
 		/**
 		 * GIT Endpoints
 		 */
+		this.api.get('/materia/git', this.oauth.isAuth, this.gitCtrl.load.bind(this.gitCtrl));
 		this.api.post('/materia/git/init', this.oauth.isAuth, this.gitCtrl.init.bind(this.gitCtrl));
 		this.api.post('/materia/git/fetch', this.oauth.isAuth, this.gitCtrl.fetch.bind(this.gitCtrl));
-		this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.getStatuses.bind(this.gitCtrl));
-		this.api.get('/materia/git/statuses/:path', this.oauth.isAuth, this.gitCtrl.getStatus.bind(this.gitCtrl));
-		this.api.post('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.stageAll.bind(this.gitCtrl));
-		this.api.post('/materia/git/statuses/:path', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
-		this.api.delete('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.unstageAll.bind(this.gitCtrl));
-		this.api.delete('/materia/git/statuses/:path', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));
+		// this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl..bind(this.gitCtrl));
+		this.api.get('/materia/git/statuses/diff', this.oauth.isAuth, this.gitCtrl.getStatus.bind(this.gitCtrl));
+		this.api.post('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
+		this.api.delete('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));
 		this.api.post('/materia/git/commit', this.oauth.isAuth, this.gitCtrl.commit.bind(this.gitCtrl));
 		this.api.post('/materia/git/pull', this.oauth.isAuth, this.gitCtrl.pull.bind(this.gitCtrl));
 		this.api.post('/materia/git/push', this.oauth.isAuth, this.gitCtrl.push.bind(this.gitCtrl));
-		this.api.post('/materia/git/history', this.oauth.isAuth, this.gitCtrl.getHistory.bind(this.gitCtrl));
-		this.api.post('/materia/git/history/:sha', this.oauth.isAuth, this.gitCtrl.getCommit.bind(this.gitCtrl));
-		this.api.post('/materia/git/history/:sha/:path', this.oauth.isAuth, this.gitCtrl.getCommitDiff.bind(this.gitCtrl));
-		this.api.post('/materia/git/checkout/:branch', this.oauth.isAuth, this.gitCtrl.checkout.bind(this.gitCtrl));
-		this.api.post('/materia/git/merge/:branch', this.oauth.isAuth, this.gitCtrl.merge.bind(this.gitCtrl));
+		this.api.get('/materia/git/history', this.oauth.isAuth, this.gitCtrl.getHistory.bind(this.gitCtrl));
+		this.api.get('/materia/git/history/:hash', this.oauth.isAuth, this.gitCtrl.getCommit.bind(this.gitCtrl));
+		// this.api.post('/materia/git/history/:sha/:path', this.oauth.isAuth, this.gitCtrl.getCommitDiff.bind(this.gitCtrl));
+		// this.api.post('/materia/git/checkout/:branch', this.oauth.isAuth, this.gitCtrl.checkout.bind(this.gitCtrl));
+		// this.api.post('/materia/git/merge/:branch', this.oauth.isAuth, this.gitCtrl.merge.bind(this.gitCtrl));
 
 		/**
 		 * Database & Entities Endpoints

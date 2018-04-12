@@ -70,7 +70,7 @@ export class OAuth {
 		passport.use("accessToken", new BearerStrategy(
 			(accessToken, done) => {
 				var accessTokenHash = crypto.createHash('sha1').update(accessToken).digest('hex')
-				console.log(this.tokens);
+				// console.log(this.tokens);
 				const token = this.tokens.find(token => token.token == accessTokenHash)
 				if (!token) return done(null, false)
 				if (new Date() > token.expires_in) {

@@ -35,6 +35,7 @@
     "pretty-error": "^2.0.2",
     "sequelize": "^4.8.4",
     "sequelize-cli": "^3.0.0-3",
+    "simple-git": "^1.92.0",
     "sqlite3": "3.1.8",
     "tedious": "^1.14.0",
     "uuid": "^3.1.0",

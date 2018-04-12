@@ -1,37 +1,131 @@
 import { App } from "../../lib";
+import { Git } from "../lib/git";
 
 export class GitController {
-	constructor(private app: App) {}
+	client: Git;
 
-	init(req, res) {}
+	constructor(private app: App) {
+		this.client = new Git(this.app);
+	}
 
-	fetch(req, res) {}
+	load(req, res) {
+		this.client.load().then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	getStatuses(req, res) {}
+	init(req, res) {
+		this.client.init().then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	getStatus(req, res) {}
+	fetch(req, res) {
+		this.client.fetch(req.body && req.body.force).then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	stageAll(req, res) {}
+	getStatus(req, res) {
+		this.client.getStatusDiff(req.query.path).then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	stage(req, res) {}
+	stage(req, res) {
+		const promise = req.body.path
+			? this.client.stage(req.body.path)
+			: this.client.stageAll();
 
-	unstageAll(req, res) {}
+		promise.then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	unstage(req, res) {}
+	unstage(req, res) {
+		const promise = req.body.path
+			? this.client.unstage(req.body.path)
+			: this.client.unstageAll();
 
-	commit(req, res) {}
+		promise.then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	pull(req, res) {}
+	commit(req, res) {
+		this.client.commit(req.body.summary, req.body.description).then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	push(req, res) {}
+	pull(req, res) {
+		this.client.pull(req.body.remote, req.body.branch).then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	getHistory(req, res) {}
+	push(req, res) {
+		this.client.push().then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	getCommit(req, res) {}
+	getHistory(req, res) {
+		this.client.refreshHistory().then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	getCommitDiff(req, res) {}
+	getCommit(req, res) {
+		this.client.getHistoryDetail(req.params.hash).then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		})
+	}
 
-	checkout(req, res) {}
+	// getCommitDiff(req, res) {
+	// 	this.client.get().then(data => {
+	// 		res.status(200).send(data);
+	// 	}).catch(err => {
+	// 		res.status(500).send(err);
+	// 	})
+	// }
 
-	merge(req, res) {}
+	// checkout(req, res) {
+	// 	this.client.checkout().then(data => {
+	// 		res.status(200).send(data);
+	// 	}).catch(err => {
+	// 		res.status(500).send(err);
+	// 	})
+	// }
+
+	// merge(req, res) {
+	// 	this.client.fetch().then(data => {
+	// 		res.status(200).send(data);
+	// 	}).catch(err => {
+	// 		res.status(500).send(err);
+	// 	})
+	// }
 }
+

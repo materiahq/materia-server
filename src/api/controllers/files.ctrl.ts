@@ -44,7 +44,6 @@ export class FilesController {
 	}
 
 	write(req, res) {
-		console.log(req.body.isDir, typeof req.body.isDir);
 		if (req.body.isDir) {
 			fse.mkdirSync(req.body.path);
 			res.status(201).json({ saved: true })
