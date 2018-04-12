@@ -32,8 +32,8 @@ export class Api {
 	@param {object} - Endpoint's description. must contain at leat `method` and `url`
 	@returns {boolean}
 	*/
-	exists(endpoint: IEndpoint):boolean {
-		return !! this.get(endpoint.method, endpoint.url)
+	exists(endpoint: IEndpoint): boolean {
+		return !!this.get(endpoint.method, endpoint.url)
 	}
 
 	/**
@@ -41,10 +41,10 @@ export class Api {
 	@param {object} - Endpoint's description
 	@param {object} - Action's options
 	*/
-	add(endpoint: IEndpoint, options?:IApplyOptions) {
+	add(endpoint: IEndpoint, options?: IApplyOptions) {
 		options = options || {}
 
-		if ( ! endpoint.controller && endpoint.query && endpoint.query.entity && this.app.database.disabled ) {
+		if (!endpoint.controller && endpoint.query && endpoint.query.entity && this.app.database.disabled) {
 			throw new MateriaError('The database is disabled and this endpoint rely on it')
 		}
 		if (endpoint) {
@@ -71,7 +71,7 @@ export class Api {
 	@param {integer} - Position in the array
 	@param {object} - Action's options
 	*/
-	put(endpoint: IEndpoint, pos, options:IApplyOptions) {
+	put(endpoint: IEndpoint, pos, options: IApplyOptions) {
 		options = options || {}
 		this.endpoints[pos] = new Endpoint(this.app, endpoint)
 		if (options.apply != false) {
@@ -88,22 +88,20 @@ export class Api {
 	@param {string} - HTTP url relative to the API base.
 	@param {object} - Action's options
 	*/
-	remove(method: string, url: string, options?:IApplyOptions) {
+	remove(method: string, url: string, options?: IApplyOptions) {
 		options = options || {}
-		this.endpoints.forEach((endpoint, i) => {
-			if (endpoint.url == url && endpoint.method == method) {
-				this.endpoints.splice(i, 1)
-				if (options.apply != false) {
-					this.updateEndpoints()
-				}
-				if (options.save != false) {
-					let opts:IApplyOptions = Object.assign({}, options)
-					opts.fromAddon = endpoint.fromAddon
-					this.save(opts)
-				}
-				return
-			}
-		})
+		const index = this.endpoints.findIndex((e) => e.url === url && e.method === method);
+		const endpoint = this.endpoints[index];
+		this.endpoints.splice(index, 1)
+		if (options.apply != false) {
+			this.updateEndpoints()
+		}
+		if (options.save != false) {
+			let opts: IApplyOptions = Object.assign({}, options)
+			opts.fromAddon = endpoint.fromAddon
+			this.save(opts)
+		}
+		return
 	}
 
 	/**
@@ -122,7 +120,8 @@ export class Api {
 	*/
 	findAll() { return this.endpoints }
 
-	load(addon?: IAddon):Promise<any> {
+	load(addon?: IAddon): Promise<any> {
+		this.endpoints = [];
 		let basePath = addon ? addon.path : this.app.path
 		let opts: IApplyOptions = {
 			save: false
@@ -135,7 +134,7 @@ export class Api {
 		try {
 			content = fs.readFileSync(path.join(basePath, 'server', 'api.json'))
 		}
-		catch(e) {
+		catch (e) {
 			return Promise.resolve()
 		}
 
@@ -221,21 +220,21 @@ export class Api {
 	Get the endpoints array in the `api.json` format
 	@returns {Array<object>}
 	*/
-	toJson(opts?:IApplyOptions) {
+	toJson(opts?: IApplyOptions) {
 		let res = []
 		this.endpoints.forEach((endpoint) => {
-			if ( ! opts || opts.fromAddon == endpoint.fromAddon) {
+			if (!opts || opts.fromAddon == endpoint.fromAddon) {
 				res.push(endpoint.toJson())
 			}
 		})
 		return res
 	}
 
-	save(opts?:IApplyOptions) {
+	save(opts?: IApplyOptions) {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave(path.join('server', 'api.json'))
 		}
-		if ( ! opts.fromAddon) {
+		if (!opts.fromAddon) {
 			let basePath = (opts && opts.fromAddon) ? opts.fromAddon.path : this.app.path
 			fs.writeFileSync(path.join(basePath, 'server', 'api.json'), JSON.stringify(this.toJson(opts), null, '\t'))
 		}

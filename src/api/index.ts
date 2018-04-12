@@ -125,12 +125,15 @@ export class MateriaApi {
 		/**
 		 * API Endpoints
 		 */
-		this.api.get('/materia/controllers/:controllerName', this.oauth.isAuth, this.endpointsCtrl.createCode.bind(this.endpointsCtrl));
+		this.api.get('/materia/controllers', this.oauth.isAuth, this.endpointsCtrl.getControllers.bind(this.endpointsCtrl));
+		this.api.get('/materia/endpoints', this.oauth.isAuth, this.endpointsCtrl.getEndpoints.bind(this.endpointsCtrl));
+		this.api.get('/materia/controllers/:name', this.oauth.isAuth, this.endpointsCtrl.loadController.bind(this.endpointsCtrl));
 		this.api.post('/materia/endpoints/code', this.oauth.isAuth, this.endpointsCtrl.createCode.bind(this.endpointsCtrl));
 		this.api.post('/materia/endpoints/query', this.oauth.isAuth, this.endpointsCtrl.createQuery.bind(this.endpointsCtrl));
-		this.api.put('/materia/endpoints/code/:method/:endpoint', this.oauth.isAuth, this.endpointsCtrl.updateCode.bind(this.endpointsCtrl));
-		this.api.put('/materia/endpoints/query/:method/:endpoint', this.oauth.isAuth, this.endpointsCtrl.updateQuery.bind(this.endpointsCtrl));
-		this.api.delete('/materia/endpoints/:method/:endpoint', this.oauth.isAuth, this.endpointsCtrl.remove.bind(this.endpointsCtrl));
+		this.api.put('/materia/endpoints/code', this.oauth.isAuth, this.endpointsCtrl.updateCode.bind(this.endpointsCtrl));
+		this.api.put('/materia/endpoints/query', this.oauth.isAuth, this.endpointsCtrl.updateQuery.bind(this.endpointsCtrl));
+		// Delete with id: btoa(endpoint.method + endpoint.url)
+		this.api.delete('/materia/endpoints/:id', this.oauth.isAuth, this.endpointsCtrl.remove.bind(this.endpointsCtrl));
 
 		/**
 		 * Permissions Endpoints

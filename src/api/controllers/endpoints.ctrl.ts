@@ -9,8 +9,31 @@ import { EndpointsLib } from '../lib/endpoints';
 export class EndpointsController {
 	constructor(private app: App) {}
 
+	getEndpoints(req, res) {
+		const endpoints: IEndpoint[] = this.app.api.findAll().map(api =>
+			Object.assign({}, api.toJson(), {
+				fromAddon: api.fromAddon
+					? {
+							name: api.fromAddon.name,
+							logo: api.fromAddon.logo,
+							package: api.fromAddon.package,
+							path: api.fromAddon.path
+					  }
+					: {},
+				params: api.getAllParams(),
+				data: api.getAllData()
+			})
+		);
+		return res.status(200).send(endpoints);
+	}
+
+	getControllers(req, res) {
+		const controllers = this.app.api.getControllers();
+		return res.status(200).send(controllers);
+	}
+
 	loadController(req, res) {
-		let controllerName = req.params.controllerName;
+		let controllerName = req.params.name;
 		try {
 			let endpointPath = path.join(this.app.path, 'server', 'controllers');
 			const fromAddon = controllerName.split('@materia').length > 1;
@@ -41,7 +64,7 @@ export class EndpointsController {
 					'utf-8'
 				)
 				.toString();
-			res.send(code);
+			res.status(200).send(code);
 		} catch (err) {
 			const error = JSON.parse(err);
 			res.status(500).json(error);
@@ -104,9 +127,9 @@ export class EndpointsController {
 	}
 
 	updateCode(req, res) {
-		const {method, endpoint} = req.params;
-		const newEndpoint = req.body;
-
+		const newEndpoint = req.body.newEndpoint;
+		const oldEndpointId = req.body.oldEndpointId;
+		const [method, endpoint] = oldEndpointId;
 		return new Promise((resolve, reject) => {
 			const controller = newEndpoint.controller.replace(
 				/(\.ctrl)?\.js$/,
@@ -160,9 +183,9 @@ export class EndpointsController {
 	}
 
 	updateQuery(req, res) {
-		const {method, endpoint} = req.params;
-		const newEndpoint = req.body;
-		this.app.api.remove(method, endpoint);
+		const newEndpoint = req.body.newEndpoint;
+		const oldEndpointId = req.body.oldEndpointId;
+		this.app.api.remove(oldEndpointId[0], oldEndpointId[1]);
 		if (
 			newEndpoint.params &&
 			newEndpoint.params.length
@@ -193,8 +216,14 @@ export class EndpointsController {
 	}
 
 	remove(req, res) {
-		this.app.api.remove(req.params.method, req.params.endpoint);
-		return EndpointsLib.list(this.app);
+		const id = Buffer.from(req.params.id, 'base64').toString()
+		const [method, ...parsedUrl] = id.split('/');
+		let url = '';
+		parsedUrl.forEach((t) => {
+			url += `/${t}`
+		});
+		this.app.api.remove(method, url, {apply: true});
+		return res.status(200).send();
 	}
 
 	generate(req, res) {
