@@ -287,7 +287,8 @@ export class Git {
 			.catch(e => console.log(`error getting commit ${hash}: ${e}`));
 	}
 
-	stage(status: IGitStatus): Promise<IGitWorkingCopy> {
+	stage(statusPath: string): Promise<IGitWorkingCopy> {
+		const status = this.workingCopy.files.find(s => s.path == statusPath);
 		let res;
 		if (status.index == 'D') {
 			res = this.client.rmKeepLocal([status.path]);
@@ -296,7 +297,8 @@ export class Git {
 		return res.then(() => this.refreshWorkingCopy())
 	}
 
-	unstage(status: IGitStatus): Promise<IGitWorkingCopy> {
+	unstage(statusPath: string): Promise<IGitWorkingCopy> {
+		const status = this.workingCopy.files.find(s => s.path == statusPath);
 		return this.client
 			.reset(['HEAD', status.path])
 			.catch(e => {

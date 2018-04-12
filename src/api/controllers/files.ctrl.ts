@@ -27,7 +27,6 @@ export class FilesController {
 
 	read(req, res) {
 		const p = this.getFullPath(req.query.path);
-
 		if (req.query.path && fse.existsSync(p)) {
 			if (fse.lstatSync(p).isDirectory()) {
 				const splittedName = p.split('/');
@@ -44,11 +43,13 @@ export class FilesController {
 	}
 
 	write(req, res) {
+		const p = this.getFullPath(req.query.path);
+
 		if (req.body.isDir) {
-			fse.mkdirSync(req.body.path);
+			fse.mkdirSync(p);
 			res.status(201).json({ saved: true })
 		} else {
-			this.app.saveFile(path.join(this.app.path, req.body.path), req.body.content, {
+			this.app.saveFile(p, req.body.content, {
 				mkdir: true
 			});
 			res.status(201).json({ saved: true })
@@ -56,8 +57,8 @@ export class FilesController {
 	}
 
 	move(req, res) {
-		const filePath = req.body.path;
-		const newPath = req.body.newPath;
+		const filePath = this.getFullPath(req.query.path);
+		const newPath = this.getFullPath(req.body.newPath);
 
 		fse.move(
 			filePath,
@@ -73,7 +74,7 @@ export class FilesController {
 	}
 
 	isDirectory(req, res) {
-		const p = req.query.path;
+		const p = this.getFullPath(req.query.path);
 
 		if (
 			fse.existsSync(p) &&
@@ -86,7 +87,7 @@ export class FilesController {
 	}
 
 	remove(req, res) {
-		fse.removeSync(req.query.path);
+		fse.removeSync(this.getFullPath(req.query.path));
 		res.status(200).json({ removed: true });
 	}
 }

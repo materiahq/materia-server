@@ -73,8 +73,9 @@ export class MateriaApi {
 		/**
 		 * Files Endpoints
 		 */
-		this.api.get('/materia/is_directory', this.oauth.isAuth, this.filesCtrl.isDirectory.bind(this.filesCtrl));
+		this.api.get('/materia/is_directory/:path(.*)', this.oauth.isAuth, this.filesCtrl.isDirectory.bind(this.filesCtrl));
 		this.api.get('/materia/files', this.oauth.isAuth, this.filesCtrl.read.bind(this.filesCtrl));
+		// this.api.get('/materia/files/:path(.*)', this.oauth.isAuth, this.filesCtrl.read.bind(this.filesCtrl));
 		this.api.post('/materia/files', this.oauth.isAuth, this.filesCtrl.write.bind(this.filesCtrl));
 		this.api.put('/materia/files', this.oauth.isAuth, this.filesCtrl.move.bind(this.filesCtrl));
 		this.api.delete('/materia/files', this.oauth.isAuth, this.filesCtrl.remove.bind(this.filesCtrl));
@@ -86,9 +87,11 @@ export class MateriaApi {
 		this.api.post('/materia/git/init', this.oauth.isAuth, this.gitCtrl.init.bind(this.gitCtrl));
 		this.api.post('/materia/git/fetch', this.oauth.isAuth, this.gitCtrl.fetch.bind(this.gitCtrl));
 		// this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl..bind(this.gitCtrl));
-		this.api.get('/materia/git/statuses/diff', this.oauth.isAuth, this.gitCtrl.getStatus.bind(this.gitCtrl));
-		this.api.post('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
-		this.api.delete('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));
+		this.api.get('/materia/git/statuses/:path(.*)', this.oauth.isAuth, this.gitCtrl.getStatus.bind(this.gitCtrl));
+		this.api.post('/materia/git/stage/:path(.*)', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
+		this.api.delete('/materia/git/unstage/:path(.*)', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));
+		this.api.post('/materia/git/stage_all', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
+		this.api.delete('/materia/git/unstage_all', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));
 		this.api.post('/materia/git/commit', this.oauth.isAuth, this.gitCtrl.commit.bind(this.gitCtrl));
 		this.api.post('/materia/git/pull', this.oauth.isAuth, this.gitCtrl.pull.bind(this.gitCtrl));
 		this.api.post('/materia/git/push', this.oauth.isAuth, this.gitCtrl.push.bind(this.gitCtrl));
@@ -152,69 +155,3 @@ export class MateriaApi {
 		this.api.post('/materia/client/boilerplate/init/vuejs', this.oauth.isAuth, this.boilerplateCtrl.initVue.bind(this.addonsCtrl));
 	}
 }
-
-/*
-POST /auth
-
-GET /apps                                        materiaServer.initialize()
-POST /apps/:id/selected                            materiaServer.selectApp(id)
-    => return a socket.io channel
-    => automatically load and start
-
-GET /app/selected                                materiaServer.toJson(materiaServer.getSelectedApp())
-
-POST /server/start
-POST /server/stop
-POST /server/restart                            materiaServer.restartServer()
-
-POST /client/build
-    => return a socket.io channel (the same than the watch)
-POST /client/watch/start
-    => return a socket.io channel
-POST /client/watch/stop
-
-
------
-
-POST /database/try                                materiaServer.tryDatabaseConnect(conf)
-
-GET /entities                                    materiaServer.loadEntityJson(app);
-POST /entities                                    materiaServer.createEntity(entity: IEntity)
-PUT /entities/:name                                materiaServer.renameEntity(name: string, newName: string)
-DELETE /entities/:name                            materiaServer.removeEntity(name: string)
-
-PUT /entities/:name/fields                        materiaServer.saveField(name: string, field: IField)
-DELETE /entities/:name/fields/:fieldName        materiaServer.removeField(name: string, fieldName: string)
-
-POST /entities/relations                        !! materiaServer.addRelations(payload)
-DELETE /entities/relations                        !! materiaServer.removeRelation(payload)
-
-POST /entities/:name/queries/:id/run            query.runQuery(name, id, params)
-POST /entities/:name/queries                    query.addQuery(query)
-PUT /entities/:name/queries/:id                    !! query.updateQuery(queries, selected)
-DELETE /entities/:name/queries/:id                query.deleteQuery(id, name)
-POST /playground                                query.runPlaygroundQuery(query)
-
-GET /addons/:pkg/settings                        ?? get settings / path of the addons
-POST /addons/:pkg/install                        ## addon.install()
-POST /addons/:pkg/setup                            ## addon.setup()
-PUT /addons/:pkg/upgrade                        ## addon.upgrade()
-DELETE /addons/:pkg/uninstall                    ## addon.uninstall()
-
-POST /entities/:name/generate-endpoint            materiaServer.generateEdnpointsForCurrentApp(entity)
-
-GET /api                                        materiaServer.getEndpoints
-GET /api/controllers/:controller                endpoint.loadEndpointCode(controller)
-POST /api                                        !! endpoint.addEndpointCode(payload) & endpoint.addEndpointQuery(payload)
-DELETE /api/:method/:endpoint                    !! endpoint.deleteEndpoint(payload)
-PUT /api/:method/:endpoint                        !! endpoint.updateEndpointCode(payload) & endpoint.updateEndpointQuery(payload)
-POST /api/:method/:endpoint/run                    !! endpoint.runEndpoint(payload)
-
-GET /api/models/:name                            materiaServer.getModelCode(name: string)
-GET /api/models/:addonPath/:name                materiaServer.getModelCode(name: string, fromAddon.path)
-
-GET /api/permissions                            permission.getPermissions()
-POST /api/permissions                            permission.addPermission(perm)
-PUT /api/permissions/:name                        !! permission.updatePermission(payload)
-DELETE /api/permission/:name                    !! deletePermission(payload)
-*/

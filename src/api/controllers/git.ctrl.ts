@@ -33,7 +33,8 @@ export class GitController {
 	}
 
 	getStatus(req, res) {
-		this.client.getStatusDiff(req.query.path).then(data => {
+		console.log('#####', req.params);
+		this.client.getStatusDiff(req.params.path).then(data => {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
@@ -41,8 +42,8 @@ export class GitController {
 	}
 
 	stage(req, res) {
-		const promise = req.body.path
-			? this.client.stage(req.body.path)
+		const promise = req.params.path
+			? this.client.stage(req.params.path)
 			: this.client.stageAll();
 
 		promise.then(data => {
@@ -53,8 +54,8 @@ export class GitController {
 	}
 
 	unstage(req, res) {
-		const promise = req.body.path
-			? this.client.unstage(req.body.path)
+		const promise = req.params.path
+			? this.client.unstage(req.params.path)
 			: this.client.unstageAll();
 
 		promise.then(data => {
