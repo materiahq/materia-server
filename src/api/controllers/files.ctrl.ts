@@ -29,7 +29,7 @@ export class FilesController {
 		const p = this.getFullPath(req.query.path);
 		if (req.query.path && fse.existsSync(p)) {
 			if (fse.lstatSync(p).isDirectory()) {
-				const splittedName = p.split('/');
+				const splittedName = p.split(path.sep);
 				const length = splittedName.length;
 				const filename = splittedName[length - 1];
 				res.send(200, this.app.getFiles(req.query.depth || 1, filename, p))
