@@ -809,7 +809,10 @@ export class Entity {
 
 		let fieldobj:Field
 		try {
-			fieldobj = new Field(this, field)
+			fieldobj = new Field(this, Object.assign({}, field, {
+				read: true,
+				write: field.autoIncrement ? false : true
+			}));
 		} catch(e) {
 			return Promise.reject(e)
 		}

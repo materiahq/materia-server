@@ -235,8 +235,9 @@ export class Entities {
 			entity = entityobj
 			createPromise = Promise.resolve()
 		} else {
-			if (! entityobj.name)
+			if (! entityobj.name) {
 				return Promise.reject(new MateriaError('missing entity name'))
+			}
 			entity = new DBEntity(this.app)
 			if ( ! entityobj.isRelation && (! entityobj.fields || ! entityobj.fields.length)) {
 				entityobj.fields = [
@@ -254,10 +255,12 @@ export class Entities {
 				]
 			}
 
-			if (entityobj.overwritable && this.entities[entity.name] && options.apply)
+			if (entityobj.overwritable && this.entities[entity.name] && options.apply) {
 				return Promise.resolve(entity)
-			if (entityobj.isRelation && entityobj.relations)
+			}
+			if (entityobj.isRelation && entityobj.relations) {
 				delete entityobj.relations //NEED TO CHECK THIS / NOT SURE ITS GOOD AS A RELATION TABLE CAN ALSO HAVE RELATIONS
+			}
 			createPromise = entity.create(entityobj, {wait_relations:options.wait_relations, fromAddon: options.fromAddon})
 		}
 

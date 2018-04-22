@@ -32,8 +32,6 @@ export class DatabaseController {
 					history: true
 				}
 			).then(e => {
-				(<any>e).generateDefaultQueries();
-
 				res.status(201).json(e.toJson());
 			}).catch(e => res.status(500).json(e));
 	}
