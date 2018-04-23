@@ -1,17 +1,15 @@
-import { App, ConfigType } from "../../lib";
-import { DatabaseLib } from "./database.ctrl";
+import { App, ConfigType } from '../../lib';
+import { DatabaseLib } from './database.ctrl';
 
 export class AppController {
 	constructor(private app: App) {}
 	entitySpacing = 20;
 
 	restart(req, res) {
-		this.app.stop().then(() =>
-			this.app.start()
-		)
+		this.app.stop().then(() => this.app.start());
 		res.status(200).json({
 			message: 'Shutting down the server... waiting for restart.'
-		})
+		});
 	}
 
 	private saveServerSettings(app, settings, mode) {
@@ -82,12 +80,15 @@ export class AppController {
 
 		this.app.config.set(cs, 'dev', ConfigType.CLIENT);
 
-		this.app.config.save().then(() => {
-			settings.general.id = this.app.id;
-			res.status(200).json(settings);
-		}).catch(e => {
-			res.status(500).json(e);
-		})
+		this.app.config
+			.save()
+			.then(() => {
+				settings.general.id = this.app.id;
+				res.status(200).json(settings);
+			})
+			.catch(e => {
+				res.status(500).json(e);
+			});
 	}
 
 	search(req, res) {}
@@ -111,8 +112,8 @@ export class AppController {
 					installing: false,
 					published: true // TODO: set published dynamically (still need to find how to detect if an addon is published or not)
 				})
-			),
-		})
+			)
+		});
 	}
 
 	getInfos(req, res) {
@@ -140,7 +141,9 @@ export class AppController {
 			server: {
 				dev: this.app.config.get('dev', ConfigType.SERVER),
 				prod: this.app.config.get('prod', ConfigType.SERVER),
-				live: this.app.config.get('prod', ConfigType.SERVER, { live: true })
+				live: this.app.config.get('prod', ConfigType.SERVER, {
+					live: true
+				})
 			},
 
 			client: this.app.config.get('dev', ConfigType.CLIENT),
@@ -177,6 +180,6 @@ export class AppController {
 				})
 			),
 			models: this.app.entities.getModels()
-		})
+		});
 	}
 }
