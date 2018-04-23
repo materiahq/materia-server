@@ -36,6 +36,7 @@ export class DatabaseController {
 	}
 
 	removeEntity(req, res) {
+		const name = req.params.entity;
 		this.app.entities.remove(name, {
 			save: true,
 			apply: true,
@@ -64,8 +65,11 @@ export class DatabaseController {
 				apply: true,
 				history: true
 			})
-			.then(() => res.status(200).json(null))
-			.catch(e => res.status(500).json(e));
+			.then(() => res.status(200).json(
+				Object.assign({}, this.app.entities.get(new_name).toJson(), {
+					name: new_name
+				}))
+			).catch(e => res.status(500).json(e));
 	}
 
 	saveField(req, res) {
