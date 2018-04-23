@@ -49,8 +49,4 @@ export class EntityException {
 	}
 }
 
-let EntityFieldException = {
-
-}
-
 exports.FileException = FileException

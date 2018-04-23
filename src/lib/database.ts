@@ -6,9 +6,9 @@ import * as Sequelize from 'sequelize'
 
 let domain = require('domain')
 
-import { App, AppMode, ISaveOptions } from './app'
+import { App, AppMode } from './app'
 
-import { ConfigType, IConfigOptions } from './config'
+import { ConfigType } from './config'
 
 import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfaces'
 
@@ -34,13 +34,6 @@ const dialect = {
 	postgres: "PostgreSQL",
 	mysql: "MySQL",
 	sqlite: "SQLite"
-}
-
-function isSQLite(x: IDatabaseConfig): x is ISQLiteDatabase {
-	return "storage" in x
-}
-function isSQL(x: IDatabaseConfig): x is ISQLDatabase {
-	return "host" in x
 }
 
 /**
@@ -302,7 +295,7 @@ export class Database {
 				defaultDatabase = 'postgres'
 			}
 			return new Promise((accept, reject) => {
-				let d = domain.create()
+				domain.create()
 				try {
 					tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
 					if (settings.type == 'mysql') {
@@ -353,7 +346,7 @@ export class Database {
 			defaultDatabase = 'postgres'
 		}
 		return new Promise((accept, reject) => {
-			let d = domain.create()
+			domain.create()
 			try {
 				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
 				tmp.query(`CREATE DATABASE "${name}"`).spread((results, metadata)=> {

@@ -1,13 +1,13 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import * as chaiHttp from 'chai-http'
+// import * as chaiHttp from 'chai-http'
 import * as fse from 'fs-extra'
 import * as request from 'request'
 
 import * as chaiAsPromised from 'chai-as-promised'
 
-import { App, AppMode } from '../../lib/app'
+import { App } from '../../lib/app'
 import { ConfigType } from '../../lib/config'
 import { IDatabaseConfig } from "@materia/interfaces"
 
@@ -20,9 +20,9 @@ chai.use(require('chai-http'));
 const agent = chai.request.agent("http://localhost:8798")
 
 export class TemplateApp {
-	private agent
+	// private agent
 	private name: string
-	private request: request.RequestAPI<request.Request, request.CoreOptions, request.RequiredUriUrl>
+	// private request: request.RequestAPI<request.Request, request.CoreOptions, request.RequiredUriUrl>
 	private before_creation: (new_app: App) => any
 
 	constructor(name) {
@@ -38,7 +38,8 @@ export class TemplateApp {
 		let app_path = fs.mkdtempSync((process.env.TMPDIR || '/tmp/') + 'materia-test-')
 		fse.copySync(path.join(__dirname, '..', '..', '..', 'src', 'test', 'apps', this.name), app_path, { clobber: true, recursive: true })
 
-		this.request = request.defaults({
+		// this.request =
+		request.defaults({
 			json: true
 		})
 

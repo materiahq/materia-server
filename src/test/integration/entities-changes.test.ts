@@ -2,7 +2,7 @@ import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 
 import { App } from '../../lib/app'
-import { MateriaError } from '../../lib/error'
+// import { MateriaError } from '../../lib/error'
 import { TemplateApp } from '../mock/template-app'
 
 chai.config.truncateThreshold = 500
@@ -40,7 +40,7 @@ describe('[Entities]', () => {
 						component: "input"
 					}
 				]
-			}).then((entity) => {
+			}).then(() => {
 				should.exist(app.entities.get('test'))
 				app.entities.get('test').toJson().should.deep.equal({
 					id: "fake-id",

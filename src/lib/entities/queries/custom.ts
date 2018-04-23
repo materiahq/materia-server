@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import chalk from 'chalk'
 
-import { App } from '../../app'
+// import { App } from '../../app'
 import { MateriaError } from '../../error'
 
 import { Entity } from '../entity'

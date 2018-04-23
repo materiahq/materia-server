@@ -1,4 +1,4 @@
-import { App, AppMode } from '../lib';
+import { App } from '../lib';
 import * as oauth2orize from 'oauth2orize';
 import * as crypto from 'crypto';
 
@@ -31,6 +31,7 @@ export class OAuth {
 	constructor(private app: App) {
 		// Create the server
 		this.server = oauth2orize.createServer();
+		this.app;
 	}
 
 	initialize() {

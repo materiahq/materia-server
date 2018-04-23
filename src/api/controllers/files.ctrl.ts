@@ -1,8 +1,6 @@
 import { Application as ExpressApplication } from 'express';
 import { App } from "../../lib";
-import { OAuth } from '../oauth';
 
-import * as fs from 'fs';
 import * as path from 'path';
 import * as fse from 'fs-extra';
 

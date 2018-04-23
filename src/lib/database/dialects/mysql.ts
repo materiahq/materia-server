@@ -60,7 +60,7 @@ export class MysqlDialect extends AbstractDialect {
 		return this.sequelize.getQueryInterface().showAllTables().then((tables:Array<string>) => {
 			for (let table of tables) {
 				let queryInterface = this.sequelize.getQueryInterface()
-				let qg = this.sequelize.getQueryInterface().QueryGenerator
+				// let qg = this.sequelize.getQueryInterface().QueryGenerator
 				let infoQuery = this._describeTable(table)
 				let indexQuery = queryInterface.showIndex(table)
 				let fkQuery = this._getFKs(table)

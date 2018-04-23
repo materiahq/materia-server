@@ -1,6 +1,5 @@
 import * as crypto from 'crypto';
 import {
-	IGitStatus,
 	IGitWorkingCopy,
 	IGitRemote,
 	IGitBranch,
@@ -22,8 +21,12 @@ export class Git {
 	history: IGitHistory[];
 
 	constructor(private app: App) {
-		this.client = git(this.app.path);
-		this.client.silent(true);
+		try {
+			this.client = git(this.app.path);
+			this.client.silent(true);
+		} catch(e) {
+			console.log(e);
+		}
 	}
 
 	init() {

@@ -7,7 +7,7 @@ import * as fse from 'fs-extra'
 
 import { Logger } from './logger'
 
-import { IGitConfig, IServer, IDatabase, IAppConfig, IDatabaseConfig, IServerConfig } from "@materia/interfaces";
+import { IAppConfig, IDatabaseConfig, IServerConfig } from "@materia/interfaces";
 import { Config, ConfigType } from './config'
 import { Server } from './server'
 import { Entities } from './entities'
@@ -23,8 +23,7 @@ import { Api } from './api'
 import { MateriaError } from './error'
 import { MateriaApi } from '../api';
 
-//TODO: convert to ts
-let AddonsTools = require('./runtimes/tools/addons')
+// let AddonsTools = require('./runtimes/tools/addons')
 
 export * from "./addons/helpers";
 
@@ -90,7 +89,7 @@ export class App extends events.EventEmitter {
 	package: string
 	version?: string
 	icon?: string
-	private packageJsonCache?: string
+	// private packageJsonCache?: string
 
 	materia_path: string = __dirname
 
@@ -192,8 +191,6 @@ export class App extends events.EventEmitter {
 
 
 	loadMateria():Promise<void> {
-		let p:Promise<any> = Promise.resolve()
-
 		return this.doSelfMigrations()
 			.then(() => {
 				const appConfig = this.config.get<IAppConfig>(this.mode, ConfigType.APP);
@@ -273,9 +270,9 @@ ENV MATERIA_MODE production
 EXPOSE ${webProd.port}
 CMD ["npm", "start"]`)
 
-		let dbstr = '', dbport;
+		let dbstr = '';
 		if (Database.isSQL(dbProd) && dbProd.type == 'postgres') {
-			dbport = 5432
+			// dbport = 5432
 			dbstr = `
     image: postgres:9.6.3-alpine
     environment:
@@ -284,7 +281,7 @@ CMD ["npm", "start"]`)
       POSTGRES_DB: "${dbProd.database}"`
 		}
 		else if (Database.isSQL(dbProd) && dbProd.type == 'mysql') {
-			dbport = 3306
+			// dbport = 3306
 			dbstr = `
     image: mysql
     environment:

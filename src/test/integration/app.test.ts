@@ -1,12 +1,12 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 
-import { App } from '../../lib/app'
+// import { App } from '../../lib/app'
 import { TemplateApp } from '../mock/template-app'
 
 chai.config.truncateThreshold = 500
 chai.use(chaiAsPromised)
-var should = chai.should()
+chai.should()
 
 describe('[App]', () => {
 	let tpl = new TemplateApp('controller-endpoints')

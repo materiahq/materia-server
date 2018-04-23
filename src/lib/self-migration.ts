@@ -2,9 +2,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { App, AppMode } from './app'
+import { App } from './app'
 
-import * as fse from 'fs-extra'
+// import * as fse from 'fs-extra'
 
 export class SelfMigration {
 
@@ -43,9 +43,9 @@ export class SelfMigration {
 		})
 	}
 
-	private migration0_8Callback() {
+	// private migration0_8Callback() {
 
-	}
+	// }
 
 	private checkMigrate_0_8() {
 		const config: any = {}

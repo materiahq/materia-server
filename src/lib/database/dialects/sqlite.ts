@@ -1,8 +1,6 @@
 import { AbstractDialect } from './abstract'
 import { MateriaError } from '../../error'
 
-import * as Sequelize from 'sequelize'
-
 export class SqliteDialect extends AbstractDialect {
 	constructor(sequelize) {
 		super(sequelize)

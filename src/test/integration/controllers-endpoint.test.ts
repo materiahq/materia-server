@@ -6,7 +6,7 @@ import { TemplateApp } from '../mock/template-app'
 
 chai.config.truncateThreshold = 500
 chai.use(chaiAsPromised)
-var should = chai.should()
+chai.should()
 
 describe('[Controller Endpoints]', () => {
 	let app: App

@@ -8,7 +8,7 @@ import { ConfigType, IConfigOptions } from './config'
 import { MateriaError } from './error'
 
 import * as express from 'express'
-import * as session from 'express-session'
+// import * as session from 'express-session'
 
 import * as morgan from 'morgan'
 import * as methodOverride from 'method-override'
@@ -192,7 +192,7 @@ export class Server {
 					}
 				})
 
-				this.expressApp.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+				this.expressApp.use((err: any, req: express.Request, res: express.Response) => {
 					res.status(500).send({
 						error: true,
 						message: (err && err.message) || "Unexpected error"
@@ -254,7 +254,7 @@ export class Server {
 			return Promise.resolve()
 		}
 
-		return new Promise<void>((accept, reject) => {
+		return new Promise<void>(accept => {
 			this.server.close(() => {
 				this.app.logger.log('\n' + chalk.bold('(Stop)') + ' Server closed\n')
 				this.started = false;

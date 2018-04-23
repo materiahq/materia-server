@@ -1,14 +1,5 @@
 import { App } from '../../lib';
 
-import {
-	IPermission,
-	IEndpoint,
-	IEntity,
-	IQuery,
-	IParam
-} from '@materia/interfaces';
-
-import * as fs from 'fs';
 import * as path from 'path';
 
 export class PermissionsController {

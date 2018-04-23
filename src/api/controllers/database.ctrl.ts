@@ -1,6 +1,5 @@
 import { App, DBEntity } from '../../lib';
 import { IEntity } from '@materia/interfaces';
-import { OAuth } from '../oauth';
 
 import * as path from 'path';
 import * as fs from 'fs';

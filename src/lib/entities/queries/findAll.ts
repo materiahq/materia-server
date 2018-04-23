@@ -107,7 +107,7 @@ export class FindAllQuery extends Query {
 		this._constructInclude(include, includeNames)
 
 		let pagination = this.getPagination(params)
-		let principalConditions = []
+		// let principalConditions = []
 
 		let raw = false
 		if (options && options.raw) {

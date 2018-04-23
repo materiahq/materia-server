@@ -1,5 +1,5 @@
 import { App } from '../../lib';
-import { IEndpoint, IParam } from '@materia/interfaces';
+import { IEndpoint } from '@materia/interfaces';
 
 import * as path from 'path';
 import * as fs from 'fs';

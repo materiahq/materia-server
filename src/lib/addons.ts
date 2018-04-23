@@ -157,7 +157,7 @@ export class Addons {
 		return this.loadConfig().then(config => {
 			return this.searchInstalledAddons()
 		}).then(addonsName => {
-			let addons:Addon[] = []
+			// let addons:Addon[] = []
 
 			this.addons = []
 			let promises:Promise<void>[] = []

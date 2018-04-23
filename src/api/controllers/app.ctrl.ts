@@ -1,5 +1,4 @@
-import { App, ConfigType, DBEntity } from "../../lib";
-import { IEntity } from "@materia/interfaces";
+import { App, ConfigType } from "../../lib";
 import { DatabaseLib } from "./database.ctrl";
 
 export class AppController {

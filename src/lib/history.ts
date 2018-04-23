@@ -259,13 +259,13 @@ export class History {
 		let actions = []
 		let p = Promise.resolve({ type: null })
 
-		for (let i in this.diff) {
+		this.diff.forEach(() => {
 			p = p.then((action) => {
 				if (action.type)
 					actions.push(action)
 				return this.undo(opts)
 			})
-		}
+		});
 
 		return p.then((action) => {
 			if (action.type) {
@@ -303,14 +303,14 @@ export class History {
 		let actions = []
 		let p = Promise.resolve({ type: null, table: null } as IActionData)
 
-		for (let i in this.diffRedo) {
+		this.diffRedo.forEach(() => {
 			p = p.then((action) => {
 				if (action.type) {
 					actions.push(action)
 				}
 				return this.redo(opts)
 			})
-		}
+		});
 
 		return p.then((action) => {
 			if (action.type) {

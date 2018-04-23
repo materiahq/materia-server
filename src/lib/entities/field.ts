@@ -1,7 +1,7 @@
 import { Entity } from './entity'
 import { MateriaError } from '../error'
 
-import { IValidator, Validator } from './validator'
+import { Validator } from './validator'
 
 export interface IField {
 	name?: string
@@ -231,7 +231,9 @@ export class Field implements IFieldUpdate {
 	}
 
 	update(field:IField):void {
-		this.name = field.name
+		if (this.name != field.name && ! this.entity.isField(field.name)) {
+			this.name = field.name
+		}
 		this.type = field.type
 		this.required = field.required
 		this.primary = field.primary

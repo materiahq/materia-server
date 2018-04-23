@@ -2,8 +2,8 @@ import * as fs from "fs";
 import * as path from "path";
 
 import { App, AppMode, ISaveOptions } from "./app";
-import { ScriptMode } from "./client";
-import { MateriaError } from "./error";
+// import { ScriptMode } from "./client";
+// import { MateriaError } from "./error";
 
 import {
 	IAppConfig,
@@ -51,7 +51,8 @@ export enum ConfigType {
 	DEPENDENCIES = <any>"dependencies",
 	SCRIPTS = <any>"scripts",
 	ADDONS = <any>"addons",
-	DEPLOYMENT = <any>"deployment"
+	DEPLOYMENT = <any>"deployment",
+	SERVICES = <any>"services"
 }
 
 export interface IConfigOptions {
@@ -219,36 +220,6 @@ export class Config {
 			this.config[type] = {};
 		}
 
-		// let conf: IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig | IClientConfig | IDependenciesConfig | IScriptsMap;
-		// if (type == ConfigType.SERVER) {
-		// 	let serverConfig = <IServerConfig>config;
-		// 	conf = serverConfig && {
-		// 		host: serverConfig.host,
-		// 		port: serverConfig.port,
-		// 		ssl: !!serverConfig.ssl
-		// 	};
-		// } else if (type == ConfigType.DATABASE) {
-		// 	conf = this.app.database._confToJson(<IDatabaseConfig>config);
-		// } else if (type == ConfigType.SESSION) {
-		// 	let sessionConfig = <ISessionConfig>config;
-		// 	conf = sessionConfig && {
-		// 		secret: sessionConfig.secret,
-		// 		maxAge: sessionConfig.maxAge
-		// 	};
-		// } else if (type == ConfigType.GIT) {
-		// 	let gitConfig = <IGitConfig>config;
-		// 	conf = gitConfig && {
-		// 		defaultRemote: gitConfig.defaultRemote
-		// 		// branch: gitConfig.branch
-		// 	};
-		// } else if (type == ConfigType.CLIENT) {
-		// 	conf = <IClientConfig>config;
-		// } else if (type == ConfigType.DEPENDENCIES) {
-		// 	conf = <IDependenciesConfig>config;
-		// } else if (type == ConfigType.SCRIPTS) {
-		// 	conf = <IScriptsMap>config;
-		// }
-
 		if ([
 			ConfigType.SERVER,
 			ConfigType.DATABASE,
@@ -260,18 +231,6 @@ export class Config {
 		} else {
 			this.config[type] = config;
 		}
-		// if (options.live) {
-		// 	if (!this.config[mode][type]) {
-		// 		this.config[mode][type] = {};
-		// 	}
-		// 	this.config[mode][type].live = conf;
-		// } else {
-			// let live = this.config[mode][type] && this.config[mode][type].live;
-			// this.config[mode][type] = conf;
-			// if (this.config[mode][type] && live) {
-			// 	this.config[mode][type].live = live;
-			// }
-		//}
 	}
 
 	save(opts?: ISaveOptions) {

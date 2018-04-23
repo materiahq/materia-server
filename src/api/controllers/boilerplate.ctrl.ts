@@ -70,14 +70,14 @@ export class BoilerplateController {
 						// 	},
 						// 	false
 						// );
-						const client = {
-							enabled: true,
-							build: {
-								src: 'client',
-								buildFolder: 'client/dist',
-								enabled: true
-							}
-						};
+						// const client = {
+						// 	enabled: true,
+						// 	build: {
+						// 		src: 'client',
+						// 		buildFolder: 'client/dist',
+						// 		enabled: true
+						// 	}
+						// };
 					});
 				});
 			});
@@ -117,14 +117,14 @@ export class BoilerplateController {
 				// 	{ build: 'build', watch: 'build', prod: 'build' },
 				// 	false
 				// );
-				const client = {
-					enabled: true,
-					build: {
-						src: 'my-react-project',
-						dist: 'my-react-project/build',
-						enabled: true
-					}
-				};
+				// const client = {
+				// 	enabled: true,
+				// 	build: {
+				// 		src: 'my-react-project',
+				// 		dist: 'my-react-project/build',
+				// 		enabled: true
+				// 	}
+				// };
 				// resolve(client);
 			});
 		});

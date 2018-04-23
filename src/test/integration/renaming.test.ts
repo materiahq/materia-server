@@ -3,7 +3,7 @@ import * as chaiAsPromised from 'chai-as-promised'
 import * as fse from 'fs-extra'
 
 import { App } from '../../lib/app'
-import { MateriaError } from '../../lib/error'
+// import { MateriaError } from '../../lib/error'
 
 import { TemplateApp } from '../mock/template-app'
 
@@ -74,7 +74,7 @@ describe('[Renaming tests]', () => {
 		});
 
 		it('should rename test -> test3 when app is stopped', () => {
-			return tmpl.resetApp(app, (new_app) => {
+			return tmpl.resetApp(app, () => {
 				fse.renameSync(app.path + '/server/models/test.json', app.path + '/server/models/test3.json')
 			}).then(_app => app = _app)
 			.then(() => {
@@ -140,7 +140,7 @@ describe('[Renaming tests]', () => {
 		})
 
 		it('should rename test -> test3 when app is stopped and keep ref to test2', () => {
-			return tmpl.resetApp(app, (new_app) => {
+			return tmpl.resetApp(app, () => {
 				fse.renameSync(app.path + '/server/models/test.json', app.path + '/server/models/test3.json')
 			}).then(_app => app = _app)
 			.then(() => {

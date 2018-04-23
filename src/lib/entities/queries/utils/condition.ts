@@ -1,4 +1,4 @@
-import { DBEntity } from '../../db-entity'
+// import { DBEntity } from '../../db-entity'
 import { MateriaError } from '../../../error'
 
 export interface ICondition {

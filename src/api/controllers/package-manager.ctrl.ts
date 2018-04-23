@@ -3,7 +3,6 @@ import { App } from "../../lib";
 import * as npm from 'npm';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as cp from 'child_process';
 
 export class PackageManagerController {
 	constructor(private app: App) {}

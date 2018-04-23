@@ -6,7 +6,6 @@ import chalk from 'chalk'
 import { App, IApplyOptions } from '../app'
 import { MateriaError } from '../error'
 import { MigrationType } from '../history'
-import { IAddon } from '../addons'
 import { Addon } from '../addons/addon';
 
 import { Field, IField, IFieldUpdate } from './field'
@@ -270,7 +269,7 @@ export class Entity {
 		for (let name in entities) {
 			let entity = entities[name]
 			for (let entityRelation of entity.relations) {
-				if (entityRelation.reference.entity == this.name) {
+				if (entityRelation.reference.entity === this.name) {
 					associatedEntity[name] = entity
 				}
 			}
@@ -333,13 +332,7 @@ export class Entity {
 	}
 
 	getPK(): Array<Field> {
-		let pks = []
-		for (let field of this.fields) {
-			if (field.primary) {
-				pks.push(field)
-			}
-		}
-		return pks
+		return this.fields.filter(field => field.primary)
 	}
 
 	/**
