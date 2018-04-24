@@ -195,11 +195,13 @@ export class App extends events.EventEmitter {
 		return this.doSelfMigrations()
 			.then(() => {
 				const appConfig = this.config.get<IAppConfig>(this.mode, ConfigType.APP);
-				this.package = appConfig.package
-				this.name = appConfig.name
-				this.version = appConfig.version
-				this.icon = appConfig.icon
-				this.rootPassword = appConfig.rootPassword
+				if (appConfig) {
+					this.package = appConfig.package
+					this.name = appConfig.name
+					this.version = appConfig.version
+					this.icon = appConfig.icon
+					this.rootPassword = appConfig.rootPassword
+				}
 			})
 	}
 

@@ -119,7 +119,6 @@ export class Config {
 	}
 
 	reloadConfig(): void {
-		this.loadConfigurationFiles();
 		// console.log('load', this.materiaJson);
 		this.config = {
 			app: {
@@ -173,6 +172,7 @@ export class Config {
 		type = type || ConfigType.SERVER;
 		options = options || { live: this.app.live };
 		if (!this.config) {
+			this.loadConfigurationFiles();
 			this.reloadConfig();
 		}
 
@@ -208,13 +208,14 @@ export class Config {
 	@param {string} - The environment mode. `development` or `production`.
 	*/
 	set(
-		config: IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig | IClientConfig | IDependenciesConfig | IScriptsMap,
+		config: IAppConfig | IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig | IClientConfig | IDependenciesConfig | IScriptsMap,
 		mode: AppMode | string,
 		type?: ConfigType,
 		options?: IConfigOptions,
 	): void {
 		options = options || {};
 		if (!this.config) {
+			this.loadConfigurationFiles();
 			this.reloadConfig();
 		}
 		if (!this.config[type]) {
@@ -226,7 +227,8 @@ export class Config {
 			ConfigType.DATABASE,
 			ConfigType.SESSION,
 			ConfigType.DEPENDENCIES,
-			ConfigType.ADDONS
+			ConfigType.ADDONS,
+			ConfigType.APP
 		].indexOf(type) != -1) {
 			this.config[type][mode] = config;
 		} else {
@@ -239,7 +241,12 @@ export class Config {
 			opts.beforeSave("materia.json");
 			opts.beforeSave("package.json");
 		}
-		const res = this.toJson()
+
+      	const res = this.toJson()
+        this.packageJson = res.package
+        this.materiaJson = res.materia
+		this.materiaProdJson = res.materiaProd
+		this.reloadConfig();
 		// console.log('save', res);
 		return this.app
 			.saveFile(
