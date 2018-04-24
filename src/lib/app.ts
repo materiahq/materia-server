@@ -104,6 +104,7 @@ export class App extends events.EventEmitter {
 	database: Database
 	api: Api
 	server: Server
+	// websocket: Websocket
 	client: Client
 	logger: Logger
 	config: Config
@@ -120,7 +121,7 @@ export class App extends events.EventEmitter {
 	invalid: boolean
 	error: string
 
-	masterPassword: string
+	rootPassword: string
 
 	constructor(public path: string, public options?: IAppOptions) {
 		super()
@@ -198,6 +199,7 @@ export class App extends events.EventEmitter {
 				this.name = appConfig.name
 				this.version = appConfig.version
 				this.icon = appConfig.icon
+				this.rootPassword = appConfig.rootPassword
 			})
 	}
 

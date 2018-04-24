@@ -126,7 +126,8 @@ export class Config {
 				name: this.materiaJson.name,
 				package: this.packageJson.name,
 				version: this.packageJson.version,
-				icon: this.materiaJson.icon
+				icon: this.materiaJson.icon,
+				rootPassword: this.materiaJson.rootPassword
 			},
 			client: this.materiaJson.client,
 			git: this.materiaJson.git,

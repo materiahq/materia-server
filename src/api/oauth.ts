@@ -17,6 +17,12 @@ export class OAuth {
 	}> = []
 
 	get token() {
+		if ( ! this.app.rootPassword ) {
+			return (req, res, next) => res.status(200).send({
+				access_token: null
+			});
+		}
+
 		return [
 			passport.authenticate(['clientPassword'], { session: false }),
 			this.server.token(),
@@ -25,6 +31,9 @@ export class OAuth {
 	}
 
 	get isAuth() {
+		if ( ! this.app.rootPassword) {
+			return (req, res, next) => next();
+		}
 		return passport.authenticate('accessToken', { session: false })
 	}
 
@@ -60,7 +69,8 @@ export class OAuth {
 
 		passport.use("clientPassword", new ClientPasswordStrategy(
 			(clientId, clientSecret, done) => {
-				if (clientId == 'admin' && clientSecret == 'password') {
+				console.log('rootPassword', clientSecret, this.app.rootPassword);
+				if (clientId == 'admin' && clientSecret == this.app.rootPassword) {
 					return done(null, { username: 'admin' })
 				} else {
 					return done(null, false);
