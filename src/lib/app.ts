@@ -522,7 +522,10 @@ manual_scaling:
 	}
 
 	getFiles(depth: number, name?:string, p?:string) {
-		name = name || this.name
+		const splittedName = this.path.split(path.sep);
+		const length = splittedName.length;
+		const appFolder = splittedName[length - 1];
+		name = name || appFolder
 		p = p || this.path
 		let results = []
 
