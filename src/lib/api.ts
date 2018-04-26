@@ -121,7 +121,6 @@ export class Api {
 	findAll() { return this.endpoints }
 
 	load(addon?: IAddon): Promise<any> {
-		this.endpoints = [];
 		let basePath = addon ? addon.path : this.app.path
 		let opts: IApplyOptions = {
 			save: false
