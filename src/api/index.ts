@@ -153,8 +153,8 @@ export class MateriaApi {
 		 * Client Endpoints
 		 */
 		this.api.post('/materia/client/boilerplate/init', this.oauth.isAuth, this.boilerplateCtrl.initMinimal.bind(this.boilerplateCtrl));
-		this.api.post('/materia/client/boilerplate/init/angular', this.oauth.isAuth, this.boilerplateCtrl.initAngular.bind(this.addonsCtrl));
-		this.api.post('/materia/client/boilerplate/init/react', this.oauth.isAuth, this.boilerplateCtrl.initReact.bind(this.addonsCtrl));
-		this.api.post('/materia/client/boilerplate/init/vuejs', this.oauth.isAuth, this.boilerplateCtrl.initVue.bind(this.addonsCtrl));
+		this.api.post('/materia/client/boilerplate/init/angular', this.oauth.isAuth, this.boilerplateCtrl.initAngular.bind(this.boilerplateCtrl));
+		this.api.post('/materia/client/boilerplate/init/react', this.oauth.isAuth, this.boilerplateCtrl.initReact.bind(this.boilerplateCtrl));
+		this.api.post('/materia/client/boilerplate/init/vuejs', this.oauth.isAuth, this.boilerplateCtrl.initVue.bind(this.boilerplateCtrl));
 	}
 }
