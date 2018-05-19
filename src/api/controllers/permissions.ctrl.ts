@@ -86,7 +86,7 @@ export class PermissionsController {
 	}
 
 	save(req, res) {
-		const perm = this.app.api.permissions.get(req.params.permission);
+		const perm = this.app.api.permissions.get(req.body.name);
 
 		if (perm.file.indexOf(path.sep) == -1) {
 			perm.file = path.join(
@@ -108,7 +108,7 @@ export class PermissionsController {
 		}
 
 		return this.app
-			.saveFile(perm.file, perm.code, {
+			.saveFile(perm.file, req.body.code, {
 				mkdir: true
 			})
 			.then(() => {
