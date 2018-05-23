@@ -1,9 +1,10 @@
 import { App } from '../../lib';
 
 import * as path from 'path';
+import { WebsocketInstance } from '../../lib/websocket';
 
 export class PermissionsController {
-	constructor(private app: App) {}
+	constructor(private app: App, websocket: WebsocketInstance) {}
 
 	initCreate(req, res) {
 		const perm = req.body;
@@ -14,8 +15,8 @@ export class PermissionsController {
 					name: perm.name,
 					description: perm.description,
 					middleware: (req, res, next) => {
-						next();
-					},
+	next();
+},
 					file: perm.name
 				},
 				{ save: true }
@@ -86,7 +87,9 @@ export class PermissionsController {
 	}
 
 	save(req, res) {
-		const perm = this.app.api.permissions.get(req.body.name);
+		const perm = this.app.api.permissions.get(req.body.name)
+			? this.app.api.permissions.get(req.body.name)
+			: req.body;
 
 		if (perm.file.indexOf(path.sep) == -1) {
 			perm.file = path.join(

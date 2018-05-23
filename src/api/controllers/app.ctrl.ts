@@ -1,8 +1,9 @@
 import { App, ConfigType } from '../../lib';
 import { DatabaseLib } from './database.ctrl';
+import { WebsocketInstance } from '../../lib/websocket';
 
 export class AppController {
-	constructor(private app: App) {}
+	constructor(private app: App, websocket: WebsocketInstance) {}
 	entitySpacing = 20;
 
 	restart(req, res) {

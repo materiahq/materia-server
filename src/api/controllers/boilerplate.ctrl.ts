@@ -2,12 +2,13 @@ import { App } from '../../lib';
 import { Npm } from '../lib/npm';
 import { Npx } from '../lib/npx';
 import { getPackageJson } from '../lib/getPackageJson';
+import { WebsocketInstance } from '../../lib/websocket';
 
 export class BoilerplateController {
 	npm: Npm;
 	npx: Npx;
 
-	constructor(private app: App) {
+	constructor(private app: App, websocket: WebsocketInstance) {
 		this.npm = new Npm(this.app);
 		this.npx = new Npx(this.app);
 	}

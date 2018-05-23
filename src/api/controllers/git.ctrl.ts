@@ -1,10 +1,11 @@
 import { App } from "../../lib";
 import { Git } from "../lib/git";
+import { WebsocketInstance } from "../../lib/websocket";
 
 export class GitController {
 	client: Git;
 
-	constructor(private app: App) {
+	constructor(private app: App, websocket: WebsocketInstance) {
 		this.client = new Git(this.app);
 	}
 

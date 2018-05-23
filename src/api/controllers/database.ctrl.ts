@@ -3,9 +3,10 @@ import { IEntity } from '@materia/interfaces';
 
 import * as path from 'path';
 import * as fs from 'fs';
+import { WebsocketInstance } from '../../lib/websocket';
 
 export class DatabaseController {
-	constructor(private app: App) {}
+	constructor(private app: App, websocket: WebsocketInstance) {}
 
 	tryAuth(req, res) {
 		const conf = req.body;

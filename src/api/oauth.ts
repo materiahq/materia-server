@@ -67,32 +67,40 @@ export class OAuth {
 			)
 		);
 
-		passport.use("clientPassword", new ClientPasswordStrategy(
-			(clientId, clientSecret, done) => {
-				console.log('rootPassword', clientSecret, this.app.rootPassword);
-				if (clientId == 'admin' && clientSecret == this.app.rootPassword) {
-					return done(null, { username: 'admin' })
-				} else {
-					return done(null, false);
-				};
-			}
-		));
+		passport.use("clientPassword", new ClientPasswordStrategy(this.verifyLogin.bind(this)));
+		passport.use("accessToken", new BearerStrategy(this.verifyToken.bind(this)));
+	}
 
-		passport.use("accessToken", new BearerStrategy(
-			(accessToken, done) => {
-				var accessTokenHash = crypto.createHash('sha1').update(accessToken).digest('hex')
-				// console.log(this.tokens);
-				const token = this.tokens.find(token => token.token == accessTokenHash)
-				if (!token) return done(null, false)
-				if (new Date() > token.expires_in) {
-					this.clearExpiredTokens();
-					done(null, false);
-				} else {
-					var info = { scope: '*' }
-					done(null, { username: 'admin' }, info);
-				}
-			}
-		));
+	static getTokenFromHeaders(req): string {
+		const h = req.headers['Authorization'];
+		const prefix = 'Bearer ';
+		if (!h.startWith(prefix)) {
+			return null;
+		}
+		return h.substr(prefix.length)
+	}
+
+	verifyLogin(clientId, clientSecret, done) {
+		console.log('rootPassword', clientSecret, this.app.rootPassword);
+		if (clientId == 'admin' && clientSecret == this.app.rootPassword) {
+			return done(null, { username: 'admin' })
+		} else {
+			return done(null, false);
+		};
+	}
+
+	verifyToken(accessToken, done) {
+		var accessTokenHash = crypto.createHash('sha1').update(accessToken).digest('hex')
+		// console.log(this.tokens);
+		const token = this.tokens.find(token => token.token == accessTokenHash)
+		if (!token) return done(null, false)
+		if (new Date() > token.expires_in) {
+			this.clearExpiredTokens();
+			done(null, false);
+		} else {
+			var info = { scope: '*' }
+			done(null, { username: 'admin' }, info);
+		}
 	}
 
 	private clearExpiredTokens() {

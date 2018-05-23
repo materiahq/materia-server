@@ -307,7 +307,10 @@ export class Config {
 				version: this.app.version,
 				scripts: this.config.scripts,
 				dependencies: this.config.dependencies.prod,
-				devDependencies: this.config.dependencies.dev
+				devDependencies: this.config.dependencies.dev,
+				// engine: {
+				// 	node: ''
+				// }
 			})
 		};
 		// return this.config;

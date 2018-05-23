@@ -279,13 +279,7 @@ module.exports = ${nameCapitalizeFirst};`
 	@returns {object}
 	*/
 	get(pkg:string):Addon {
-		let result;
-		this.addons.forEach(addon => {
-			if (addon.package == pkg) {
-				result = addon
-			}
-		})
-		return result
+		return this.addons.find(addon => addon.package === pkg);
 	}
 
 	/**

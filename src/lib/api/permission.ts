@@ -5,7 +5,8 @@ export interface IPermission {
 	name: string;
 	description: string;
 	readOnly?: boolean;
-	middleware: (req: any, res: any, next: any) => any;
+	middleware: ((req: any, res: any, next: any) => any) | string;
+	invalid?: boolean;
 	file?: string;
 }
 

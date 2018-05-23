@@ -12,6 +12,7 @@ import { PackageManagerController } from "./controllers/package-manager.ctrl";
 import { AddonsController } from "./controllers/addons.ctrl";
 import { PermissionsController } from "./controllers/permissions.ctrl";
 import { BoilerplateController } from "./controllers/boilerplate.ctrl";
+import { WebsocketServers } from "../lib/websocket";
 
 export class MateriaApi {
 	oauth: OAuth
@@ -27,34 +28,34 @@ export class MateriaApi {
 	boilerplateCtrl: BoilerplateController
 
 	get api(): ExpressApplication { return this.app.server.expressApp; }
+	get websocketServers(): WebsocketServers { return this.app.server.websocket; }
 
 	constructor(private app: App) {
 		this.oauth = new OAuth(this.app);
-		this.databaseCtrl = new DatabaseController(this.app);
-		this.filesCtrl = new FilesController(this.app);
-		this.appCtrl = new AppController(this.app);
-		this.gitCtrl = new GitController(this.app);
-		this.endpointsCtrl = new EndpointsController(this.app);
-		this.packageManagerCtrl = new PackageManagerController(this.app);
-		this.addonsCtrl = new AddonsController(this.app);
-		this.permissionsCtrl = new PermissionsController(this.app);
-		this.boilerplateCtrl = new BoilerplateController(this.app);
-	}
-
-	checkParams() {
-
-		return (req, res, next) => {
-
-		}
 	}
 
 	initialize() {
+		const websocket = this.websocketServers.register('/materia/websocket', (info, cb) =>
+			this.oauth.verifyToken(info.req.headers.access_token, cb)
+		)
+
+		this.databaseCtrl = new DatabaseController(this.app, websocket);
+		this.filesCtrl = new FilesController(this.app, websocket);
+		this.appCtrl = new AppController(this.app, websocket);
+		this.gitCtrl = new GitController(this.app, websocket);
+		this.endpointsCtrl = new EndpointsController(this.app, websocket);
+		this.packageManagerCtrl = new PackageManagerController(this.app, websocket);
+		this.addonsCtrl = new AddonsController(this.app, websocket);
+		this.permissionsCtrl = new PermissionsController(this.app, websocket);
+		this.boilerplateCtrl = new BoilerplateController(this.app, websocket);
+
 		this.oauth.initialize()
 
 		/**
 		 * App Endpoints
 		 */
 		this.api.post('/materia/token', this.oauth.token);
+
 		this.api.post('/materia/restart', this.oauth.isAuth, this.appCtrl.restart.bind(this.appCtrl));
 		this.api.get('/materia/infos/minimal', this.oauth.isAuth, this.appCtrl.getInfos.bind(this.appCtrl));
 		this.api.get('/materia/infos', this.oauth.isAuth, this.appCtrl.getInfos.bind(this.appCtrl));
@@ -147,6 +148,7 @@ export class MateriaApi {
 		/**
 		 * Addon Endpoints
 		 */
+
 		this.api.post('/materia/addons/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
 
 		/**

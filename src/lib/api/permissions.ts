@@ -52,8 +52,21 @@ export class Permissions {
 						}
 						nextchain(req, res, next);
 					};
-					req.app = this.app;
-					permission.middleware(req, res, _next);
+					const cl = permission.middleware.default
+						? permission.middleware.default
+						: permission.middleware;
+
+					try {
+						if (this.isClass(cl)) {
+							const obj = new cl(this.app);
+							obj.check(req, res, _next);
+						} else {
+							req.app = this.app;
+							cl(req, res, _next);
+						}
+					} catch (e) {
+						_next(e);
+					}
 				};
 				return true;
 			});
@@ -71,18 +84,29 @@ export class Permissions {
 			'permissions',
 			permission.file
 		);
-		let rp = require.resolve(permissionPath);
-		if (require.cache[rp]) {
-			delete require.cache[rp];
+		try {
+
+			const rp = require.resolve(permissionPath);
+			if (require.cache[rp]) {
+				delete require.cache[rp];
+			}
+			const middleware = require(permissionPath);
+			return {
+				name: permission.name,
+				description: permission.description,
+				middleware: middleware,
+				file: permissionPath
+			};
 		}
-		let middleware = require(permissionPath);
-		let obj = {
-			name: permission.name,
-			description: permission.description,
-			middleware: middleware,
-			file: permissionPath
-		};
-		return obj;
+		catch (e) {
+			return {
+				name: permission.name,
+				description: permission.description,
+				middleware: fs.readFileSync(permissionPath + '.js', 'utf8'),
+				invalid: true,
+				file: permissionPath
+			};
+		}
 	}
 
 	load(): Promise<any> {
@@ -102,21 +126,16 @@ export class Permissions {
 		} catch (e) {
 			return Promise.resolve();
 		}
-		try {
-			if (permissionsRaw && permissionsRaw.length) {
-				let results = [];
-				permissionsRaw.forEach(permissionRaw => {
-					let obj = this.loadPermission(permissionRaw);
-					results.push(this.add(obj));
-				});
-				return Promise.all(results).then(() => {
-					return true;
-				});
-			} else {
-				return Promise.resolve();
-			}
-		} catch (e) {
-			//no file permissions.js
+		if (permissionsRaw && permissionsRaw.length) {
+			let results = [];
+			permissionsRaw.forEach(permissionRaw => {
+				let obj = this.loadPermission(permissionRaw);
+				results.push(this.add(obj));
+			});
+			return Promise.all(results).then(() => {
+				return true;
+			});
+		} else {
 			return Promise.resolve();
 		}
 	}
@@ -309,5 +328,16 @@ export class Permissions {
 			}
 		});
 		return result;
+	}
+
+	private isClass(fn) {
+		return (
+			typeof fn !== 'function' ||
+			fn.toString().startsWith('class') ||
+			Boolean(
+				fn.prototype &&
+					!Object.getOwnPropertyDescriptor(fn, 'prototype').writable // or your fave
+			)
+		);
 	}
 }

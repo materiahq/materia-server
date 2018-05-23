@@ -5,9 +5,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import { EndpointsLib } from '../lib/endpoints';
+import { WebsocketInstance } from '../../lib/websocket';
 
 export class EndpointsController {
-	constructor(private app: App) {}
+	constructor(private app: App, websocket: WebsocketInstance) {}
 
 	getEndpoints(req, res) {
 		const endpoints: IEndpoint[] = this.app.api.findAll().map(api =>

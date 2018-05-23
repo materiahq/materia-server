@@ -3,12 +3,13 @@ import { App } from "../../lib";
 
 import * as path from 'path';
 import * as fse from 'fs-extra';
+import { WebsocketInstance } from '../../lib/websocket';
 
 export class FilesController {
 
 	get api(): ExpressApplication { return this.app.server.expressApp; }
 
-	constructor(private app: App) {
+	constructor(private app: App, websocket: WebsocketInstance) {
 	}
 
 	getFullPath(relativePath) {

@@ -8,6 +8,7 @@ import { ConfigType, IConfigOptions } from './config'
 import { MateriaError } from './error'
 
 import * as express from 'express'
+import { createServer, Server as HttpServer } from 'http'
 // import * as session from 'express-session'
 
 import * as morgan from 'morgan'
@@ -17,6 +18,7 @@ import * as errorHandler from 'errorhandler'
 import * as compression from 'compression'
 
 import { Session } from './session'
+import { WebsocketServers } from './websocket';
 
 /**
  * @class Server
@@ -28,7 +30,8 @@ export class Server {
 	started: boolean = false
 
 	expressApp: express.Application
-	server: any
+	websocket: WebsocketServers
+	server: HttpServer
 	private sockets = new Map();
 	private stopped = false;
 	session: Session
@@ -76,7 +79,10 @@ export class Server {
 
 		this.expressApp.use(errorHandler())
 
-		this.server = require('http').createServer(this.expressApp);
+		this.server = createServer(this.expressApp);
+
+		this.websocket = new WebsocketServers(this.app);
+
 		this.sockets = new Map();
 		this.stopped = false;
 		this.listenConnections();
