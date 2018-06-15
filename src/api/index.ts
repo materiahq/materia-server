@@ -44,7 +44,7 @@ export class MateriaApi {
 		this.appCtrl = new AppController(this.app, websocket);
 		this.gitCtrl = new GitController(this.app, websocket);
 		this.endpointsCtrl = new EndpointsController(this.app, websocket);
-		this.packageManagerCtrl = new PackageManagerController(this.app, websocket);
+		this.packageManagerCtrl = new PackageManagerController(this.app);
 		this.addonsCtrl = new AddonsController(this.app, websocket);
 		this.permissionsCtrl = new PermissionsController(this.app, websocket);
 		this.boilerplateCtrl = new BoilerplateController(this.app, websocket);
