@@ -1,12 +1,13 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs from 'fs';
+import * as path from 'path';
 
-import * as fse from 'fs-extra'
-import chalk from "chalk";
+import * as fse from 'fs-extra';
+import chalk from 'chalk';
 
-import { App } from './app'
-import { MateriaError } from './error'
-import { Addon } from './addons/addon'
+import { App,  } from './app';
+import { MateriaError } from './error';
+import { Addon } from './addons/addon';
+import { ConfigType } from './config';
 
 
 export interface IAddon {
@@ -128,24 +129,27 @@ export class Addons {
 		})
 	}
 
-	loadConfig():Promise<IAddonConfig> {
-		let pkg = require(path.join(this.app.path, 'package.json'))
-		this.addonsConfig = pkg.materia && pkg.materia.addons || {}
-		try {
-			let p = path.join(this.app.path, '.materia', 'addons.json')
-			let addonsConfigPath = require.resolve(p)
-			if (require.cache[addonsConfigPath]) {
-				delete require.cache[addonsConfigPath]
-			}
+	loadConfig():IAddonConfig {
+		this.addonsConfig = this.app.config.get(this.app.mode, ConfigType.ADDONS)
+		return this.addonsConfig;
 
-			let setup:IAddonConfig = require(p)
-			this.addonsConfig = Object.assign({}, this.addonsConfig, setup)
-		} catch(e) {
-			if (e.code != 'MODULE_NOT_FOUND') {
-				return Promise.reject(new MateriaError(`Error in .materia/addons.json`))
-			}
-		}
-		return Promise.resolve(this.addonsConfig)
+		// let pkg = require(path.join(this.app.path, 'package.json'))
+		// this.addonsConfig = pkg.materia && pkg.materia.addons || {}
+		// try {
+		// 	let p = path.join(this.app.path, '.materia', 'addons.json')
+		// 	let addonsConfigPath = require.resolve(p)
+		// 	if (require.cache[addonsConfigPath]) {
+		// 		delete require.cache[addonsConfigPath]
+		// 	}
+
+		// 	let setup:IAddonConfig = require(p)
+		// 	this.addonsConfig = Object.assign({}, this.addonsConfig, setup)
+		// } catch(e) {
+		// 	if (e.code != 'MODULE_NOT_FOUND') {
+		// 		return Promise.reject(new MateriaError(`Error in .materia/addons.json`))
+		// 	}
+		// }
+		// return Promise.resolve(this.addonsConfig)
 	}
 
 	/**
@@ -154,9 +158,8 @@ export class Addons {
 	*/
 	loadAddons():Promise<void> {
 		const elapsedTimeAddons = new Date().getTime()
-		return this.loadConfig().then(config => {
-			return this.searchInstalledAddons()
-		}).then(addonsName => {
+		this.loadConfig()
+		return this.searchInstalledAddons().then(addonsName => {
 			// let addons:Addon[] = []
 
 			this.addons = []
@@ -167,13 +170,13 @@ export class Addons {
 				promises.push(addon.loadFromApp())
 			})
 			return Promise.all(promises)
-		}).then(addons => {
+		}).then(() => {
 			let p = Promise.resolve()
 			this.app.logger.log(` └─${this.addons.length == 0 ? '─' : '┬'} Addons: ${chalk.bold(this.addons.length.toString())}`)
 			this.addons.forEach(addon => {
 				p = p.then(() => {
-					this.app.logger.log(` │ └── ${chalk.bold(addon.package)}`)
-					if (typeof addon.obj.load == 'function') {
+					this.app.logger.log(` │ └── ${chalk.bold(addon.package)}: ${chalk.bold(addon.enabled ? 'OK' : chalk.red('ERROR'))}`)
+					if (addon.obj && typeof addon.obj.load == 'function' && addon.enabled) {
 						let obj = addon.obj.load()
 						if (this._isPromise(obj)) {
 							return obj
@@ -189,11 +192,13 @@ export class Addons {
 
 	setConfig(pkg:string, config:any) {
 		this.addonsConfig[pkg] = config
-		let p = path.join(this.app.path, '.materia', 'addons.json')
-		let content = JSON.stringify(this.addonsConfig, null, 2)
-		return this.app.saveFile(p, content, {
-			mkdir: true
-		})
+
+		this.app.config.set(this.addonsConfig, this.app.mode, ConfigType.ADDONS);
+		// let p = path.join(this.app.path, '.materia', 'addons.json')
+		// let content = JSON.stringify(this.addonsConfig, null, 2)
+		// return this.app.saveFile(p, content, {
+		// 	mkdir: true
+		// })
 	}
 
 	//OUT OF DATE
@@ -261,7 +266,13 @@ module.exports = ${nameCapitalizeFirst};`
 	start():Promise<void> {
 		let p = Promise.resolve()
 		this.addons.forEach(addon => {
-			p = p.then(() => addon.start())
+			p = p.then(() => {
+				if (addon.enabled) {
+					return addon.start()
+				} else {
+					return Promise.resolve();
+				}
+			})
 		})
 
 		return p
@@ -287,24 +298,29 @@ module.exports = ${nameCapitalizeFirst};`
 	@returns {integer}
 	*/
 	getLength():number {
-		return this.addons.length
+		return this.addons.length;
 	}
 
 	loadFiles():Promise<any> {
 		let p = Promise.resolve()
 		this.addons.forEach((addon) => {
 			p = p.then(() => {
-				return this.app.entities.loadFiles(addon)
+				if (addon.enabled) {
+					return this.app.entities.loadFiles(addon);
+				}
+				else {
+					return Promise.resolve();
+				}
 			})
 		})
-		return p
+		return p;
 	}
 
 	private handleHook(name:string):Promise<any> {
 		let p = Promise.resolve()
 		this.addons.forEach(addon => {
 			p = p.then(() => {
-				if (typeof addon[name] == 'function') {
+				if (addon.enabled && typeof addon[name] == 'function') {
 					return addon[name]();
 				}
 				else return Promise.resolve()
@@ -318,7 +334,11 @@ module.exports = ${nameCapitalizeFirst};`
 			let p = Promise.resolve()
 			this.addons.forEach((addon) => {
 				p = p.then(() => {
-					return this.app.entities.loadEntities(addon)
+					if (addon.enabled) {
+						return this.app.entities.loadEntities(addon)
+					} else {
+						return Promise.resolve()
+					}
 				})
 			})
 			return p
@@ -332,7 +352,11 @@ module.exports = ${nameCapitalizeFirst};`
 			let p = Promise.resolve()
 			this.addons.forEach((addon) => {
 				p = p.then(() => {
-					return this.app.entities.loadQueries(addon)
+					if (addon.enabled) {
+						return this.app.entities.loadQueries(addon)
+					} else {
+						return Promise.resolve();
+					}
 				})
 			})
 			return p
@@ -346,7 +370,11 @@ module.exports = ${nameCapitalizeFirst};`
 			let p = Promise.resolve()
 			this.addons.forEach((addon) => {
 				p = p.then(() => {
-					return this.app.api.load(addon)
+					if (addon.enabled) {
+						return this.app.api.load(addon)
+					} else {
+						return Promise.resolve()
+					}
 				})
 			})
 			return p

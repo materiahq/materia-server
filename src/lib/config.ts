@@ -120,6 +120,9 @@ export class Config {
 
 	reloadConfig(): void {
 		// console.log('load', this.materiaJson);
+		if ( ! this.materiaJson ) {
+			this.loadConfigurationFiles();
+		}
 		this.config = {
 			app: {
 				name: this.materiaJson.name,
@@ -155,7 +158,14 @@ export class Config {
 				prod: this.packageJson.dependencies
 			},
 			scripts: this.packageJson.scripts,
-			addons: this.materiaJson.addons
+			addons: {
+				dev: this.materiaJson.addons,
+				prod: Object.assign(
+					{},
+					this.materiaJson.addons,
+					this.materiaProdJson.addons
+				)
+			}
 		};
 	}
 
@@ -208,7 +218,7 @@ export class Config {
 	@param {string} - The environment mode. `development` or `production`.
 	*/
 	set(
-		config: IAppConfig | IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig | IClientConfig | IDependenciesConfig | IScriptsMap,
+		config: IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig | IClientConfig | IDependenciesConfig | IScriptsMap,
 		mode: AppMode | string,
 		type?: ConfigType,
 		options?: IConfigOptions,
@@ -227,8 +237,7 @@ export class Config {
 			ConfigType.DATABASE,
 			ConfigType.SESSION,
 			ConfigType.DEPENDENCIES,
-			ConfigType.ADDONS,
-			ConfigType.APP
+			ConfigType.ADDONS
 		].indexOf(type) != -1) {
 			this.config[type][mode] = config;
 		} else {
@@ -241,10 +250,9 @@ export class Config {
 			opts.beforeSave("materia.json");
 			opts.beforeSave("package.json");
 		}
-
-      	const res = this.toJson()
-        this.packageJson = res.package
-        this.materiaJson = res.materia
+		const res = this.toJson()
+		this.packageJson = res.package
+		this.materiaJson = res.materia
 		this.materiaProdJson = res.materiaProd
 		this.reloadConfig();
 		// console.log('save', res);

@@ -109,6 +109,7 @@ export class AppController {
 				Object.assign({}, addon.toJson(), {
 					setupConfig: addon.getSetupConfig(),
 					config: addon.config,
+					enabled: addon.enabled,
 					installed: true,
 					installing: false,
 					published: true // TODO: set published dynamically (still need to find how to detect if an addon is published or not)
@@ -175,6 +176,7 @@ export class AppController {
 				Object.assign({}, addon.toJson(), {
 					setupConfig: addon.getSetupConfig(),
 					config: addon.config,
+					enabled: addon.enabled,
 					installed: true,
 					installing: false,
 					published: true // TODO: set published dynamically (still need to find how to detect if an addon is published or not)

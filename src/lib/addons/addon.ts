@@ -1,7 +1,6 @@
 import * as path from "path";
 
 import { App } from "../app";
-import { MateriaError } from "../error";
 import { MateriaAddon } from "./helpers";
 export interface IAddonInfo {
 	package: string;
@@ -11,6 +10,7 @@ export interface IAddonInfo {
 	author: string;
 	version: string;
 	tags: IAddonTag[];
+	enabled: boolean;
 	color: string;
 }
 
@@ -59,94 +59,74 @@ export class Addon {
 	loadFromApp() {
 		let AddonClass, addonPackage;
 		return this.app.addons.setupModule(require => {
-			let addon_app;
 			try {
 				this.path = path.dirname(
 					require.resolve(path.join(this.package, "package.json"))
 				);
-				addon_app = new App(this.path, {});
+				new App(this.path, {});
 			} catch (e) {
-				return Promise.reject(
-					new MateriaError(
-						"Impossible to initialize addon " + this.package,
-						{
-							originalError: e
-						}
-					)
-				);
+				this.enabled = false;
+				this.app.logger.error(new Error(`Impossible to initialize addon ${this.package}`))
+				this.app.logger.error(e);
+				return Promise.resolve(e);
 			}
-			return addon_app.selfMigration.check().then(() => {
-				let mod;
-				try {
-					// console.group(`(Server) Loading addon ${this.package}`);
-					addonPackage = require(path.join(
-						this.package,
-						"package.json"
-					));
-					// console.log("package", addonPackage);
-					const pkg = this.package;
-					// console.log("pkg", this.package, pkg, path.join(pkg, 'server'));
-					mod = require(path.join(pkg, 'server'));
-					// console.log("module", mod);
-				} catch (e) {
-					// console.log(e);
-					throw new MateriaError(
-						"Impossible to require addon " + this.package,
-						{
-							originalError: e
-						}
-					);
+			let mod;
+			try {
+				addonPackage = require(path.join(
+					this.package,
+					"package.json"
+				));
+				const pkg = this.package;
+				mod = require(path.join(pkg, 'server'));
+			} catch (e) {
+				this.enabled = false;
+				this.app.logger.error(new Error(`Impossible to require addon ${this.package}`))
+				this.app.logger.error(e);
+				return Promise.resolve(e);
+			}
+			try {
+				if (mod.default) {
+					AddonClass = mod.default;
+				} else {
+					AddonClass = addonPackage.materia.addon;
 				}
-				try {
-					// console.log()
-					if (mod.default) {
-						AddonClass = mod.default;
-					} else {
-						AddonClass = addonPackage.materia.addon;
-					}
-					// console.log("class", AddonClass);
-					this.obj = new AddonClass(
-						this.app,
-						this.app.addons.addonsConfig[this.package],
-						this.app.server.expressApp
-					);
-				} catch (e) {
-					throw new MateriaError(
-						"Impossible to instantiate addon " + this.package,
-						{
-							originalError: e
-						}
-					);
-				}
-				// console.log("instance", this.obj);
-				// console.groupEnd();
-				this.packageJsonFile = addonPackage;
-				this.package = addonPackage.name;
-				this.name = AddonClass.displayName || addonPackage.name;
-				this.description = addonPackage.description;
-				this.logo = AddonClass.logo;
-				this.author =
-					(addonPackage.materia && addonPackage.materia.author) ||
-					addonPackage.author;
-				this.version = addonPackage.version;
-				this.color =
-					addonPackage.materia &&
-					addonPackage.materia.icon &&
-					addonPackage.materia.icon.color;
-				this.tags =
-					(addonPackage.keywords &&
-						addonPackage.keywords.map(keyword => {
-							return { id: keyword };
-						})) ||
-					[];
+				this.obj = new AddonClass(
+					this.app,
+					this.app.addons.addonsConfig[this.package],
+					this.app.server.expressApp
+				);
+			} catch (e) {
+				this.enabled = false;
+				this.app.logger.error(new Error(`Impossible to instantiate addon ${this.package}`))
+				this.app.logger.error(e);
+				return Promise.resolve(e);
+			}
+			this.packageJsonFile = addonPackage;
+			this.package = addonPackage.name;
+			this.name = AddonClass.displayName || addonPackage.name;
+			this.description = addonPackage.description;
+			this.logo = AddonClass.logo;
+			this.author =
+				(addonPackage.materia && addonPackage.materia.author) ||
+				addonPackage.author;
+			this.version = addonPackage.version;
+			this.color =
+				addonPackage.materia &&
+				addonPackage.materia.icon &&
+				addonPackage.materia.icon.color;
+			this.tags =
+				(addonPackage.keywords &&
+					addonPackage.keywords.map(keyword => {
+						return { id: keyword };
+					})) ||
+				[];
 
-				this.setupConfig = AddonClass.installSettings;
-				this.config = this.app.addons.addonsConfig[this.package];
+			this.setupConfig = AddonClass.installSettings;
+			this.config = this.app.addons.addonsConfig[this.package];
 
-				this.installed = true;
-				this.installing = false;
-				return Promise.resolve();
-			});
+			this.installed = true;
+			this.installing = false;
+			return Promise.resolve();
 		});
 	}
 
@@ -208,7 +188,7 @@ export class Addon {
 		return this.hook("afterLoadAPI");
 	}
 
-	setup(config: any): Promise<any> {
+	setup(config: any): void {
 		this.config = config;
 		return this.app.addons.setConfig(this.package, config);
 	}
@@ -232,7 +212,8 @@ export class Addon {
 			version: this.version,
 			tags: this.tags,
 			author: this.author,
-			color: this.color
+			color: this.color,
+			enabled: this.enabled
 		};
 	}
 	private _isPromise(obj: any): boolean {

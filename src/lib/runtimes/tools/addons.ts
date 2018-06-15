@@ -25,64 +25,63 @@ class AddonsTools {
 				input: process.stdin,
 				output: process.stdout
 			})
-			return this.app.addons.loadConfig().then((configs) => {
-				let config = configs[name] = configs[name] || {}
-				let p = Promise.resolve()
-				for (let param of setupObj) {
-					p = p.then(() => {
-						let description = param.description
-						let def = config[param.name] === undefined ? param.default : config[param.name]
-						if (param.type == 'boolean') {
-							if (def === false) {
-								description += ': [y/N] '
-							} else {
-								description += ': [Y/n] '
-								def = true
-							}
-						} else if (def !== undefined) {
-							description += `: (${def}) `
+			const configs: any = this.app.addons.loadConfig();
+			let config = configs[name] = configs[name] || {}
+			let p = Promise.resolve()
+			for (let param of setupObj) {
+				p = p.then(() => {
+					let description = param.description
+					let def = config[param.name] === undefined ? param.default : config[param.name]
+					if (param.type == 'boolean') {
+						if (def === false) {
+							description += ': [y/N] '
 						} else {
-							description += ": "
+							description += ': [Y/n] '
+							def = true
+						}
+					} else if (def !== undefined) {
+						description += `: (${def}) `
+					} else {
+						description += ": "
+					}
+
+					return new Promise((accept, reject) => {
+						rl.question(description, answer => {
+							return accept(answer)
+						})
+					}).then((value:any) => {
+						if (value == "") {
+							value = def
+						}
+						else if (param.type == 'boolean') {
+							value = value.toLowerCase()[0] == 'y'
+						}
+						else if (param.type == 'number') {
+							value = parseInt(value)
+						}
+						else if (param.type == 'float') {
+							value = parseFloat(value)
 						}
 
-						return new Promise((accept, reject) => {
-							rl.question(description, answer => {
-								return accept(answer)
-							})
-						}).then((value:any) => {
-							if (value == "") {
-								value = def
-							}
-							else if (param.type == 'boolean') {
-								value = value.toLowerCase()[0] == 'y'
-							}
-							else if (param.type == 'number') {
-								value = parseInt(value)
-							}
-							else if (param.type == 'float') {
-								value = parseFloat(value)
-							}
+						if (param.type == 'date') {
+							value = new Date(value)
+						}
+						if (param.type == 'text') {
+							value = value || ""
+						}
 
-							if (param.type == 'date') {
-								value = new Date(value)
-							}
-							if (param.type == 'text') {
-								value = value || ""
-							}
-
-							config[param.name] = value
-						})
+						config[param.name] = value
 					})
-				}
-
-				return p.then(() => {
-					return this.app.saveFile('.materia/addons.json', JSON.stringify(configs), { mkdir:true })
-				}).then(() => {
-					rl.close()
-				}).catch(e => {
-					rl.close()
-					throw e
 				})
+			}
+
+			return p.then(() => {
+				return this.app.saveFile('.materia/addons.json', JSON.stringify(configs), { mkdir:true })
+			}).then(() => {
+				rl.close()
+			}).catch(e => {
+				rl.close()
+				throw e
 			})
 		})
 	}
