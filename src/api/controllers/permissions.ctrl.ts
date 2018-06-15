@@ -64,21 +64,18 @@ export class PermissionsController {
 	remove(req, res) { // payload: { permission: IPermission; action: string }) {
 		const perm = req.params.permission;
 		const action = req.query.action;
-		const reloadPerm = this.app.api.permissions
-			.findAll()
-			.get(perm);
+		const reloadPerm = this.app.api.permissions.get(perm);
 
 		if (reloadPerm) {
 			reloadPerm.reload();
 		}
-
 		if (action == 'confirm and keep') {
-			this.app.api.permissions.remove(perm.name, {
+			this.app.api.permissions.remove(perm, {
 				save: true,
 				removeSource: false
 			});
 		} else if (action == 'confirm and delete') {
-			this.app.api.permissions.remove(perm.name, {
+			this.app.api.permissions.remove(perm, {
 				save: true,
 				removeSource: true
 			});
