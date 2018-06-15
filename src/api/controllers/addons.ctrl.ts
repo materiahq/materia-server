@@ -5,6 +5,12 @@ export class AddonsController {
 	constructor(private app: App, websocket: WebsocketInstance) {}
 
 	setup(req, res) {
-		this.app.addons.setConfig(req.params.pkg, req.body);
+		const pkg = req.params.owner ?
+			`${req.params.owner}/${req.params.pkg}` :
+			req.params.pkg;
+
+		this.app.addons.setConfig(pkg, req.body).then(result =>
+			res.status(200).json(result)
+		).catch(err => res.status(500).json(err));
 	}
 }

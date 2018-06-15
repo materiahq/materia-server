@@ -188,7 +188,7 @@ export class Addon {
 		return this.hook("afterLoadAPI");
 	}
 
-	setup(config: any): void {
+	setup(config: any): Promise<void> {
 		this.config = config;
 		return this.app.addons.setConfig(this.package, config);
 	}

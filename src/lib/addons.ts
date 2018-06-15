@@ -194,6 +194,7 @@ export class Addons {
 		this.addonsConfig[pkg] = config
 
 		this.app.config.set(this.addonsConfig, this.app.mode, ConfigType.ADDONS);
+		return this.app.config.save()
 		// let p = path.join(this.app.path, '.materia', 'addons.json')
 		// let content = JSON.stringify(this.addonsConfig, null, 2)
 		// return this.app.saveFile(p, content, {

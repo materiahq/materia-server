@@ -150,6 +150,7 @@ export class MateriaApi {
 		 */
 
 		this.api.post('/materia/addons/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
+		this.api.post('/materia/addons/:owner/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
 
 		/**
 		 * Client Endpoints
