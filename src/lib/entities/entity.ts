@@ -11,6 +11,7 @@ import { Addon } from '../addons/addon';
 import { Field, IField, IFieldUpdate } from './field'
 import { QueryGenerator } from './query-generator'
 import { Query, IQuery, IQueryConstructor } from './query'
+import { ConfigType } from '../config';
 
 export interface IRelation {
 	type?: string,
@@ -231,9 +232,21 @@ export class Entity {
 	}
 
 	save(opts?) {
-		if (this.fromAddon ) {
+		if (this.fromAddon) {
 			// TODO: save position in materia.json
-			return true;
+			const oldAddonConfig = this.app.config.get(this.app.mode, ConfigType.ADDONS);
+
+			const newAddonConfig = Object.assign({}, oldAddonConfig, {
+				entities: Object.assign({}, oldAddonConfig['entities'] || {}, {
+					[this.name]: {
+						x: this.x,
+						y: this.y
+					}
+				})
+			});
+			console.log('Save addon config', oldAddonConfig, newAddonConfig);
+			this.app.config.set(newAddonConfig, this.app.mode, ConfigType.ADDONS);
+			return this.app.config.save()
 		}
 
 		let relativePath = path.join('server', 'models', this.name + '.json')
@@ -242,6 +255,7 @@ export class Entity {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave(path.join(basepath, relativePath))
 		}
+
 
 		fs.writeFileSync(
 			path.join(basepath, relativePath),

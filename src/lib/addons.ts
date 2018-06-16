@@ -115,16 +115,25 @@ export class Addons {
 		let pkg = require(path.join(this.app.path, 'package.json'))
 		let addons = []
 		let dependencies = Object.assign({}, pkg.dependencies || {}, pkg.devDependencies || {})
+		const links = this.app.config.get<string[]>(this.app.mode, ConfigType.LINKS) || [];
+		console.log(`~~~~~~~~~ ${links}`)
 		return this.setupModule(() => {
-			for (let dep in dependencies) {
+			[...Object.keys(dependencies), ...links].forEach(dep => {
+				console.log('try dep', dep);
 				try {
 					let dep_pkg = require(dep + '/package.json')
 					if (dep_pkg.materia) {
 						addons.push(dep)
 					}
 				} catch(e) {
+					try {
+						require(dep + '/materia.json');
+						addons.push(dep)
+					} catch(e2) {
+					}
 				}
-			}
+			});
+			console.log('addons', addons);
 			return Promise.resolve(addons)
 		})
 	}
@@ -159,13 +168,13 @@ export class Addons {
 	loadAddons():Promise<void> {
 		const elapsedTimeAddons = new Date().getTime()
 		this.loadConfig()
-		return this.searchInstalledAddons().then(addonsName => {
+		return this.searchInstalledAddons().then(addonsPkg => {
 			// let addons:Addon[] = []
 
 			this.addons = []
 			let promises:Promise<void>[] = []
-			addonsName.forEach(addonName => {
-				let addon = new Addon(this.app, addonName)
+			addonsPkg.forEach(pkg => {
+				let addon = new Addon(this.app, pkg)
 				this.addons.push(addon)
 				promises.push(addon.loadFromApp())
 			})
@@ -176,6 +185,9 @@ export class Addons {
 			this.addons.forEach(addon => {
 				p = p.then(() => {
 					this.app.logger.log(` │ └── ${chalk.bold(addon.package)}: ${chalk.bold(addon.enabled ? 'OK' : chalk.red('ERROR'))}`)
+					if (this.addonsConfig[addon.package].disabled) {
+						addon.enabled = false;
+					}
 					if (addon.obj && typeof addon.obj.load == 'function' && addon.enabled) {
 						let obj = addon.obj.load()
 						if (this._isPromise(obj)) {

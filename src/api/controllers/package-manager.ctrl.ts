@@ -3,14 +3,21 @@ import { App } from "../../lib";
 import * as npm from 'npm';
 import * as fs from 'fs';
 import * as path from 'path';
+import { WebsocketInstance } from "../../lib/websocket";
 
 export class PackageManagerController {
-	constructor(private app: App) {}
+	constructor(private app: App, websocket: WebsocketInstance) {}
 
 	install(req, res) {
-		const name = req.params.name;
-		console.log(`(Dependency) Install ${name}`);
-		return this.npmCall('install', [name]).then(data => {
+		const name = req.params.owner
+			? `${req.params.owner}/${req.params.dependency}`
+			: req.params.dependency;
+
+			console.log(`(Dependency) Install ${name}`);
+
+		const cmd = req.query.dev ? 'link' : 'install';
+
+		return this.npmCall(cmd, [name]).then(data => {
 			const pkg = this.getPkg();
 			if (!pkg['dependencies']) {
 				pkg['dependencies'] = {};
@@ -18,14 +25,18 @@ export class PackageManagerController {
 			const tmp = this.getPkg(name);
 			pkg['dependencies'][name] = `~${tmp['version']}`;
 			this.savePkg(pkg);
-			res.status(200).send(data);
+			res.status(200).json(data);
 		}).catch(e => {
 			res.status(500).json(e);
 		});
 	}
+
 	upgrade(req, res) {
-		const name = req.params.name
-		console.log(`(Dependency) Install ${name}`);
+		const name = req.params.owner
+			? `${req.params.owner}/${req.params.dependency}`
+			: req.params.dependency;
+
+		console.log(`(Dependency) Upgrade ${name}`);
 		return this.npmCall('upgrade', [name]).then(data => {
 			const pkg = this.getPkg();
 			if (!pkg['dependencies']) {
@@ -49,7 +60,9 @@ export class PackageManagerController {
 	}
 
 	uninstall(req, res) {
-		const name = req.params.name
+		const name = req.params.owner
+			? `${req.params.owner}/${req.params.dependency}`
+			: req.params.dependency;
 		console.log(`(Addons) Uninstall ${name}`);
 		this.npmCall('uninstall', [name]).then(data => {
 			const pkg = this.getPkg();
@@ -59,7 +72,7 @@ export class PackageManagerController {
 			delete pkg['dependencies'][name];
 
 			this.savePkg(pkg);
-			res.status(200).send(data);
+			res.status(200).json(data);
 		}).catch(e => {
 			res.status(500).json(e);
 		});

@@ -197,11 +197,20 @@ export class Addon {
 		return this.setupConfig || [];
 	}
 
-	//TODO
-	disable() {}
+	disable() {
+		this.enabled = false;
+		return this.setup(Object.assign({}, this.config || {}, {
+			disabled: true
+		}))
+	}
 
-	//TODO
-	enable() {}
+	enable() {
+		if (this.config && this.config.disabled) {
+			delete this.config.disabled
+		}
+		this.enabled = true;
+		return this.setup(this.config);
+	}
 
 	toJson(): IAddonInfo {
 		return {

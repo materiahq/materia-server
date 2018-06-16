@@ -44,7 +44,7 @@ export class MateriaApi {
 		this.appCtrl = new AppController(this.app, websocket);
 		this.gitCtrl = new GitController(this.app, websocket);
 		this.endpointsCtrl = new EndpointsController(this.app, websocket);
-		this.packageManagerCtrl = new PackageManagerController(this.app);
+		this.packageManagerCtrl = new PackageManagerController(this.app, websocket);
 		this.addonsCtrl = new AddonsController(this.app, websocket);
 		this.permissionsCtrl = new PermissionsController(this.app, websocket);
 		this.boilerplateCtrl = new BoilerplateController(this.app, websocket);
@@ -67,8 +67,11 @@ export class MateriaApi {
 		 */
 		this.api.post('/materia/dependencies', this.oauth.isAuth, this.packageManagerCtrl.installAll.bind(this.packageManagerCtrl));
 		this.api.post('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.install.bind(this.packageManagerCtrl))
+		this.api.post('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.install.bind(this.packageManagerCtrl))
 		this.api.put('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.upgrade.bind(this.packageManagerCtrl))
+		this.api.put('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.upgrade.bind(this.packageManagerCtrl))
 		this.api.delete('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstall.bind(this.packageManagerCtrl))
+		this.api.delete('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstall.bind(this.packageManagerCtrl))
 		this.api.post('/materia/tasks/:task', this.oauth.isAuth, this.packageManagerCtrl.runScript.bind(this.packageManagerCtrl))
 
 		/**
@@ -152,6 +155,12 @@ export class MateriaApi {
 		this.api.post('/materia/addons/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
 		this.api.post('/materia/addons/:owner/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
 
+		this.api.post('/materia/addons/:pkg/enable', this.oauth.isAuth, this.addonsCtrl.enable.bind(this.addonsCtrl));
+		this.api.post('/materia/addons/:owner/:pkg/enable', this.oauth.isAuth, this.addonsCtrl.enable.bind(this.addonsCtrl));
+
+		this.api.post('/materia/addons/:pkg/disable', this.oauth.isAuth, this.addonsCtrl.disable.bind(this.addonsCtrl));
+		this.api.post('/materia/addons/:owner/:pkg/disable', this.oauth.isAuth, this.addonsCtrl.disable.bind(this.addonsCtrl));
+
 		/**
 		 * Client Endpoints
 		 */
@@ -159,5 +168,7 @@ export class MateriaApi {
 		this.api.post('/materia/client/boilerplate/init/angular', this.oauth.isAuth, this.boilerplateCtrl.initAngular.bind(this.boilerplateCtrl));
 		this.api.post('/materia/client/boilerplate/init/react', this.oauth.isAuth, this.boilerplateCtrl.initReact.bind(this.boilerplateCtrl));
 		this.api.post('/materia/client/boilerplate/init/vuejs', this.oauth.isAuth, this.boilerplateCtrl.initVue.bind(this.boilerplateCtrl));
+
+		this.api.all('/materia/*', this.oauth.isAuth, (req, res) => res.status(404).send());
 	}
 }

@@ -35,6 +35,10 @@ export interface IFullConfig {
 	server: IServer;
 	session?: ISession;
 	dependencies?: IDependenciesConfig;
+	links?: {
+		dev: string[];
+		prod: string[];
+	};
 	scripts?: IScriptsMap;
 	database?: IDatabase;
 	addons?: any;
@@ -51,6 +55,7 @@ export enum ConfigType {
 	DEPENDENCIES = <any>"dependencies",
 	SCRIPTS = <any>"scripts",
 	ADDONS = <any>"addons",
+	LINKS = <any>"links",
 	DEPLOYMENT = <any>"deployment",
 	SERVICES = <any>"services"
 }
@@ -165,6 +170,10 @@ export class Config {
 					this.materiaJson.addons,
 					this.materiaProdJson.addons
 				)
+			},
+			links: {
+				dev: this.materiaJson.links || [],
+				prod: this.materiaProdJson.links || []
 			}
 		};
 	}
@@ -199,6 +208,7 @@ export class Config {
 			ConfigType.DATABASE,
 			ConfigType.DEPENDENCIES,
 			ConfigType.ADDONS,
+			ConfigType.LINKS,
 			ConfigType.SESSION].find(t => t == type)) {
 			result = this.config[type][mode];
 		} else {
@@ -302,13 +312,15 @@ export class Config {
 				session: this.config.session && this.config.session.dev,
 				client: this.config.client,
 				addons: this.config.addons && this.config.addons.dev,
+				links: this.config.links && this.config.links.dev,
 				git: this.config.git
 			}),
 			materiaProd: Object.assign({}, this.materiaProdJson, {
 				server: this.config.server && this.config.server.prod,
 				database: this.config.database && this.config.database.prod,
 				session: this.config.session && this.config.session.prod,
-				addons: this.config.addons && this.config.addons.prod
+				addons: this.config.addons && this.config.addons.prod,
+				links: this.config.links && this.config.links.prod
 			}),
 			package: Object.assign({}, this.packageJson, {
 				name: this.app.package,

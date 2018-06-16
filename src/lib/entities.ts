@@ -18,6 +18,7 @@ import { CustomQuery } from './entities/queries/custom'
 import { DBEntity } from './entities/db-entity'
 import { Entity } from './entities/entity'
 import { IField } from './entities/field'
+import { ConfigType } from './config';
 
 //TODO: add when entities/entity will be converted in ts
 /*export interface IEntities {
@@ -102,13 +103,18 @@ export class Entities {
 			fse.mkdirsSync(path.join(basePath, 'server', 'models'))
 			return Promise.resolve(false)
 		}
-
+		const addonsConfig = this.app.config.get<{[addon: string]: any}>(this.app.mode, ConfigType.ADDONS) || {}
+		const addonsEntitiesPositions = addonsConfig.entities || {}
 		for (let file of files) {
 			try {
 				if (file.substr(file.length - 5, 5) == '.json') {
 					let content = fs.readFileSync(path.join(basePath, 'server', 'models', file))
 					let entity = JSON.parse(content.toString())
 					entity.name = file.substr(0, file.length - 5)
+					if (addonsEntitiesPositions[entity.name] && addonsEntitiesPositions[entity.name].x) {
+						entity.x = addonsEntitiesPositions[entity.name].x
+						entity.y = addonsEntitiesPositions[entity.name].y
+					}
 					this.entitiesJson[basePath].push(entity)
 				}
 			} catch (e) {
