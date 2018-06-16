@@ -317,10 +317,10 @@ export class DatabaseController {
 			.query(req.body.opts.query, {
 				type: 'sql'
 			})
-			.then(res => {
+			.then(data => {
 				res.status(200).json({
-					data: res,
-					count: res.length,
+					data: data,
+					count: data.length,
 					from: 'playground'
 				});
 			})
