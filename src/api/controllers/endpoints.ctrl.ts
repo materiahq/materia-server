@@ -238,6 +238,6 @@ export class EndpointsController {
 		EndpointsLib.generate(this.app, entity, 'put', 'update');
 		EndpointsLib.generate(this.app, entity, 'delete', 'delete');
 
-		return EndpointsLib.list(this.app);
+		res.status(200).json({endpoints: EndpointsLib.list(this.app)});
 	}
 }

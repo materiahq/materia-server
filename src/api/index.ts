@@ -91,7 +91,7 @@ export class MateriaApi {
 		this.api.post('/materia/git/init', this.oauth.isAuth, this.gitCtrl.init.bind(this.gitCtrl));
 		this.api.post('/materia/git/fetch', this.oauth.isAuth, this.gitCtrl.fetch.bind(this.gitCtrl));
 		// this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl..bind(this.gitCtrl));
-		this.api.get('/materia/git/statuses/:path(.*)', this.oauth.isAuth, this.gitCtrl.getStatus.bind(this.gitCtrl));
+		this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.getStatus.bind(this.gitCtrl));
 		this.api.post('/materia/git/stage/:path(.*)', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
 		this.api.delete('/materia/git/unstage/:path(.*)', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));
 		this.api.post('/materia/git/stage_all', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
@@ -132,6 +132,7 @@ export class MateriaApi {
 		this.api.get('/materia/controllers', this.oauth.isAuth, this.endpointsCtrl.getControllers.bind(this.endpointsCtrl));
 		this.api.get('/materia/endpoints', this.oauth.isAuth, this.endpointsCtrl.getEndpoints.bind(this.endpointsCtrl));
 		this.api.get('/materia/controllers/:name', this.oauth.isAuth, this.endpointsCtrl.loadController.bind(this.endpointsCtrl));
+		this.api.post('/materia/endpoints/generate', this.oauth.isAuth, this.endpointsCtrl.generate.bind(this.endpointsCtrl));
 		this.api.post('/materia/endpoints/code', this.oauth.isAuth, this.endpointsCtrl.createCode.bind(this.endpointsCtrl));
 		this.api.post('/materia/endpoints/query', this.oauth.isAuth, this.endpointsCtrl.createQuery.bind(this.endpointsCtrl));
 		this.api.put('/materia/endpoints/code', this.oauth.isAuth, this.endpointsCtrl.updateCode.bind(this.endpointsCtrl));
