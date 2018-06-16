@@ -34,8 +34,7 @@ export class GitController {
 	}
 
 	getStatus(req, res) {
-		console.log('#####', req.params);
-		this.client.getStatusDiff(req.params.path).then(data => {
+		this.client.getStatusDiff(req.query.path).then(data => {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
