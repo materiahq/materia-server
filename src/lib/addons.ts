@@ -118,7 +118,7 @@ export class Addons {
 		const links = this.app.config.get<string[]>(this.app.mode, ConfigType.LINKS) || [];
 		console.log(`~~~~~~~~~ ${links}`)
 		return this.setupModule(() => {
-			[...Object.keys(dependencies), ...links].forEach(dep => {
+			new Set([...Object.keys(dependencies), ...links]).forEach(dep => {
 				console.log('try dep', dep);
 				try {
 					let dep_pkg = require(dep + '/package.json')
