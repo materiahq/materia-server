@@ -92,8 +92,8 @@ export class MateriaApi {
 		this.api.post('/materia/git/fetch', this.oauth.isAuth, this.gitCtrl.fetch.bind(this.gitCtrl));
 		// this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl..bind(this.gitCtrl));
 		this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.getStatus.bind(this.gitCtrl));
-		this.api.post('/materia/git/stage/:path(.*)', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
-		this.api.delete('/materia/git/unstage/:path(.*)', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));
+		this.api.post('/materia/git/stage', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
+		this.api.delete('/materia/git/unstage', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));
 		this.api.post('/materia/git/stage_all', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
 		this.api.delete('/materia/git/unstage_all', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));
 		this.api.post('/materia/git/commit', this.oauth.isAuth, this.gitCtrl.commit.bind(this.gitCtrl));
