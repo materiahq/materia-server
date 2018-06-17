@@ -65,13 +65,13 @@ export class MateriaApi {
 		/**
 		 * PackageManager Endpoints
 		 */
-		this.api.post('/materia/dependencies', this.oauth.isAuth, this.packageManagerCtrl.installAll.bind(this.packageManagerCtrl));
-		this.api.post('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.install.bind(this.packageManagerCtrl))
-		this.api.post('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.install.bind(this.packageManagerCtrl))
-		this.api.put('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.upgrade.bind(this.packageManagerCtrl))
-		this.api.put('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.upgrade.bind(this.packageManagerCtrl))
-		this.api.delete('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstall.bind(this.packageManagerCtrl))
-		this.api.delete('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstall.bind(this.packageManagerCtrl))
+		this.api.post('/materia/dependencies', this.oauth.isAuth, this.packageManagerCtrl.installAllcp.bind(this.packageManagerCtrl));
+		this.api.post('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.installcp.bind(this.packageManagerCtrl))
+		this.api.post('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.installcp.bind(this.packageManagerCtrl))
+		this.api.put('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.upgradecp.bind(this.packageManagerCtrl))
+		this.api.put('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.upgradecp.bind(this.packageManagerCtrl))
+		this.api.delete('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstallcp.bind(this.packageManagerCtrl))
+		this.api.delete('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstallcp.bind(this.packageManagerCtrl))
 		this.api.post('/materia/tasks/:task', this.oauth.isAuth, this.packageManagerCtrl.runScript.bind(this.packageManagerCtrl))
 
 		/**

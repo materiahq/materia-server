@@ -3,17 +3,31 @@ import { App } from "../../lib";
 import * as npm from 'npm';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as execa from 'execa';
 import { WebsocketInstance } from "../../lib/websocket";
 
 export class PackageManagerController {
 	constructor(private app: App, websocket: WebsocketInstance) {}
+
+	installcp(req, res) {
+		const name = req.params.owner
+			? `${req.params.owner}/${req.params.dependency}`
+			: req.params.dependency;
+
+		console.log(`(Dependency) Install ${name}`);
+		this.npm('install', [name, '--save']).then(data => {
+			res.status(200).json(data);
+		}).catch(err => {
+			res.status(500).json(err);
+		})
+	}
 
 	install(req, res) {
 		const name = req.params.owner
 			? `${req.params.owner}/${req.params.dependency}`
 			: req.params.dependency;
 
-			console.log(`(Dependency) Install ${name}`);
+		console.log(`(Dependency) Install ${name}`);
 
 		const cmd = req.query.dev ? 'link' : 'install';
 
@@ -51,12 +65,40 @@ export class PackageManagerController {
 		});
 	}
 
+	upgradecp(req, res) {
+		const name = req.params.owner
+			? `${req.params.owner}/${req.params.dependency}`
+			: req.params.dependency;
+
+		return this.npm('upgrade', [name, '--save']).then(data => {
+			res.status(200).send(data);
+		}).catch(e => {
+			res.status(500).json(e);
+		});
+	}
+
 	installAll(req, res) {
 		return this.npmCall('install', []).then(data => {
 			res.status(200).send(data);
 		}).catch(e => {
 			res.status(500).json(e);
 		});
+	}
+
+	installAllcp(req, res) {
+		return this.npm('install', []).then(data => {
+			res.status(200).send(data);
+		}).catch(e => {
+			res.status(500).json(e);
+		});
+	}
+	uninstallcp(req, res) {
+		const name = req.params.owner
+			? `${req.params.owner}/${req.params.dependency}`
+			: req.params.dependency;
+		this.npm('uninstall', [name, '--save']).then(data => {
+			res.status(200).json(data)
+		}).catch(err => res.status(500).json(err));
 	}
 
 	uninstall(req, res) {
@@ -80,6 +122,38 @@ export class PackageManagerController {
 
 	runScript(req, res) {}
 	runBin(req, res) {}
+
+	private npm(command: string, params?: string[]): Promise<any> {
+		return new Promise((resolve, reject) => {
+			// const cwd = this.app.path;
+			console.log("DIRNAME", __dirname);
+
+			let data = '';
+			const stream = execa(path.resolve(`node_modules/.bin/npm`), [command, ...params], {
+				cwd: this.app.path
+			});
+			stream.stdout.on('data', d => {
+				console.log(`stdout: ${d}`);
+				data += d;
+			});
+			stream.stderr.on('data', (d) => {
+				console.log(`stderr: ${d}`);
+				data += d;
+			});
+
+			stream.on('close', (code) => {
+				console.log(`child process exited with code ${code}`);
+				if (code == 0) {
+					return resolve(data);
+				} else {
+					return reject({
+						code,
+						data
+					});
+				}
+			});
+		});
+	}
 
 	private npmCall(command: string, params?: string[]): Promise<any> {
 		const cwd = this.app.path;
