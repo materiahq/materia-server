@@ -185,7 +185,7 @@ export class Addons {
 			this.addons.forEach(addon => {
 				p = p.then(() => {
 					this.app.logger.log(` │ └── ${chalk.bold(addon.package)}: ${chalk.bold(addon.enabled ? 'OK' : chalk.red('ERROR'))}`)
-					if (this.addonsConfig[addon.package].disabled) {
+					if (this.addonsConfig && this.addonsConfig[addon.package] && this.addonsConfig[addon.package].disabled) {
 						addon.enabled = false;
 					}
 					if (addon.obj && typeof addon.obj.load == 'function' && addon.enabled) {
