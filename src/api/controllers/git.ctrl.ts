@@ -42,8 +42,8 @@ export class GitController {
 	}
 
 	stage(req, res) {
-		const promise = req.params.path
-			? this.client.stage(req.params.path)
+		const promise = req.body.path
+			? this.client.stage(req.body.path)
 			: this.client.stageAll();
 
 		promise.then(data => {
@@ -54,8 +54,8 @@ export class GitController {
 	}
 
 	unstage(req, res) {
-		const promise = req.params.path
-			? this.client.unstage(req.params.path)
+		const promise = req.query.path
+			? this.client.unstage(req.query.path)
 			: this.client.unstageAll();
 
 		promise.then(data => {
