@@ -16,9 +16,9 @@ export class PackageManagerController {
 
 		console.log(`(Dependency) Install ${name}`);
 		this.npm('install', [name, '--save']).then(data => {
-			res.status(200).json(data);
+			res.status(200).send(data);
 		}).catch(err => {
-			res.status(500).json(err);
+			res.status(500).send(err);
 		})
 	}
 
@@ -73,7 +73,7 @@ export class PackageManagerController {
 		return this.npm('upgrade', [name, '--save']).then(data => {
 			res.status(200).send(data);
 		}).catch(e => {
-			res.status(500).json(e);
+			res.status(500).send(e);
 		});
 	}
 
@@ -81,7 +81,7 @@ export class PackageManagerController {
 		return this.npmCall('install', []).then(data => {
 			res.status(200).send(data);
 		}).catch(e => {
-			res.status(500).json(e);
+			res.status(500).send(e);
 		});
 	}
 
@@ -89,7 +89,7 @@ export class PackageManagerController {
 		return this.npm('install', []).then(data => {
 			res.status(200).send(data);
 		}).catch(e => {
-			res.status(500).json(e);
+			res.status(500).send(e);
 		});
 	}
 	uninstallcp(req, res) {
@@ -97,8 +97,8 @@ export class PackageManagerController {
 			? `${req.params.owner}/${req.params.dependency}`
 			: req.params.dependency;
 		this.npm('uninstall', [name, '--save']).then(data => {
-			res.status(200).json(data)
-		}).catch(err => res.status(500).json(err));
+			res.status(200).send(data)
+		}).catch(err => res.status(500).send(err));
 	}
 
 	uninstall(req, res) {
@@ -114,9 +114,9 @@ export class PackageManagerController {
 			delete pkg['dependencies'][name];
 
 			this.savePkg(pkg);
-			res.status(200).json(data);
+			res.status(200).send(data);
 		}).catch(e => {
-			res.status(500).json(e);
+			res.status(500).send(e);
 		});
 	}
 

@@ -123,6 +123,10 @@ export class Config {
 		}
 	}
 
+	private generateUrlFromConf(server: IServerConfig) {
+		return `http${server.ssl ? 's' :''}://${server.host}${server.port != 80 ? ':' + server.port.toString() : ''}/`
+	}
+
 	reloadConfig(): void {
 		// console.log('load', this.materiaJson);
 		if ( ! this.materiaJson ) {
@@ -134,7 +138,13 @@ export class Config {
 				package: this.packageJson.name,
 				version: this.packageJson.version,
 				icon: this.materiaJson.icon,
-				rootPassword: this.materiaJson.rootPassword
+				rootPassword: this.app.mode == AppMode.PRODUCTION && this.materiaProdJson.rootPassword
+					? this.materiaProdJson.rootPassword
+					: this.materiaJson.rootPassword,
+				live: {
+					url: this.materiaProdJson.url || this.generateUrlFromConf(this.materiaProdJson.server),
+					rootPassword: this.materiaProdJson.rootPassword ? this.materiaProdJson.rootPassword : this.materiaJson.rootPassword
+				}
 			},
 			client: this.materiaJson.client,
 			git: this.materiaJson.git,
@@ -306,6 +316,7 @@ export class Config {
 		return {
 			materia: Object.assign({}, this.materiaJson, {
 				name: this.app.name,
+				rootPassword: this.app.rootPassword,
 				icon: this.app.icon,
 				server: this.config.server && this.config.server.dev,
 				database: this.config.database && this.config.database.dev,
@@ -316,6 +327,8 @@ export class Config {
 				git: this.config.git
 			}),
 			materiaProd: Object.assign({}, this.materiaProdJson, {
+				url: this.config.app && this.config.app.live && this.config.app.live.url,
+				rootPassword: this.config.app && this.config.app.live && this.config.app.live.rootPassword,
 				server: this.config.server && this.config.server.prod,
 				database: this.config.database && this.config.database.prod,
 				session: this.config.session && this.config.session.prod,
