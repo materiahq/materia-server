@@ -324,7 +324,38 @@ export class DatabaseController {
 					from: 'playground'
 				});
 			})
-			.catch(err => res.status(200).json(err));
+			.catch(err => res.status(500).json(err));
+	}
+
+	getDiffs(req, res) {
+		return this.app.synchronizer.diff().then((diffs) => {
+			console.log('Diffs : ', diffs)
+			res.status(200).send(diffs);
+		}).catch(err => {
+			console.log('SYnc error :', err)
+			res.status(500).send(err)
+		});
+
+	};
+
+	sync(req, res) {
+		const diffs = req.body.diffs;
+		const type = req.body.type;
+
+		if (type === 'entitiesToDatabase') {
+			return this.app.synchronizer.entitiesToDatabase(diffs, null)
+				.then((result) =>
+					res.status(200).send(result)
+				).catch(err => res.status(500).send(err));
+
+		} else if (type === 'databaseToEntities') {
+			return this.app.synchronizer.databaseToEntities(diffs, null)
+				.then((result) =>
+					res.status(200).send(result)
+				).catch(err => res.status(500).send(err));
+		} else {
+			return res.status(500).send(new Error(`Sync type '${type}' not found`));
+		}
 	}
 }
 
