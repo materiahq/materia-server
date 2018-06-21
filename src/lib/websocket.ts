@@ -1,7 +1,6 @@
 import * as WS from 'ws';
 
 import { App } from '../lib';
-import { OAuth } from '../api/oauth';
 import * as url from 'url';
 
 export type IWebsocketVerifyClient = (info: {origin: any, secure: any, req: any}, cb: (done: boolean) => any) => any;
@@ -15,14 +14,15 @@ export class WebsocketInstance {
 
 	constructor(verifyClient?: IWebsocketVerifyClient) {
 		this.instance = new WS.Server({
-			noServer: true,
-			verifyClient: (info, cb) => {
-				if (verifyClient) {
-					verifyClient(info, cb);
-				} else {
-					cb(true);
-				}
-			}
+			noServer: true
+			// verifyClient: (info, cb) => {
+			// 	console.log('info websocket', info);
+			// 	if (verifyClient) {
+			// 		verifyClient(info, cb);
+			// 	} else {
+			// 		cb(true);
+			// 	}
+			// }
 		});
 	}
 
@@ -31,26 +31,23 @@ export class WebsocketInstance {
 			.clients
 			.forEach(client => {
 				if (client.readyState == WS.OPEN) {
-					client.send(data);
+					client.send(JSON.stringify(data, null, 2));
 				}
 			});
 	}
 }
 
 export class WebsocketServers {
-	server: WS.Server
-	oauth: OAuth
-
-	servers: any = {};
-	listeners: Array<{channel: string, handle: (ws: WS, data: any) => any}> = []
+	servers: {[path: string]: WebsocketInstance} = {};
 
 	constructor(private app: App) {
 		this.app.server.server.on('upgrade', (request, socket, head) => {
 			const pathname = url.parse(request.url).pathname;
-			if (this.servers[pathname]) {
-				this.servers[pathname].handleUpgrade(request, socket, head, ws =>
-					this.servers[pathname].emit('connection', ws)
-				)
+			console.log('ws upgrade', url, pathname, this.servers);
+			if (this.servers[pathname] && this.servers[pathname].instance) {
+				this.servers[pathname].instance.handleUpgrade(request, socket, head, ws => {
+					this.servers[pathname].instance.emit('connection', ws)
+				})
 			}
 		});
 	}
@@ -62,5 +59,13 @@ export class WebsocketServers {
 	register(endpoint: string, verifyClient?: IWebsocketVerifyClient): WebsocketInstance {
 		this.servers[endpoint] = new WebsocketInstance(verifyClient);
 		return this.servers[endpoint];
+	}
+
+	close() {
+		Object.keys(this.servers).forEach(path => {
+			this.servers[path].instance.clients.forEach(client =>
+				client.terminate()
+			)
+		})
 	}
 }

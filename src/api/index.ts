@@ -12,10 +12,11 @@ import { PackageManagerController } from "./controllers/package-manager.ctrl";
 import { AddonsController } from "./controllers/addons.ctrl";
 import { PermissionsController } from "./controllers/permissions.ctrl";
 import { BoilerplateController } from "./controllers/boilerplate.ctrl";
-import { WebsocketServers } from "../lib/websocket";
+import { WebsocketServers, WebsocketInstance } from "../lib/websocket";
 
 export class MateriaApi {
 	oauth: OAuth
+	websocket: WebsocketInstance;
 
 	databaseCtrl: DatabaseController
 	filesCtrl: FilesController
@@ -35,19 +36,23 @@ export class MateriaApi {
 	}
 
 	initialize() {
-		const websocket = this.websocketServers.register('/materia/websocket', (info, cb) =>
-			this.oauth.verifyToken(info.req.headers.access_token, cb)
-		)
+		this.websocket = this.websocketServers.register('/materia/websocket', (info, cb) => {
+			if ( ! this.app.rootPassword) {
+				cb(true);
+			}
+			console.log(info);
+			return this.oauth.verifyToken(info.req.headers.access_token, cb);
+		})
 
-		this.databaseCtrl = new DatabaseController(this.app, websocket);
-		this.filesCtrl = new FilesController(this.app, websocket);
-		this.appCtrl = new AppController(this.app, websocket);
-		this.gitCtrl = new GitController(this.app, websocket);
-		this.endpointsCtrl = new EndpointsController(this.app, websocket);
-		this.packageManagerCtrl = new PackageManagerController(this.app, websocket);
-		this.addonsCtrl = new AddonsController(this.app, websocket);
-		this.permissionsCtrl = new PermissionsController(this.app, websocket);
-		this.boilerplateCtrl = new BoilerplateController(this.app, websocket);
+		this.databaseCtrl = new DatabaseController(this.app, this.websocket);
+		this.filesCtrl = new FilesController(this.app, this.websocket);
+		this.appCtrl = new AppController(this.app, this.websocket);
+		this.gitCtrl = new GitController(this.app, this.websocket);
+		this.endpointsCtrl = new EndpointsController(this.app, this.websocket);
+		this.packageManagerCtrl = new PackageManagerController(this.app, this.websocket);
+		this.addonsCtrl = new AddonsController(this.app, this.websocket);
+		this.permissionsCtrl = new PermissionsController(this.app, this.websocket);
+		this.boilerplateCtrl = new BoilerplateController(this.app, this.websocket);
 
 		this.oauth.initialize()
 
