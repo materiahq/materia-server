@@ -261,6 +261,7 @@ export class Server {
 		}
 
 		return new Promise<void>(accept => {
+			this.websocket.close();
 			this.server.close(() => {
 				this.app.logger.log('\n' + chalk.bold('(Stop)') + ' Server closed\n')
 				this.started = false;

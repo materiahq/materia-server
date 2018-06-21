@@ -90,6 +90,9 @@ export class OAuth {
 	}
 
 	verifyToken(accessToken, done) {
+		if (!accessToken) {
+			return done(null, false);
+		}
 		var accessTokenHash = crypto.createHash('sha1').update(accessToken).digest('hex')
 		// console.log(this.tokens);
 		const token = this.tokens.find(token => token.token == accessTokenHash)

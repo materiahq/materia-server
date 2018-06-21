@@ -22,6 +22,7 @@ import { Api } from './api'
 
 import { MateriaError } from './error'
 import { MateriaApi } from '../api';
+import { Watcher } from './watcher';
 
 // let AddonsTools = require('./runtimes/tools/addons')
 
@@ -110,6 +111,8 @@ export class App extends events.EventEmitter {
 	config: Config
 	selfMigration: SelfMigration
 	materiaApi: MateriaApi
+	watcher: Watcher
+
 	//git: any
 
 	status: boolean
@@ -165,6 +168,7 @@ export class App extends events.EventEmitter {
 		this.synchronizer = new Synchronizer(this)
 		this.config = new Config(this)
 		this.materiaApi = new MateriaApi(this)
+		this.watcher = new Watcher(this);
 
 		this.status = false
 
@@ -246,6 +250,7 @@ export class App extends events.EventEmitter {
 		.then(() => this.addons.loadAPI())
 		.then(() => this.api.load())
 		.then(() => this.logger.log(` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeAPI).toString() + 'ms')}`))
+		.then(() => this.watcher.load())
 		.then(() => this.history.load())
 		.then(() => this.logger.log(` └── ${chalk.green.bold("Successfully loaded in " + ((new Date().getTime()) - elapsedTimeGlobal).toString() + 'ms')}\n`))
 		.then(() => warning)
@@ -458,6 +463,7 @@ manual_scaling:
 	stop():Promise<void> {
 		return this.server.stop()
 			.then(() => this.database.stop())
+			.then(() => this.watcher.dispose())
 			.then(() => { this.status = false; })
 	}
 
