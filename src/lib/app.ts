@@ -198,6 +198,7 @@ export class App extends events.EventEmitter {
 	loadMateria():Promise<void> {
 		return this.doSelfMigrations()
 			.then(() => {
+				this.config.reloadConfig();
 				const appConfig = this.config.get<IAppConfig>(this.mode, ConfigType.APP);
 				if (appConfig) {
 					this.package = appConfig.package

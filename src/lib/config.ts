@@ -129,9 +129,7 @@ export class Config {
 
 	reloadConfig(): void {
 		// console.log('load', this.materiaJson);
-		if ( ! this.materiaJson ) {
-			this.loadConfigurationFiles();
-		}
+		this.loadConfigurationFiles();
 		this.config = {
 			app: {
 				name: this.materiaJson.name,
