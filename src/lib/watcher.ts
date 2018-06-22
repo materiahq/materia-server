@@ -33,7 +33,7 @@ export class Watcher {
 	}
 
 	load() {
-		this.watch(['*.json', 'server/**/*.json'], (p, type) => {
+		this.watch(['*.json'], (p, type) => {
 			this.app.logger.log(` └── ${type}: ${p}`)
 			this.app.materiaApi.websocket.broadcast({ type, path: p })
 		})
