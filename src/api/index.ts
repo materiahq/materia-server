@@ -175,7 +175,7 @@ export class MateriaApi {
 		/**
 		 * Client Endpoints
 		 */
-		this.api.post('/materia/client/build', this.oauth.isAuth, this.clientCtrl.build.bind(this.boilerplateCtrl));
+		this.api.post('/materia/client/build', this.oauth.isAuth, this.clientCtrl.build.bind(this.clientCtrl));
 		this.api.post('/materia/client/boilerplate/init', this.oauth.isAuth, this.boilerplateCtrl.initMinimal.bind(this.boilerplateCtrl));
 		this.api.post('/materia/client/boilerplate/init/angular', this.oauth.isAuth, this.boilerplateCtrl.initAngular.bind(this.boilerplateCtrl));
 		this.api.post('/materia/client/boilerplate/init/react', this.oauth.isAuth, this.boilerplateCtrl.initReact.bind(this.boilerplateCtrl));
