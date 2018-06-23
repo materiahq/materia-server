@@ -151,7 +151,7 @@ export class Entity {
 	move(x, y) {
 		this.x = x;
 		this.y = y;
-		this.save()
+		return this.save()
 	}
 
 	create(entityobj, options) {
