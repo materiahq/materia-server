@@ -7,6 +7,7 @@ import { FilesController } from "./controllers/files.ctrl";
 import { DatabaseController } from "./controllers/database.ctrl";
 import { AppController } from "./controllers/app.ctrl";
 import { GitController } from "./controllers/git.ctrl";
+import { ClientController } from "./controllers/client.ctrl";
 import { EndpointsController } from "./controllers/endpoints.ctrl";
 import { PackageManagerController } from "./controllers/package-manager.ctrl";
 import { AddonsController } from "./controllers/addons.ctrl";
@@ -27,6 +28,7 @@ export class MateriaApi {
 	addonsCtrl: AddonsController
 	permissionsCtrl: PermissionsController
 	boilerplateCtrl: BoilerplateController
+	clientCtrl: ClientController
 
 	get api(): ExpressApplication { return this.app.server.expressApp; }
 	get websocketServers(): WebsocketServers { return this.app.server.websocket; }
@@ -53,6 +55,7 @@ export class MateriaApi {
 		this.addonsCtrl = new AddonsController(this.app, this.websocket);
 		this.permissionsCtrl = new PermissionsController(this.app, this.websocket);
 		this.boilerplateCtrl = new BoilerplateController(this.app, this.websocket);
+		this.clientCtrl = new ClientController(this.app);
 
 		this.oauth.initialize()
 
@@ -172,6 +175,7 @@ export class MateriaApi {
 		/**
 		 * Client Endpoints
 		 */
+		this.api.post('/materia/client/build', this.oauth.isAuth, this.clientCtrl.build.bind(this.boilerplateCtrl));
 		this.api.post('/materia/client/boilerplate/init', this.oauth.isAuth, this.boilerplateCtrl.initMinimal.bind(this.boilerplateCtrl));
 		this.api.post('/materia/client/boilerplate/init/angular', this.oauth.isAuth, this.boilerplateCtrl.initAngular.bind(this.boilerplateCtrl));
 		this.api.post('/materia/client/boilerplate/init/react', this.oauth.isAuth, this.boilerplateCtrl.initReact.bind(this.boilerplateCtrl));
