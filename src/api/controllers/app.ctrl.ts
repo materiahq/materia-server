@@ -3,7 +3,7 @@ import { DatabaseLib } from './database.ctrl';
 import { WebsocketInstance } from '../../lib/websocket';
 
 export class AppController {
-	constructor(private app: App, websocket: WebsocketInstance) {}
+	constructor(private app: App, websocket: WebsocketInstance) { }
 	entitySpacing = 20;
 
 	restart(req, res) {
@@ -53,6 +53,17 @@ export class AppController {
 		}
 	}
 
+	private saveClientSettings(app, settings) {
+		if (settings.client) {
+			const client = settings.client;
+			delete client.packageJson
+			delete client.enbled;
+			delete client.build;
+			app.config.set(client, 'dev', ConfigType.CLIENT);
+		}
+
+	}
+
 	config(req, res) {
 		const settings = req.body;
 
@@ -65,6 +76,7 @@ export class AppController {
 
 		this.saveDatabaseSettings(this.app, settings, 'dev');
 		this.saveDatabaseSettings(this.app, settings, 'prod');
+
 
 		const cs = Object.assign({}, settings.client);
 		if (cs.packageJson) {
@@ -80,6 +92,7 @@ export class AppController {
 		}
 
 		this.app.config.set(cs, 'dev', ConfigType.CLIENT);
+		this.saveClientSettings(this.app, settings);
 
 		this.app.config
 			.save()
@@ -92,7 +105,7 @@ export class AppController {
 			});
 	}
 
-	search(req, res) {}
+	search(req, res) { }
 
 	getMinimalInfo(req, res) {
 		res.status(200).json({
@@ -155,11 +168,11 @@ export class AppController {
 				return Object.assign({}, api.toJson(), {
 					fromAddon: api.fromAddon
 						? {
-								name: api.fromAddon.name,
-								logo: api.fromAddon.logo,
-								package: api.fromAddon.package,
-								path: api.fromAddon.path
-						  }
+							name: api.fromAddon.name,
+							logo: api.fromAddon.logo,
+							package: api.fromAddon.package,
+							path: api.fromAddon.path
+						}
 						: {},
 					params: api.getAllParams(),
 					data: api.getAllData()
