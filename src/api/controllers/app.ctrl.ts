@@ -56,7 +56,12 @@ export class AppController {
 	private saveClientSettings(app, settings) {
 		if (settings.client) {
 			const client = settings.client;
-			delete client.packageJson
+			if (client.packageJson) {
+				app.config.set(client.packageJson.devDependencies, 'dev', ConfigType.DEPENDENCIES)
+				app.config.set(client.packageJson.dependencies, 'prod', ConfigType.DEPENDENCIES)
+				app.config.set(client.packageJson.scripts, 'dev', ConfigType.SCRIPTS)
+				delete client.packageJson
+			}
 			delete client.enbled;
 			delete client.build;
 			app.config.set(client, 'dev', ConfigType.CLIENT);
