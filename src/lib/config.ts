@@ -124,7 +124,9 @@ export class Config {
 	}
 
 	private generateUrlFromConf(server: IServerConfig) {
-		return `http${server.ssl ? 's' :''}://${server.host}${server.port != 80 ? ':' + server.port.toString() : ''}/`
+		if (server) {
+			return `http${server.ssl ? 's' :''}://${server.host}${server.port != 80 ? ':' + server.port.toString() : ''}/`
+		} else { return `http://localhost:8080/` }
 	}
 
 	reloadConfig(): void {
@@ -242,10 +244,6 @@ export class Config {
 		options?: IConfigOptions,
 	): void {
 		options = options || {};
-		if (!this.config) {
-			this.loadConfigurationFiles();
-			this.reloadConfig();
-		}
 		if (!this.config[type]) {
 			this.config[type] = {};
 		}
