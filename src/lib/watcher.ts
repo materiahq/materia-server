@@ -29,13 +29,17 @@ export class Watcher {
 	// watchersLocks: number;
 	watcherState: any;
 
+	disable = false;
+
 	constructor(private app: App) {
 	}
 
 	load() {
 		this.watch(['*.json'], (p, type) => {
-			this.app.logger.log(` └── ${type}: ${p}`)
-			this.app.materiaApi.websocket.broadcast({ type, path: p })
+			if ( ! this.disable) {
+				this.app.logger.log(` └── ${type}: ${p}`)
+				this.app.materiaApi.websocket.broadcast({ type, path: p })
+			}
 		})
 	}
 
