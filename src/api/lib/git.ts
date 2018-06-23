@@ -174,10 +174,15 @@ export class Git {
 		const status = this.workingCopy.files.find(p => p.path == statusPath);
 		let content = null;
 		try {
-			content = fs.readFileSync(
-				path.join(this.app.path, statusPath),
-				'utf8'
-			);
+			const size = fs.statSync(path.join(this.app.path, statusPath)).size;
+			if (size > 1000000.0) {
+				content = '// The content is too long to display...';
+			} else {
+				content = fs.readFileSync(
+					path.join(this.app.path, statusPath),
+					'utf8'
+				);
+			}
 		} catch (e) {}
 		if (['A', '?'].indexOf(status.index) != -1) {
 			return Promise.resolve({
@@ -185,9 +190,20 @@ export class Git {
 				after: content
 			});
 		} else {
+			if (statusPath.substr(0, 1) == '"') {
+				statusPath = statusPath.substr(1);
+			}
+			if (statusPath.substr(statusPath.length - 1, 1) == '"') {
+				statusPath = statusPath.substr(0, statusPath.length - 1);
+			}
+			statusPath = statusPath.replace(' ', '\\ ');
+			console.log(`HEAD:${statusPath}`);
 			return this.client
 				.show(`HEAD:${statusPath}`)
 				.then(oldVersion => {
+					if (oldVersion.length > 1000000) {
+						oldVersion = '// The content is too long to display...';
+					}
 					return {
 						before: oldVersion,
 						after: content
