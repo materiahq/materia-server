@@ -1,4 +1,4 @@
-import { App } from "../lib";
+import { App, AppMode } from "../lib";
 import { OAuth } from "./oauth";
 
 import { Application as ExpressApplication } from 'express';
@@ -17,7 +17,10 @@ import { WebsocketServers, WebsocketInstance } from "../lib/websocket";
 
 export class MateriaApi {
 	oauth: OAuth
-	websocket: WebsocketInstance;
+	websocket: WebsocketInstance | {
+		instance: any;
+		broadcast: (data) => any;
+	};
 
 	databaseCtrl: DatabaseController
 	filesCtrl: FilesController
@@ -38,6 +41,13 @@ export class MateriaApi {
 	}
 
 	initialize() {
+		if (this.app.mode === AppMode.PRODUCTION && ! this.app.rootPassword ) {
+			this.websocket = {
+				broadcast: (data) => {},
+				instance: {}
+			}
+			return false;
+		}
 		this.websocket = this.websocketServers.register('/materia/websocket', (info, cb) => {
 			if ( ! this.app.rootPassword) {
 				cb(true);
