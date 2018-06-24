@@ -85,14 +85,15 @@ export class Addon {
 				return Promise.resolve(e);
 			}
 			try {
+				console.log(mod);
 				if (mod.default) {
 					AddonClass = mod.default;
 				} else {
-					AddonClass = addonPackage.materia.addon;
+					AddonClass = mod[addonPackage.materia.addon];
 				}
 				this.obj = new AddonClass(
 					this.app,
-					this.app.addons.addonsConfig[this.package],
+					this.app.addons.addonsConfig && this.app.addons.addonsConfig[this.package] || {},
 					this.app.server.expressApp
 				);
 			} catch (e) {
@@ -122,7 +123,7 @@ export class Addon {
 				[];
 
 			this.setupConfig = AddonClass.installSettings;
-			this.config = this.app.addons.addonsConfig[this.package];
+			this.config = this.app.addons.addonsConfig && this.app.addons.addonsConfig[this.package] || {};
 
 			this.installed = true;
 			this.installing = false;
