@@ -14,15 +14,14 @@ export class WebsocketInstance {
 
 	constructor(verifyClient?: IWebsocketVerifyClient) {
 		this.instance = new WS.Server({
-			noServer: true
-			// verifyClient: (info, cb) => {
-			// 	console.log('info websocket', info);
-			// 	if (verifyClient) {
-			// 		verifyClient(info, cb);
-			// 	} else {
-			// 		cb(true);
-			// 	}
-			// }
+			noServer: true,
+			verifyClient: (info, cb) => {
+				if (verifyClient) {
+					return verifyClient(info, cb)
+				} else {
+					return cb(true);
+				}
+			}
 		});
 	}
 
@@ -42,9 +41,13 @@ export class WebsocketServers {
 
 	constructor(private app: App) {
 		this.app.server.server.on('upgrade', (request, socket, head) => {
-			const pathname = url.parse(request.url).pathname;
+			const urlParsed = url.parse(request.url);
+			const pathname = urlParsed.pathname;
+			console.log(urlParsed);
 			console.log('ws upgrade', url, pathname, this.servers);
 			if (this.servers[pathname] && this.servers[pathname].instance) {
+
+				this.servers[pathname].instance.close()
 				this.servers[pathname].instance.handleUpgrade(request, socket, head, ws => {
 					this.servers[pathname].instance.emit('connection', ws)
 				})

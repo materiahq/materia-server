@@ -50,10 +50,11 @@ export class MateriaApi {
 		}
 		this.websocket = this.websocketServers.register('/materia/websocket', (info, cb) => {
 			if ( ! this.app.rootPassword) {
-				cb(true);
+				return cb(true);
 			}
-			console.log(info);
-			return this.oauth.verifyToken(info.req.headers.access_token, cb);
+			return this.oauth.verifyToken(info.req.url.split('?token=')[1], (err, authorized) => {
+				return cb(authorized);
+			});
 		})
 
 		this.databaseCtrl = new DatabaseController(this.app, this.websocket);
