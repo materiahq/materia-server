@@ -214,8 +214,7 @@ export class App extends events.EventEmitter {
 		let warning, elapsedTimeQueries, elapsedTimeEntities, elapsedTimeAPI
 		let elapsedTimeGlobal = new Date().getTime()
 
-		return this.doSelfMigrations()
-		.then(() => this.loadMateria())
+		return this.loadMateria()
 		.then(() => {
 			this.logger.log(`${chalk.bold('(Load)')} Application: ${chalk.yellow.bold(this.name || this.package)}`)
 			this.logger.log(` └── Path: ${chalk.bold(this.path)}`)
