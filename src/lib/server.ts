@@ -11,6 +11,7 @@ import * as express from 'express'
 import { createServer, Server as HttpServer } from 'http'
 // import * as session from 'express-session'
 
+import * as passport from 'passport';
 import * as morgan from 'morgan'
 import * as methodOverride from 'method-override'
 import * as bodyParser from 'body-parser'
@@ -30,6 +31,7 @@ export class Server {
 	started: boolean = false
 
 	expressApp: express.Application
+	passport: any = passport
 	websocket: WebsocketServers
 	server: HttpServer
 	private sockets = new Map();
@@ -49,7 +51,6 @@ export class Server {
 		this.expressApp.use(bodyParser.json())
 		this.expressApp.use(methodOverride())
 		this.expressApp.use(compression())
-
 		const clientConfig = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
 
 		let webDir;

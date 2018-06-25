@@ -44,6 +44,9 @@ export class OAuth {
 	}
 
 	initialize() {
+		this.app.server.expressApp.use(passport.initialize());
+		this.app.server.expressApp.use(passport.session());
+
 		this.server.exchange(
 			oauth2orize.exchange.clientCredentials((client, scope, done) =>
 				this.generateToken().then(token => {
