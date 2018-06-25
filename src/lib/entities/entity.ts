@@ -148,7 +148,7 @@ export class Entity {
 		return p
 	}
 
-	move(x, y) {
+	move(x, y): Promise<void> {
 		this.x = x;
 		this.y = y;
 		return this.save()
@@ -231,9 +231,10 @@ export class Entity {
 		})
 	}
 
-	save(opts?) {
+	save(opts?): Promise<void> {
 		if (this.fromAddon) {
 			// TODO: save position in materia.json
+
 			const oldAddonConfig = this.app.config.get(this.app.mode, ConfigType.ADDONS);
 
 			const newAddonConfig = Object.assign({}, oldAddonConfig, {
@@ -248,22 +249,22 @@ export class Entity {
 			this.app.config.set(newAddonConfig, this.app.mode, ConfigType.ADDONS);
 			return this.app.config.save()
 		}
+		else {
+			let relativePath = path.join('server', 'models', this.name + '.json')
 
-		let relativePath = path.join('server', 'models', this.name + '.json')
-		let basepath = this.fromAddon ? this.fromAddon.path : this.app.path
-
-		if (opts && opts.beforeSave) {
-			opts.beforeSave(path.join(basepath, relativePath))
-		}
-
-
-		fs.writeFileSync(
-			path.join(basepath, relativePath),
-			JSON.stringify(this.toJson(), null, '\t')
-		)
-
-		if (opts && opts.afterSave) {
-			opts.afterSave()
+			return new Promise((resolve, reject) => {
+				fs.writeFile(
+					path.join(this.app.path, relativePath),
+					JSON.stringify(this.toJson(), null, '\t'),
+					err => {
+						if (err) {
+							return reject(err);
+						} else {
+							return resolve();
+						}
+					}
+				);
+			});
 		}
 	}
 
@@ -545,7 +546,7 @@ export class Entity {
 							}
 							p = p.then(() => {
 								if (options.save) {
-									throughEntity.save(options)
+									return throughEntity.save(options)
 								}
 							})
 						}
@@ -581,7 +582,7 @@ export class Entity {
 				}
 			}
 			else {
-				reject()
+				return reject()
 			}
 
 			if ( ! p)
@@ -604,13 +605,9 @@ export class Entity {
 				}
 
 				if (options.save != false) {
-					this.save()
+					return this.save()
 				}
-
-				accept()
-			}, (err) => {
-				reject(err)
-			})
+			}).then(accept).catch(reject)
 		})
 	}
 
@@ -683,7 +680,7 @@ export class Entity {
 			}
 
 			if (options.save != false) {
-				this.save(options)
+				return this.save(options)
 			}
 		})
 	}
@@ -919,10 +916,11 @@ export class Entity {
 			}
 		})
 
-		if (options.save != false)
-			this.save(options)
-
 		this.initDefaultQuery()
+		if (options.save != false) {
+			return this.save(options)
+		}
+
 		return Promise.resolve()
 	}
 
@@ -1049,7 +1047,7 @@ export class Entity {
 		}
 
 		if (options.save != false) {
-			this.save(options)
+			return this.save(options)
 		}
 	}
 
@@ -1099,7 +1097,7 @@ export class Entity {
 		}
 
 		if (options.save != false) {
-			this.save(options)
+			return this.save(options)
 		}
 	}
 

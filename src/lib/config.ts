@@ -262,10 +262,6 @@ export class Config {
 	}
 
 	save(opts?: ISaveOptions) {
-		if (opts && opts.beforeSave) {
-			opts.beforeSave("materia.json");
-			opts.beforeSave("package.json");
-		}
 		const res = this.toJson()
 		this.packageJson = res.package
 		this.materiaJson = res.materia
@@ -289,18 +285,6 @@ export class Config {
 					JSON.stringify(res.package, null, "\t")
 				)
 			)
-			.catch(e => {
-				if (opts && opts.afterSave) {
-					opts.afterSave();
-				}
-				throw e;
-			})
-			.then(() => {
-				// console.log('SAVED');
-				if (opts && opts.afterSave) {
-					opts.afterSave();
-				}
-			});
 	}
 
 	/**

@@ -43,8 +43,6 @@ export class WebsocketServers {
 		this.app.server.server.on('upgrade', (request, socket, head) => {
 			const urlParsed = url.parse(request.url);
 			const pathname = urlParsed.pathname;
-			console.log(urlParsed);
-			console.log('ws upgrade', url, pathname, this.servers);
 			if (this.servers[pathname] && this.servers[pathname].instance) {
 
 				this.servers[pathname].instance.close()
