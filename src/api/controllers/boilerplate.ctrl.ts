@@ -47,7 +47,7 @@ export class BoilerplateController {
 
 		this._emitMessage('install @angular/cli');
 
-		this.app.watcher.disable = true;
+		this.app.watcher.disable();
 		return this._installBoilerplateCli('@angular/cli').then(() => {
 			this._emitMessage('generate angular project')
 			this.app.config.packageJson['scripts']['ng'] = 'ng';
@@ -88,7 +88,7 @@ export class BoilerplateController {
 			const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
 			const type = 'boilerplate:success';
 			this.app.materiaApi.websocket.broadcast({ type, client: client })
-			this.app.watcher.disable = false;
+			this.app.watcher.enable();
 			// res.status(200).send(client);
 		}).catch(err => this._emitError(err));
 	}
@@ -239,7 +239,7 @@ export class BoilerplateController {
 
 	initReact(req, res) {
 		res.status(200).send({});
-		this.app.watcher.disable = true;
+		this.app.watcher.disable();
 		this._emitMessage('Create React application')
 		return this.npx.exec('create-react-app', [
 			this.app.config.packageJson.name
@@ -276,7 +276,7 @@ export class BoilerplateController {
 		}).then(() => {
 			const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
 			const type = 'boilerplate:success';
-			this.app.watcher.disable = false;
+			this.app.watcher.enable();
 			this.app.materiaApi.websocket.broadcast({ type, client: client })
 		}).catch(err => this._emitError(err))
 	}
@@ -294,7 +294,7 @@ export class BoilerplateController {
 
 	initVue(req, res) {
 		res.status(200).send({});
-		this.app.watcher.disable = true;
+		this.app.watcher.disable();
 		this._emitMessage('Install @vue/cli')
 		return this._installBoilerplateCli('@vue/cli').then(() => {
 			this.app.config.packageJson['scripts']['vue'] = 'vue';

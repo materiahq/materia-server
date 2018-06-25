@@ -48,7 +48,7 @@ export class DatabaseController {
 
 	moveEntity(req, res) {
 		const {x, y} = req.body;
-		this.app.watcher.disable = true;
+		this.app.watcher.disable();
 		const entity = this.app.entities.get(req.params.entity);
 		if ( ! entity ) {
 			return res.status(500).json(new Error(`Entity ${req.params.entity} does not exist`));
@@ -56,9 +56,7 @@ export class DatabaseController {
 		entity.move(x, y).then(() => {
 			// Hack: I don't know why we need this timeout, move(x, y) should be resolved when the file is written
 			// Need more investigation.
-			setTimeout(() => {
-				this.app.watcher.disable = false;
-			}, 200);
+			this.app.watcher.enable();
 			res.status(200).json(entity.toJson());
 		});
 	}

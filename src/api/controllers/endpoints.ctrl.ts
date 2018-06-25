@@ -113,6 +113,7 @@ export class EndpointsController {
 	}
 
 	createQuery(req, res) {
+		this.app.watcher.disable();
 		this.app.api.add({
 			method: req.body.method,
 			url: req.body.url,
@@ -120,6 +121,7 @@ export class EndpointsController {
 			permissions: req.body.permissions,
 			query: req.body.query
 		});
+		this.app.watcher.enable();
 		res.status(201).json({
 			endpoints: EndpointsLib.list(this.app),
 			newSelectedId: req.body.method + req.body.url,
@@ -143,6 +145,7 @@ export class EndpointsController {
 				'controllers',
 				controller + '.ctrl.js'
 			);
+			this.app.watcher.disable();
 			this.app
 				.saveFile(fullpath, newEndpoint.code)
 				.then(() => {
@@ -168,6 +171,7 @@ export class EndpointsController {
 								newEndpoint.method +
 									newEndpoint.url
 						);
+					this.app.watcher.enable();
 					res.status(200).json({
 						endpoints: EndpointsLib.list(this.app),
 						newSelectedId:
@@ -186,6 +190,7 @@ export class EndpointsController {
 	updateQuery(req, res) {
 		const newEndpoint = req.body.newEndpoint;
 		const oldEndpointId = req.body.oldEndpointId;
+		this.app.watcher.disable();
 		this.app.api.remove(oldEndpointId[0], oldEndpointId[1]);
 		if (
 			newEndpoint.params &&
@@ -207,7 +212,7 @@ export class EndpointsController {
 			permissions: newEndpoint.permissions,
 			query: newEndpoint.query
 		});
-
+		this.app.watcher.enable();
 		res.status(200).json({
 			endpoints: EndpointsLib.list(this.app),
 			newSelectedId:
@@ -223,7 +228,9 @@ export class EndpointsController {
 		parsedUrl.forEach((t) => {
 			url += `/${t}`
 		});
+		this.app.watcher.disable();
 		this.app.api.remove(method, url, {apply: true});
+		this.app.watcher.enable();
 		return res.status(200).send();
 	}
 

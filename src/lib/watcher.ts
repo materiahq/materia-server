@@ -29,9 +29,19 @@ export class Watcher {
 	// watchersLocks: number;
 	watcherState: any;
 
-	disable = false;
+	disabled = false;
 
 	constructor(private app: App) {
+	}
+
+	enable() {
+		setTimeout(() => {
+			this.disabled = false;
+		}, 200)
+	}
+
+	disable() {
+		this.disabled = true;
 	}
 
 	load() {
