@@ -19,6 +19,7 @@ import { DBEntity } from './entities/db-entity'
 import { Entity } from './entities/entity'
 import { IField } from './entities/field'
 import { ConfigType } from './config';
+import { IEndpoint } from '@materia/interfaces';
 
 //TODO: add when entities/entity will be converted in ts
 /*export interface IEntities {
@@ -388,6 +389,12 @@ export class Entities {
 
 		if ( ! name) {
 			return Promise.reject(new MateriaError("You must specify a entity name"))
+		}
+
+		const endpoints: IEndpoint[] = this.app.api.findAll().map(e => e.toJson());
+		const relatedEndpoints: IEndpoint[] = endpoints.filter((e: IEndpoint) => e.query && e.query.entity === name);
+		for (let endpoint of relatedEndpoints) {
+			this.app.api.remove(endpoint.method, endpoint.url)
 		}
 
 		let p = Promise.resolve()

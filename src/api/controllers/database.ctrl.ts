@@ -50,7 +50,7 @@ export class DatabaseController {
 			save: true,
 			apply: true,
 			history: true
-		}).then(() => res.status(200).json({ removed: true }))
+		}).then(() => res.status(200).json({ entities: DatabaseLib.loadEntitiesJson(this.app), endpoints: this.app.api.findAll().map(e => e.toJson()) }))
 		.catch(e => res.status(500).json(e));
 	}
 
