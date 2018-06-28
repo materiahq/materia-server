@@ -144,7 +144,7 @@ export class MateriaApi {
 		this.api.post('/materia/entities/:entity/queries/:queryId', this.oauth.isAuth, this.databaseCtrl.runQuery.bind(this.databaseCtrl));
 		this.api.post('/materia/sql', this.oauth.isAuth, this.databaseCtrl.runSql.bind(this.databaseCtrl));
 		// Relations
-		this.api.post('/materia/entities/:entity/relations', this.oauth.isAuth, this.databaseCtrl.createRelation.bind(this.databaseCtrl));
+		this.api.post('/materia/entities/relations', this.oauth.isAuth, this.databaseCtrl.createRelation.bind(this.databaseCtrl));
 		this.api.delete('/materia/entities/:entity/relations', this.oauth.isAuth, this.databaseCtrl.removeRelation.bind(this.databaseCtrl));
 
 		/**
