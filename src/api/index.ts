@@ -130,6 +130,8 @@ export class MateriaApi {
 		this.api.get('/materia/database/synchronize', this.oauth.isAuth, this.databaseCtrl.getDiffs.bind(this.databaseCtrl));
 		this.api.post('/materia/database/synchronize', this.oauth.isAuth, this.databaseCtrl.sync.bind(this.databaseCtrl));
 		this.api.post('/materia/database/try', this.oauth.isAuth, this.databaseCtrl.tryAuth.bind(this.databaseCtrl));
+		this.api.get('/materia/entities', this.oauth.isAuth, this.databaseCtrl.getEntities.bind(this.databaseCtrl))
+		this.api.get('/materia/entities/relations', this.oauth.isAuth, this.databaseCtrl.getRelations.bind(this.databaseCtrl))
 		this.api.post('/materia/entities', this.oauth.isAuth, this.databaseCtrl.createEntity.bind(this.databaseCtrl));
 		this.api.delete('/materia/entities/:entity', this.oauth.isAuth, this.databaseCtrl.removeEntity.bind(this.databaseCtrl));
 		this.api.put('/materia/entities/:entity', this.oauth.isAuth, this.databaseCtrl.renameEntity.bind(this.databaseCtrl));

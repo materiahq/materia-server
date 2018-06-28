@@ -18,6 +18,14 @@ export class DatabaseController {
 			})
 	}
 
+	getEntities(req, res) {
+		return res.status(200).send({entities: DatabaseLib.loadEntitiesJson(this.app)});
+	}
+
+	getRelations(req, res) {
+		return res.status(200).send({relations: this.app.entities.findAllRelations({ implicit: true })});
+	}
+
 	createEntity(req, res) {
 		const entity = req.body;
 		this.app.entities
