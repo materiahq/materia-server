@@ -272,7 +272,7 @@ export class DatabaseController {
 			.get(payload.rel2.reference.entity)
 			.addRelation(payload.rel1, {
 				save: true,
-				apply: true,
+				apply: false,
 				history: true,
 				db: true
 			})
@@ -281,7 +281,7 @@ export class DatabaseController {
 					.get(payload.rel1.reference.entity)
 					.addRelation(payload.rel2, {
 						save: true,
-						apply: true,
+						apply: false,
 						history: true,
 						db: true
 					});
@@ -297,24 +297,25 @@ export class DatabaseController {
 	}
 
 	removeRelation(req, res) {
-		this.app.entities
-			.get(req.params.entity)
-			.removeRelation(req.body, {
-				save: true,
-				apply: true,
-				history: true,
-				db: true
-			})
-			.then(() => {
-				return res.status(200).json({
-					entities: DatabaseLib.loadEntitiesJson(this.app),
-					relations: this.app.entities.findAllRelations({
-						implicit: true
-					})
-				});
-			}).catch(e =>
-				res.status(500).json(e)
-			);
+		const field = req.params.relationField;
+		const entity = this.app.entities.get(req.params.entity);
+		const relation = entity.getRelation(field);
+		entity.removeRelation(relation, {
+			save: true,
+			apply: true,
+			history: true,
+			db: true
+		})
+		.then(() => {
+			return res.status(200).json({
+				entities: DatabaseLib.loadEntitiesJson(this.app),
+				relations: this.app.entities.findAllRelations({
+					implicit: true
+				})
+			});
+		}).catch(e =>
+			res.status(500).json(e)
+		);
 	}
 
 	runSql(req, res) {
