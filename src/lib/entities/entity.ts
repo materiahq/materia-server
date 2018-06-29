@@ -238,7 +238,7 @@ export class Entity {
 			const oldAddonConfig = this.app.config.get(this.app.mode, ConfigType.ADDONS);
 
 			const newAddonConfig = Object.assign({}, oldAddonConfig, {
-				entities: Object.assign({}, oldAddonConfig['entities'] || {}, {
+				entities: Object.assign({}, oldAddonConfig && oldAddonConfig['entities'] || {}, {
 					[this.name]: {
 						x: this.x,
 						y: this.y
