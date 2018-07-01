@@ -66,7 +66,7 @@ export class MateriaApi {
 		this.addonsCtrl = new AddonsController(this.app, this.websocket);
 		this.permissionsCtrl = new PermissionsController(this.app, this.websocket);
 		this.boilerplateCtrl = new BoilerplateController(this.app, this.websocket);
-		this.clientCtrl = new ClientController(this.app);
+		this.clientCtrl = new ClientController(this.app, this.websocket);
 
 		this.oauth.initialize()
 
@@ -91,7 +91,6 @@ export class MateriaApi {
 		this.api.put('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.upgradecp.bind(this.packageManagerCtrl))
 		this.api.delete('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstallcp.bind(this.packageManagerCtrl))
 		this.api.delete('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstallcp.bind(this.packageManagerCtrl))
-		this.api.post('/materia/tasks/:task', this.oauth.isAuth, this.packageManagerCtrl.runScript.bind(this.packageManagerCtrl))
 
 		/**
 		 * Files Endpoints

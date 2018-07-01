@@ -1,33 +1,51 @@
-import { App } from '../../lib';
+import { App, ConfigType } from '../../lib';
 import { Npm } from '../lib/npm';
+import { WebsocketInstance } from '../../lib/websocket';
+import { IClientConfig } from '@materia/interfaces';
 
 export class ClientController {
 	npm: Npm;
 
-	constructor(private app: App) {
+	constructor(private app: App, private websocket: WebsocketInstance) {
 		this.npm = new Npm(this.app);
 	}
 
-	private _emitMessage(message) {
-		const type = "client"
-		this.app.materiaApi.websocket.broadcast({ type, message: message })
-	}
-
-	private _emitError(err) {
-		const type = "client:error"
-		this.app.materiaApi.websocket.broadcast({ type, error: err })
-	}
-
-	private _emitSuccess(message) {
-		const type = "client:success"
-		this.app.materiaApi.websocket.broadcast({ type, message: message })
+	private _parse(data) {
+		let match = data.match(/([0-9]{1,2})% ([^%]+)$/)
+		if (match) {
+			return {
+				progress: match[1],
+				progressStatus: match[2]
+			}
+		}
+		return false;
 	}
 
 	build(req, res) {
 		res.status(200).send({});
-		this._emitMessage('Launch build-script');
-		this.npm.exec('run-script', ['build']).then((res) => {
-			this._emitSuccess('Build success');
-		}).catch(err => this._emitError(err))
+		this.websocket.broadcast({
+			type: 'client',
+			message: 'Launch build-script'
+		})
+		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
+		const script = conf.scripts && conf.scripts.build ? conf.scripts.build : 'build';
+		this.npm.run('run-script', [script], (data, error) => {
+			const progress = this._parse(data);
+			if (progress) {
+				this.websocket.broadcast({
+					type: 'client:progress',
+					progress: progress.progress,
+					status: progress.progressStatus
+				})
+			}
+		}).then((res) => {
+			this.websocket.broadcast({
+				type: 'client:success',
+				message: 'Build success'
+			})
+		}).catch(error => this.websocket.broadcast({
+			type: 'client:error',
+			error
+		}))
 	}
 }

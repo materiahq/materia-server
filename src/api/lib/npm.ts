@@ -1,72 +1,17 @@
 import { App } from '../../lib';
 
-const npm = require('npm');
-import { buffer } from './buffer';
+// const npm = require('npm');
+// import { buffer } from './buffer';
 
 import * as path from 'path';
-import * as cp from 'child_process';
+// import * as cp from 'child_process';
 import * as fs from 'fs';
 import * as execa from 'execa';
 
 export class Npm {
 	constructor(private app: App) {}
-	spawn(
-		args,
-		options: {
-			bufferized?: boolean;
-			cwd?: string;
-		} = {}
-	) {
-		const appPath = this.app.path;
 
-		const npmPath = path.join(
-			__dirname,
-			'node_modules',
-			'npm',
-			'bin',
-			`npm-cli.js`
-		);
-		const proc = cp.fork(npmPath, args, {
-			cwd: options.cwd || appPath,
-			silent: true
-		});
-		if (options.bufferized) {
-			return buffer(proc);
-		} else {
-			return proc;
-		}
-	}
-
-	call(command, params) {
-		const cwd = this.app.path;
-		return new Promise((resolve, reject) => {
-			npm.load(
-				{
-					prefix: cwd,
-					loglevel: 'error',
-					loaded: false,
-					save: true
-				},
-				err => {
-					if (err) {
-						console.log(` └─ Fail: ${err}`);
-						return reject(err);
-					}
-					console.log(` └─ Run: npm ${command} ${params.join(' ')}`);
-					npm.commands[command](params, (e, data) => {
-						if (e) {
-							console.log(` └─ Fail: ${e}`);
-							return reject(e);
-						}
-						console.log(` └─ Done: ${data}`);
-						return resolve(data);
-					});
-				}
-			);
-		});
-	}
-
-	exec(command: string, params?: string[]): Promise<any> {
+	run(command: string, params?: string[], output?: (data: any, error?: boolean) => void): Promise<any> {
 		return new Promise((resolve, reject) => {
 			let data = '';
 			let stream = null;
@@ -81,10 +26,16 @@ export class Npm {
 			}
 			stream.stdout.on('data', d => {
 				console.log(`stdout: ${d}`);
+				if (output) {
+					output(d.toString());
+				}
 				data += d;
 			});
 			stream.stderr.on('data', (d) => {
 				console.log(`stderr: ${d}`);
+				if (output) {
+					output(d.toString(), true);
+				}
 				data += d;
 			});
 
