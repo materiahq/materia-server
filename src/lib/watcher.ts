@@ -46,7 +46,7 @@ export class Watcher {
 
 	load() {
 		this.watch(['*.json', 'server/**/*.json'], (p, type) => {
-			if ( ! this.disable) {
+			if ( ! this.disabled) {
 				this.app.logger.log(` └── ${type}: ${p}`)
 				this.app.materiaApi.websocket.broadcast({ type, path: p })
 			}
