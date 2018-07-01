@@ -11,7 +11,7 @@ import * as execa from 'execa';
 export class Npm {
 	constructor(private app: App) {}
 
-	run(command: string, params?: string[], output?: (data: any, error?: boolean) => void): Promise<any> {
+	exec(command: string, params?: string[], output?: (data: any, error?: boolean) => void): Promise<any> {
 		return new Promise((resolve, reject) => {
 			let data = '';
 			let stream = null;

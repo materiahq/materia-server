@@ -14,7 +14,7 @@ export class PackageManagerController {
 			: req.params.dependency;
 
 		console.log(`(Dependency) Install ${name}`);
-		this.npm.run('install', [name, '--save']).then(data => {
+		this.npm.exec('install', [name, '--save']).then(data => {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
@@ -26,7 +26,7 @@ export class PackageManagerController {
 			? `${req.params.owner}/${req.params.dependency}`
 			: req.params.dependency;
 
-		return this.npm.run('upgrade', [name, '--save']).then(data => {
+		return this.npm.exec('upgrade', [name, '--save']).then(data => {
 			res.status(200).send(data);
 		}).catch(e => {
 			res.status(500).send(e);
@@ -34,7 +34,7 @@ export class PackageManagerController {
 	}
 
 	installAllcp(req, res) {
-		return this.npm.run('install', []).then(data => {
+		return this.npm.exec('install', []).then(data => {
 			res.status(200).send(data);
 		}).catch(e => {
 			res.status(500).send(e);
@@ -44,7 +44,7 @@ export class PackageManagerController {
 		const name = req.params.owner
 			? `${req.params.owner}/${req.params.dependency}`
 			: req.params.dependency;
-		this.npm.run('uninstall', [name, '--save']).then(data => {
+		this.npm.exec('uninstall', [name, '--save']).then(data => {
 			res.status(200).send(data)
 		}).catch(err => res.status(500).send(err));
 	}

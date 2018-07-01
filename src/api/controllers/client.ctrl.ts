@@ -29,7 +29,7 @@ export class ClientController {
 		})
 		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
 		const script = conf.scripts && conf.scripts.build ? conf.scripts.build : 'build';
-		this.npm.run('run-script', [script], (data, error) => {
+		this.npm.exec('run-script', [script], (data, error) => {
 			const progress = this._parse(data);
 			if (progress) {
 				this.websocket.broadcast({

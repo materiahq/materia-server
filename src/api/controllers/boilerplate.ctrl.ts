@@ -66,7 +66,7 @@ export class BoilerplateController {
 			return this.angularCli.saveConfig()
 		}).then(() => {
 			this._emitMessage('Install dependencies')
-			return this.npm.run('install', [])
+			return this.npm.exec('install', [])
 		}).then(() => {
 			this._emitMessage('Build angular application')
 			return this.angularCli.exec('build', [])
@@ -96,7 +96,7 @@ export class BoilerplateController {
 	private _installBoilerplateCli(packageName) {
 		return new Promise((resolve, reject) => {
 			const name = packageName;
-			this.npm.run('install', [name, '--save']).then(data => {
+			this.npm.exec('install', [name, '--save']).then(data => {
 				const pkg = this.app.config.packageJson
 				if (!pkg['scripts']) {
 					pkg['scripts'] = {};
@@ -255,7 +255,7 @@ export class BoilerplateController {
 			return this._removeItemIfExist(path.join(this.app.path, 'yarn.lock'))
 		}).then(() =>
 			this._removeItemIfExist(path.join(this.app.path, 'node_modules'))
-		).then(() => this.npm.run('install', []))
+		).then(() => this.npm.exec('install', []))
 		.then(() => {
 			this._emitMessage('Build React application')
 			return this.reactScripts.exec('build', [])
@@ -322,7 +322,7 @@ export class BoilerplateController {
 		.then(() => this._removeItemIfExist(path.join(this.app.path, 'node_modules')))
 		.then(() => {
 			this._emitMessage('Install dependencies')
-			return this.npm.run('install', [])
+			return this.npm.exec('install', [])
 		}).then(() => {
 			this._emitMessage('Build vue application')
 			return this.vueCli.execVueCliService('build', [])
