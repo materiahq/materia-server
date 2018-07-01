@@ -1,6 +1,7 @@
-import { App, ConfigType } from '../../lib';
+import { App, ConfigType, AppMode } from '../../lib';
 import { DatabaseLib } from './database.ctrl';
 import { WebsocketInstance } from '../../lib/websocket';
+import { IClientConfig, IAppConfig } from '@materia/interfaces';
 
 export class AppController {
 	constructor(private app: App, websocket: WebsocketInstance) { }
@@ -62,9 +63,29 @@ export class AppController {
 				app.config.set(client.packageJson.scripts, 'dev', ConfigType.SCRIPTS)
 				delete client.packageJson
 			}
-			delete client.enbled;
-			delete client.build;
-			app.config.set(client, 'dev', ConfigType.CLIENT);
+
+			const clientToSave: IClientConfig = {
+				src: client.src
+			}
+			if (client.enabled && client.dist && client.dist.length > 0 && client.src != client.dist) {
+				clientToSave.dist = client.dist
+			}
+			if (client.scripts.build || client.scripts.watch || client.scripts.prod) {
+				clientToSave.scripts = {}
+				if (client.scripts.build) {
+					clientToSave.scripts.build = client.scripts.build;
+				}
+				if (client.scripts.watch) {
+					clientToSave.scripts.watch = client.scripts.watch;
+				}
+				if (client.scripts.prod) {
+					clientToSave.scripts.prod = client.scripts.prod;
+				}
+			}
+			if (client.autoWatch) {
+				clientToSave.autoWatch = client.autoWatch;
+			}
+			app.config.set(clientToSave, 'dev', ConfigType.CLIENT);
 		}
 
 	}
@@ -76,31 +97,28 @@ export class AppController {
 		this.app.package = settings.general.package;
 		this.app.icon = settings.general.icon;
 
+		const appConfig = this.app.config.get<IAppConfig>(AppMode.DEVELOPMENT, ConfigType.APP)
+		this.app.config.set({
+			name: settings.general.name,
+			package: settings.general.package,
+			icon: settings.general.icon,
+			version: appConfig.version,
+			rootPassword: appConfig.rootPassword,
+			live: {
+				url: appConfig.live && appConfig.live.url,
+				rootPassword: appConfig.live && appConfig.live.rootPassword
+			}
+		}, AppMode.DEVELOPMENT, ConfigType.APP)
+
 		this.saveServerSettings(this.app, settings, 'dev');
 		this.saveServerSettings(this.app, settings, 'prod');
 
 		this.saveDatabaseSettings(this.app, settings, 'dev');
 		this.saveDatabaseSettings(this.app, settings, 'prod');
 
-
-		const cs = Object.assign({}, settings.client);
-		if (cs.packageJson) {
-			delete cs.packageJson;
-		}
-
-		if (cs.build) {
-			delete cs.build;
-		}
-
-		if (cs.enabled) {
-			delete cs.enabled;
-		}
-
-		this.app.config.set(cs, 'dev', ConfigType.CLIENT);
 		this.saveClientSettings(this.app, settings);
 
-		this.app.config
-			.save()
+		this.app.config.save()
 			.then(() => {
 				settings.general.id = this.app.id;
 				res.status(200).json(settings);

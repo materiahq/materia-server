@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import { App, AppMode, ISaveOptions } from "./app";
+import { App, AppMode } from "./app";
 // import { ScriptMode } from "./client";
 // import { MateriaError } from "./error";
 
@@ -238,7 +238,7 @@ export class Config {
 	@param {string} - The environment mode. `development` or `production`.
 	*/
 	set(
-		config: IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig | IClientConfig | IDependenciesConfig | IScriptsMap,
+		config: IAppConfig | IServerConfig | IDatabaseConfig | ISessionConfig | IGitConfig | IClientConfig | IDependenciesConfig | IScriptsMap,
 		mode: AppMode | string,
 		type?: ConfigType,
 		options?: IConfigOptions,
@@ -261,12 +261,12 @@ export class Config {
 		}
 	}
 
-	save(opts?: ISaveOptions) {
+	save(): Promise<any> {
 		const res = this.toJson()
 		this.packageJson = res.package
 		this.materiaJson = res.materia
 		this.materiaProdJson = res.materiaProd
-		this.reloadConfig();
+		// this.reloadConfig();
 		// console.log('save', res);
 		return this.app
 			.saveFile(
@@ -316,8 +316,8 @@ export class Config {
 				links: this.config.links && this.config.links.prod
 			}),
 			package: Object.assign({}, this.packageJson, {
-				name: this.app.package,
-				version: this.app.version,
+				name: this.config.app.package,
+				version: this.config.app.version,
 				scripts: this.config.scripts,
 				dependencies: this.config.dependencies.prod,
 				devDependencies: this.config.dependencies.dev,
