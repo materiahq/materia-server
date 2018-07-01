@@ -78,11 +78,11 @@ export class Watcher {
 		// 	}
 		// };
 
-		if (process.platform == 'win32') {
-			this._watchWin32(path);
-		} else {
+		// if (process.platform == 'win32') {
+		// 	this._watchWin32(path);
+		// } else {
 			this._watchChokidar(path);
-		}
+		// }
 	}
 	dispose() {
 		if (this.chokidarWatcher) {
