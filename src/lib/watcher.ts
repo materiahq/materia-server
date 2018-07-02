@@ -1,5 +1,5 @@
 import * as chokidar from 'chokidar';
-import { cs_watcher } from './watcher_win32/cs_watcher';
+// import { cs_watcher } from './watcher_win32/cs_watcher';
 import { App } from './app';
 import chalk from 'chalk';
 
@@ -133,24 +133,24 @@ export class Watcher {
 		watcher.on('unlinkDir', this._unlinkEvent.bind(this));
 	}
 
-	private _watchWin32(watchPath) {
-		const self = this;
-		this.win32Watcher = cs_watcher({
-			path: watchPath,
-			ignored: [],
-			eventCallback: function() {
-				self._eventCallback.apply(self, arguments);
-			},
-			errorCallback: function() {
-				self._errorCallback.apply(self, arguments);
-			}
-		});
-		this.app.logger.log(` └── Watchers: ${chalk.bold.green('OK')}`)
-	}
+	// private _watchWin32(watchPath) {
+	// 	const self = this;
+	// 	this.win32Watcher = cs_watcher({
+	// 		path: watchPath,
+	// 		ignored: [],
+	// 		eventCallback: function() {
+	// 			self._eventCallback.apply(self, arguments);
+	// 		},
+	// 		errorCallback: function() {
+	// 			self._errorCallback.apply(self, arguments);
+	// 		}
+	// 	});
+	// 	this.app.logger.log(` └── Watchers: ${chalk.bold.green('OK')}`)
+	// }
 
-	private _errorCallback(err) {
-		console.error(err);
-	}
+	// private _errorCallback(err) {
+	// 	console.error(err);
+	// }
 
 	private _eventCallback(filePath, type) {
 		if (filePath == '') {

@@ -39,6 +39,7 @@
     "sequelize-cli": "^3.0.0-3",
     "simple-git": "^1.92.0",
     "sqlite3": "3.1.8",
+    "strip-ansi": "^4.0.0",
     "tedious": "^1.14.0",
     "uuid": "^3.1.0",
     "whereis": "^0.4.0",

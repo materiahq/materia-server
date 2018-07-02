@@ -11,35 +11,30 @@ import * as execa from 'execa';
 export class Npm {
 	constructor(private app: App) {}
 
-	exec(command: string, params?: string[], output?: (data: any, error?: boolean) => void): Promise<any> {
+	execInBackground(command: string, params?: string[]) {
+		return this._exec(command, params);
+	}
+
+	exec(command: string, params?: string[], stream?: (data: any, error?: boolean) => void): Promise<any> {
 		return new Promise((resolve, reject) => {
 			let data = '';
-			let stream = null;
-			if (fs.existsSync(path.resolve(`node_modules/.bin/npm`))) {
-				stream = execa(path.resolve(`node_modules/.bin/npm`), [command, ...params], {
-					cwd: this.app.path
-				});
-			} else {
-				stream = execa(path.join(path.resolve(), `resources/node_modules/.bin/npm`), [command, ...params], {
-					cwd: this.app.path
-				});
-			}
-			stream.stdout.on('data', d => {
-				console.log(`stdout: ${d}`);
-				if (output) {
-					output(d.toString());
+
+			let proc = this._exec(command, params);
+
+			proc.stdout.on('data', d => {
+				if (stream) {
+					stream(d.toString());
 				}
 				data += d;
 			});
-			stream.stderr.on('data', (d) => {
-				console.log(`stderr: ${d}`);
-				if (output) {
-					output(d.toString(), true);
+			proc.stderr.on('data', (d) => {
+				if (stream) {
+					stream(d.toString(), true);
 				}
 				data += d;
 			});
 
-			stream.on('close', (code) => {
+			proc.on('close', (code) => {
 				console.log(`child process exited with code ${code}`);
 				if (code == 0) {
 					return resolve(data);
@@ -52,4 +47,20 @@ export class Npm {
 			});
 		});
 	}
+
+	private _exec(command: string, params?: string[]) {
+		if (!params) {
+			params = [];
+		}
+		if (fs.existsSync(path.resolve(`node_modules/.bin/npm`))) {
+			return execa(path.resolve(`node_modules/.bin/npm`), [command, ...params], {
+				cwd: this.app.path
+			});
+		} else {
+			return execa(path.join(path.resolve(), `resources/node_modules/.bin/npm`), [command, ...params], {
+				cwd: this.app.path
+			});
+		}
+	}
+
 }
