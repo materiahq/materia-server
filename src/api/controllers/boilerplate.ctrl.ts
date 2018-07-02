@@ -20,7 +20,7 @@ export class BoilerplateController {
 	reactScripts: ReactScripts;
 
 	constructor(private app: App, websocket: WebsocketInstance) {
-		this.npm = new Npm(this.app);
+		this.npm = new Npm(this.app.path);
 		this.npx = new Npx(this.app);
 		this.angularCli = new AngularCli(this.app);
 		this.vueCli = new VueCli(this.app);

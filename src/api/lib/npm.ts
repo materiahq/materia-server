@@ -1,5 +1,3 @@
-import { App } from '../../lib';
-
 // const npm = require('npm');
 // import { buffer } from './buffer';
 
@@ -9,7 +7,7 @@ import * as fs from 'fs';
 import * as execa from 'execa';
 
 export class Npm {
-	constructor(private app: App) {}
+	constructor(private cwd: string, private global = false) {}
 
 	execInBackground(command: string, params?: string[]) {
 		return this._exec(command, params);
@@ -35,7 +33,6 @@ export class Npm {
 			});
 
 			proc.on('close', (code) => {
-				console.log(`child process exited with code ${code}`);
 				if (code == 0) {
 					return resolve(data);
 				} else {
@@ -52,13 +49,17 @@ export class Npm {
 		if (!params) {
 			params = [];
 		}
-		if (fs.existsSync(path.resolve(`node_modules/.bin/npm`))) {
+		if (this.global) {
+			return execa('npm', [command, ...params], {
+				cwd: this.cwd
+			});
+		} else if (fs.existsSync(path.resolve(`node_modules/.bin/npm`))) {
 			return execa(path.resolve(`node_modules/.bin/npm`), [command, ...params], {
-				cwd: this.app.path
+				cwd: this.cwd
 			});
 		} else {
 			return execa(path.join(path.resolve(), `resources/node_modules/.bin/npm`), [command, ...params], {
-				cwd: this.app.path
+				cwd: this.cwd
 			});
 		}
 	}

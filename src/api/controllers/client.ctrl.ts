@@ -10,7 +10,7 @@ export class ClientController {
 	npmProc: any;
 
 	constructor(private app: App, private websocket: WebsocketInstance) {
-		this.npm = new Npm(this.app);
+		this.npm = new Npm(this.app.path);
 	}
 
 	startWatching(req, res) {

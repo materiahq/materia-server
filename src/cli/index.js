@@ -8,13 +8,8 @@ let help = require('./cmd/help')
 let cmds = [
 	require('./cmd/version'),
 	help,
-
-	require('./cmd/addons'),
-	require('./cmd/deploy'),
-	require('./cmd/init'),
 	require('./cmd/start'),
-	require('./cmd/setup'),
-	require('./cmd/install'),
+	require('./cmd/relink')
 ]
 
 let args = argv._

@@ -7,7 +7,7 @@ let topics = {
 		'Usage: materia <command>',
 		'',
 		'Available commands:',
-		'    addons, deploy, help, init, install, setup, start, version',
+		'    start, relink, version',
 		'',
 		'materia help <cmd>\tdisplay help on <cmd>',
 		'materia --version\tdisplay materia version'
@@ -21,67 +21,22 @@ let topics = {
 		'Display help about <command>',
 		'',
 		'Available commands:',
-		'    addons, deploy, help, init, start, version',
+		'    start, relink, version',
 		'',
 		'materia --version\tdisplay materia version'
 	],
-	'addons': [
-		'Usage: materia addons <subcommand>',
-		'',
-		'Sub-commands:',
-		'',
-		'materia addons install [<package>]\tInstall a specified addon or all addons described in materia.json',
-		'materia addons update [<package>]\tUpdate a specified addon or all addons described in materia.json',
-		'materia addons remove <package>\t\t\Remove an addon',
-		'materia addons search <query>\t\t\Remove an addon',
-		'',
-		'A package must be an installable package by npm:',
-		'See https://docs.npmjs.com/cli/install for more informations'
-	],
-	'deploy': [
-		'Usage: matera deploy <provider> [--<provider-param>=<value>]',
-		'',
-		'Available providers and parameters:',
-		'',
-		'dockerfile',
-		'  Generates a Dockerfile and docker-compose.yml',
-		'',
-		'heroku',
-		'  Required programs: docker, heroku, heroku-container-tools plugin',
-		'  --heroku-app=<app>\t\t\tSpecifies the heroku app to use.',
-		'',
-		'aws',
-		'  Required progams: docker, aws, ecs-cli',
-		'  --aws-region=<region>\t\t\tSpecifies the AWS region to use.',
-		'  --aws-cluster=<cluster>\t\tSpecifies the ECS cluster name to use. If the cluster does not exist, it is created when you try to deploy.',
-		'                         \t\tDefaults to <app-name>-cluster',
-		'  --aws-size=<size\t\t\tSpecifies the number of instances to launch and register to the cluster. Defaults to 1.',
-		'  --aws-ecr=<ecr>\t\t\tSpecifies the ECR url to use when pushing docker.',
-		'  --aws-keypair=<keypair>\t\tSpecifies the name of an existing Amazon EC2 key pair to enable SSH access to the EC2 instances in your cluster.',
-		'  --aws-image=<image-name>\t\tSpecifies the name of the image to create and push on ECR. Defaults to <app-name>-image',
-		'  --aws-instance-type=<instance-type>\tSpecifies the EC2 instance type for your container instances. Defaults to t2.micro',
-	],
-	'init': [
-		'Usage: materia init',
-		'',
-		'Initialize a new materia app'
-	],
-	'install': [
-		'Usage: materia install [npmPackage]',
-		'',
-		'Install and setup the app, or a new addon if npmPackage is specified.'
-	],
-	'setup': [
-		'Usage: materia setup [npmPackage]',
-		'',
-		'(Re)configure the addons, or the addon npmPackage if specified.'
-	],
 	'start': [
-		'Usage: materia start [--runtimes=all]',
+		'Usage: materia start [--mode=prod]',
 		'',
 		'Start a materia app.',
 		'',
-		'  --runtimes=all\tLoad app with all modules. This will enable materia tools and will try to install the missing addons when starting the app.'
+		'  --mode=prod\tStart the application in production mode.'
+	],
+	'relink': [
+		'Usage: materia relink',
+		'',
+		'relink packages listed in the `links` section of materia.json.',
+		'',
 	],
 	'version': [
 		'Usage:',
