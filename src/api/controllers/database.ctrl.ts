@@ -280,7 +280,7 @@ export class DatabaseController {
 			.get(payload.rel2.reference.entity)
 			.addRelation(payload.rel1, {
 				save: true,
-				apply: false,
+				apply: true,
 				history: true,
 				db: true
 			})
@@ -289,7 +289,7 @@ export class DatabaseController {
 					.get(payload.rel1.reference.entity)
 					.addRelation(payload.rel2, {
 						save: true,
-						apply: false,
+						apply: true,
 						history: true,
 						db: true
 					});
