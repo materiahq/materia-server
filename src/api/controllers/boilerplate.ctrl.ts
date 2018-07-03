@@ -249,36 +249,35 @@ export class BoilerplateController {
 		}).then(() => {
 			return this._removeBoilerplatePackage()
 		}).then(() => this._removeBoilerplateNodeModules())
-		.then(() => this._mergeBoilerplateProjectFolder())
-		.then(() => {
-			this._emitMessage('Install all dependencies')
-			return this._removeItemIfExist(path.join(this.app.path, 'yarn.lock'))
-		}).then(() =>
-			this._removeItemIfExist(path.join(this.app.path, 'node_modules'))
-		).then(() => this.npm.exec('install', []))
-		.then(() => {
-			this._emitMessage('Build React application')
-			return this.reactScripts.exec('build', [])
-		}).then(() => {
-			this.app.config.set({
-				src: 'src',
-				dist: 'build',
-				buildEnabled: true,
-				scripts: {
-					build: "build",
-					watch: "watch",
-					prod: "prod"
-				},
-				autoWatch: false
-			}, AppMode.DEVELOPMENT, ConfigType.CLIENT)
-			this.app.server.dynamicStatic.setPath(path.join(this.app.path, 'build'));
-			return this.app.config.save();
-		}).then(() => {
-			const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
-			const type = 'boilerplate:success';
-			this.app.watcher.enable();
-			this.app.materiaApi.websocket.broadcast({ type, client: client })
-		}).catch(err => this._emitError(err))
+			.then(() => this._mergeBoilerplateProjectFolder())
+			.then(() => {
+				this._emitMessage('Install all dependencies')
+				return this._removeItemIfExist(path.join(this.app.path, 'yarn.lock'))
+			}).then(() =>
+				this._removeItemIfExist(path.join(this.app.path, 'node_modules'))
+			).then(() => this.npm.exec('install', []))
+			.then(() => {
+				this._emitMessage('Build React application')
+				return this.reactScripts.exec('build', [])
+			}).then(() =>
+				this.app.config.set({
+					src: 'src',
+					dist: 'build',
+					buildEnabled: true,
+					scripts: {
+						build: "build",
+						watch: "watch",
+						prod: "prod"
+					},
+					autoWatch: false
+				}, AppMode.DEVELOPMENT, ConfigType.CLIENT)
+			).then(() => {
+				this.app.server.dynamicStatic.setPath(path.join(this.app.path, 'build'));
+				const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
+				const type = 'boilerplate:success';
+				this.app.watcher.enable();
+				this.app.materiaApi.websocket.broadcast({ type, client: client })
+			}).catch(err => this._emitError(err))
 	}
 
 	private _mergeReactPackage() {
@@ -296,55 +295,55 @@ export class BoilerplateController {
 		res.status(200).send({});
 		this.app.watcher.disable();
 		this._emitMessage('Install @vue/cli')
-		return this._installBoilerplateCli('@vue/cli').then(() => {
-			this.app.config.packageJson['scripts']['vue'] = 'vue';
-			return this.app.config.save();
-		}).then(() => {
-			this._emitMessage('Generate Vue application')
-			return this._newVueProject();
-		}).then(() => {
-			this._emitMessage('Generate monopackage structure')
-			return this._removeBoilerplatePackage()
-		})
-		.then(() => this._removeBoilerplateNodeModules())
-		.then(() => this._mergeBoilerplateProjectFolder())
-		.then(() => {
-			this._emitMessage('Create vue config file')
-			return this.app.saveFile(path.join(this.app.path, 'vue.config.js'), `module.exports = {
+		return this._removeItemIfExist(path.join(this.app.path, 'package-lock.json'))
+			.then(() => this._removeItemIfExist(path.join(this.app.path, 'yarn.lock')))
+			.then(() => this._removeItemIfExist(path.join(this.app.path, 'node_modules')))
+			.then(() => this._installBoilerplateCli('@vue/cli'))
+			.then(() => {
+				this.app.config.packageJson['scripts']['vue'] = 'vue';
+				return this.app.config.save();
+			}).then(() => {
+				this._emitMessage('Generate Vue application')
+				return this._newVueProject();
+			}).then(() => {
+				this._emitMessage('Generate monopackage structure')
+				return this._removeBoilerplatePackage()
+			})
+			.then(() => this._removeBoilerplateNodeModules())
+			.then(() => this._mergeBoilerplateProjectFolder())
+			.then(() => {
+				this._emitMessage('Create vue config file')
+				return this.app.saveFile(path.join(this.app.path, 'vue.config.js'), `module.exports = {
 	configureWebpack: {
 		entry: "./client/src/main.js"
 	},
 	outputDir: './client/dist'
 }`)
-		}).then(() => this._moveVueFolders())
-		.then(() => this._removeItemIfExist(path.join(this.app.path, 'package-lock.json')))
-		.then(() => this._removeItemIfExist(path.join(this.app.path, 'yarn.lock')))
-		.then(() => this._removeItemIfExist(path.join(this.app.path, 'node_modules')))
-		.then(() => {
-			this._emitMessage('Install dependencies')
-			return this.npm.exec('install', [])
-		}).then(() => {
-			this._emitMessage('Build vue application')
-			return this.vueCli.execVueCliService('build', [])
-		}).then(() => {
-			this.app.config.set({
-				src: 'client/src',
-				dist: 'client/dist',
-				buildEnabled: true,
-				scripts: {
-					build: "build",
-					watch: "watch",
-					prod: "prod"
-				},
-				autoWatch: false
-			}, AppMode.DEVELOPMENT, ConfigType.CLIENT)
-			this.app.server.dynamicStatic.setPath(path.join(this.app.path, 'client/dist'));
-			return this.app.config.save();
-		}).then(() => {
-			const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
-			const type = 'boilerplate:success';
-			this.app.materiaApi.websocket.broadcast({ type, client: client })
-		}).catch(err => this._emitError(err));
+			}).then(() => this._moveVueFolders())
+			.then(() => {
+				this._emitMessage('Install dependencies')
+				return this.npm.exec('install', [])
+			}).then(() => {
+				this._emitMessage('Build vue application')
+				return this.vueCli.execVueCliService('build', [])
+			}).then(() => {
+				this.app.config.set({
+					src: 'client/src',
+					dist: 'client/dist',
+					buildEnabled: true,
+					scripts: {
+						build: "build",
+						prod: "build"
+					},
+					autoWatch: false
+				}, AppMode.DEVELOPMENT, ConfigType.CLIENT)
+				this.app.server.dynamicStatic.setPath(path.join(this.app.path, 'client/dist'));
+				return this.app.config.save();
+			}).then(() => {
+				const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
+				const type = 'boilerplate:success';
+				this.app.materiaApi.websocket.broadcast({ type, client: client })
+			}).catch(err => this._emitError(err));
 	}
 
 	private _moveVueFolders() {
@@ -378,16 +377,13 @@ export class BoilerplateController {
 	}
 
 	private _newVueProject() {
-		return new Promise((resolve, reject) => {
-			this.vueCli.execVue('create', [
-				this.app.config.packageJson.name,
-				'--git=false',
-				'--default'
-			]).then(() => {
-				this._mergeVuePackage().then(() => resolve()).catch(err => reject(err))
-			}).catch(err => reject(err));
-
-		});
+		return this.vueCli.execVue('create', [
+			this.app.config.packageJson.name,
+			'--git=false',
+			'--default'
+		]).then(() =>
+			this._mergeVuePackage()
+		);
 	}
 
 
