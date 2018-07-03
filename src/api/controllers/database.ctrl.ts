@@ -165,9 +165,9 @@ export class DatabaseController {
 				}
 				if (data) {
 					const code = data.toString();
-					res.send(code);
+					return res.status(200).send(code);
 				} else {
-					res.send();
+					return res.status(200).send();
 				}
 			}
 		);
@@ -188,17 +188,6 @@ export class DatabaseController {
 	}
 
 	createQuery(req, res) {
-		// const entities = Object.assign({}, this.app.entities.entities);
-		/*let entity;
-		let p;
-		for (const en in entities) {
-			if (entities[en]) {
-				const e = entities[en];
-				if (e.name == selected) {
-					entity = e;
-				}
-			}
-		}*/
 		const entity = this.app.entities.get(req.params.entity)
 		const query = req.body;
 		if (entity) {
@@ -219,13 +208,13 @@ export class DatabaseController {
 					),
 					query.code,
 					{ mkdir: true }
-				).then(res => {
+				).then(() => {
 					entity.addQuery(query);
-					res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
+					res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
 				});
 			} else {
 				entity.addQuery(query);
-				res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
+				res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
 			}
 		}
 	}
