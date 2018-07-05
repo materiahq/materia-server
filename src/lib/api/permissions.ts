@@ -223,7 +223,6 @@ export class Permissions {
 				return Promise.resolve(this.get(perm.name));
 			}
 		} catch (e) {
-			console.log('Error:', e);
 			return Promise.reject(e);
 		}
 	}
@@ -234,6 +233,16 @@ export class Permissions {
 				if (p.file && !p.readOnly && name == p.name) {
 					p.name = permission.name;
 					p.description = permission.description;
+					let filepath = p.file;
+					filepath = filepath.indexOf(
+						path.join(this.app.path, 'server', 'permissions')
+					) == -1 ? path.join(
+						this.app.path,
+						'server',
+						'permissions',
+						p.file
+					) : p.file;
+					filepath = filepath.indexOf('.js') !== -1 ? filepath : filepath + '.js';
 					if (
 						path.join(
 							this.app.path,
@@ -241,10 +250,10 @@ export class Permissions {
 							'permissions',
 							permission.file + '.js'
 						) !=
-						p.file + '.js'
+						filepath
 					) {
 						fs.rename(
-							p.file + '.js',
+							filepath,
 							path.join(
 								this.app.path,
 								'server',
@@ -295,9 +304,18 @@ export class Permissions {
 			return permission.name == name;
 		});
 		let index = this.permissions.indexOf(permission);
+		let filepath = permission.file.indexOf(
+			path.join(this.app.path, 'server', 'permissions')
+		) == -1 ? path.join(
+			this.app.path,
+			'server',
+			'permissions',
+			permission.file
+		) : permission.file;
+		filepath = filepath.indexOf('.js') !== -1 ? filepath : filepath + '.js';
 		if (index != -1) {
 			if (opts && opts.removeSource) {
-				fs.unlinkSync(permission.file + '.js');
+				fs.unlinkSync(filepath);
 			}
 
 			this.permissions.splice(index, 1);

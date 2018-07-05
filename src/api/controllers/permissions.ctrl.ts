@@ -17,7 +17,7 @@ export class PermissionsController {
 					middleware: (req, res, next) => {
 	next();
 },
-					file: perm.name
+					file: perm.file
 				},
 				{ save: true }
 			)
@@ -46,7 +46,7 @@ export class PermissionsController {
 				{
 					name: perm.name,
 					description: perm.description,
-					file: perm.name
+					file: perm.file
 				},
 				{ save: true }
 			)
@@ -65,7 +65,6 @@ export class PermissionsController {
 		const perm = req.params.permission;
 		const action = req.query.action;
 		const reloadPerm = this.app.api.permissions.get(perm);
-
 		if (reloadPerm) {
 			reloadPerm.reload();
 		}
@@ -87,17 +86,17 @@ export class PermissionsController {
 		const perm = this.app.api.permissions.get(req.body.name)
 			? this.app.api.permissions.get(req.body.name)
 			: req.body;
-
-		if (perm.file.indexOf(path.sep) == -1) {
-			perm.file = path.join(
+		let filename = perm.file;
+		if (filename.indexOf(path.sep) == -1) {
+			filename = path.join(
 				this.app.path,
 				'server',
 				'permissions',
 				perm.file
 			);
 		}
-		if (perm.file.indexOf('.js') == -1) {
-			perm.file = perm.file + '.js';
+		if (filename.indexOf('.js') == -1) {
+			filename = filename + '.js';
 		}
 
 		if (!perm) {
@@ -108,7 +107,7 @@ export class PermissionsController {
 		}
 
 		return this.app
-			.saveFile(perm.file, req.body.code, {
+			.saveFile(filename, req.body.code, {
 				mkdir: true
 			})
 			.then(() => {
@@ -132,8 +131,7 @@ export class PermissionsLib {
 	static list(app: App) {
 		return app.api.permissions.findAll().map(permission => {
 			return Object.assign({}, permission.toJson(), {
-				code: `module.exports = ${permission.middleware.toString()}`,
-				file: permission.file
+				code: `module.exports = ${permission.middleware.toString()}`
 			});
 		});
 	}
