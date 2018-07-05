@@ -34,11 +34,11 @@ export class Permissions {
 				);
 
 				if (!permission) {
-					next(
-						new MateriaError(
-							'Could not find permission "' + permissionName + '"'
-						)
-					);
+					const err: any = new MateriaError(
+						'Could not find permission "' + permissionName + '"'
+					)
+					res.status(500).json(JSON.stringify(err.message));
+					next(err.message)
 					return false;
 				}
 

@@ -56,7 +56,6 @@ export class Permission {
 				this.middleware = require(file);
 				return Promise.resolve();
 			} catch (e) {
-				console.log(e);
 				return Promise.reject(e);
 			}
 		} else {

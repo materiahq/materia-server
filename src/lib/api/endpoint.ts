@@ -276,9 +276,9 @@ export class Endpoint {
 
 		if (params.errors.length > 0) {
 			if (params.errors.length == 1) {
-				return Promise.reject(params.errors[0])
+				return  res.status(500).send(params.errors[0])
 			}
-			return Promise.reject(params.errors)
+			return res.status(500).send(params.errors)
 		}
 		this.app.logger.log(` └── Parameters: ${JSON.stringify(params.resolvedParams)}`)
 		if (this.controller && this.action) {
@@ -288,23 +288,22 @@ export class Endpoint {
 				this.app.logger.log(` └── Execute: (Controller) ${chalk.bold(instance.constructor.name)}.${chalk.bold(this.action)}\n`)
 				obj = instance[this.action](req, res, next)
 			} catch (e) {
-				return Promise.reject(e)
+				return  res.status(500).send(e);
 			}
 			if (obj && obj.then && obj.catch
 				&& typeof obj.then === 'function'
 				&& typeof obj.catch === 'function') {
-				return obj.then((data) => {
+				return obj.then((data) =>
 					res.status(200).send(data)
-				})
+				).catch(err => res.status(500).send(err));
 			}
-			return Promise.resolve()
 		}
 		else {
 			this.app.logger.log(` └── Execute: (Query) ${chalk.bold(this.query.entity.name)}.${chalk.bold(this.query.id)}\n`)
 			this.query = this.app.entities.get(this.entity.name).getQuery(this.query.id) // Get latest query version (Fix issue where query change is not immediately reflected in endpoint result)
 			return this.query.run(params.resolvedParams).then(data => {
 				res.status(200).json(data)
-			})
+			}).catch(err => res.status(500).send(err));
 		}
 	}
 
