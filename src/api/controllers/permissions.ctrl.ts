@@ -1,6 +1,7 @@
 import { App } from '../../lib';
 
 import * as path from 'path';
+import * as fs from 'fs';
 import { WebsocketInstance } from '../../lib/websocket';
 
 export class PermissionsController {
@@ -8,15 +9,38 @@ export class PermissionsController {
 
 	initCreate(req, res) {
 		const perm = req.body;
-
-		this.app.api.permissions
+		let middleware;
+		this._checkNewPermission(perm).then(result => {
+			if (result !== '') {
+				try {
+					let file = path.join(
+						this.app.path,
+						'server',
+						'permissions',
+						perm.file
+					);
+					let rp = require.resolve(file);
+					if (require.cache[rp]) {
+						delete require.cache[rp];
+					}
+					middleware = require(file);
+				}
+				catch {
+					middleware = (req, res, next) => {
+	next();
+};
+				}
+			} else {
+				middleware = (req, res, next) => {
+	next();
+};
+			}
+			this.app.api.permissions
 			.add(
 				{
 					name: perm.name,
 					description: perm.description,
-					middleware: (req, res, next) => {
-	next();
-},
+					middleware: middleware,
 					file: perm.file
 				},
 				{ save: true }
@@ -35,6 +59,7 @@ export class PermissionsController {
 				});
 			})
 			.catch(err => res.status(500).json(err));
+		})
 	}
 
 	update(req, res) { // payload: { permission: IPermission; oldName: string }) {
@@ -124,6 +149,24 @@ export class PermissionsController {
 
 	list(req, res) {
 		res.status(200).json(PermissionsLib.list(this.app));
+	}
+
+	private _checkNewPermission(perm) {
+		return new Promise((resolve, reject) => {
+			const filepath = 	path.join(
+				this.app.path,
+				'server',
+				'permissions',
+				perm.file + '.js'
+			)
+			fs.stat(filepath, (err, stats) => {
+				// Check if error defined and the error code is "not exists"
+				if (err && err.code === 'ENOENT') {
+					return resolve('');
+				}
+				return resolve(fs.readFileSync(filepath));
+			});
+		});
 	}
 }
 
