@@ -6,46 +6,75 @@ import { Npm } from "../lib/npm";
 export class PackageManagerController {
 	npm: Npm;
 
-	constructor(app: App, websocket: WebsocketInstance) {}
+	constructor(private app: App, websocket: WebsocketInstance) {
+		this.npm = new Npm(app.path);
+	}
 
-	installcp(req, res) {
+	install(req, res) {
 		const name = req.params.owner
 			? `${req.params.owner}/${req.params.dependency}`
 			: req.params.dependency;
+		this.app.watcher.disable()
 
 		console.log(`(Dependency) Install ${name}`);
-		this.npm.exec('install', [name, '--save']).then(data => {
-			res.status(200).send(data);
-		}).catch(err => {
-			res.status(500).send(err);
-		})
+		try {
+			this.npm.exec('install', [name, '--save'], (data, error) => {
+				this.app.logger.log(data);
+			}).then(data => {
+				this.app.watcher.enable()
+				return res.status(200).send({data});
+			}).catch(err => {
+				this.app.watcher.enable()
+				return res.status(501).send(err);
+			})
+		} catch(e) {
+			this.app.watcher.enable()
+			return res.status(502).send(e);
+		}
 	}
 
-	upgradecp(req, res) {
+	upgrade(req, res) {
 		const name = req.params.owner
 			? `${req.params.owner}/${req.params.dependency}`
 			: req.params.dependency;
 
 		return this.npm.exec('upgrade', [name, '--save']).then(data => {
-			res.status(200).send(data);
+			res.status(200).send({data});
 		}).catch(e => {
 			res.status(500).send(e);
 		});
 	}
 
-	installAllcp(req, res) {
-		return this.npm.exec('install', []).then(data => {
-			res.status(200).send(data);
+	installAll(req, res) {
+		return this.npm.exec('install', [], (data, error) => {
+			this.app.logger.log(data);
+		}).then(data => {
+			res.status(200).send({data});
 		}).catch(e => {
 			res.status(500).send(e);
 		});
 	}
-	uninstallcp(req, res) {
+
+	uninstall(req, res) {
+		this.app.watcher.disable();
 		const name = req.params.owner
 			? `${req.params.owner}/${req.params.dependency}`
 			: req.params.dependency;
-		this.npm.exec('uninstall', [name, '--save']).then(data => {
-			res.status(200).send(data)
-		}).catch(err => res.status(500).send(err));
+
+		console.log(`(Dependency) Uninstall ${name}`);
+		try {
+			this.npm.exec('uninstall', [name, '--save'], (data, error) => {
+				this.app.logger.log(data);
+			}).then(data => {
+				this.app.watcher.enable()
+				return res.status(200).send({data})
+			}).catch(err => {
+				this.app.watcher.enable()
+				return res.status(501).send(err)
+			});
+		} catch(e) {
+			this.app.watcher.enable()
+			return res.status(502).send(e);
+		}
 	}
 }

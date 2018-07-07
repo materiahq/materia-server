@@ -9,6 +9,9 @@ import * as execa from 'execa';
 export class Npm {
 	constructor(private cwd: string, private global = false) {}
 
+	useLocalNpm() { this.global = false; }
+	useGlobalNpm() { this.global = true; }
+
 	execInBackground(command: string, params?: string[]) {
 		return this._exec(command, params);
 	}
