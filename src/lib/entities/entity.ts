@@ -358,256 +358,257 @@ export class Entity {
 	*/
 	addRelation(relation:IRelation, options?:IApplyOptions):Promise<any> {
 		options = options || {}
-		return new Promise((accept, reject) => {
-			if (relation.field && relation.reference.entity == relation.field) {
-				return reject(new MateriaError('The reference field cannot have the same name that its referenced entity'))
+		if (relation.field && relation.reference.entity == relation.field) {
+			return Promise.resolve(new MateriaError('The reference field cannot have the same name that its referenced entity'))
+		}
+
+		let entityDest = this.app.entities.get(relation.reference.entity)
+		let p:Promise<any> = Promise.resolve()
+		if ( ! relation.type || relation.type == 'belongsTo') {
+			relation.type = 'belongsTo'
+
+			if ( ! entityDest) {
+				if (options.apply != false) {
+					this.relations.push(relation)
+				}
+				return Promise.resolve(); // when loading entities
 			}
 
-			let entityDest = this.app.entities.get(relation.reference.entity)
-			let p:Promise<any> = Promise.resolve()
-			if ( ! relation.type || relation.type == 'belongsTo') {
-				relation.type = 'belongsTo'
+			// console.log('addRelation', this.name, relation, entityDest && entityDest.name)
+
+			let keyReference = entityDest.getPK()[0]
+			if (relation.reference.field && relation.reference.field != keyReference.name) {
+				let f = entityDest.getField(relation.reference.field)
+				if ( ! f) {
+					return Promise.reject(new MateriaError(`The relation's referenced field ${entityDest.name}.${relation.reference.field} does not exist`))
+				}
+				if ( ! f.unique) {
+					return Promise.reject(new MateriaError(`${entityDest.name}.${f.name} cannot be referenced in relation (need to be unique/primary)`))
+				}
+				keyReference = f
+			}
+			if (options.apply != false) {
+				this.relations.push(relation)
+			}
+
+			let uniqueField = false
+			if (relation.unique !== undefined) {
+				uniqueField = relation.unique
+			}
+
+			p = this.addField({
+				name: relation.field,
+				type: keyReference.type,
+				default: false,
+				generateFrom: relation.reference.entity,
+				required: true,
+				read: true,
+				write: true,
+				primary: false,
+				unique: uniqueField,
+				isRelation: relation
+			}, options)
+		}
+		else if (relation.type == 'hasMany' || relation.type == 'hasOne') {
+			if (options.apply != false) {
+				this.relations.push(relation)
+			}
+		}
+		else if (relation.type == 'belongsToMany') {
+			if (options.apply != false) {
+				this.relations.push(relation)
 
 				if ( ! entityDest) {
-					if (options.apply != false)
-						this.relations.push(relation)
-					return accept() // when loading entities
+					return Promise.resolve() // when loading entities
 				}
 
-				// console.log('addRelation', this.name, relation, entityDest && entityDest.name)
+				//TODO: Should be all PK of this and relation.reference.entity
+				let field1 = this.getPK()[0]
+				let field2 = this.app.entities.get(relation.reference.entity).getPK()[0]
 
-				let keyReference = entityDest.getPK()[0]
-				if (relation.reference.field && relation.reference.field != keyReference.name) {
-					let f = entityDest.getField(relation.reference.field)
-					if ( ! f) {
-						return reject(new MateriaError(`The relation's referenced field ${entityDest.name}.${relation.reference.field} does not exist`))
+				if ( ! relation.as)
+					relation.as = field1.name
+
+				let isRelation = [{
+						field: relation.as,
+						entity: this.name
+					}, {
+						field: relation.reference.as,
+						entity: relation.reference.entity
 					}
-					if ( ! f.unique) {
-						return reject(new MateriaError(`${entityDest.name}.${f.name} cannot be referenced in relation (need to be unique/primary)`))
-					}
-					keyReference = f
-				}
-				if (options.apply != false)
-					this.relations.push(relation)
+				]
 
-				let uniqueField = false
-				if (relation.unique !== undefined) {
-					uniqueField = relation.unique
-				}
-
-				p = this.addField({
-					name: relation.field,
-					type: keyReference.type,
-					default: false,
-					generateFrom: relation.reference.entity,
-					required: true,
-					read: true,
-					write: true,
-					primary: false,
-					unique: uniqueField,
-					isRelation: relation
-				}, options)
-			}
-			else if (relation.type == 'hasMany' || relation.type == 'hasOne') {
-				if (options.apply != false) {
-					this.relations.push(relation)
-				}
-			}
-			else if (relation.type == 'belongsToMany') {
-				if (options.apply != false) {
-					this.relations.push(relation)
-
-					if ( ! entityDest) {
-						return accept() // when loading entities
-					}
-
-					//TODO: Should be all PK of this and relation.reference.entity
-					let field1 = this.getPK()[0]
-					let field2 = this.app.entities.get(relation.reference.entity).getPK()[0]
-
-					if ( ! relation.as)
-						relation.as = field1.name
-
-					let isRelation = [{
-							field: relation.as,
-							entity: this.name
-						}, {
-							field: relation.reference.as,
-							entity: relation.reference.entity
+				let implicitRelation = [
+					{
+						type: 'belongsTo',
+						reference: {
+							entity: this.name,
+							field: field1.name
 						}
-					]
-
-					let implicitRelation = [
-						{
-							type: 'belongsTo',
-							reference: {
-								entity: this.name,
-								field: field1.name
-							}
-						},
-						{
-							type: 'belongsTo',
-							reference: {
-								entity: relation.reference.entity,
-								field: field2.name
-							}
+					},
+					{
+						type: 'belongsTo',
+						reference: {
+							entity: relation.reference.entity,
+							field: field2.name
 						}
-					]
+					}
+				]
 
-					let throughEntity = this.app.entities.get(relation.through)
-					if (throughEntity) {
-						//console.log('reusing entity', throughEntity)
+				let throughEntity = this.app.entities.get(relation.through)
+				if (throughEntity) {
+					//console.log('reusing entity', throughEntity)
 
-						let asField1 = throughEntity.getField(relation.as)
-						let asField2 = throughEntity.getField(relation.reference.as)
+					let asField1 = throughEntity.getField(relation.as)
+					let asField2 = throughEntity.getField(relation.reference.as)
 
-						if (throughEntity.isRelation) {
-							//console.log ('compare relations', throughEntity.isRelation, relation)
-							if (throughEntity.compareIsRelation(relation, this))
-								return reject(new MateriaError('Table ' + relation.through + ' is already used for a different relation'))
-							//console.log('already exists, ok', asField1, asField2)
-							p = Promise.resolve()
-							if ( ! asField1) {
-								p = p.then(() => {
-									return throughEntity.addField({
-										name: relation.as,
-										type: field1.type,
-										default: false,
-										generateFrom: this.name,
-										required: true,
-										read: true,
-										write: true,
-										primary: true,
-										unique: true,
-										isRelation: implicitRelation[0]
-									}, options)
-								})
-							}
-							else {
-								asField1.isRelation = implicitRelation[0]
-							}
-							if ( ! asField2) {
-								p = p.then(() => {
-									return throughEntity.addField({
-										name: relation.reference.as,
-										type: field2.type,
-										default: false,
-										generateFrom: relation.reference.entity,
-										required: true,
-										read: true,
-										write: true,
-										primary: true,
-										unique: true,
-										isRelation: implicitRelation[1]
-									}, options)
-								})
-							}
-							else {
-								asField2.isRelation = implicitRelation[1]
-							}
+					if (throughEntity.isRelation) {
+						//console.log ('compare relations', throughEntity.isRelation, relation)
+						if (throughEntity.compareIsRelation(relation, this))
+							return Promise.reject(new MateriaError('Table ' + relation.through + ' is already used for a different relation'))
+						//console.log('already exists, ok', asField1, asField2)
+						p = Promise.resolve()
+						if ( ! asField1) {
+							p = p.then(() => {
+								return throughEntity.addField({
+									name: relation.as,
+									type: field1.type,
+									default: false,
+									generateFrom: this.name,
+									required: true,
+									read: true,
+									write: true,
+									primary: true,
+									unique: true,
+									isRelation: implicitRelation[0]
+								}, options)
+							})
 						}
 						else {
-							if ( ! asField1 || ! asField2) {
-								return reject(new MateriaError('Cannot use existing table ' + relation.through + ' for a many to many relation'))
-							}
-
-							throughEntity.isRelation = isRelation
-
-							if (asField1.isRelation)
-								asField1.isRelation.implicit = true
-							else {
-								if (asField1.name == relation.as) {
-									asField1.references = isRelation[1]
-									asField1.isRelation = implicitRelation[0]
-								}
-								else {
-									asField1.references = isRelation[0]
-									asField1.isRelation = implicitRelation[1]
-								}
-								p = p.then(() => {
-									return throughEntity.updateField(asField1.name, asField1, options)
-								})
-							}
-
-							if (asField2.isRelation)
-								asField2.isRelation.implicit = true
-							else {
-								if (asField2.name == relation.as) {
-									asField2.references = isRelation[1]
-									asField2.isRelation = implicitRelation[0]
-								}
-								else {
-									asField2.references = isRelation[0]
-									asField2.isRelation = implicitRelation[1]
-								}
-								p = p.then(() => {
-									return throughEntity.updateField(asField2.name, asField2, options)
-								})
-							}
+							asField1.isRelation = implicitRelation[0]
+						}
+						if ( ! asField2) {
 							p = p.then(() => {
-								if (options.save) {
-									return throughEntity.save(options)
-								}
+								return throughEntity.addField({
+									name: relation.reference.as,
+									type: field2.type,
+									default: false,
+									generateFrom: relation.reference.entity,
+									required: true,
+									read: true,
+									write: true,
+									primary: true,
+									unique: true,
+									isRelation: implicitRelation[1]
+								}, options)
 							})
+						}
+						else {
+							asField2.isRelation = implicitRelation[1]
 						}
 					}
 					else {
-						p = this.app.entities.add({
-							name: relation.through,
-							overwritable: true,
-							fields: [{
-								name: relation.as,
-								type: field1.type,
-								default: false,
-								required: true,
-								read: true,
-								write: true,
-								primary: true,
-								unique: true,
-								isRelation: implicitRelation[0]
-							}, {
-								name: relation.reference.as,
-								type: field2.type,
-								default: false,
-								required: true,
-								read: true,
-								write: true,
-								primary: true,
-								unique: true,
-								isRelation: implicitRelation[1]
-							}],
-							isRelation: isRelation
-						}, options)
+						if ( ! asField1 || ! asField2) {
+							return Promise.reject(new MateriaError('Cannot use existing table ' + relation.through + ' for a many to many relation'))
+						}
+
+						throughEntity.isRelation = isRelation
+
+						if (asField1.isRelation)
+							asField1.isRelation.implicit = true
+						else {
+							if (asField1.name == relation.as) {
+								asField1.references = isRelation[1]
+								asField1.isRelation = implicitRelation[0]
+							}
+							else {
+								asField1.references = isRelation[0]
+								asField1.isRelation = implicitRelation[1]
+							}
+							p = p.then(() => {
+								return throughEntity.updateField(asField1.name, asField1, options)
+							})
+						}
+
+						if (asField2.isRelation)
+							asField2.isRelation.implicit = true
+						else {
+							if (asField2.name == relation.as) {
+								asField2.references = isRelation[1]
+								asField2.isRelation = implicitRelation[0]
+							}
+							else {
+								asField2.references = isRelation[0]
+								asField2.isRelation = implicitRelation[1]
+							}
+							p = p.then(() => {
+								return throughEntity.updateField(asField2.name, asField2, options)
+							})
+						}
+						p = p.then(() => {
+							if (options.save) {
+								return throughEntity.save(options)
+							}
+						})
 					}
 				}
+				else {
+					p = this.app.entities.add({
+						name: relation.through,
+						overwritable: true,
+						fields: [{
+							name: relation.as,
+							type: field1.type,
+							default: false,
+							required: true,
+							read: true,
+							write: true,
+							primary: true,
+							unique: true,
+							isRelation: implicitRelation[0]
+						}, {
+							name: relation.reference.as,
+							type: field2.type,
+							default: false,
+							required: true,
+							read: true,
+							write: true,
+							primary: true,
+							unique: true,
+							isRelation: implicitRelation[1]
+						}],
+						isRelation: isRelation
+					}, options)
+				}
 			}
-			else {
-				return reject()
+		}
+		else {
+			return Promise.reject(new Error('Unknown relation type.'));
+		}
+
+		if ( ! p) {
+			p = Promise.resolve()
+		}
+		return p.then(() => {
+			if (options.history != false) {
+				this.app.history.push({
+					type: MigrationType.ADD_RELATION,
+					table: this.name,
+					value: relation
+				},{
+					type: MigrationType.DELETE_RELATION,
+					table: this.name,
+					value: relation
+				})
 			}
 
-			if ( ! p)
-				p = Promise.resolve()
-			p.then(() => {
-				if (options.history != false) {
-					this.app.history.push({
-						type: MigrationType.ADD_RELATION,
-						table: this.name,
-						value: relation
-					},{
-						type: MigrationType.DELETE_RELATION,
-						table: this.name,
-						value: relation
-					})
-				}
+			if (options.apply != false) {
+				this.initDefaultQuery()
+			}
 
-				if (options.apply != false) {
-					this.initDefaultQuery()
-				}
-
-				if (options.save != false) {
-					return this.save()
-				}
-			}).then(accept).catch(reject)
+			if (options.save != false) {
+				return this.save()
+			}
 		})
 	}
 
