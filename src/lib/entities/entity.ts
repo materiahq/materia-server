@@ -309,10 +309,22 @@ export class Entity {
 	@param {string} - Entity's field name
 	@returns {Relation}
 	*/
-	getRelation(field:string):IRelation {
+	getRelation(field: string): IRelation {
 		for (let relation of this.relations) {
-			if (field == relation.field)
-				return relation
+			if (relation.type === 'belongsTo') {
+				if (field == relation.field) {
+					return relation
+				}
+			}
+			else if (relation.type === 'hasMany' || relation.type === 'hasOne') {
+				if (field === relation.reference.field) {
+					return relation
+				}
+			} else if (relation.type === 'belongsToMany') {
+				if (relation.through === field) {
+					return relation;
+				}
+			}
 		}
 		return null
 	}
