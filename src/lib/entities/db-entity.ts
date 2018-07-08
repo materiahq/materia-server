@@ -343,7 +343,6 @@ export class DBEntity extends Entity {
 			if (options.apply != false) {
 				p = this.loadModel().then(() => {
 					this.loadRelationsInModel()
-					this.refreshQueries()
 				})
 			}
 
@@ -372,11 +371,8 @@ export class DBEntity extends Entity {
 							else {
 								field.defaultValue = list.data[0][entityFromPk.name]
 							}
-						}).catch(e => {
-							console.error(e);
-							return Promise.resolve();
 						});
-					})
+					});
 				}
 				p = p.then(() => {
 					if (field.defaultValue == undefined) {
@@ -406,6 +402,10 @@ export class DBEntity extends Entity {
 				p = p.then(() => {
 					return this.app.database.interface.addColumn(this.name, field.name, field)
 				})
+			}
+
+			if (options.apply != false) {
+				this.refreshQueries()
 			}
 
 			if (isUnique) {
