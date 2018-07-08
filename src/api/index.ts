@@ -1,4 +1,4 @@
-import { App, AppMode } from "../lib";
+import { App, AppMode } from "../lib/app";
 import { OAuth } from "./oauth";
 
 import { Application as ExpressApplication } from 'express';
