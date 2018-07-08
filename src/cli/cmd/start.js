@@ -14,8 +14,8 @@ module.exports = {
 		}
 		options['runtimes'] = options['runtimes'] || 'core'
 		let app = new App(cwd, options)
-		app.load().catch((e) => {
-			console.error('Could not load app:', e && e.message)
+		app.load().catch(e => {
+			console.error('Could not load app:', e && e.message, e.stack)
 		}).then(() => {
 			return app.start()
 		}).catch((err) => {
@@ -23,7 +23,7 @@ module.exports = {
 				console.error(err.stdout)
 			if (err.stderr)
 				console.error(err.stderr)
-			console.error('Could not start server:', err && err.message)
+			console.error('Could not start server:', err && err.message, e.stack)
 		})
 	}
 }
