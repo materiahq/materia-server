@@ -369,13 +369,14 @@ export class DBEntity extends Entity {
 									} else {
 										delete field.defaultValue
 									}
+								}).catch(e => {
+									// Hard fix for new relation
+									console.error(new Error(e));
 								})
 							}
 							else {
 								field.defaultValue = list.data[0][entityFromPk.name]
 							}
-						}).catch(e => {
-							console.error(new Error(e));
 						})
 					});
 				}
