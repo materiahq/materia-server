@@ -350,6 +350,8 @@ export class DBEntity extends Entity {
 			let isUnique = field.unique
 			field.unique = false
 
+			// When field is required and doesn't have default value
+			// if it has data in the entity, it will make an error because the field can't be null and we don't know what do put into
 			if (field.required && !field.default) {
 				field.default = true
 				if (field.generateFrom) {
@@ -370,7 +372,10 @@ export class DBEntity extends Entity {
 							else {
 								field.defaultValue = list.data[0][entityFromPk.name]
 							}
-						})
+						}).catch(e => {
+							console.error(e);
+							return Promise.resolve();
+						});
 					})
 				}
 				p = p.then(() => {
