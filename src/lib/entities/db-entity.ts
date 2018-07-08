@@ -333,8 +333,11 @@ export class DBEntity extends Entity {
 		if (field.autoIncrement && field.type.toLowerCase() != "number") {
 			delete field.autoIncrement
 		}
+		const newOpts = field.generateFrom ? Object.assign({}, options, {
+			generateQueries: false
+		}) : options;
 
-		return super.addFieldAt(field, at, options).then((fieldobj) => {
+		return super.addFieldAt(field, at, newOpts).then((fieldobj) => {
 
 			if (options.db == false)
 				return Promise.resolve(fieldobj)
@@ -371,7 +374,9 @@ export class DBEntity extends Entity {
 							else {
 								field.defaultValue = list.data[0][entityFromPk.name]
 							}
-						});
+						}).catch(e => {
+							console.error(new Error(e));
+						})
 					});
 				}
 				p = p.then(() => {
@@ -405,6 +410,7 @@ export class DBEntity extends Entity {
 			}
 
 			if (options.apply != false) {
+				this.initDefaultQuery()
 				this.refreshQueries()
 			}
 
