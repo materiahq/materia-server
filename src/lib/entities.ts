@@ -120,7 +120,7 @@ export class Entities {
 				}
 			} catch (e) {
 				e += ' in ' + file
-				return Promise.reject(new MateriaError(e))
+				this.app.logger.error(new Error(e));
 			}
 		}
 
