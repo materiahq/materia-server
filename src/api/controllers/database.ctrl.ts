@@ -296,15 +296,21 @@ export class DatabaseController {
 	removeRelation(req, res) {
 		let relation = null;
 		let entity = null;
-		const field = req.params.relationField;
+		const type = req.params.type;
 		entity = this.app.entities.get(req.params.entity);
-		relation = entity.getRelation(field);
+		if (type === 'belongsToMany') {
+			const entityRelation = req.params.relationFieldOrEntity;
+			relation = entity.getBelongsToManyRelation(entityRelation);
+		} else {
+			const field = req.params.relationFieldOrEntity;
+			relation = entity.getRelationByField(field);
+		}
 		if (! relation) {
 			return res.status(500).send('Relation not found');
 		}
 		if (relation.type === 'hasMany' || relation.type === 'hasOne') {
 			entity = this.app.entities.get(relation.reference.entity)
-			relation = entity.getRelation(relation.reference.field);
+			relation = entity.getRelationByField(relation.reference.field);
 		}
 		entity.removeRelation(relation, {
 			save: true,
