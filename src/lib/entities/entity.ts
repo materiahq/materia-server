@@ -305,11 +305,11 @@ export class Entity {
 	}
 
 	/**
-	Returns a relation determined by a field
+	Returns a relation determined by a field name
 	@param {string} - Entity's field name
-	@returns {Relation}
+	@returns {Relation} - BelongsTo/HasMany/HasOne relationship
 	*/
-	getRelation(field: string): IRelation {
+	getRelationByField(field: string): IRelation {
 		for (let relation of this.relations) {
 			if (relation.type === 'belongsTo') {
 				if (field == relation.field) {
@@ -320,13 +320,17 @@ export class Entity {
 				if (field === relation.reference.field) {
 					return relation
 				}
-			} else if (relation.type === 'belongsToMany') {
-				if (relation.through === field) {
-					return relation;
-				}
 			}
 		}
 		return null
+	}
+	/**
+	Returns a belongsToMany relation determined by a junction table entity name
+	@param {string} - BelongsToMany junction table entity's name
+	@returns {Relation} - BelongsToMany relationship
+	*/
+	getBelongsToManyRelation(entityThrough: string) {
+		return this.relations.find(r => r.type === 'belongsToMany' && r.through === entityThrough);
 	}
 
 	/**
