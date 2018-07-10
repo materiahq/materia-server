@@ -22,6 +22,10 @@ export class DBEntity extends Entity {
 
 	public model: any
 
+	reservedQueries = [
+		'create', 'list', 'get', 'update', 'delete'
+	];
+
 	constructor(app: App) {
 		super(app, {
 			findAll: FindAllQuery,
@@ -411,7 +415,7 @@ export class DBEntity extends Entity {
 			}
 
 			if (options.apply != false) {
-				this.initDefaultQuery()
+				this.generateDefaultQueries()
 				this.refreshQueries()
 			}
 

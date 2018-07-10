@@ -9,7 +9,6 @@ import { MigrationType } from '../history'
 import { Addon } from '../addons/addon';
 
 import { Field, IField, IFieldUpdate } from './field'
-import { QueryGenerator } from './query-generator'
 import { Query, IQuery, IQueryConstructor } from './query'
 import { ConfigType } from '../config';
 
@@ -47,7 +46,7 @@ export interface IEntityConfig {
  * @classdesc
  * An entity, in a database this correspond to a table.
  */
-export class Entity {
+export abstract class Entity {
 	relations_queue: Array<{relation:IRelation, options:IApplyOptions}>
 	queryObjects: any
 
@@ -65,6 +64,8 @@ export class Entity {
 
 	fromAddon: Addon
 
+	abstract reservedQueries: string[];
+
 	constructor(public app: App, queryTypes) {
 		this.relations_queue = []
 		this.queryObjects = {}
@@ -74,12 +75,7 @@ export class Entity {
 		}
 	}
 
-	initDefaultQuery() {
-		if (this.constructor.name == 'DBEntity') {
-			let qg = new QueryGenerator(this);
-			qg.generateQueries()
-		}
-	}
+	abstract generateDefaultQueries();
 
 	fixIsRelation(options?:IApplyOptions):Promise<void> {
 		if ( ! this.isRelation)
@@ -188,14 +184,17 @@ export class Entity {
 	}
 
 	loadQueries(queries:Array<IQuery>):void {
-		this.initDefaultQuery()
+		this.generateDefaultQueries()
 		if (queries) {
 			queries.forEach((query) => {
 				//fix: don't overload default query else it always overload after the first generation
 				let reservedQueries = [
 					'list', 'get', 'create', 'update', 'delete'
 				]
-				if (reservedQueries.indexOf(query.id) == -1) {
+				let reservedQueriesHttp = [
+					'get', 'post', 'put', 'delete', 'patch', 'custom'
+				]
+				if (reservedQueries.indexOf(query.id) == -1 && this.constructor.name == 'DBEntity' || reservedQueriesHttp.indexOf(query.id) == -1 && this.constructor.name == 'VirtualEntity') {
 					try {
 						this.app.logger.log(` │ │ └── ${chalk.bold(this.name)}.${chalk.bold(query.id)}`)
 						this.addQuery(query, {history:false, save:false})
@@ -345,15 +344,15 @@ export class Entity {
 				return false
 			}
 
-			if (relation.field && relation.field == rel.field) {
+			if (relation && relation.field && relation.field == rel.field) {
 				res = i // type belongsTo
 			}
-			else if (relation.as && relation.as == rel.as
+			else if (relation && relation.as && relation.as == rel.as
 					&& relation.reference.entity == rel.reference.entity
 					&& relation.reference.as == rel.reference.as) {
 				res = i // type belongsToMany
 			}
-			else if (relation.reference.field
+			else if (relation && relation.reference.field
 					&& relation.reference.entity == rel.reference.entity
 					&& relation.reference.field == rel.reference.field) {
 				res = i // type hasMany
@@ -619,7 +618,7 @@ export class Entity {
 			}
 
 			if (options.apply != false) {
-				this.initDefaultQuery()
+				this.generateDefaultQueries()
 			}
 
 			if (options.save != false) {
@@ -682,7 +681,7 @@ export class Entity {
 		}
 
 		return p.then(() => {
-			this.initDefaultQuery()
+			this.generateDefaultQueries()
 
 			if (options.history != false) {
 				this.app.history.push({
@@ -805,7 +804,7 @@ export class Entity {
 				if (options.save != false)
 					this.save(options)
 
-				this.initDefaultQuery()
+				this.generateDefaultQueries()
 			}
 
 			if (options.differ) {
@@ -873,7 +872,7 @@ export class Entity {
 		}
 
 		if (options.generateQueries !== false) {
-			this.initDefaultQuery()
+			this.generateDefaultQueries()
 		}
 
 		return Promise.resolve(fieldobj)
@@ -933,7 +932,7 @@ export class Entity {
 			}
 		})
 
-		this.initDefaultQuery()
+		this.generateDefaultQueries()
 		if (options.save != false) {
 			return this.save(options)
 		}
