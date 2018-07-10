@@ -459,4 +459,12 @@ export class Git {
 			throw e;
 		});
 	}
+
+	createLocalBranch(branchName) {
+		return this.client.checkoutLocalBranch(branchName)
+	}
+
+	checkout(arg) {
+		return this.client.checkout(arg);
+	}
 }

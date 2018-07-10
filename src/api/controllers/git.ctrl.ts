@@ -105,6 +105,26 @@ export class GitController {
 		})
 	}
 
+	newBranch(req, res) {
+		const branchName = req.body.name;
+		this.client.createLocalBranch(branchName).then(
+			res.status(200).send()
+		).catch(err => {
+			console.log('Error creating branch : ', err);
+			res.status(500).send(err.message)
+		})
+	}
+
+	selectBranch(req, res) {
+		const branchName = req.params.branchName;
+		this.client.checkout(branchName).then(() =>
+			res.status(200).send()
+		).catch(err => {
+			console.log('Error checkout branch : ', err)
+			res.status(500).send(err.message)
+		});
+	}
+
 	// getCommitDiff(req, res) {
 	// 	this.client.get().then(data => {
 	// 		res.status(200).send(data);
