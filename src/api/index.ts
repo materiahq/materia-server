@@ -122,6 +122,8 @@ export class MateriaApi {
 
 		this.api.put('/materia/git/branches/:branchName', this.oauth.isAuth, this.gitCtrl.selectBranch.bind(this.gitCtrl));
 		this.api.post('/materia/git/branches', this.oauth.isAuth, this.gitCtrl.newBranch.bind(this.gitCtrl));
+		this.api.post('/materia/git/stash', this.oauth.isAuth, this.gitCtrl.stash.bind(this.gitCtrl));
+		this.api.post('/materia/git/stash/pop', this.oauth.isAuth, this.gitCtrl.stashPop.bind(this.gitCtrl));
 		// this.api.post('/materia/git/history/:sha/:path', this.oauth.isAuth, this.gitCtrl.getCommitDiff.bind(this.gitCtrl));
 		// this.api.post('/materia/git/checkout/:branch', this.oauth.isAuth, this.gitCtrl.checkout.bind(this.gitCtrl));
 		// this.api.post('/materia/git/merge/:branch', this.oauth.isAuth, this.gitCtrl.merge.bind(this.gitCtrl));

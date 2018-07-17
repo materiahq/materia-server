@@ -125,6 +125,18 @@ export class GitController {
 		});
 	}
 
+	stash(req, res) {
+		this.client.stash()
+		.then(() => res.status(200).send())
+		.catch((err) => res.status(500).send(err.message))
+	}
+
+	stashPop(req, res) {
+		this.client.stashPop()
+		.then((result) => res.status(200).send(result))
+		.catch((err) => res.status(500).send(err.message))
+	}
+
 	// getCommitDiff(req, res) {
 	// 	this.client.get().then(data => {
 	// 		res.status(200).send(data);

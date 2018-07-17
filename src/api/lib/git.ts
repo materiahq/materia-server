@@ -467,4 +467,12 @@ export class Git {
 	checkout(arg) {
 		return this.client.checkout(arg);
 	}
+
+	stash() {
+		return this.client.stash();
+	}
+
+	stashPop() {
+		return this.client.stash(['pop']);
+	}
 }
