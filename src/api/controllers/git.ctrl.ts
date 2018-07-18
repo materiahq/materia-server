@@ -13,7 +13,7 @@ export class GitController {
 		this.client.load().then(data => {
 			res.status(200).send(data);
 		}).catch(err => {
-			res.status(500).send(err);
+			res.status(500).send(err.message);
 		})
 	}
 
@@ -21,7 +21,7 @@ export class GitController {
 		this.client.init().then(data => {
 			res.status(200).send(data);
 		}).catch(err => {
-			res.status(500).send(err);
+			res.status(500).send(err.message);
 		})
 	}
 
