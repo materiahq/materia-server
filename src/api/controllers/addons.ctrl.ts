@@ -1,5 +1,6 @@
 import { App } from "../../lib";
 import { WebsocketInstance } from "../../lib/websocket";
+import * as fs from 'fs';
 
 export class AddonsController {
 	constructor(private app: App, websocket: WebsocketInstance) {}
@@ -26,6 +27,12 @@ export class AddonsController {
 		).catch(e => res.status(500).json(e));
 	}
 
+	bundle(req, res) {
+		const pkg = this.getPkgFromRequest(req);
+		const bundle = fs.readFileSync(this.app.addons.get(pkg).getBundlePath());
+		this.app.logger.log(pkg, bundle)
+		res.status(200).send( bundle )
+	}
 	private getPkgFromRequest(req) {
 		return req.params.owner
 			? `${req.params.owner}/${req.params.pkg}`

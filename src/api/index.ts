@@ -180,6 +180,9 @@ export class MateriaApi {
 		 * Addon Endpoints
 		 */
 
+		this.api.get('/materia/addons/:pkg/bundle.js', this.oauth.isAuth, this.addonsCtrl.bundle.bind(this.addonsCtrl))
+		this.api.get('/materia/addons/:owner/:pkg/bundle.js', this.oauth.isAuth, this.addonsCtrl.bundle.bind(this.addonsCtrl))
+
 		this.api.post('/materia/addons/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
 		this.api.post('/materia/addons/:owner/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
 

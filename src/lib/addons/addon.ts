@@ -141,6 +141,10 @@ export class Addon {
 		this.color = data.color;
 	}
 
+	getBundlePath() {
+		return path.join(this.app.path, 'node_modules', this.package, this.packageJsonFile.main);
+	}
+
 	start() {
 		if (typeof this.obj.start == "function") {
 			let startResult = this.obj.start();
