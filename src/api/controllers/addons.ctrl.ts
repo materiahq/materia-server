@@ -6,11 +6,16 @@ export class AddonsController {
 	constructor(private app: App, websocket: WebsocketInstance) {}
 
 	setup(req, res) {
+		this.app.watcher.disable();
 		const pkg = this.getPkgFromRequest(req);
 
-		this.app.addons.setConfig(pkg, req.body).then(result =>
+		this.app.addons.setConfig(pkg, req.body).then(result => {
+			this.app.watcher.enable();
 			res.status(200).json(result)
-		).catch(err => res.status(500).json(err));
+		}).catch(err => {
+			this.app.watcher.enable();
+			res.status(500).json(err)
+		});
 	}
 
 	enable(req, res) {
