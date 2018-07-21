@@ -37,7 +37,7 @@ export class Permissions {
 					const err: any = new MateriaError(
 						'Could not find permission "' + permissionName + '"'
 					)
-					res.status(500).json(JSON.stringify(err.message));
+					res.status(500).json(err.message);
 					next(err.message)
 					return false;
 				}
