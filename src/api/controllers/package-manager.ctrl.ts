@@ -8,6 +8,7 @@ export class PackageManagerController {
 
 	constructor(private app: App, websocket: WebsocketInstance) {
 		this.npm = new Npm(app.path);
+		this.npm.enableLogger(this.app);
 	}
 
 	install(req, res) {

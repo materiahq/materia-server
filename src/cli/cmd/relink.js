@@ -15,7 +15,7 @@ module.exports = {
 		try {
 			const materiaJson = JSON.parse(fs.readFileSync(path.join(cwd, 'materia.json'), 'utf-8'))
 			if (materiaJson.links && materiaJson.links.length > 0) {
-				const npm = new Npm(cwd, true);
+				const npm = new Npm(cwd);
 
 				let p = Promise.resolve();
 				materiaJson.links.forEach(link => {
