@@ -231,6 +231,9 @@ export class DatabaseController {
 		const query: any = this.app.entities.get(entity).getQuery(queryId);
 
 		let result;
+		if ( ! query ) {
+			return res.status(400).json(new Error(`Query ${queryId} does not exists (${entity})`));
+		}
 		if (query.type !== 'custom' && query.type !== 'sql') {
 			result = this.app.entities
 				.get(entity)
@@ -259,7 +262,9 @@ export class DatabaseController {
 		result.then(data => {
 			res.status(200).json(data);
 		}).catch(e => {
-			res.status(500).json(e);
+			res.status(400).send({
+				error: e.message
+			});
 		});
 	}
 
