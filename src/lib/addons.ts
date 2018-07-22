@@ -203,6 +203,10 @@ export class Addons {
 	}
 
 	setConfig(pkg:string, config:any) {
+		if ( ! this.addonsConfig ) {
+			this.addonsConfig = {};
+		}
+
 		this.addonsConfig[pkg] = config
 
 		this.app.config.set(this.addonsConfig, this.app.mode, ConfigType.ADDONS);
