@@ -1,5 +1,6 @@
 import { App } from './app'
 import { MigrationType, IActionData } from './history'
+import { DBEntity } from './entities/db-entity';
 
 export class Synchronizer {
 	constructor(private app: App) {}
@@ -488,7 +489,7 @@ export class Synchronizer {
 
 	diff() {
 		return this.app.database.interface.showTables().then((dbTables) => {
-			let entities = this.app.entities.findAll()
+			let entities = this.app.entities.findAll().filter(entity => entity instanceof DBEntity)
 
 			let diffs = this._diffMap(entities, dbTables)
 			return Promise.resolve(diffs)

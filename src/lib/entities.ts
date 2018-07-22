@@ -20,6 +20,7 @@ import { Entity } from './entities/entity'
 import { IField } from './entities/field'
 import { ConfigType } from './config';
 import { IEndpoint } from '@materia/interfaces';
+import { VirtualEntity } from './entities/virtual-entity';
 
 //TODO: add when entities/entity will be converted in ts
 /*export interface IEntities {
@@ -152,7 +153,11 @@ export class Entities {
 
 		for (let file of this.entitiesJson[basePath]) {
 			this.app.logger.log(` │ │ └── ${chalk.bold(file.name)}`)
-			promises.push(this.add(file, opts));
+			if (file.virtual) {
+				promises.push(this.addVirtual(file, opts));
+			} else {
+				promises.push(this.add(file, opts));
+			}
 		}
 
 		return Promise.all(promises)
@@ -228,6 +233,67 @@ export class Entities {
 		})
 	}
 
+	addVirtual(entityobj, options?) {
+		options = options || {}
+
+		let entity: VirtualEntity | Entity, createPromise: Promise<any>;
+		if (entityobj instanceof Entity) {
+			entity = entityobj
+			createPromise = Promise.resolve()
+		} else {
+			if (! entityobj.name) {
+				return Promise.reject(new MateriaError('missing entity name'))
+			}
+			entity = new VirtualEntity(this.app)
+
+			if (entityobj.overwritable && this.entities[entity.name] && options.apply) {
+				return Promise.resolve(entity)
+			}
+			createPromise = entity.create(entityobj, {wait_relations:options.wait_relations, fromAddon: options.fromAddon})
+		}
+
+		return createPromise.then(() => {
+			if (options.apply != false) {
+				this.entities[entity.name] = entity
+				this.app.emit('entity:added', entity)
+			}
+
+			if (options.save != false) {
+				entity.save(options)
+				return this._save_id_map(options)
+			}
+		}).then(() => {
+			if (options.overwritable)
+				return entity
+
+			if (options.history != false) {
+				this.app.history.push({
+					type: MigrationType.CREATE_ENTITY,
+					table: entity.name,
+					value: entity.toJson()
+				},{
+					type: MigrationType.DELETE_ENTITY,
+					table: entity.name
+				})
+			}
+
+			let p
+			if (options.apply != false) {
+				entity.generateDefaultQueries()
+				p = this.sync().then(() => {
+					entity.refreshQueries()
+				})
+			}
+			else {
+				p = entity.loadModel()
+			}
+
+			return p.then(() => {
+				return entity
+			})
+		})
+	}
+
 	/**
 	Add a new entity
 	@param {object} - Entity description
@@ -237,7 +303,7 @@ export class Entities {
 	add(entityobj, options?):Promise<Entity> {
 		options = options || {}
 
-		let entity, createPromise
+		let entity: Entity, createPromise
 		if (entityobj instanceof Entity) {
 			entity = entityobj
 			createPromise = Promise.resolve()
@@ -302,7 +368,7 @@ export class Entities {
 
 			let p
 			if (options.apply != false) {
-				entity.initDefaultQuery()
+				entity.generateDefaultQueries()
 				p = this.sync().then(() => {
 					entity.refreshQueries()
 				})

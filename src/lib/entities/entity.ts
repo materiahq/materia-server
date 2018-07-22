@@ -64,6 +64,7 @@ export abstract class Entity {
 
 	fromAddon: Addon
 
+	abstract model: any;
 	abstract reservedQueries: string[];
 
 	constructor(public app: App, queryTypes) {
@@ -188,13 +189,7 @@ export abstract class Entity {
 		if (queries) {
 			queries.forEach((query) => {
 				//fix: don't overload default query else it always overload after the first generation
-				let reservedQueries = [
-					'list', 'get', 'create', 'update', 'delete'
-				]
-				let reservedQueriesHttp = [
-					'get', 'post', 'put', 'delete', 'patch', 'custom'
-				]
-				if (reservedQueries.indexOf(query.id) == -1 && this.constructor.name == 'DBEntity' || reservedQueriesHttp.indexOf(query.id) == -1 && this.constructor.name == 'VirtualEntity') {
+				if (this.reservedQueries.indexOf(query.id) == -1) {
 					try {
 						this.app.logger.log(` │ │ └── ${chalk.bold(this.name)}.${chalk.bold(query.id)}`)
 						this.addQuery(query, {history:false, save:false})
@@ -1174,9 +1169,7 @@ export abstract class Entity {
 		return Object.keys(this.queryObjects)
 	}
 
-	loadModel():Promise<any> {
-		return Promise.reject(new MateriaError("Unknown entity type"))
-	}
+	abstract loadModel():Promise<any>;
 
 	loadRelationsInModel() {
 	}

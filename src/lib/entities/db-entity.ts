@@ -14,7 +14,6 @@ import { DeleteQuery } from './queries/delete'
 import { SQLQuery } from './queries/sql'
 import { CustomQuery } from './queries/custom'
 
-
 export class DBEntity extends Entity {
 	type: string
 	currentDiff: Array<any>
