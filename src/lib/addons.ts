@@ -292,7 +292,9 @@ module.exports = ${nameCapitalizeFirst};`
 			})
 		})
 
-		return p
+		return p.catch(e => {
+			console.log(e);
+		})
 	}
 
 	/**
@@ -333,7 +335,7 @@ module.exports = ${nameCapitalizeFirst};`
 		return p;
 	}
 
-	private handleHook(name:string):Promise<any> {
+	handleHook(name:string):Promise<any> {
 		let p = Promise.resolve()
 		this.addons.forEach(addon => {
 			p = p.then(() => {

@@ -186,18 +186,21 @@ export class Api {
 		this.endpoints.forEach((endpoint) => {
 			let route = this.router[endpoint.method.toLowerCase()]
 			route.call(this.router, endpoint.url, this.permissions.check(endpoint.permissions), (req, res, next) => {
-				endpoint.handle(req, res, next).catch((e) => {
-					if (e instanceof Error) {
-						e = {
-							error: true,
-							message: e.message
+				const endpointResult = endpoint.handle(req, res, next);
+				if (endpointResult && endpointResult.catch) {
+					endpointResult.catch((e) => {
+						if (e instanceof Error) {
+							e = {
+								error: true,
+								message: e.message
+							}
 						}
-					}
-					if (this.app.mode != AppMode.PRODUCTION) {
-						e.stack = e.stack
-					}
-					res.status(e.statusCode || 500).send(e)
-				})
+						if (this.app.mode != AppMode.PRODUCTION) {
+							e.stack = e.stack
+						}
+						res.status(e.statusCode || 500).send(e)
+					})
+				}
 			})
 		})
 	}

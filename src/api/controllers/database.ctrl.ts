@@ -64,7 +64,9 @@ export class DatabaseController {
 		entity.move(x, y).then(() => {
 			// Hack: I don't know why we need this timeout, move(x, y) should be resolved when the file is written
 			// Need more investigation.
-			this.app.watcher.enable();
+			setTimeout(() => {
+				this.app.watcher.enable();
+			}, 500);
 			res.status(200).json(entity.toJson());
 		});
 	}
@@ -230,42 +232,35 @@ export class DatabaseController {
 
 		const query: any = this.app.entities.get(entity).getQuery(queryId);
 
-		let result;
 		if ( ! query ) {
 			return res.status(400).json(new Error(`Query ${queryId} does not exists (${entity})`));
 		}
-		if (query.type !== 'custom' && query.type !== 'sql') {
-			result = this.app.entities
-				.get(entity)
-				.getQuery(queryId)
-				.run(req.body, { raw: true })
-		} else {
-			result = this.app.entities
-				.get(entity)
-				.getQuery(queryId)
-				.run(req.body, { raw: true })
-				.then((res: any) => {
-					if (Array.isArray(res)) {
-						const result = { data: res, count: res.length };
-						return result;
-					} else if (typeof res === 'string' || typeof res === 'number') {
-						return { data: [{ response: res }], count: 1 };
-					} else if (typeof res === 'object') {
-						if (res.count && res.data) {
-							return res;
-						} else {
-							return { data: [res], count: 1 };
-						}
+
+		this.app.entities
+			.get(entity)
+			.getQuery(queryId)
+			.run(req.body, { raw: true })
+			.then((res: any) => {
+				if (Array.isArray(res)) {
+					const result = { data: res, count: res.length };
+					return result;
+				} else if (typeof res === 'string' || typeof res === 'number') {
+					return { data: [{ response: res }], count: 1 };
+				} else if (typeof res === 'object') {
+					const keys = Object.keys(res);
+					if (res && keys.indexOf('count') != -1 && keys.indexOf('data') != -1) {
+						return res;
+					} else {
+						return { data: [res], count: 1 };
 					}
+				}
+			}).then(data => {
+				res.status(200).json(data);
+			}).catch(e => {
+				res.status(400).send({
+					error: e.message
 				});
-		}
-		result.then(data => {
-			res.status(200).json(data);
-		}).catch(e => {
-			res.status(400).send({
-				error: e.message
 			});
-		});
 	}
 
 	createRelation(req, res) {

@@ -288,7 +288,10 @@ export class Endpoint {
 				this.app.logger.log(` └── Execute: (Controller) ${chalk.bold(instance.constructor.name)}.${chalk.bold(this.action)}\n`)
 				obj = instance[this.action](req, res, next)
 			} catch (e) {
-				return  res.status(500).send(e);
+				return  res.status(500).json({
+					error: true,
+					message: e.message
+				});
 			}
 			if (obj && obj.then && obj.catch
 				&& typeof obj.then === 'function'

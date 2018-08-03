@@ -73,7 +73,8 @@ export interface IQuery {
 		params?: Array<IQueryParam>
 		select?: Array<string>
 		conditions?: Array<any>
-		include?: Array<IQueryInclude>
+		include?: Array<IQueryInclude>,
+		action?: string
 	}
 }
 
