@@ -24,7 +24,7 @@ export class Git {
 		try {
 			this.client = git(this.app.path);
 			this.client.silent(true);
-		} catch(e) {
+		} catch (e) {
 			console.log(e);
 		}
 	}
@@ -74,7 +74,7 @@ export class Git {
 				log.date = new Date(log.date);
 				log.full_date = `${log.date.getUTCMonth() +
 					1}/${log.date.getUTCDate()}/${log.date.getUTCFullYear()} at ${log.date.getUTCHours()}:${
-						log.date.getUTCMinutes()}:${log.date.getUTCSeconds()}`;
+					log.date.getUTCMinutes()}:${log.date.getUTCSeconds()}`;
 
 				log.date = `${log.date.getMonth() +
 					1}/${log.date.getDate()}/${log.date.getFullYear()}`;
@@ -183,7 +183,7 @@ export class Git {
 					'utf8'
 				);
 			}
-		} catch (e) {}
+		} catch (e) { }
 		if (['A', '?'].indexOf(status.index) != -1) {
 			return Promise.resolve({
 				before: null,
@@ -275,16 +275,66 @@ export class Git {
 					details.changes = details.changes.map((change, i) => {
 						return {
 							index: change[0],
-							path: change[1],
-							diff: {
-								original: data[i * 2 + 1],
-								modified: data[i * 2]
-							}
+							path: change[1]
 						};
-						// change.push(data[i]);
 					});
 				}
 				return details;
+			});
+		});
+	}
+
+	getHistoryFileDetail(hash, filepath) {
+		const log = this.history.find(h => h.hash == hash);
+		const tmp = log.parents.split(' ');
+		const parentCommit = tmp[tmp.length - 1];
+		return this.getCommit(hash).then(details => {
+			const promises = [];
+			let p: Promise<any> = Promise.resolve();
+			details.changes.forEach(change => {
+				if (change[1] === filepath) {
+					const errCallback = e => {
+						console.log(e);
+						return '';
+					};
+					if ('A' == change[0]) {
+						promises.push(
+							this.client
+								.show(`${hash}:${change[1]}`)
+								.catch(errCallback)
+						);
+						promises.push(Promise.resolve(''));
+					} else if ('D' == change[0]) {
+						promises.push(Promise.resolve(''));
+						promises.push(
+							this.client
+								.show(`${parentCommit}:${change[1]}`)
+								.catch(errCallback)
+						);
+					} else {
+						promises.push(
+							this.client
+								.show(`${hash}:${change[1]}`)
+								.catch(errCallback)
+						);
+						promises.push(
+							this.client
+								.show(`${parentCommit}:${change[1]}`)
+								.catch(errCallback)
+						);
+					}
+				}
+			});
+			p = Promise.all(promises);
+			return p.then(data => {
+				let change = {original: '', modified: ''};
+				if (data) {
+					change = {
+						original: data[1],
+						modified: data[0]
+					}
+				}
+				return change;
 			});
 		});
 	}
@@ -421,7 +471,7 @@ export class Git {
 			.then(this.refreshRemoteData.bind(this))
 	}
 
-	copyCheckout() {}
+	copyCheckout() { }
 
 	setupRemote(config: IGitRemote): Promise<IGitRemote[]> {
 		return this.client

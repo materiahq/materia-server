@@ -105,6 +105,14 @@ export class GitController {
 		})
 	}
 
+	getHistoryFileDetail(req, res) {
+		this.client.getHistoryFileDetail(req.params.hash, req.query.path).then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err);
+		});
+	}
+
 	newBranch(req, res) {
 		const branchName = req.body.name;
 		this.client.createLocalBranch(branchName).then(
