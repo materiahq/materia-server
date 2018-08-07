@@ -563,29 +563,27 @@ manual_scaling:
 		}
 	}
 
-	initializeStaticDirectory(opts?) {
-		if (opts && opts.beforeSave) {
-			opts.beforeSave('web')
+	initializeStaticDirectory() {
+		let p = Promise.resolve();
+		if ( ! fs.existsSync(path.join(this.path, 'client'))) {
+			fs.mkdirSync(path.join(this.path, 'client'));
+			if ( ! fs.existsSync(path.join(this.path, 'client', 'index.html'))) {
+				fs.writeFileSync(path.join(this.path, 'client', 'index.html'), `<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Document</title>
+	</head>
+	<body>
+		<h1>Hello world!</h1>
+	</body>
+	</html>`)
+			}
+			this.server.dynamicStatic.setPath(path.join(this.path , 'client'));
+		} else {
+			p = Promise.reject(new Error('Client folder already exists'));
 		}
-		if ( ! fs.existsSync(path.join(this.path, 'web'))) {
-			fs.mkdirSync(path.join(this.path, 'web'))
-		}
-		if ( ! fs.existsSync(path.join(this.path, 'web', 'index.html'))) {
-			fs.appendFileSync(path.join(this.path, 'web', 'index.html'), `<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>Document</title>
-</head>
-<body>
-	<h1>Hello world!</h1>
-</body>
-</html>`)
-		}
-		this.server.dynamicStatic.setPath(path.join(this.path , "web"));
-		if (opts && opts.afterSave) {
-			opts.afterSave()
-		}
+		return p;
 	}
 
 	_getWatchableFiles(files) {

@@ -28,8 +28,9 @@ export class BoilerplateController {
 	}
 
 	initMinimal(req, res) {
-		this.app.initializeStaticDirectory();
-		res.status(200).json({ init: true });
+		this.app.initializeStaticDirectory()
+			.then(() => res.status(200).json({ init: true }))
+			.catch((err) => res.status(500).send(err.message));
 	}
 
 	private _emitMessage(message) {
