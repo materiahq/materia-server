@@ -2,6 +2,7 @@ import { App, ConfigType, AppMode } from '../../lib';
 import { DatabaseLib } from './database.ctrl';
 import { WebsocketInstance } from '../../lib/websocket';
 import { IClientConfig, IAppConfig } from '@materia/interfaces';
+import * as path from 'path';
 
 export class AppController {
 	constructor(private app: App, websocket: WebsocketInstance) { }
@@ -56,6 +57,7 @@ export class AppController {
 
 	private saveClientSettings(app, settings) {
 		if (settings.client) {
+			this.app.watcher.disable();
 			const client = settings.client;
 			if (client.packageJson) {
 				app.config.set(client.packageJson.devDependencies, 'dev', ConfigType.DEPENDENCIES)
@@ -67,8 +69,11 @@ export class AppController {
 			const clientToSave: IClientConfig = {
 				src: client.src
 			}
-			if (client.enabled && client.dist && client.dist.length > 0 && client.src != client.dist) {
+			if (client.enabled && client.build && client.build.enabled && client.dist && client.dist.length > 0 && client.src !== client.dist) {
 				clientToSave.dist = client.dist
+				this.app.server.dynamicStatic.setPath(path.join(this.app.path, client.dist));
+			} else if (client.enabled && client.src) {
+				this.app.server.dynamicStatic.setPath(path.join(this.app.path, client.src));
 			}
 			if (client.scripts.build || client.scripts.watch || client.scripts.prod) {
 				clientToSave.scripts = {}
@@ -86,6 +91,7 @@ export class AppController {
 				clientToSave.autoWatch = client.autoWatch;
 			}
 			app.config.set(clientToSave, 'dev', ConfigType.CLIENT);
+			this.app.watcher.enable();
 		}
 
 	}
