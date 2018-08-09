@@ -490,63 +490,63 @@ export class DBEntity extends Entity {
 	}
 
 	loadRelationsInModel() {
-		for (let relation of this.relations) {
+		this.relations.forEach(relation => {
 			//console.log('loading relation', this.name, '->', relation)
-			let entityDest = this.app.entities.get(relation.reference.entity) as DBEntity
-			if (!entityDest)
-				continue
-			//@model.hasMany entityDest.model, relation.dstField if relation.type == '1-n' and relation.cardinality == '1'
-			if (!relation.type || relation.type == 'belongsTo') {
-				/*				console.log(this.name + ' belongs to ' + entityDest.name + ' with fk: ' + relation.field)
-								//entityDest.model.belongsTo @model, foreignKey: relation.dstField
-								let keyReference = entityDest.getPK()
-								if (relation.reference.field && relation.reference.field != keyReference.name) {
-									let f = entityDest.getField(relation.reference.field)
-									if ( ! f.unique) {
-										throw f.name + ' cannot be a key (need unique/primary field)'
-									}
-									keyReference = f
-								}*/
-				let key = entityDest.getPK()[0].name
-				if (relation.reference.field) {
-					key = relation.reference.field
+			let entityDest = this.app.entities.get(relation.reference.entity)
+			if (entityDest && entityDest instanceof DBEntity) {
+				//@model.hasMany entityDest.model, relation.dstField if relation.type == '1-n' and relation.cardinality == '1'
+				if (!relation.type || relation.type == 'belongsTo') {
+					/*				console.log(this.name + ' belongs to ' + entityDest.name + ' with fk: ' + relation.field)
+									//entityDest.model.belongsTo @model, foreignKey: relation.dstField
+									let keyReference = entityDest.getPK()
+									if (relation.reference.field && relation.reference.field != keyReference.name) {
+										let f = entityDest.getField(relation.reference.field)
+										if ( ! f.unique) {
+											throw f.name + ' cannot be a key (need unique/primary field)'
+										}
+										keyReference = f
+									}*/
+					let key = entityDest.getPK()[0].name
+					if (relation.reference.field) {
+						key = relation.reference.field
+					}
+
+					//console.log('type belongsTo')
+					//console.log(this.name, '.belongsTo(', entityDest.name, ',foreignKey:', relation.field, ',targetKey:', key)
+					//console.log(entityDest.name, '.hasMany(', this.name, ',foreignKey:', relation.field, ',targetKey:', key)
+
+					this.model.belongsTo(entityDest.model, { foreignKey: relation.field, targetKey: key })
+					entityDest.model.hasMany(this.model, { foreignKey: relation.field, targetKey: key })
 				}
+				else if (relation.type == 'hasMany') {
+					let key = this.getPK()[0].name
+					if (relation.field) {
+						key = relation.field
+					}
 
-				//console.log('type belongsTo')
-				//console.log(this.name, '.belongsTo(', entityDest.name, ',foreignKey:', relation.field, ',targetKey:', key)
-				//console.log(entityDest.name, '.hasMany(', this.name, ',foreignKey:', relation.field, ',targetKey:', key)
+					//console.log('type hasMany')
+					//console.log(entityDest.name, '.belongsTo(', this.name, ',foreignKey:', relation.reference.field, ',targetKey:', key)
+					//console.log(this.name, '.hasMany(', entityDest.name, ',foreignKey:', relation.reference.field, ',targetKey:', key)
 
-				this.model.belongsTo(entityDest.model, { foreignKey: relation.field, targetKey: key })
-				entityDest.model.hasMany(this.model, { foreignKey: relation.field, targetKey: key })
-			}
-			else if (relation.type == 'hasMany') {
-				let key = this.getPK()[0].name
-				if (relation.field) {
-					key = relation.field
+					entityDest.model.belongsTo(this.model, { foreignKey: relation.reference.field, targetKey: key })
+					this.model.hasMany(entityDest.model, { foreignKey: relation.reference.field, targetKey: key })
 				}
-
-				//console.log('type hasMany')
-				//console.log(entityDest.name, '.belongsTo(', this.name, ',foreignKey:', relation.reference.field, ',targetKey:', key)
-				//console.log(this.name, '.hasMany(', entityDest.name, ',foreignKey:', relation.reference.field, ',targetKey:', key)
-
-				entityDest.model.belongsTo(this.model, { foreignKey: relation.reference.field, targetKey: key })
-				this.model.hasMany(entityDest.model, { foreignKey: relation.reference.field, targetKey: key })
-			}
-			else if (relation.type == 'belongsToMany') {
-				let entityThrough = this.app.entities.get(relation.through) as DBEntity
-				if (!entityThrough) {
-					console.error('Through table not found')
-					continue
+				else if (relation.type == 'belongsToMany') {
+					let entityThrough = this.app.entities.get(relation.through) as DBEntity
+					if (!entityThrough) {
+						console.error('Through table not found')
+					} else {
+						this.model.belongsToMany(entityDest.model, {
+							through: {
+								model: entityThrough.model
+							},
+							foreignKey: relation.as,
+							otherKey: relation.reference.as
+						})
+					}
 				}
-				this.model.belongsToMany(entityDest.model, {
-					through: {
-						model: entityThrough.model
-					},
-					foreignKey: relation.as,
-					otherKey: relation.reference.as
-				})
 			}
-		}
+		});
 	}
 
 	toJson(): IEntityConfig {
