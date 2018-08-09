@@ -109,10 +109,10 @@ export class AppController {
 			package: settings.general.package,
 			icon: settings.general.icon,
 			version: appConfig.version,
-			rootPassword: appConfig.rootPassword,
+			rootPassword: settings.general.rootPassword,
 			live: {
-				url: appConfig.live && appConfig.live.url,
-				rootPassword: appConfig.live && appConfig.live.rootPassword
+				url: settings.general.live && settings.general.live.url,
+				rootPassword: settings.general.live && settings.general.live.rootPassword
 			}
 		}, AppMode.DEVELOPMENT, ConfigType.APP)
 
