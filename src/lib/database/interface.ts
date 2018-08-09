@@ -54,6 +54,7 @@ const typemap = {
 	'timestamp without time zone': 'date',
 
 	'boolean': 'boolean',
+	'user-defined': 'text'
 }
 
 const sequelize_typemap = {
