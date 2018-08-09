@@ -119,7 +119,7 @@ export class App extends events.EventEmitter {
 	status: boolean
 	live: boolean = false
 
-	addonsTools: any
+
 	synchronizer: Synchronizer
 
 	invalid: boolean
@@ -174,16 +174,6 @@ export class App extends events.EventEmitter {
 		this.status = false
 
 		this.selfMigration = new SelfMigration(this)
-
-		if (this.options.runtimes != "core") {
-			//let Git = require('./git')
-			//this.git = new Git.default(this)
-
-			//this.deploy = new Deploy(this)
-
-			let AddonsTools = require('./runtimes/tools/addons')
-			this.addonsTools = new AddonsTools(this)
-		}
 	}
 
 	private doSelfMigrations() {
