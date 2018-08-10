@@ -57,7 +57,6 @@ export class AppController {
 
 	private saveClientSettings(app, settings) {
 		if (settings.client) {
-			this.app.watcher.disable();
 			const client = settings.client;
 			if (client.packageJson) {
 				app.config.set(client.packageJson.devDependencies, 'dev', ConfigType.DEPENDENCIES)
@@ -91,7 +90,6 @@ export class AppController {
 				clientToSave.autoWatch = client.autoWatch;
 			}
 			app.config.set(clientToSave, 'dev', ConfigType.CLIENT);
-			this.app.watcher.enable();
 		}
 
 	}
