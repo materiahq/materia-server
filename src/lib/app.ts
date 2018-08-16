@@ -90,6 +90,7 @@ export class App extends events.EventEmitter {
 	package: string
 	version?: string
 	icon?: string
+	zoom?: number
 	// private packageJsonCache?: string
 
 	materia_path: string = __dirname
