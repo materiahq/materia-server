@@ -77,7 +77,9 @@ export class SQLQuery extends Query {
 		try {
 			resolvedParams = this.resolveParams(params)
 		} catch (e) {
-			return Promise.reject(e)
+			return this.handleBeforeActions(params, false)
+				.then(() => Promise.reject(e))
+				.catch(() => Promise.reject(e))
 		}
 
 		for (let param of this.params) {
@@ -91,10 +93,22 @@ export class SQLQuery extends Query {
 		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(resolvedParams)}`)
 		this.entity.app.logger.log(` └── Query: ${this.query}\n`)
 
-		return this.entity.app.database.sequelize.query(this.query, {
-			replacements: resolvedParams,
-			type: this.entity.app.database.sequelize.QueryTypes.SELECT
-		})
+		return this.handleBeforeActions(params, true)
+			.then(() =>
+				this.entity.app.database.sequelize.query(this.query, {
+					replacements: resolvedParams,
+					type: this.entity.app.database.sequelize.QueryTypes.SELECT
+				})
+			).then(res =>
+				this.handleAfterActions(params, res, true)
+					.then(() => res)
+					.catch(e => res)
+			)
+			.catch(e =>
+				this.handleAfterActions(params, null, false)
+					.then(() => Promise.reject(e))
+					.catch(() => Promise.reject(e))
+			);
 	}
 
 	toJson() {

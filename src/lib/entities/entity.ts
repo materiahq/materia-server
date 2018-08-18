@@ -1084,7 +1084,7 @@ export abstract class Entity {
 		let queryobj = this.getQuery(id)
 
 		if ( ! queryobj) {
-			throw new MateriaError('Could node find query `' + id + '`')
+			throw new MateriaError('Could not find query `' + id + '`')
 		}
 
 		if (options.apply != false) {

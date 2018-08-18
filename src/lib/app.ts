@@ -23,6 +23,7 @@ import { Api } from './api'
 import { MateriaError } from './error'
 import { MateriaApi } from '../api';
 import { Watcher } from './watcher';
+import { Actions } from './actions';
 
 // let AddonsTools = require('./runtimes/tools/addons')
 
@@ -126,6 +127,7 @@ export class App extends events.EventEmitter {
 	error: string
 
 	rootPassword: string
+	actions: Actions;
 
 	constructor(public path: string, public options?: IAppOptions) {
 		super()
@@ -170,6 +172,8 @@ export class App extends events.EventEmitter {
 		this.config = new Config(this)
 		this.materiaApi = new MateriaApi(this)
 		this.watcher = new Watcher(this);
+
+		this.actions = new Actions(this);
 
 		this.status = false
 
@@ -234,6 +238,10 @@ export class App extends events.EventEmitter {
 		.then(() => elapsedTimeQueries = new Date().getTime())
 		.then(() => this.addons.loadQueries())
 		.then(() => this.entities.loadQueries())
+		.then(() => this.logger.log(' └─┬ Actions'))
+		.then(() => elapsedTimeQueries = new Date().getTime())
+		.then(() => this.addons.loadActions())
+		.then(() => this.actions.load())
 		.then(() => this.logger.log(` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeQueries).toString() + 'ms')}`))
 		.then(() => this.api.resetControllers())
 		.then(() => this.logger.log(` └─┬ API`))

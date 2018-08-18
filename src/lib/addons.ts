@@ -384,6 +384,24 @@ module.exports = ${nameCapitalizeFirst};`
 		})
 	}
 
+	loadActions():Promise<void> {
+		return this.handleHook('beforeLoadHooks').then(() => {
+			let p = Promise.resolve()
+			this.addons.forEach((addon) => {
+				p = p.then(() => {
+					if (addon.enabled) {
+						return this.app.actions.load(addon)
+					} else {
+						return Promise.resolve();
+					}
+				})
+			})
+			return p
+		}).then(() => {
+			return this.handleHook('afterLoadHooks')
+		})
+	}
+
 	loadAPI():Promise<void> {
 		return this.handleHook('beforeLoadAPI').then(() => {
 			let p = Promise.resolve()

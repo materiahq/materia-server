@@ -146,20 +146,7 @@ export class FindAllQuery extends Query {
 		return sequelizeOpts
 	}
 
-	run(params, options):Promise<any> {
-		if ( ! options || ! options.silent ) {
-			this.entity.app.logger.log(`${chalk.bold('(Query)')} FindAll - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
-			this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}`)
-			this.entity.app.logger.log(` └── Options: ${JSON.stringify(options)}`)
-		}
-		let sequelizeOpts
-		try {
-			sequelizeOpts = this.constructSequelizeOpts(params, options)
-		} catch (e) {
-			this.entity.app.logger.error(e)
-			return Promise.reject(e)
-		}
-		//this.entity.app.logger.log(` └── Sequelize: findAndCountAll(${JSON.stringify(sequelizeOpts)})\n`)
+	private _run(sequelizeOpts, options) {
 		return this.entity.model.findAndCountAll(sequelizeOpts).then(res => {
 			if ( ! options || ! options.silent ) {
 				this.entity.app.logger.log(` └── ${chalk.green.bold('OK')}\n`);
@@ -175,6 +162,39 @@ export class FindAllQuery extends Query {
 			}
 			return res
 		})
+	}
+
+	run(params, options):Promise<any> {
+		if ( ! options || ! options.silent ) {
+			this.entity.app.logger.log(`${chalk.bold('(Query)')} FindAll - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
+			this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}`)
+			this.entity.app.logger.log(` └── Options: ${JSON.stringify(options)}`)
+		}
+		let sequelizeOpts
+		try {
+			sequelizeOpts = this.constructSequelizeOpts(params, options)
+		} catch (e) {
+			this.entity.app.logger.error(e)
+			return this.handleBeforeActions(params, false)
+				.then(() => Promise.reject(e))
+				.catch(() => Promise.reject(e))
+		}
+
+		return this.handleBeforeActions(params, true)
+			.then(() =>
+				this._run(sequelizeOpts, options)
+			)
+			.then(res =>
+				this.handleAfterActions(params, res, true)
+					.then(() => res)
+					.catch(e => res)
+			)
+			.catch(e =>
+				this.handleAfterActions(params, null, false)
+					.then(() => Promise.reject(e))
+					.catch(() => Promise.reject(e))
+			);
+
 	}
 
 	_paramResolver(name, value, params, defaultValue) {

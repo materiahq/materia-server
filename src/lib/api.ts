@@ -198,7 +198,9 @@ export class Api {
 						if (this.app.mode != AppMode.PRODUCTION) {
 							e.stack = e.stack
 						}
-						res.status(e.statusCode || 500).send(e)
+						if (! res.headerSent) {
+							res.status(e.statusCode || 500).send(e)
+						}
 					})
 				}
 			})

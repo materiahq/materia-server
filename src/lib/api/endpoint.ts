@@ -275,38 +275,104 @@ export class Endpoint {
 		let params = this.handleParams(req, this.params)
 
 		if (params.errors.length > 0) {
-			if (params.errors.length == 1) {
-				return  res.status(500).send(params.errors[0])
-			}
-			return res.status(500).send(params.errors)
-		}
-		this.app.logger.log(` └── Parameters: ${JSON.stringify(params.resolvedParams)}`)
-		if (this.controller && this.action) {
-			let obj
-			try {
-				let instance = this._getController().instance()
-				this.app.logger.log(` └── Execute: (Controller) ${chalk.bold(instance.constructor.name)}.${chalk.bold(this.action)}\n`)
-				obj = instance[this.action](req, res, next)
-			} catch (e) {
-				return  res.status(500).json({
+			return this.app.actions.handle('beforeEndpoint', {
+				method: req.method,
+				url: req.url
+			}, Object.assign(req.query, req.body, req.params), false).then(() => {
+				if (params.errors.length == 1) {
+					return res.status(500).send({
+						error: true,
+						message: params.errors[0].message
+					})
+				}
+				return res.status(500).send({
 					error: true,
-					message: e.message
-				});
-			}
-			if (obj && obj.then && obj.catch
-				&& typeof obj.then === 'function'
-				&& typeof obj.catch === 'function') {
-				return obj.then((data) =>
-					res.status(200).send(data)
-				).catch(err => res.status(500).send(err));
-			}
+					messages: params.errors,
+					multi: true
+				})
+			})
 		}
 		else {
-			this.app.logger.log(` └── Execute: (Query) ${chalk.bold(this.query.entity.name)}.${chalk.bold(this.query.id)}\n`)
-			this.query = this.app.entities.get(this.entity.name).getQuery(this.query.id) // Get latest query version (Fix issue where query change is not immediately reflected in endpoint result)
-			return this.query.run(params.resolvedParams).then(data => {
-				res.status(200).json(data)
-			}).catch(err => res.status(500).send(err));
+			return this.app.actions.handle('beforeEndpoint', {
+				method: req.method,
+				url: req.url
+			}, Object.assign(req.query, req.body, req.params), true).then(() => {
+				this.app.logger.log(` └── Parameters: ${JSON.stringify(params.resolvedParams)}`)
+				if (this.controller && this.action) {
+					let obj
+					try {
+						let instance = this._getController().instance()
+						this.app.logger.log(` └── Execute: (Controller) ${chalk.bold(instance.constructor.name)}.${chalk.bold(this.action)}\n`)
+						obj = instance[this.action](req, res, next)
+					} catch (e) {
+						function fn() {
+							if ( ! res.headerSent ) {
+								return res.status(500).json({
+									error: true,
+									message: e.message
+								});
+							}
+						}
+						return this.app.actions.handle('afterEndpoint', {
+							method: req.method,
+							url: req.url
+						}, Object.assign(req.query, req.body, req.params), false)
+							.then(() => fn())
+							.catch(() => fn())
+					}
+					if (! res.headerSent && obj && obj.then && obj.catch
+						&& typeof obj.then === 'function'
+						&& typeof obj.catch === 'function') {
+						return obj.then((data) => {
+							return this.app.actions.handle('afterEndpoint', {
+								method: req.method,
+								url: req.url
+							}, Object.assign(req.query, req.body, req.params, data), true).then(() => {
+								res.status(200).send(data)
+							})
+						}).catch(err => res.status(500).send(err));
+					} else if (res.headerSent) {
+						return this.app.actions.handle('afterEndpoint', {
+							method: req.method,
+							url: req.url
+						}, Object.assign(req.query, req.body, req.params), true)
+					}
+				}
+				else {
+					this.app.logger.log(` └── Execute: (Query) ${chalk.bold(this.query.entity.name)}.${chalk.bold(this.query.id)}\n`)
+					this.query = this.app.entities.get(this.entity.name).getQuery(this.query.id) // Get latest query version (Fix issue where query change is not immediately reflected in endpoint result)
+					return this.app.actions.handle('beforeEndpoint', {
+						method: req.method,
+						url: req.url
+					}, Object.assign(req.query, req.body, req.params), true)
+						.then(() =>
+							this.query.run(params.resolvedParams)
+						)
+						.then(data => {
+							return this.app.actions.handle('afterEndpoint', {
+								method: req.method,
+								url: req.url
+							}, Object.assign(req.query, req.body, req.params, data), true)
+								.then(() => {
+									res.status(200).json(data)
+								}).catch(() => {
+									res.status(200).json(data)
+								})
+						})
+						.catch(err => {
+							return this.app.actions.handle('afterEndpoint', {
+								method: req.method,
+								url: req.url
+							}, Object.assign(req.query, req.body, req.params), true)
+								.then(() => {
+									res.status(500).send(err)
+								})
+								.catch(() => {
+									res.status(500).send(err)
+								});
+						})
+				}
+			})
 		}
 	}
 

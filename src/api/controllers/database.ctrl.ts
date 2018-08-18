@@ -3,6 +3,7 @@ import { IEntity } from '@materia/interfaces';
 
 import * as path from 'path';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import { WebsocketInstance } from '../../lib/websocket';
 
 export class DatabaseController {
@@ -257,10 +258,58 @@ export class DatabaseController {
 			}).then(data => {
 				res.status(200).json(data);
 			}).catch(e => {
-				res.status(400).send({
+				res.status(400).json({
 					error: e.message
 				});
 			});
+	}
+
+	listActions(req, res) {
+		res.status(200).json(this.app.actions.findAll())
+	}
+	addAction(req, res) {
+		DatabaseLib.generateActionId().then(id => {
+			const action = Object.assign({}, req.body, {
+				id
+			});
+			try {
+				this.app.actions.register(action, {
+					save: true
+				});
+				res.status(200).json(
+					DatabaseLib.loadEntitiesJson(this.app)
+				);
+			} catch (e) {
+				res.status(400).json({
+					error: e.message
+				});
+			}
+		});
+	}
+	updateAction(req, res) {
+		const action = req.body;
+
+		try {
+			this.app.actions.register(action, {
+				save: true
+			});
+			res.status(200).json(
+				DatabaseLib.loadEntitiesJson(this.app)
+			);
+		} catch (e) {
+			res.status(400).json({
+				error: e.message
+			});
+		}
+	}
+	removeAction(req, res) {
+		if (this.app.actions.remove(req.params.id, { save: true })) {
+			res.status(200).json(
+				DatabaseLib.loadEntitiesJson(this.app)
+			);
+		} else {
+			res.status(400).json({ error: `Action id '${req.params.id}' not found.`});
+		}
 	}
 
 	createRelation(req, res) {
@@ -379,6 +428,20 @@ export class DatabaseController {
 
 export class DatabaseLib {
 	static entitySpacing = 20;
+
+
+	static generateActionId({ stringBase = 'base64', byteLength = 8 } = {}): Promise<string> {
+		return new Promise((resolve, reject) => {
+			crypto.randomBytes(byteLength, (err, buffer) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(buffer.toString(stringBase));
+				}
+			});
+		});
+	}
+
 	static loadEntityJson(entity: DBEntity): IEntity {
 		return Object.assign({}, entity.toJson(), {
 			name: entity.name,
@@ -392,6 +455,10 @@ export class DatabaseLib {
 			queries: entity.getQueries().map(query => {
 				const q = query.toJson();
 				q.opts.params = query.params;
+				q.actions = entity.app.actions.findAll({
+					entity: entity.name,
+					query: q.id
+				})
 				return q;
 			}),
 			fromAddon: entity.fromAddon ? entity.fromAddon.toJson() : null,

@@ -91,9 +91,24 @@ export abstract class Query {
 	}
 
 	abstract discoverParams();
-	abstract run(params?: any, options?: any):Promise<any>
 	abstract refresh();
 	abstract toJson();
+
+	abstract run(params?: any, options?: any):Promise<any>
+
+	handleBeforeActions(params, success: boolean) {
+		return this.entity.app.actions.handle('beforeQuery', {
+			entity: this.entity.name,
+			query: this.id
+		}, params, success)
+	}
+
+	handleAfterActions(params, response, success) {
+		return this.entity.app.actions.handle('afterQuery', {
+			entity: this.entity.name,
+			query: this.id
+		}, Object.assign({}, params, response), success);
+	}
 
 	updateOption(name, value, options) {
 		return Promise.reject(new MateriaError('not implemented yet'))
