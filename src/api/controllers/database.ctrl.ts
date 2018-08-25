@@ -231,16 +231,17 @@ export class DatabaseController {
 	runQuery(req, res) {
 		const {entity, queryId} = req.params;
 
-		const query: any = this.app.entities.get(entity).getQuery(queryId);
+		const e = this.app.entities.get(entity);
+		if ( ! e ) {
+			return res.status(400).json(new Error(`Entity ${entity} does not exists`));
+		}
+		const query: any = e.getQuery(queryId);
 
 		if ( ! query ) {
 			return res.status(400).json(new Error(`Query ${queryId} does not exists (${entity})`));
 		}
 
-		this.app.entities
-			.get(entity)
-			.getQuery(queryId)
-			.run(req.body, { raw: true })
+		query.run(req.body, { raw: true })
 			.then((res: any) => {
 				if (Array.isArray(res)) {
 					const result = { data: res, count: res.length };
