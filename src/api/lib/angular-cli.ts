@@ -2,6 +2,7 @@ import { App } from '../../lib';
 
 import * as path from 'path';
 import * as fs from 'fs';
+import * as fse from 'fs-extra';
 import * as execa from 'execa';
 
 export class AngularCli {
@@ -75,7 +76,19 @@ export class AngularCli {
 				}
 			});
 		});
+	}
 
+	getE2eTsConfig() {
+		return new Promise((resolve, reject) => {
+			const tsPath = 'tsconfig.e2e.json'
+			fs.readFile(path.join(this.app.path, 'client', 'e2e', tsPath), 'utf-8', (e, data) => {
+				if (e) {
+					reject(e);
+				} else {
+					resolve(JSON.parse(data));
+				}
+			});
+		});
 	}
 
 	initNewConfig() {
@@ -151,7 +164,15 @@ export class AngularCli {
 						]
 					}
 				}
-				this._initTsFiles().then(() =>	resolve());
+				const e2eConfig = this.config.projects[`${this.app.config.packageJson.name}-e2e`];
+				e2eConfig.root = "client/e2e";
+				e2eConfig.architect.e2e.options = Object.assign({}, e2eConfig.architect.e2e.options, {
+					"protractorConfig": "client/e2e/protractor.conf.js"
+				});
+				e2eConfig.architect.lint.options = Object.assign({}, e2eConfig.architect.lint.options, {
+					"tsConfig": "client/e2e/tsconfig.e2e.json"
+				});
+				this._initTsFiles().then(() => resolve());
 			});
 		});
 	}
@@ -164,11 +185,32 @@ export class AngularCli {
 					this.getTsConfig(true).then((tsSpecConfig: any) => {
 						tsSpecConfig.extends = "../../tsconfig.json";
 						this.app.saveFile(path.join(this.app.path, 'client', 'src', 'tsconfig.spec.json'), JSON.stringify(tsSpecConfig, null, 2)).then(() => {
-							resolve();
+							this.getE2eTsConfig().then((tsConfig: any) => {
+								tsConfig.extends = "../../tsconfig.json";
+								this.app.saveFile(path.join(this.app.path, 'client', 'e2e', 'tsconfig.e2e.json'), JSON.stringify(tsConfig, null, 2)).then(() => {
+									resolve();
+								});
+							});
 						});
 					});
 				});
 			});
+		});
+	}
+
+	moveE2eFolder() {
+		return new Promise((resolve, reject) => {
+			const srcPath = path.join(this.app.path, 'e2e');
+			const destPath = path.join(this.app.path, 'client', 'e2e');
+			return fse.move(srcPath, destPath, (err) => {
+				if (err) {
+					console.log('Error moving e2e folder');
+					reject(err);
+				} else {
+					console.log('Move e2e success');
+					resolve();
+				}
+			})
 		});
 	}
 

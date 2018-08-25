@@ -40,7 +40,7 @@ export class BoilerplateController {
 
 	private _emitError(err) {
 		const type = "boilerplate:error"
-		this.app.materiaApi.websocket.broadcast({ type, error: err })
+		this.app.materiaApi.websocket.broadcast({ type, error: err.message })
 	}
 
 	initAngular(req, res) {
@@ -61,6 +61,8 @@ export class BoilerplateController {
 			return this._mergeBoilerplateProjectFolder()
 		}).then(() => {
 			return this._renameBoilerplateClientFolder()
+		}).then(() => {
+			return this.angularCli.moveE2eFolder()
 		}).then(() => {
 			return this.angularCli.initNewConfig()
 		}).then(() => {
