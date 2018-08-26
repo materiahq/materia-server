@@ -119,12 +119,12 @@ export class GitController {
 			res.status(200).send()
 		).catch(err => {
 			console.log('Error creating branch : ', err);
-			res.status(500).send(err.message)
+			res.status(500).send(err.message);
 		})
 	}
 
 	selectBranch(req, res) {
-		const branchName = req.params.branchName;
+		const branchName = req.body.branchName;
 		this.client.checkout(branchName).then(() =>
 			res.status(200).send()
 		).catch(err => {
