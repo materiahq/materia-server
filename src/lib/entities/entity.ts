@@ -148,7 +148,7 @@ export abstract class Entity {
 	move(x, y): Promise<void> {
 		this.x = x;
 		this.y = y;
-		return this.save()
+		return this.savePosition();
 	}
 
 	create(entityobj, options) {
@@ -227,29 +227,17 @@ export abstract class Entity {
 
 	save(opts?): Promise<void> {
 		if (this.fromAddon) {
-			// TODO: save position in materia.json
-
-			const oldAddonConfig = this.app.config.get(this.app.mode, ConfigType.ADDONS);
-
-			const newAddonConfig = Object.assign({}, oldAddonConfig, {
-				entities: Object.assign({}, oldAddonConfig && oldAddonConfig['entities'] || {}, {
-					[this.name]: {
-						x: this.x,
-						y: this.y
-					}
-				})
-			});
-			console.log('Save addon config', oldAddonConfig, newAddonConfig);
-			this.app.config.set(newAddonConfig, this.app.mode, ConfigType.ADDONS);
-			return this.app.config.save()
+			return Promise.resolve();
 		}
 		else {
 			let relativePath = path.join('server', 'models', this.name + '.json')
-
+			const entityModel = Object.assign({}, this.toJson());
+			delete entityModel.x;
+			delete entityModel.y;
 			return new Promise((resolve, reject) => {
 				fs.writeFile(
 					path.join(this.app.path, relativePath),
-					JSON.stringify(this.toJson(), null, '\t'),
+					JSON.stringify(entityModel, null, '\t'),
 					err => {
 						if (err) {
 							return reject(err);
@@ -260,6 +248,18 @@ export abstract class Entity {
 				);
 			});
 		}
+	}
+
+	savePosition() {
+		const oldEntitiesPositionConfig = this.app.config.get(null, ConfigType.ENTITIES_POSITION);
+		const newEntitiesPositionConfig = Object.assign({}, oldEntitiesPositionConfig, {
+			[this.name]: {
+				x: this.x,
+				y: this.y
+			}
+		})
+		this.app.config.set(newEntitiesPositionConfig, null, ConfigType.ENTITIES_POSITION);
+		return this.app.config.save().then(() => this.save());
 	}
 
 	/**

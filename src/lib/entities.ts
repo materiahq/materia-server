@@ -105,17 +105,16 @@ export class Entities {
 			fse.mkdirsSync(path.join(basePath, 'server', 'models'))
 			return Promise.resolve(false)
 		}
-		const addonsConfig = this.app.config.get<{[addon: string]: any}>(this.app.mode, ConfigType.ADDONS) || {}
-		const addonsEntitiesPositions = addonsConfig.entities || {}
+		const entitiesPositions = this.app.config.get<{[name: string]: {x: number, y: number}}>(null, ConfigType.ENTITIES_POSITION) || {};
 		for (let file of files) {
 			try {
 				if (file.substr(file.length - 5, 5) == '.json') {
 					let content = fs.readFileSync(path.join(basePath, 'server', 'models', file))
 					let entity = JSON.parse(content.toString())
 					entity.name = file.substr(0, file.length - 5)
-					if (addonsEntitiesPositions[entity.name] && addonsEntitiesPositions[entity.name].x) {
-						entity.x = addonsEntitiesPositions[entity.name].x
-						entity.y = addonsEntitiesPositions[entity.name].y
+					if (entitiesPositions[entity.name]) {
+						entity.x = entitiesPositions[entity.name].x;
+						entity.y = entitiesPositions[entity.name].y;
 					}
 					this.entitiesJson[basePath].push(entity)
 				}

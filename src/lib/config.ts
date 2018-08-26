@@ -24,7 +24,12 @@ import {
 export interface IAddonsConfig {
 	[addon: string]: any;
 }
-
+export interface IEntitiesPositionConfig {
+	[entityName: string]: {
+		x: number,
+		y: number
+	}
+}
 export interface IDependenciesConfig {
 	dev?: IDependencyMap;
 	prod?: IDependencyMap;
@@ -41,8 +46,9 @@ export interface IFullConfig {
 	};
 	scripts?: IScriptsMap;
 	database?: IDatabase;
-	addons?: any;
+	addons?: IAddonsConfig;
 	client?: IClientConfig;
+	entitiesPosition?: IEntitiesPositionConfig;
 }
 
 export enum ConfigType {
@@ -57,7 +63,8 @@ export enum ConfigType {
 	ADDONS = <any>"addons",
 	LINKS = <any>"links",
 	DEPLOYMENT = <any>"deployment",
-	SERVICES = <any>"services"
+	SERVICES = <any>"services",
+	ENTITIES_POSITION = <any>"entitiesPosition"
 }
 
 export interface IConfigOptions {
@@ -71,7 +78,9 @@ export class Config {
 	materiaJson: IMateriaJson;
 	materiaProdJson: any;
 
-	constructor(private app: App) {}
+	entitiesPosition: IEntitiesPositionConfig;
+
+	constructor(private app: App) { }
 
 	private loadConfigurationFiles() {
 		this.config = null;
@@ -120,6 +129,17 @@ export class Config {
 			);
 		} catch (e) {
 			this.materiaProdJson = {};
+		}
+
+		try {
+			this.entitiesPosition = JSON.parse(
+				fs.readFileSync(
+					path.join(this.app.path, ".materia", "entities-position.json"),
+					"utf8"
+				)
+			);
+		} catch (e) {
+			this.entitiesPosition = {};
 		}
 	}
 
@@ -184,7 +204,8 @@ export class Config {
 			links: {
 				dev: this.materiaJson.links || [],
 				prod: this.materiaProdJson.links || []
-			}
+			},
+			entitiesPosition: this.entitiesPosition
 		};
 	}
 
@@ -266,8 +287,10 @@ export class Config {
 		this.packageJson = res.package
 		this.materiaJson = res.materia
 		this.materiaProdJson = res.materiaProd
-		// this.reloadConfig();
-		// console.log('save', res);
+		this.entitiesPosition = this.config.entitiesPosition;
+		if (this.materiaJson.addons && this.materiaJson.addons.entities) {
+			delete res.materia.addons.entities;
+		}
 		return this.app
 			.saveFile(
 				path.join(this.app.path, "materia.json"),
@@ -285,6 +308,13 @@ export class Config {
 					JSON.stringify(res.package, null, "\t")
 				)
 			)
+			.then(() =>
+				this.app.saveFile(
+					path.join(this.app.path, ".materia", "entities-position.json"),
+					JSON.stringify(this.entitiesPosition, null, "\t"),
+					{ mkdir: true }
+				)
+			)
 	}
 
 	/**
@@ -292,7 +322,6 @@ export class Config {
 	@returns {object}
 	*/
 	toJson() {
-		// const newMateriaJson: any = {};
 		return {
 			materia: Object.assign({}, this.materiaJson, {
 				name: this.app.name,
@@ -320,12 +349,8 @@ export class Config {
 				version: this.config.app.version,
 				scripts: this.config.scripts,
 				dependencies: this.config.dependencies.prod,
-				devDependencies: this.config.dependencies.dev,
-				// engine: {
-				// 	node: ''
-				// }
+				devDependencies: this.config.dependencies.dev
 			})
 		};
-		// return this.config;
 	}
 }
