@@ -141,7 +141,6 @@ export class AppController {
 			name: this.app.name,
 			path: this.app.path,
 			icon: this.app.icon, // this.app.infos && this.app.infos.icon ? this.app.infos.icon.color : null,
-			live: this.app.live,
 			hasStatic: this.app.server.hasStatic(),
 			url: this.app.server.getBaseUrl('/'),
 			mode: this.app.mode.toString(),
@@ -159,33 +158,30 @@ export class AppController {
 	}
 
 	getInfos(req, res) {
+		const appConf = this.app.config.get<any>('dev', ConfigType.APP);
 		res.status(200).json({
 			id: this.app.id,
 			package: this.app.package,
 			name: this.app.name,
 			path: this.app.path,
-			icon: this.app.icon, // this.app.infos && this.app.infos.icon ? this.app.infos.icon.color : null,
-			live: this.app.live,
+			icon: this.app.icon,
 			hasStatic: this.app.server.hasStatic(),
 			url: this.app.server.getBaseUrl('/'),
+			live: {
+				url: appConf.live && appConf.live.url || this.app.server.getBaseUrl('/'),
+			},
 			mode: this.app.mode.toString(),
 			database: {
 				disabled: this.app.database.disabled,
 				config: {
 					dev: this.app.config.get('dev', ConfigType.DATABASE),
-					prod: this.app.config.get('prod', ConfigType.DATABASE),
-					live: this.app.config.get('prod', ConfigType.DATABASE, {
-						live: true
-					})
+					prod: this.app.config.get('prod', ConfigType.DATABASE)
 				}
 			},
 
 			server: {
 				dev: this.app.config.get('dev', ConfigType.SERVER),
-				prod: this.app.config.get('prod', ConfigType.SERVER),
-				live: this.app.config.get('prod', ConfigType.SERVER, {
-					live: true
-				})
+				prod: this.app.config.get('prod', ConfigType.SERVER)
 			},
 
 			client: this.app.config.get('dev', ConfigType.CLIENT),
