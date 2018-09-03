@@ -191,6 +191,7 @@ export class DatabaseController {
 	}
 
 	createQuery(req, res) {
+		this.app.watcher.disable();
 		const entity = this.app.entities.get(req.params.entity)
 		const query = req.body;
 		if (entity) {
@@ -214,18 +215,22 @@ export class DatabaseController {
 				).then(() => {
 					entity.addQuery(query);
 					res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
+					this.app.watcher.enable();
 				});
 			} else {
 				entity.addQuery(query);
 				res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
+				this.app.watcher.enable();
 			}
 		}
 	}
 
 	removeQuery(req, res) {
+		this.app.watcher.disable();
 		const entity = this.app.entities.get(req.params.entity);
 		entity.removeQuery(req.params.queryId);
 		res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
+		this.app.watcher.enable();
 	}
 
 	runQuery(req, res) {
@@ -240,7 +245,6 @@ export class DatabaseController {
 		if ( ! query ) {
 			return res.status(400).json(new Error(`Query ${queryId} does not exists (${entity})`));
 		}
-
 		query.run(req.body, { raw: true })
 			.then((res: any) => {
 				if (Array.isArray(res)) {
@@ -259,9 +263,7 @@ export class DatabaseController {
 			}).then(data => {
 				res.status(200).json(data);
 			}).catch(e => {
-				res.status(400).json({
-					error: e.message
-				});
+				res.status(400).send(e.message);
 			});
 	}
 
@@ -392,7 +394,7 @@ export class DatabaseController {
 					from: 'playground'
 				});
 			})
-			.catch(err => res.status(500).json(err));
+			.catch(err => res.status(500).send(err.message));
 	}
 
 	getDiffs(req, res) {
