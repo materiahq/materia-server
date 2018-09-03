@@ -515,6 +515,9 @@ export class Git {
 	}
 
 	checkout(arg) {
+		if (arg.split('remotes/origin/').length - 1) {
+			arg = arg.split('remotes/origin/')[1];
+		}
 		return this.client.checkout(arg);
 	}
 
