@@ -34,9 +34,12 @@ export class GitController {
 	}
 
 	getStatus(req, res) {
+		this.app.watcher.disable();
 		this.client.getStatusDiff(req.query.path).then(data => {
+			this.app.watcher.enable();
 			res.status(200).send(data);
 		}).catch(err => {
+			this.app.watcher.enable();
 			res.status(500).send(err);
 		})
 	}
@@ -118,31 +121,47 @@ export class GitController {
 		this.client.createLocalBranch(branchName).then(
 			res.status(200).send()
 		).catch(err => {
-			console.log('Error creating branch : ', err);
 			res.status(500).send(err.message);
 		})
 	}
 
 	selectBranch(req, res) {
 		const branchName = req.body.branchName;
-		this.client.checkout(branchName).then(() =>
-			res.status(200).send()
+		this.app.watcher.disable();
+		this.client.checkout(branchName).then(() => {
+			this.app.watcher.enable();
+			res.status(200).send();
+		}
 		).catch(err => {
-			console.log('Error checkout branch : ', err)
-			res.status(500).send(err.message)
+			this.app.watcher.enable();
+			res.status(500).send(err.message);
 		});
 	}
 
 	stash(req, res) {
+		this.app.watcher.disable();
 		this.client.stash()
-		.then(() => res.status(200).send())
-		.catch((err) => res.status(500).send(err.message))
+		.then(() => {
+			this.app.watcher.enable();
+			res.status(200).send();
+		})
+		.catch((err) => {
+			this.app.watcher.enable();
+			res.status(500).send(err.message);
+		})
 	}
 
 	stashPop(req, res) {
+		this.app.watcher.disable();
 		this.client.stashPop()
-		.then((result) => res.status(200).send(result))
-		.catch((err) => res.status(500).send(err.message))
+		.then((result) => {
+			this.app.watcher.enable();
+			res.status(200).send(result);
+		})
+		.catch((err) => {
+			this.app.watcher.enable();
+			res.status(500).send(err.message);
+		})
 	}
 
 	// getCommitDiff(req, res) {
