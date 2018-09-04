@@ -248,12 +248,12 @@ export class BoilerplateController {
 			this.app.config.packageJson.name
 		])
 		.then(() => {
-			this._emitMessage('Rename React application')
+			this._emitMessage('Rename React app folder')
 			return this._renameReactFolder();
 		}).then(() => {
 				this._emitMessage('Add client config')
 				this.app.config.set({
-					src: 'client/src',
+					src: 'client',
 					dist: 'client/build',
 					buildEnabled: true,
 					scripts: {
