@@ -246,26 +246,15 @@ export class BoilerplateController {
 		this._emitMessage('Create React application')
 		return this.npx.exec('create-react-app', [
 			this.app.config.packageJson.name
-		]).then(() => {
-			this._emitMessage('Generate monopackage structure')
-			return this._mergeReactPackage()
+		])
+		.then(() => {
+			this._emitMessage('Rename React application')
+			return this._renameReactFolder();
 		}).then(() => {
-			return this._removeBoilerplatePackage()
-		}).then(() => this._removeBoilerplateNodeModules())
-			.then(() => this._mergeBoilerplateProjectFolder())
-			.then(() => {
-				this._emitMessage('Install all dependencies')
-				return this._removeItemIfExist(path.join(this.app.path, 'yarn.lock'))
-			}).then(() =>
-				this._removeItemIfExist(path.join(this.app.path, 'node_modules'))
-			).then(() => this.npm.exec('install', []))
-			.then(() => {
-				this._emitMessage('Build React application')
-				return this.reactScripts.exec('build', [])
-			}).then(() =>
+				this._emitMessage('Add client config')
 				this.app.config.set({
-					src: 'src',
-					dist: 'build',
+					src: 'client/src',
+					dist: 'client/build',
 					buildEnabled: true,
 					scripts: {
 						build: "build",
@@ -274,24 +263,41 @@ export class BoilerplateController {
 					},
 					autoWatch: false
 				}, AppMode.DEVELOPMENT, ConfigType.CLIENT)
-			).then(() => {
-				this.app.server.dynamicStatic.setPath(path.join(this.app.path, 'build'));
+				this._emitMessage('Add scripts to root package.json')
+				if (! this.app.config.packageJson['scripts']) {
+					this.app.config.packageJson['scripts'] = {};
+				}
+				this.app.config.packageJson['scripts']['build'] = "cd client && npm run build";
+				this.app.config.packageJson['scripts']['prod'] = "cd client && npm run build";
+				return this.app.config.save();
+			}).then(() => {
+				this._emitMessage('Build React application')
+				return this.npm.exec('run-script', ['build'])
+			}).then(() => {
+				this.app.server.dynamicStatic.setPath(path.join(this.app.path, 'client/build'));
 				const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
 				const type = 'boilerplate:success';
 				this.app.watcher.enable();
 				this.app.materiaApi.websocket.broadcast({ type, client: client })
-			}).catch(err => this._emitError(err))
+			}).catch(err => this._emitError(err));
 	}
 
-	private _mergeReactPackage() {
-		const pkg = this.app.config.packageJson
-		const boilerplateProjectPath = path.join(this.app.path, this.app.config.packageJson.name);
-		return this._fileToJson(path.join(boilerplateProjectPath, 'package.json')).then((boilerplateProjectPackage: any) => {
-			this.app.config.set(Object.assign({}, pkg.devDependencies, boilerplateProjectPackage.devDependencies), AppMode.DEVELOPMENT, ConfigType.DEPENDENCIES);
-			this.app.config.set(Object.assign({}, pkg.dependencies, boilerplateProjectPackage.dependencies), AppMode.PRODUCTION, ConfigType.DEPENDENCIES);
-			this.app.config.set(Object.assign({}, pkg.scripts, boilerplateProjectPackage.scripts), this.app.mode, ConfigType.SCRIPTS);
-			return this.app.config.save();
-		})
+	private _renameReactFolder() {
+		return new Promise((resolve, reject) => {
+			fse.copy(path.join(this.app.path, this.app.config.packageJson.name), path.join(this.app.path, 'client'), (err) => {
+				if (err) {
+					reject(err);
+				} else {
+					fse.remove(path.join(this.app.path, this.app.config.packageJson.name), (err) => {
+						if (err) {
+							reject(err)
+						} else {
+							resolve();
+						}
+					})
+				}
+			});
+		});
 	}
 
 	initVue(req, res) {
