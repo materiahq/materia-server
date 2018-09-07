@@ -67,7 +67,7 @@ export class DatabaseController {
 			// Need more investigation.
 			setTimeout(() => {
 				this.app.watcher.enable();
-			}, 500);
+			}, 1000);
 			res.status(200).json(entity.toJson());
 		});
 	}
