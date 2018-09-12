@@ -227,7 +227,8 @@ export class Api {
 	toJson(opts?: IApplyOptions) {
 		let res = []
 		this.endpoints.forEach((endpoint) => {
-			if (!opts || opts.fromAddon == endpoint.fromAddon) {
+
+			if (! opts || opts.fromAddon == endpoint.fromAddon) {
 				res.push(endpoint.toJson())
 			}
 		})
@@ -238,9 +239,8 @@ export class Api {
 		if (opts && opts.beforeSave) {
 			opts.beforeSave(path.join('server', 'api.json'))
 		}
-		if (!opts.fromAddon) {
-			let basePath = (opts && opts.fromAddon) ? opts.fromAddon.path : this.app.path
-			fs.writeFileSync(path.join(basePath, 'server', 'api.json'), JSON.stringify(this.toJson(opts), null, '\t'))
+		if ( ! opts || ! opts.fromAddon) {
+			fs.writeFileSync(path.join(this.app.path, 'server', 'api.json'), JSON.stringify(this.toJson(opts), null, '\t'))
 		}
 		if (opts && opts.afterSave) {
 			opts.afterSave()
