@@ -5,7 +5,6 @@ import chalk from 'chalk'
 import { App, AppMode } from './app'
 import { IServerConfig, IClientConfig } from '@materia/interfaces'
 import { ConfigType, IConfigOptions } from './config'
-import { MateriaError } from './error'
 
 import * as express from 'express'
 import { createServer, Server as HttpServer } from 'http'
@@ -172,76 +171,91 @@ export class Server {
 	Starts the server and listen on its endpoints.
 	@returns {Promise<void>}
 	*/
-	start(): Promise<void> {
+	start(opts?: any): Promise<number> {
 		const clientConfig: IClientConfig = this.app.config.get(this.app.mode, ConfigType.CLIENT)
 
-		return new Promise<void>((resolve, reject) => {
+		return new Promise<number>((resolve, reject) => {
 			this.stop().then(() => {
-				this.app.api.registerEndpoints()
-				this.expressApp.all('/api/*', (req, res) => {
-					res.status(404).send({
-						error: true,
-						message: 'API endpoint not found'
-					})
-				})
-
-				this.expressApp.all('/*', (req, res) => {
-					if (fs.existsSync(path.join(this.app.path, clientConfig.dist, '404.html'))) {
-						res.sendFile(path.join(this.app.path, clientConfig.dist, '404.html'))
-					}
-					else if (this.hasStatic()) {
-						res.sendFile(path.join(this.app.path, clientConfig.dist, 'index.html'))
-					}
-					else {
+				if (! opts || ! opts.fallback) {
+					this.app.api.registerEndpoints()
+					this.expressApp.all('/api/*', (req, res) => {
 						res.status(404).send({
 							error: true,
 							message: 'API endpoint not found'
 						})
-					}
-				})
-
-				this.expressApp.use((err: any, req: express.Request, res: express.Response) => {
-					res.status(500).send({
-						error: true,
-						message: (err && err.message) || "Unexpected error"
 					})
-					return this.expressApp
-				})
 
-				if (this.disabled) {
-					this.app.logger.log(' └── Server: Disabled (Warning)')
-					return resolve()
+					this.expressApp.all('/*', (req, res) => {
+						if (fs.existsSync(path.join(this.app.path, clientConfig.dist, '404.html'))) {
+							res.sendFile(path.join(this.app.path, clientConfig.dist, '404.html'))
+						}
+						else if (this.hasStatic()) {
+							res.sendFile(path.join(this.app.path, clientConfig.dist, 'index.html'))
+						}
+						else {
+							res.status(404).send({
+								error: true,
+								message: 'API endpoint not found'
+							})
+						}
+					})
+
+					this.expressApp.use((err: any, req: express.Request, res: express.Response) => {
+						res.status(500).send({
+							error: true,
+							message: (err && err.message) || "Unexpected error"
+						})
+						return this.expressApp
+					})
+
+					if (this.disabled) {
+						this.app.logger.log(' └── Server: Disabled (Warning)')
+						return resolve(0)
+					}
 				}
-
 				this.config = this.app.config.get<IServerConfig>(this.app.mode, ConfigType.SERVER)
-				let port = this.app.options.port || this.config.port
+				let port = opts && opts.port || this.app.options.port || this.config.port
 				if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT && process.env.PORT) {
 					port = +process.env.PORT
 				}
-
-				let errListener = (e) => {
-					let err
-					if (e.code == 'EADDRINUSE') {
-						err = new MateriaError(`Impossible to start the server - The port ${port} is already used by another server.`)
+				if ( ! port) {
+					if (AppMode.DEVELOPMENT === this.app.mode) {
+						port = 8080
+					} else {
+						port = 80;
 					}
-					else {
-						err = new MateriaError('Impossible to start the server - ' + e.message)
-					}
-					err.originalError = e
-					this.app.logger.error(err)
-					return reject(err)
 				}
 
-				let args = [port, this.config.host, () => {
+				let error = 0;
+				let errListener = (e) => {
+					if (e.code == 'EADDRINUSE') {
+						this.app.logger.error(new Error(`Impossible to start the server - The port ${port} is already used by another server.`))
+						if (this.app.mode == AppMode.DEVELOPMENT) {
+							if ( ! opts ) { opts = {} }
+							if ( ! opts.port ) { opts.port = port + 1; }
+							error = port;
+							return this.start(opts).then(resolve).catch(reject);
+						}
+					}
+					else {
+						this.app.logger.error(new Error('Impossible to start the server - ' + e.message))
+					}
+					return reject(e)
+				}
+
+				let args = [port, this.config.host || 'localhost', () => {
+					if (port == error) {
+						return;
+					}
 					this.started = true
 					this.app.logger.log(` └─┬ Server: ${chalk.green.bold('Started')}`)
 					if (this.config.host == '0.0.0.0' || process.env.NO_HOST) {
 						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline(`http://localhost:${port}`) + '\n')
 					} else {
-						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline('http://' + this.config.host + ':' + port) + '\n')
+						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline('http://' + (this.config.host || 'localhost') + ':' + port) + '\n')
 					}
 					this.server.removeListener('error', errListener)
-					return resolve()
+					return resolve(port)
 				}]
 
 				//special IP - "no host"

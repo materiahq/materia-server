@@ -110,7 +110,7 @@ export class Config {
 				)
 			);
 		} catch (e) {
-			console.log(e);
+			this.app.logger.error(new Error('Impossible to read materia.json configuration. Fallback on default configuration file...'));
 			this.materiaJson = {
 				name: "Untitled App",
 				server: {
@@ -222,7 +222,6 @@ export class Config {
 		type = type || ConfigType.SERVER;
 		options = options || { live: this.app.live };
 		if (!this.config) {
-			this.loadConfigurationFiles();
 			this.reloadConfig();
 		}
 

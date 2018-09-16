@@ -394,6 +394,7 @@ export class Database {
 			this.sequelize = new Sequelize(this.database, this.username, this.password, this.opts)
 		}
 		catch(e) {
+			this.disabled = true
 			return Promise.reject(e)
 		}
 		this.interface.setDialect(this.type)

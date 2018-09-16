@@ -205,6 +205,17 @@ export class App extends events.EventEmitter {
 			})
 	}
 
+	startFallback(): Promise<any> {
+		this.server.load()
+
+		this.materiaApi.initialize()
+
+		return this.server.start({
+			fallback: true
+		}).then(port => port)
+	}
+
+
 	load():Promise<any> {
 		let warning, elapsedTimeQueries, elapsedTimeEntities, elapsedTimeAPI
 		let elapsedTimeGlobal = new Date().getTime()
@@ -401,11 +412,11 @@ manual_scaling:
 	*/
 	start() {
 		let warning
+		const errors = {} as any;
 		this.logger.log(`${chalk.bold('(Start)')} Application ${chalk.yellow.bold(this.name)}`)
 		let p = this.database.started ? Promise.resolve() : this.database.start()
 		return p.catch((e) => {
-			e.errorType = 'database'
-			throw e
+			errors.db = e;
 		}).then((e) => {
 			if (this.database.disabled) {
 				this.logger.log(` └── Database: ${chalk.red.bold('Disabled')}`)
@@ -414,21 +425,27 @@ manual_scaling:
 				this.logger.log(` └── Database: ${chalk.green.bold('OK')}`)
 			}
 			warning = e
-			return this.entities.start().catch((e) => {
-				e.errorType = 'entities'
-				throw e
-			})
+			if (Object.keys(errors).length == 0) {
+				return this.entities.start().catch((e) => {
+					errors.entities = e;
+				})
+			} else {
+				return Promise.resolve();
+			}
 		}).then(() => {
 			if ( ! this.database.disabled ) {
 				this.logger.log(` └── Entities: ${chalk.green.bold('OK')}`)
 			}
-			return this.addons.start().catch((e) => {
-				e.errorType = 'addons'
-				throw e
-			})
+			if (Object.keys(errors).length == 0) {
+				return this.addons.start().catch((e) => {
+					errors.addons = e;
+				})
+			} else {
+				return Promise.resolve();
+			}
 		}).then(() => {
 			this.logger.log(` └── Addons: ${chalk.bold.green('OK')}`)
-			if (this.mode == AppMode.PRODUCTION && ! this.live) {
+			if (Object.keys(errors).length == 0 && this.mode == AppMode.PRODUCTION && ! this.live) {
 				return this.synchronizer.diff().then((diffs) => {
 					if (diffs && diffs.length == 0) {
 						this.logger.log(` └── Synchronize: ${chalk.bold('DB already up to date')}`)
@@ -444,16 +461,23 @@ manual_scaling:
 					throw e
 				})
 			}
-		}).then(() => {
-			return this.server.start().catch((e) => {
-				e.errorType = 'server'
-				throw e
+		}).then(() =>
+			this.server.start({
+				fallback: Object.keys(errors).length > 0
+			}).catch((e) => {
+				errors.server = e;
 			})
-		}).then(() => {
-			this.status = true
-			this.logger.log('')
-			return warning
+		).then(() => {
+			if (Object.keys(errors).length === 0) {
+				this.status = true
+				this.logger.log('')
+				return warning
+			}
 		})
+	}
+
+	startWithoutFailure() {
+		return this.server.start()
 	}
 
 	/**
