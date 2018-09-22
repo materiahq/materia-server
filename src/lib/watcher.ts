@@ -1,6 +1,6 @@
 import * as chokidar from 'chokidar';
 // import { cs_watcher } from './watcher_win32/cs_watcher';
-import { App } from './app';
+import { App, AppMode } from './app';
 import chalk from 'chalk';
 
 export enum WatcherEventType {
@@ -45,12 +45,14 @@ export class Watcher {
 	}
 
 	load() {
-		this.watch(['*.json', 'server/**/*.json'], (p, type) => {
-			if ( ! this.disabled) {
-				this.app.logger.log(` └── ${type}: ${p}`)
-				this.app.materiaApi.websocket.broadcast({ type, path: p })
-			}
-		})
+		if (this.app.mode === AppMode.DEVELOPMENT) {
+			this.watch(['*.json', 'server/**/*.json'], (p, type) => {
+				if ( ! this.disabled) {
+					this.app.logger.log(` └── ${type}: ${p}`)
+					this.app.materiaApi.websocket.broadcast({ type, path: p })
+				}
+			})
+		}
 	}
 
 	watch(path, callback) {
