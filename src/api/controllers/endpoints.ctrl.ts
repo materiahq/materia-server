@@ -34,7 +34,7 @@ export class EndpointsController {
 	}
 
 	loadController(req, res) {
-		let controllerName = req.params.name;
+		let controllerName = req.query.name;
 		try {
 			let endpointPath = path.join(this.app.path, 'server', 'controllers');
 			const fromAddon = controllerName.split('@materia').length > 1;
