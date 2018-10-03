@@ -186,7 +186,7 @@ export class Server {
 					})
 
 					this.expressApp.all('/*', (req, res) => {
-						if (fs.existsSync(path.join(this.app.path, clientConfig.dist, '404.html'))) {
+						if (clientConfig && fs.existsSync(path.join(this.app.path, clientConfig.dist, '404.html'))) {
 							res.sendFile(path.join(this.app.path, clientConfig.dist, '404.html'))
 						}
 						else if (this.hasStatic()) {
