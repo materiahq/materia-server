@@ -79,6 +79,7 @@ export class MateriaApi {
 		this.api.get('/materia/infos/minimal', this.oauth.isAuth, this.appCtrl.getInfos.bind(this.appCtrl));
 		this.api.get('/materia/infos', this.oauth.isAuth, this.appCtrl.getInfos.bind(this.appCtrl));
 		this.api.post('/materia/config', this.oauth.isAuth, this.appCtrl.config.bind(this.appCtrl));
+		this.api.delete('/materia/config', this.oauth.isAuth, this.appCtrl.deleteConfig.bind(this.appCtrl));
 		this.api.post('/materia/search', this.oauth.isAuth, this.appCtrl.search.bind(this.appCtrl));
 
 		/**

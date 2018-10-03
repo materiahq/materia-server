@@ -132,6 +132,19 @@ export class AppController {
 			});
 	}
 
+	deleteConfig(req, res) {
+		const type = req.query.type;
+		const mode = req.query.mode || null;
+		this.app.config.delete(type, mode);
+		this.app.config.save()
+			.then(() => {
+				res.status(200).send(true);
+			})
+			.catch(e => {
+				res.status(500).json(e);
+			});
+	}
+
 	search(req, res) { }
 
 	getMinimalInfo(req, res) {

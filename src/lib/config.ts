@@ -253,7 +253,7 @@ export class Config {
 	}
 
 	/**
-	Set the web configuration
+	Set the given configuration
 	@param {object} - The configuration object
 	@param {string} - The environment mode. `development` or `production`.
 	*/
@@ -278,6 +278,24 @@ export class Config {
 			this.config[type][mode] = config;
 		} else {
 			this.config[type] = config;
+		}
+	}
+
+	/**
+	Delete database or client configuration
+	@param {string} - The configuration type. `database` or `client`
+	@param {string} - The environment mode. `dev` or `prod`.
+	*/
+	delete(
+		type: ConfigType,
+		mode?: AppMode | string
+	): void {
+		if ([
+			ConfigType.DATABASE
+		].indexOf(type) != -1) {
+			delete this.config[type][mode];
+		} else {
+			delete this.config[type]
 		}
 	}
 
