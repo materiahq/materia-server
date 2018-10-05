@@ -33,7 +33,7 @@ export class AppController {
 	}
 
 	private saveDatabaseSettings(app, settings, mode) {
-		if (settings.database[mode]) {
+		if (settings.database && settings.database[mode]) {
 			if (
 				settings.database[mode].type &&
 				settings.database[mode].type == 'sqlite'
@@ -74,7 +74,7 @@ export class AppController {
 			} else if (client.enabled && client.src) {
 				this.app.server.dynamicStatic.setPath(path.join(this.app.path, client.src));
 			}
-			if (client.scripts.build || client.scripts.watch || client.scripts.prod) {
+			if (client.scripts && (client.scripts.build || client.scripts.watch || client.scripts.prod)) {
 				clientToSave.scripts = {}
 				if (client.scripts.build) {
 					clientToSave.scripts.build = client.scripts.build;
