@@ -47,6 +47,43 @@ export class AngularCli {
 		});
 	}
 
+	execInFolder(folder: string, command: string, params?: string[]): Promise<any> {
+		return new Promise((resolve, reject) => {
+			let data = '';
+			let stream = null;
+			if (fs.existsSync(path.join(this.app.path, folder,  "node_modules", ".bin", "ng"))) {
+				stream = execa(path.join(this.app.path, folder, "node_modules", ".bin", "ng"), [command, ...params], {
+					cwd: path.join(this.app.path, folder)
+				});
+			} /*else {
+				stream = execa(path.join(path.resolve(), `resources/node_modules/.bin/npm`), [command, ...params], {
+					cwd: this.app.path
+				});
+			}*/
+			stream.stdout.on('data', d => {
+				console.log(`Ng stdout: ${d}`);
+				data += d;
+			});
+			stream.stderr.on('data', (d) => {
+				console.log(`Ng stderr: ${d}`);
+				data += d;
+			});
+
+			stream.on('close', (code) => {
+				console.log(`Ng child process exited with code ${code}`);
+				if (code == 0) {
+					return resolve(data);
+				} else {
+					return reject({
+						code,
+						data
+					});
+				}
+			});
+
+		});
+	}
+
 	getConfig() {
 		return new Promise((resolve, reject) => {
 			fs.readFile(path.join(this.app.path, 'angular.json'), 'utf-8', (e, data) => {
@@ -91,12 +128,12 @@ export class AngularCli {
 		});
 	}
 
-	initNewConfig() {
+	initNewConfig(projectName: string) {
 		return new Promise((resolve, reject) => {
 			this.getConfig().then(() => {
-				this.config.projects[this.app.config.packageJson.name].sourceRoot = 'client/src';
-				this.config.projects[this.app.config.packageJson.name].architect.build.options = Object.assign({},
-					this.config.projects[this.app.config.packageJson.name].architect.build.options,
+				this.config.projects[projectName].sourceRoot = 'client/src';
+				this.config.projects[projectName].architect.build.options = Object.assign({},
+					this.config.projects[projectName].architect.build.options,
 					{
 						"outputPath": "client/dist",
 						"index": "client/src/index.html",
@@ -113,8 +150,8 @@ export class AngularCli {
 						"scripts": []
 					});
 
-				this.config.projects[this.app.config.packageJson.name].architect.build.configurations = Object.assign({},
-					this.config.projects[this.app.config.packageJson.name].architect.build.configurations,
+				this.config.projects[projectName].architect.build.configurations = Object.assign({},
+					this.config.projects[projectName].architect.build.configurations,
 					{
 						"production": {
 							"fileReplacements": [
@@ -135,7 +172,7 @@ export class AngularCli {
 						}
 					})
 
-				this.config.projects[this.app.config.packageJson.name].architect.test = {
+				this.config.projects[projectName].architect.test = {
 					"builder": "@angular-devkit/build-angular:karma",
 					"options": {
 						"main": "client/src/test.ts",
@@ -152,7 +189,7 @@ export class AngularCli {
 						]
 					}
 				}
-				this.config.projects[this.app.config.packageJson.name].architect.lint = {
+				this.config.projects[projectName].architect.lint = {
 					"builder": "@angular-devkit/build-angular:tslint",
 					"options": {
 						"tsConfig": [
@@ -164,7 +201,7 @@ export class AngularCli {
 						]
 					}
 				}
-				const e2eConfig = this.config.projects[`${this.app.config.packageJson.name}-e2e`];
+				const e2eConfig = this.config.projects[`${projectName}-e2e`];
 				e2eConfig.root = "client/e2e";
 				e2eConfig.architect.e2e.options = Object.assign({}, e2eConfig.architect.e2e.options, {
 					"protractorConfig": "client/e2e/protractor.conf.js"
