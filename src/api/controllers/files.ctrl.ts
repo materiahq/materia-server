@@ -86,7 +86,15 @@ export class FilesController {
 	}
 
 	remove(req, res) {
-		fse.removeSync(this.getFullPath(req.query.path));
-		res.status(200).json({ removed: true });
+		fse.remove(
+			this.getFullPath(req.query.path),
+			(err) => {
+				if (err) {
+					res.status(500).send(err);
+				} else {
+					res.status(200).json({ removed: true });
+				}
+			}
+		);
 	}
 }
