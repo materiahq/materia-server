@@ -19,7 +19,7 @@ export class ClientController {
 		const script = conf.scripts && conf.scripts.watch ? conf.scripts.watch : 'watch';
 
 		this._kill(this.npmProc).then(() => {
-			this.npmProc = this.npm.execInBackground('run-script', [script])
+			this.npmProc = this.npm.execInFolderBackground(conf.src, 'run-script', [script])
 
 			let last = -1;
 			let errors = []
@@ -104,7 +104,7 @@ export class ClientController {
 		})
 		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
 		const script = conf.scripts && conf.scripts.build ? conf.scripts.build : 'build';
-		this.npm.exec('run-script', [script], (data, error) => {
+		this.npm.execInFolder(conf.src, 'run-script', [script], (data, error) => {
 			const progress = this._parseProgress(data);
 			if (progress) {
 				this.websocket.broadcast({

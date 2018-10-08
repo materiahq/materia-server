@@ -27,6 +27,17 @@ export class Npm {
 		})
 	}
 
+	execInFolderBackground(folder: string, command: string, params?: string[]) {
+		if (this.app) {
+			this.app.logger.log(`NPM -> ${command} ${params.join(' ')}`);
+		}
+		return this.getNpmPath().then(npmPath => {
+			return execa(npmPath, [command, ...params], {
+				cwd: path.join(this.cwd, folder)
+			});
+		})
+	}
+
 	exec(command: string, params?: string[], stream?: (data: any, error?: boolean) => void): Promise<any> {
 		return new Promise((resolve, reject) => {
 			let data = '';
