@@ -121,7 +121,7 @@ export class BoilerplateController {
 			return this.angularCli.exec('build', [])
 		}).then(() => {
 			this.app.config.set({
-				src: 'client/src',
+				src: '',
 				dist: 'client/dist',
 				buildEnabled: true,
 				scripts: {
@@ -448,7 +448,7 @@ export class BoilerplateController {
 				return this.vueCli.execVueCliService('build', [])
 			}).then(() => {
 				this.app.config.set({
-					src: 'client/src',
+					src: '',
 					dist: 'client/dist',
 					buildEnabled: true,
 					scripts: {
