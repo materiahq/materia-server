@@ -29,19 +29,6 @@ export class SqliteDialect extends AbstractDialect {
 			return Promise.all(promises).then((result) => {
 				let res = {}
 
-				/*
-				tables.forEach((table, i) => {
-					let info = result[i * 4]
-					let indexes = result[i * 4 + 1]
-					let fks = result[i * 4 + 2]
-					let hasAi = result[i * 4 + 3][0]
-
-					console.log('----- %s -----', table)
-					console.log('info', JSON.stringify(info,null,' '))
-					console.log('indexes', JSON.stringify(indexes,null,' '))
-					console.log('fks', JSON.stringify(fks,null,' '))
-					console.log('hasAi', JSON.stringify(hasAi,null,' '))
-				})*/
 				tables.forEach((table, i) => {
 					let info = result[i * 4]
 					let indexes = result[i * 4 + 1]

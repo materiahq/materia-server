@@ -25,16 +25,6 @@ export class PostgresDialect extends AbstractDialect {
 			return Promise.all(promises).then((result) => {
 				let res = {}
 
-				/*tables.forEach((table, i) => {
-					let info = result[i * 3];
-					let indexes = result[i * 3 + 1];
-					let fks = result[i * 3 + 2];
-
-					console.log('----- %s -----', table)
-					console.log('info', JSON.stringify(info,null,' '))
-					console.log('indexes', JSON.stringify(indexes,null,' '))
-					console.log('fks', JSON.stringify(fks,null,' '))
-				})*/
 				tables.forEach((table, i) => {
 					let info = result[i * 3];
 					let indexes = result[i * 3 + 1];

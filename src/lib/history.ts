@@ -323,7 +323,6 @@ export class History {
 		}).catch((e) => {
 			this.diffRedo = diff_redo
 			this.diff = diff_undo
-			console.log('Error while updating', e.stack)
 			throw e
 		})
 	}

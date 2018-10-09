@@ -467,7 +467,6 @@ export class Entities {
 			for (let relation of this.entities[entity_name].relations) {
 				if (relation.reference.entity == name) {
 					p = p.then(() => {
-						//console.log('delete relation => ', relation)
 						return this.entities[entity_name].removeRelation(relation, options)
 					})
 				}

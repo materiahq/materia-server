@@ -150,7 +150,6 @@ export class Config {
 	}
 
 	reloadConfig(): void {
-		// console.log('load', this.materiaJson);
 		this.loadConfigurationFiles();
 		this.config = {
 			app: {
@@ -229,7 +228,6 @@ export class Config {
 			mode = this.app.mode;
 		}
 
-		// console.log('get', this.config, mode, type);
 		if (!this.config[type]) {
 			return null;
 		}

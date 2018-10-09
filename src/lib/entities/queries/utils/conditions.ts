@@ -41,7 +41,7 @@ export class Conditions {
 	conditions: Array<Condition>
 	entity: DBEntity
 
-	constructor(conditions:Array<ICondition>, private query: Query) {
+	constructor(conditions:Array<ICondition>, query: Query) {
 		this.conditions = []
 		this.entity = query.entity;
 
@@ -131,7 +131,7 @@ export class Conditions {
 				}
 
 				if ( ! field) {
-					console.log(`impossible to find field ${condition.entity}.${condition.name} in query ${this.query.id}`)
+					// impossible to find field ${condition.entity}.${condition.name} in query ${this.query.id}
 				}
 
 				let paramName = condition.name

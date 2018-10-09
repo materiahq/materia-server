@@ -144,7 +144,6 @@ export class DBEntity extends Entity {
 
 		// reconstruct unique constraint
 		if (uniqueFields.length) {
-			//console.log('add unique: ', field.unique)
 			let unique_names = uniqueFields.map((x) => { return x.name })
 			p = p.then(() => {
 				return this.app.database.interface.addConstraint(this.name, { fields: unique_names, name: constraint_name, type: "unique" })
@@ -155,7 +154,6 @@ export class DBEntity extends Entity {
 	}
 
 	updateField(name:string, field:IFieldUpdate, options?):Promise<Field> {
-		//console.log('updateField dbentity', field.unique)
 		options = options || {}
 
 		let oldfield = this.getField(name)
@@ -187,12 +185,6 @@ export class DBEntity extends Entity {
 					throw null
 				}
 
-				//oldfield = oldfield.toJson()
-
-				//oldfield.fillDefault()
-				//console.log('oldfield', JSON.stringify(oldfield.toJson()), oldfield)
-
-				//console.log('update field', JSON.stringify(oldfield.toJson()), JSON.stringify(field), JSON.stringify(fieldobj.toJson()))
 				if (options.apply != false) {
 					if (field.type == oldfield.type)
 						delete field.type
@@ -214,7 +206,6 @@ export class DBEntity extends Entity {
 						delete field.onDelete
 				}
 
-				//console.log('after diff', field.unique)
 				if (oldfield.name != fieldobj.name) {
 					return this.app.database.interface.renameColumn(
 						this.name, oldfield.name,
@@ -244,7 +235,6 @@ export class DBEntity extends Entity {
 					delete field.type
 				}
 				let dbfield = this.app.database.interface.fieldToColumn(field)
-				//console.log('translate field', field.required, field, dbfield, oldfield)
 				if (Object.keys(dbfield).length == 0)
 					return Promise.resolve()
 
@@ -491,7 +481,6 @@ export class DBEntity extends Entity {
 
 	loadRelationsInModel() {
 		this.relations.forEach(relation => {
-			//console.log('loading relation', this.name, '->', relation)
 			let entityDest = this.app.entities.get(relation.reference.entity)
 			if (entityDest && entityDest instanceof DBEntity) {
 				//@model.hasMany entityDest.model, relation.dstField if relation.type == '1-n' and relation.cardinality == '1'
@@ -511,10 +500,6 @@ export class DBEntity extends Entity {
 						key = relation.reference.field
 					}
 
-					//console.log('type belongsTo')
-					//console.log(this.name, '.belongsTo(', entityDest.name, ',foreignKey:', relation.field, ',targetKey:', key)
-					//console.log(entityDest.name, '.hasMany(', this.name, ',foreignKey:', relation.field, ',targetKey:', key)
-
 					this.model.belongsTo(entityDest.model, { foreignKey: relation.field, targetKey: key })
 					entityDest.model.hasMany(this.model, { foreignKey: relation.field, targetKey: key })
 				}
@@ -523,10 +508,6 @@ export class DBEntity extends Entity {
 					if (relation.field) {
 						key = relation.field
 					}
-
-					//console.log('type hasMany')
-					//console.log(entityDest.name, '.belongsTo(', this.name, ',foreignKey:', relation.reference.field, ',targetKey:', key)
-					//console.log(this.name, '.hasMany(', entityDest.name, ',foreignKey:', relation.reference.field, ',targetKey:', key)
 
 					entityDest.model.belongsTo(this.model, { foreignKey: relation.reference.field, targetKey: key })
 					this.model.hasMany(entityDest.model, { foreignKey: relation.reference.field, targetKey: key })

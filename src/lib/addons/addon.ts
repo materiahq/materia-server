@@ -85,7 +85,6 @@ export class Addon {
 				return Promise.resolve(e);
 			}
 			try {
-				console.log(mod);
 				if (mod.default) {
 					AddonClass = mod.default;
 				} else {

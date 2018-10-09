@@ -19,7 +19,6 @@ export class UpdateQuery extends Query {
 
 		this.type = 'update'
 
-		//console.log('constructor update', opts)
 		this.values = []
 		if ( ! opts ) {
 			opts = {} as IUpdateQueryOpts

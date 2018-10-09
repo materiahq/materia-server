@@ -174,7 +174,6 @@ export class Watcher {
 	}
 
 	private _changeEvent(filePath) {
-		console.log('change', filePath)
 		if (/.*\.sqlite/.test(filePath)) {
 			return;
 		}

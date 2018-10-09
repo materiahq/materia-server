@@ -17,7 +17,6 @@ export class PackageManagerController {
 			: req.params.dependency;
 		this.app.watcher.disable()
 
-		console.log(`(Dependency) Install ${name}`);
 		try {
 			this.npm.exec('install', [name, '--save'], (data, error) => {
 				this.app.logger.log(data);
@@ -62,7 +61,6 @@ export class PackageManagerController {
 			? `${req.params.owner}/${req.params.dependency}`
 			: req.params.dependency;
 
-		console.log(`(Dependency) Uninstall ${name}`);
 		try {
 			this.npm.exec('uninstall', [name, '--save'], (data, error) => {
 				this.app.logger.log(data);

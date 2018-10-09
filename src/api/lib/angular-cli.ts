@@ -24,16 +24,13 @@ export class AngularCli {
 				});
 			}*/
 			stream.stdout.on('data', d => {
-				console.log(`Ng stdout: ${d}`);
 				data += d;
 			});
 			stream.stderr.on('data', (d) => {
-				console.log(`Ng stderr: ${d}`);
 				data += d;
 			});
 
 			stream.on('close', (code) => {
-				console.log(`Ng child process exited with code ${code}`);
 				if (code == 0) {
 					return resolve(data);
 				} else {
@@ -241,10 +238,8 @@ export class AngularCli {
 			const destPath = path.join(this.app.path, 'client', 'e2e');
 			return fse.move(srcPath, destPath, (err) => {
 				if (err) {
-					console.log('Error moving e2e folder');
 					reject(err);
 				} else {
-					console.log('Move e2e success');
 					resolve();
 				}
 			})

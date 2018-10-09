@@ -228,11 +228,10 @@ export class Synchronizer {
 			dbFields[dbField.name] = dbField
 			let field = entity.getField(dbField.name)
 
-			//console.log('isRelationTable', entity.name, isRelationTable)
 			if (isRelationTable.length != 2 && this._diffRelation(entity, dbField, field, diffs))
 				continue
 
-			if (field) {//} && ! dbField.fk) {
+			if (field) {
 				let fieldDiff = this._compareField(dbField, field, entity)
 				if ( fieldDiff ) {
 					// update field to db properties
@@ -289,9 +288,7 @@ export class Synchronizer {
 		}
 
 		// delete relations that are not in db
-		//console.log('------relations------', entity.getRelations())
 		for (let relation of entity.getRelations()) {
-			//console.log ('relation', relation, dbFields[relation.field])
 			if ( ! dbFields[relation.field] && relation.type == 'belongsTo' && ! relation.implicit) {
 				// delete relation
 				diffs.relations.push({
@@ -317,7 +314,6 @@ export class Synchronizer {
 			tableCompared[entity.name] = entity;
 			if (dbTables[entity.name]) {
 				//compare fields
-				//console.log(entity.name, entity)
 				this._diffEntity(entity, dbTables[entity.name], diffs)
 			}
 			else if (entity.isRelation) {
@@ -380,7 +376,6 @@ export class Synchronizer {
 		}
 
 		for (let table in dbTables) {
-			// console.log('# create entity', table, dbTables[table])
 			// if table exists in db but not in entities
 			if ( ! tableCompared[table]) {
 				let fields = []

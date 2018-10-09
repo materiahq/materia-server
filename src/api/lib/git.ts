@@ -25,7 +25,6 @@ export class Git {
 			this.client = git(this.app.path);
 			this.client.silent(true);
 		} catch (e) {
-			console.log(e);
 		}
 	}
 
@@ -51,7 +50,6 @@ export class Git {
 
 	refreshHistory(): Promise<IGitHistory[]> {
 		return this.getLogs().then(logs => {
-			// console.log('#1 logs', logs)
 			const history = logs.all.map(log => {
 				if (log.refs) {
 					log.refs = log.refs
@@ -86,10 +84,6 @@ export class Git {
 
 				return log;
 			});
-			// console.log('logs:', logs)
-			// if (!this.selected) {
-			// 	this.select(logs[0]);
-			// }
 			this.history = history;
 			return history;
 		});
@@ -145,7 +139,6 @@ export class Git {
 					behind: parsed[7] == 'behind' ? parsed[8] : 0
 				};
 				results.push(res);
-				// console.log('** branch', res, line)
 			} else {
 				const parsed2 = line.match(regexpLink);
 				if (parsed2) {
@@ -197,7 +190,6 @@ export class Git {
 				statusPath = statusPath.substr(0, statusPath.length - 1);
 			}
 			statusPath = statusPath.replace(' ', '\\ ');
-			console.log(`HEAD:${statusPath}`);
 			return this.client
 				.show(`HEAD:${statusPath}`)
 				.then(oldVersion => {
@@ -210,7 +202,6 @@ export class Git {
 					};
 				})
 				.catch(e => {
-					console.log('error when selected status', status, e);
 				})
 		}
 	}
@@ -237,7 +228,6 @@ export class Git {
 				const parentCommit = tmp[tmp.length - 1];
 				details.changes.forEach(change => {
 					const errCallback = e => {
-						console.log(e);
 						return '';
 					};
 					if ('A' == change[0]) {
@@ -294,7 +284,6 @@ export class Git {
 			details.changes.forEach(change => {
 				if (change[1] === filepath) {
 					const errCallback = e => {
-						console.log(e);
 						return '';
 					};
 					if ('A' == change[0]) {
@@ -353,7 +342,6 @@ export class Git {
 					changes: changes
 				};
 			})
-			.catch(e => console.log(`error getting commit ${hash}: ${e}`));
 	}
 
 	stage(statusPath: string): Promise<IGitWorkingCopy> {
@@ -419,10 +407,6 @@ export class Git {
 		return this.client
 			.raw(['fetch'])
 			.then(this.refreshRemoteData.bind(this))
-			.catch(e => {
-				console.log('ERROR FETCH', e);
-				throw e;
-			})
 	}
 
 	commit(
@@ -505,7 +489,6 @@ export class Git {
 			) {
 				return Promise.resolve({ all: [] });
 			}
-			console.log('error getting logs', e);
 			throw e;
 		});
 	}

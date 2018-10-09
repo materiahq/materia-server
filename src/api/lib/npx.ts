@@ -45,16 +45,13 @@ export class Npx {
 				});
 			}
 			stream.stdout.on('data', d => {
-				console.log(`stdout: ${d}`);
 				data += d;
 			});
 			stream.stderr.on('data', (d) => {
-				console.log(`stderr: ${d}`);
 				data += d;
 			});
 
 			stream.on('close', (code) => {
-				console.log(`child process exited with code ${code}`);
 				if (code == 0) {
 					return resolve(data);
 				} else {

@@ -384,8 +384,6 @@ export abstract class Entity {
 				return Promise.resolve(); // when loading entities
 			}
 
-			// console.log('addRelation', this.name, relation, entityDest && entityDest.name)
-
 			let keyReference = entityDest.getPK()[0]
 			if (relation.reference.field && relation.reference.field != keyReference.name) {
 				let f = entityDest.getField(relation.reference.field)
@@ -467,16 +465,14 @@ export abstract class Entity {
 
 				let throughEntity = this.app.entities.get(relation.through)
 				if (throughEntity) {
-					//console.log('reusing entity', throughEntity)
 
 					let asField1 = throughEntity.getField(relation.as)
 					let asField2 = throughEntity.getField(relation.reference.as)
 
 					if (throughEntity.isRelation) {
-						//console.log ('compare relations', throughEntity.isRelation, relation)
-						if (throughEntity.compareIsRelation(relation, this))
+						if (throughEntity.compareIsRelation(relation, this)) {
 							return Promise.reject(new MateriaError('Table ' + relation.through + ' is already used for a different relation'))
-						//console.log('already exists, ok', asField1, asField2)
+						}
 						p = Promise.resolve()
 						if ( ! asField1) {
 							p = p.then(() => {

@@ -399,10 +399,8 @@ export class DatabaseController {
 
 	getDiffs(req, res) {
 		return this.app.synchronizer.diff().then((diffs) => {
-			console.log('Diffs : ', diffs)
 			res.status(200).send(diffs);
 		}).catch(err => {
-			console.log('SYnc error :', err)
 			res.status(500).send(err)
 		});
 

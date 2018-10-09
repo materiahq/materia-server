@@ -71,11 +71,6 @@ export class Win32FolderWatcher {
 						});
 					} else {
 						// 3 Logging
-						console.log(
-							'%c[File Watcher]',
-							'color: darkgreen',
-							eventParts[1]
-						);
 					}
 				}
 			});

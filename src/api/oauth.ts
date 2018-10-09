@@ -84,7 +84,6 @@ export class OAuth {
 	}
 
 	verifyLogin(clientId, clientSecret, done) {
-		console.log('rootPassword', clientSecret, this.app.rootPassword);
 		if (clientId == 'admin' && clientSecret == this.app.rootPassword) {
 			return done(null, { username: 'admin' })
 		} else {
@@ -97,7 +96,6 @@ export class OAuth {
 			return done(null, false);
 		}
 		var accessTokenHash = crypto.createHash('sha1').update(accessToken).digest('hex')
-		// console.log(this.tokens);
 		const token = this.tokens.find(token => token.token == accessTokenHash)
 		if (!token) return done(null, false)
 		if (new Date() > token.expires_in) {
