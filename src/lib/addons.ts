@@ -108,18 +108,24 @@ export class Addons {
 	 * @returns Promise<string[]>
 	 */
 	searchInstalledAddons():Promise<Array<string>> {
-		let packageJsonPath = require.resolve(path.join(this.app.path, 'package.json'))
-		if (require.cache[packageJsonPath]) {
-			delete require.cache[packageJsonPath]
+		let pkg;
+		try {
+			let packageJsonPath = require.resolve(path.join(this.app.path, 'package.json'))
+			if (require.cache[packageJsonPath]) {
+				delete require.cache[packageJsonPath]
+			}
+			pkg = require(path.join(this.app.path, 'package.json'))
+		} catch (e) {
+			pkg = {
+				dependencies: {},
+				devDependencies: {}
+			}
 		}
-		let pkg = require(path.join(this.app.path, 'package.json'))
 		let addons = []
 		let dependencies = Object.assign({}, pkg.dependencies || {}, pkg.devDependencies || {})
 		const links = this.app.config.get<string[]>(this.app.mode, ConfigType.LINKS) || [];
-		console.log(`~~~~~~~~~ ${links}`)
 		return this.setupModule(() => {
 			new Set([...Object.keys(dependencies), ...links]).forEach(dep => {
-				console.log('try dep', dep);
 				try {
 					let dep_pkg = require(dep + '/package.json')
 					if (dep_pkg.materia) {
@@ -133,7 +139,6 @@ export class Addons {
 					}
 				}
 			});
-			console.log('addons', addons);
 			return Promise.resolve(addons)
 		})
 	}
@@ -293,7 +298,7 @@ module.exports = ${nameCapitalizeFirst};`
 		})
 
 		return p.catch(e => {
-			console.log(e);
+			this.app.logger.error(e);
 		})
 	}
 

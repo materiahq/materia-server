@@ -53,7 +53,6 @@ export class Server {
 		const clientConfig = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
 
 		let webDir;
-		// console.log(clientConfig);
 		if (clientConfig && clientConfig.dist) {
 			webDir = clientConfig.dist
 		} else if (clientConfig && !clientConfig.dist && clientConfig.src) {
@@ -214,7 +213,7 @@ export class Server {
 					}
 				}
 				this.config = this.app.config.get<IServerConfig>(this.app.mode, ConfigType.SERVER)
-				let port = opts && opts.port || this.app.options.port || this.config.port
+				let port = opts && opts.port || this.app.options && this.app.options.port || this.config && this.config.port || 8080
 				if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT && process.env.PORT) {
 					port = +process.env.PORT
 				}
@@ -243,23 +242,23 @@ export class Server {
 					return reject(e)
 				}
 
-				let args = [port, this.config.host || 'localhost', () => {
+				let args = [port, this.config && this.config.host || 'localhost', () => {
 					if (port == error) {
 						return;
 					}
 					this.started = true
 					this.app.logger.log(` └─┬ Server: ${chalk.green.bold('Started')}`)
-					if (this.config.host == '0.0.0.0' || process.env.NO_HOST) {
+					if (this.config && this.config.host == '0.0.0.0' || process.env.NO_HOST) {
 						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline(`http://localhost:${port}`) + '\n')
 					} else {
-						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline('http://' + (this.config.host || 'localhost') + ':' + port) + '\n')
+						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline('http://' + (this.config && this.config.host || 'localhost') + ':' + port) + '\n')
 					}
 					this.server.removeListener('error', errListener)
 					return resolve(port)
 				}]
 
 				//special IP - "no host"
-				if (this.config.host == '0.0.0.0' || process.env.NO_HOST) {
+				if (this.config && this.config.host == '0.0.0.0' || process.env.NO_HOST) {
 					//remove the host from args
 					args[1] = args.pop()
 				}
