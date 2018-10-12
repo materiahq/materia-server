@@ -63,7 +63,7 @@ export class BoilerplateController {
 			return this._newAngularProject(params.name)
 		}).then(() => {
 			this._emitMessage('Rename angular project folder')
-			return this._renameFolder(path.join(this.app.path, params.name), path.join(this.app.path, params.output))
+			return this._renameItem(path.join(this.app.path, params.name), path.join(this.app.path, params.output))
 		}).then(() => {
 			this._emitMessage('Build angular application')
 			return this.angularCli.execInFolder(params.output, 'build', [])
@@ -104,13 +104,23 @@ export class BoilerplateController {
 			this._emitMessage('construct monopackage structure')
 			return this._removeBoilerplatePackage(params.name)
 		}).then(() => {
+			return this._renameItem(path.join(this.app.path, '.gitignore'), path.join(this.app.path, '.gitignore2'))
+		}).then(() => {
 			return this._mergeBoilerplateProjectFolder(params.name)
 		}).then(() => {
 			return this._renameBoilerplateClientFolder()
 		}).then(() => {
-			return this.angularCli.moveE2eFolder()
+			return this._moveItem(path.join(this.app.path, 'e2e'), path.join(this.app.path, 'client', 'e2e'))
 		}).then(() => {
-			return this.angularCli.initNewConfig(params.name)
+			return this._moveItem(path.join(this.app.path, 'tslint.json'), path.join(this.app.path, 'client', 'tslint.json'))
+		}).then(() => {
+			return this._moveItem(path.join(this.app.path, 'tsconfig.json'), path.join(this.app.path, 'client', 'tsconfig.json'))
+		}).then(() => {
+			return this._moveItem(path.join(this.app.path, '.gitignore'), path.join(this.app.path, 'client', '.gitignore'))
+		}).then(() => {
+			return this._renameItem(path.join(this.app.path, '.gitignore2'), path.join(this.app.path, '.gitignore'))
+		}).then(() => {
+			return this.angularCli.initNewMonopackageConfig(params.name)
 		}).then(() => {
 			return this.angularCli.saveConfig()
 		}).then(() => {
@@ -237,7 +247,19 @@ export class BoilerplateController {
 		});
 	}
 
-	private _renameFolder(oldPath, newPath): Promise<void> {
+	private _moveItem(oldPath, newPath) {
+		return new Promise((resolve, reject) => {
+			return fse.move(oldPath, newPath, (err) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			})
+		});
+	}
+
+	private _renameItem(oldPath, newPath): Promise<void> {
 		return new Promise((resolve, reject) => {
 			fs.rename(path.join(oldPath), path.join(newPath), (err) => {
 				if (err) {
@@ -323,7 +345,7 @@ export class BoilerplateController {
 		])
 			.then(() => {
 				this._emitMessage('Rename React app folder')
-				return this._renameFolder(path.join(this.app.path, params.name), path.join(this.app.path, params.output));
+				return this._renameItem(path.join(this.app.path, params.name), path.join(this.app.path, params.output));
 			}).then(() => {
 				this._emitMessage('Add client config')
 				this.app.config.set({
@@ -383,7 +405,7 @@ export class BoilerplateController {
 				this._emitMessage('Generate Vue application')
 				return this._newVueProject(params.name);
 			}).then(() =>
-				this._renameFolder(path.join(this.app.path, params.name), path.join(this.app.path, params.output))
+				this._renameItem(path.join(this.app.path, params.name), path.join(this.app.path, params.output))
 			).then(() => {
 				this._emitMessage('Build vue application')
 				return this.vueCli.execVueCliServiceInFolder(params.output, 'build', [])

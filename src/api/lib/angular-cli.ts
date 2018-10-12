@@ -2,7 +2,6 @@ import { App } from '../../lib';
 
 import * as path from 'path';
 import * as fs from 'fs';
-import * as fse from 'fs-extra';
 import * as execa from 'execa';
 
 export class AngularCli {
@@ -94,40 +93,10 @@ export class AngularCli {
 		});
 	}
 
-	getTsConfig(spec?) {
-		return new Promise((resolve, reject) => {
-			let tsPath = null;
-			if (spec) {
-				tsPath = 'tsconfig.spec.json'
-			} else {
-				tsPath = 'tsconfig.app.json'
-			}
-			fs.readFile(path.join(this.app.path, 'client', 'src', tsPath), 'utf-8', (e, data) => {
-				if (e) {
-					reject(e);
-				} else {
-					resolve(JSON.parse(data));
-				}
-			});
-		});
-	}
-
-	getE2eTsConfig() {
-		return new Promise((resolve, reject) => {
-			const tsPath = 'tsconfig.e2e.json'
-			fs.readFile(path.join(this.app.path, 'client', 'e2e', tsPath), 'utf-8', (e, data) => {
-				if (e) {
-					reject(e);
-				} else {
-					resolve(JSON.parse(data));
-				}
-			});
-		});
-	}
-
-	initNewConfig(projectName: string) {
+	initNewMonopackageConfig(projectName: string) {
 		return new Promise((resolve, reject) => {
 			this.getConfig().then(() => {
+				this.config.projects[projectName].root = 'client';
 				this.config.projects[projectName].sourceRoot = 'client/src';
 				this.config.projects[projectName].architect.build.options = Object.assign({},
 					this.config.projects[projectName].architect.build.options,
@@ -206,43 +175,8 @@ export class AngularCli {
 				e2eConfig.architect.lint.options = Object.assign({}, e2eConfig.architect.lint.options, {
 					"tsConfig": "client/e2e/tsconfig.e2e.json"
 				});
-				this._initTsFiles().then(() => resolve());
+				resolve();
 			});
-		});
-	}
-
-	_initTsFiles() {
-		return new Promise((resolve, reject) => {
-			this.getTsConfig().then((tsConfig: any) => {
-				tsConfig.extends = "../../tsconfig.json";
-				this.app.saveFile(path.join(this.app.path, 'client', 'src', 'tsconfig.app.json'), JSON.stringify(tsConfig, null, 2)).then(() => {
-					this.getTsConfig(true).then((tsSpecConfig: any) => {
-						tsSpecConfig.extends = "../../tsconfig.json";
-						this.app.saveFile(path.join(this.app.path, 'client', 'src', 'tsconfig.spec.json'), JSON.stringify(tsSpecConfig, null, 2)).then(() => {
-							this.getE2eTsConfig().then((tsConfig: any) => {
-								tsConfig.extends = "../../tsconfig.json";
-								this.app.saveFile(path.join(this.app.path, 'client', 'e2e', 'tsconfig.e2e.json'), JSON.stringify(tsConfig, null, 2)).then(() => {
-									resolve();
-								});
-							});
-						});
-					});
-				});
-			});
-		});
-	}
-
-	moveE2eFolder() {
-		return new Promise((resolve, reject) => {
-			const srcPath = path.join(this.app.path, 'e2e');
-			const destPath = path.join(this.app.path, 'client', 'e2e');
-			return fse.move(srcPath, destPath, (err) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve();
-				}
-			})
 		});
 	}
 
