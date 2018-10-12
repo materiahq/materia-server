@@ -102,8 +102,11 @@ export class ClientController {
 			type: 'client:build',
 			message: 'Launch build-script'
 		})
-		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
-		const script = conf.scripts && conf.scripts.build ? conf.scripts.build : 'build';
+		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
+		let script = conf.scripts && conf.scripts.build ? conf.scripts.build : 'build';
+		if (req.body.prod && ! conf.scripts.prod) {
+			script = conf.scripts.prod;
+		}
 		this.npm.execInFolder(conf.src, 'run-script', [script], (data, error) => {
 			const progress = this._parseProgress(data);
 			if (progress) {
