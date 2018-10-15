@@ -62,6 +62,8 @@ export class BoilerplateController {
 			this.app.config.save();
 			return this._newAngularProject(params.name)
 		}).then(() => {
+			return this._deleteItem(path.join(this.app.path, params.name, '.git'))
+		}).then(() => {
 			this._emitMessage('Rename angular project folder')
 			return this._renameItem(path.join(this.app.path, params.name), path.join(this.app.path, params.output))
 		}).then(() => {
