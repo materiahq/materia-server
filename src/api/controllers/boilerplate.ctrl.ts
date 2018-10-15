@@ -104,6 +104,8 @@ export class BoilerplateController {
 			this._emitMessage('construct monopackage structure')
 			return this._removeBoilerplatePackage(params.name)
 		}).then(() => {
+			return this._deleteItem(path.join(this.app.path, params.name, '.git'))
+		}).then(() => {
 			return this._renameItem(path.join(this.app.path, '.gitignore'), path.join(this.app.path, '.gitignore2'))
 		}).then(() => {
 			return this._mergeBoilerplateProjectFolder(params.name)
@@ -243,6 +245,17 @@ export class BoilerplateController {
 						.then(() => resolve())
 						.catch(err => reject(err));
 				}
+			})
+		});
+	}
+
+	private _deleteItem(path) {
+		return new Promise((resolve, reject) => {
+			fs.unlink(path, (err) => {
+				if (err) {
+					reject(err);
+				}
+				resolve();
 			})
 		});
 	}
