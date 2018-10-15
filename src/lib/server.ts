@@ -50,20 +50,6 @@ export class Server {
 		this.expressApp.use(bodyParser.json())
 		this.expressApp.use(methodOverride())
 		this.expressApp.use(compression())
-		const clientConfig = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
-
-		let webDir;
-		if (clientConfig && clientConfig.dist) {
-			webDir = clientConfig.dist
-		} else if (clientConfig && !clientConfig.dist && clientConfig.src) {
-			webDir = clientConfig.src
-		} else {
-			webDir = 'client'
-		}
-
-		// Initialize dynamic Express static Object.
-		this.createDynamicStatic(path.join(this.app.path, webDir));
-		this.expressApp.use(this.dynamicStatic);
 
 		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
 			this.expressApp.use(morgan('dev'))
@@ -176,6 +162,20 @@ export class Server {
 		return new Promise<number>((resolve, reject) => {
 			this.stop().then(() => {
 				if (! opts || ! opts.fallback) {
+
+					let webDir;
+					// console.log(clientConfig);
+					if (clientConfig && clientConfig.dist) {
+						webDir = clientConfig.dist
+					} else if (clientConfig && !clientConfig.dist && clientConfig.src) {
+						webDir = clientConfig.src
+					} else {
+						webDir = 'client'
+					}
+
+					// Initialize dynamic Express static Object.
+					this.createDynamicStatic(path.join(this.app.path, webDir));
+					this.expressApp.use(this.dynamicStatic);
 					this.app.api.registerEndpoints()
 					this.expressApp.all('/api/*', (req, res) => {
 						res.status(404).send({
@@ -271,7 +271,7 @@ export class Server {
 	Stops the server.
 	*/
 	stop(): Promise<void> {
-		if (!this.server || !this.started) {
+		if ( ! this.server || ! this.started ) {
 			return Promise.resolve()
 		}
 
