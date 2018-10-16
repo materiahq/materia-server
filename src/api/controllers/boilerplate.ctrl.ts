@@ -363,6 +363,7 @@ export class BoilerplateController {
 			const boilerplateProjectPath = path.join(this.app.path, projectName);
 			this._fileToJson(path.join(boilerplateProjectPath, 'package.json'))
 			.then((boilerplateProjectPackage: any) => {
+				delete boilerplateProjectPackage.scripts.start;
 				this.app.config.set(Object.assign({}, pkg.devDependencies, boilerplateProjectPackage.devDependencies), AppMode.DEVELOPMENT, ConfigType.DEPENDENCIES);
 				this.app.config.set(Object.assign({}, pkg.dependencies, boilerplateProjectPackage.dependencies), AppMode.PRODUCTION, ConfigType.DEPENDENCIES);
 				this.app.config.set(Object.assign({}, pkg.scripts, boilerplateProjectPackage.scripts, { watch: 'ng build --watch', prod: 'ng build --prod' }), this.app.mode, ConfigType.SCRIPTS);
