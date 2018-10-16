@@ -60,6 +60,13 @@ export class BoilerplateController {
 			this._emitMessage('Build angular application');
 			return this.angularCli.exec(path.join(this.app.path, params.output), 'build', []);
 		}).then(() => {
+			const boilerplateProjectPath = path.join(this.app.path, params.output);
+			return this._fileToJson(path.join(boilerplateProjectPath, 'package.json'));
+		}).then((angularPackageJson: any) => {
+			angularPackageJson.scripts.watch = 'ng build --watch';
+			angularPackageJson.scripts.prod = 'ng build --prod';
+			return this.app.saveFile(path.join(this.app.path, params.output, 'package.json'), JSON.stringify(angularPackageJson, null, 2));
+		}).then(() => {
 			this.app.config.set({
 				src: params.output,
 				dist: `${params.output}/dist/${params.name}`,
