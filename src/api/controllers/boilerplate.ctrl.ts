@@ -105,6 +105,8 @@ export class BoilerplateController {
 		}).then(() => {
 			return this._removeBoilerplatePackage(params.name);
 		}).then(() => {
+			return this._removeItemIfExist(path.join(this.app.path, params.name, 'readme.md'));
+		}).then(() => {
 			return this._removeItemIfExist(path.join(this.app.path, params.name, '.git'));
 		}).then(() => {
 			return this._renameItem(path.join(this.app.path, '.gitignore'), path.join(this.app.path, '.gitignore2'));
@@ -116,6 +118,8 @@ export class BoilerplateController {
 			return this._moveItem(path.join(this.app.path, 'e2e'), path.join(this.app.path, 'client', 'e2e'));
 		}).then(() => {
 			return this._moveItem(path.join(this.app.path, 'tslint.json'), path.join(this.app.path, 'client', 'tslint.json'));
+		}).then(() => {
+			return this._moveItem(path.join(this.app.path, '.editorconfig'), path.join(this.app.path, 'client', '.editorconfig'));
 		}).then(() => {
 			return this._moveItem(path.join(this.app.path, 'tsconfig.json'), path.join(this.app.path, 'client', 'tsconfig.json'));
 		}).then(() => {
