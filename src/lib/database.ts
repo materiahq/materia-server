@@ -349,7 +349,8 @@ export class Database {
 			domain.create()
 			try {
 				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts)
-				tmp.query(`CREATE DATABASE "${name}"`).spread((results, metadata)=> {
+				const dbName = defaultDatabase === 'sys' ? "`" + `${name}` + "`" : `"${name}"`;
+				tmp.query(`CREATE DATABASE ${dbName}`).spread((results, metadata) => {
 					return accept()
 				})
 			} catch (e) {
