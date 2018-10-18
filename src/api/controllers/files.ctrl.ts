@@ -31,13 +31,15 @@ export class FilesController {
 				const splittedName = p.split(path.sep);
 				const length = splittedName.length;
 				const filename = splittedName[length - 1];
-				res.send(200, this.app.getFiles(req.query.depth || 1, filename, p))
+				const files = this.app.getFiles(req.query.depth || 1, filename, p);
+				res.status(200).send(files);
 			}
 			else {
-				res.send(200, this.app.readFile(p))
+				res.status(200).send(this.app.readFile(p))
 			}
 		} else {
-			res.send(200, this.app.getFiles(req.query.depth || 1))
+			const files = this.app.getFiles(req.query.depth || 1)
+			res.status(200).send(files);
 		}
 	}
 
