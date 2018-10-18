@@ -101,28 +101,42 @@ export class ClientController {
 		this.websocket.broadcast({
 			type: 'client:build',
 			message: 'Launch build-script'
-		})
-		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
-		const script = conf.scripts && conf.scripts.build ? conf.scripts.build : 'build';
-		this.npm.execInFolder(conf.src, 'run-script', [script], (data, error) => {
-			const progress = this._parseProgress(data);
-			if (progress) {
+		});
+		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
+		let script = null;
+		if ( ! req.body.prod && conf.scripts.build) {
+			script = conf.scripts.build;
+		}
+		if (req.body.prod && conf.scripts.prod) {
+			script = conf.scripts.prod;
+		}
+		if (script) {
+			this.npm.execInFolder(conf.src, 'run-script', [script], (data, error) => {
+				const progress = this._parseProgress(data);
+				if (progress) {
+					this.websocket.broadcast({
+						type: 'client:build:progress',
+						progress: progress.progress,
+						status: progress.progressStatus
+					});
+				}
+			}).then((res) => {
 				this.websocket.broadcast({
-					type: 'client:build:progress',
-					progress: progress.progress,
-					status: progress.progressStatus
-				})
-			}
-		}).then((res) => {
+					type: 'client:build:success',
+					hasStatic: this.app.server.hasStatic()
+				});
+			}).catch(error => this.websocket.broadcast({
+				type: 'client:build:error',
+				hasStatic: this.app.server.hasStatic(),
+				error
+			}))
+		} else {
 			this.websocket.broadcast({
-				type: 'client:build:success',
-				hasStatic: this.app.server.hasStatic()
-			})
-		}).catch(error => this.websocket.broadcast({
-			type: 'client:build:error',
-			hasStatic: this.app.server.hasStatic(),
-			error
-		}))
+				type: 'client:build:error',
+				hasStatic: this.app.server.hasStatic(),
+				error: new Error(`'${req.body.prod ? "prod" : "build"}' script not found in client settings.`)
+			});
+		}
 	}
 
 
