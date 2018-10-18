@@ -9,74 +9,34 @@ export class AngularCli {
 
 	constructor(private app: App) { }
 
-	exec(command: string, params?: string[]): Promise<any> {
+	exec(cwd: string, command: string, params?: string[]): Promise<string> {
 		return new Promise((resolve, reject) => {
 			let data = '';
 			let stream = null;
-			if (fs.existsSync(path.join(this.app.path, "node_modules", ".bin", "ng"))) {
-				stream = execa(path.join(this.app.path, "node_modules", ".bin", "ng"), [command, ...params], {
-					cwd: this.app.path
+			if (fs.existsSync(path.join(cwd, "node_modules", ".bin", "ng"))) {
+				stream = execa(path.join(cwd, "node_modules", ".bin", "ng"), [command, ...params], {
+					cwd: cwd
 				});
-			} /*else {
-				stream = execa(path.join(path.resolve(), `resources/node_modules/.bin/npm`), [command, ...params], {
-					cwd: this.app.path
+				stream.stdout.on('data', d => {
+					data += d;
 				});
-			}*/
-			stream.stdout.on('data', d => {
-				data += d;
-			});
-			stream.stderr.on('data', (d) => {
-				data += d;
-			});
-
-			stream.on('close', (code) => {
-				if (code == 0) {
-					return resolve(data);
-				} else {
-					return reject({
-						code,
-						data
-					});
-				}
-			});
-
-		});
-	}
-
-	execInFolder(folder: string, command: string, params?: string[]): Promise<any> {
-		return new Promise((resolve, reject) => {
-			let data = '';
-			let stream = null;
-			if (fs.existsSync(path.join(this.app.path, folder,  "node_modules", ".bin", "ng"))) {
-				stream = execa(path.join(this.app.path, folder, "node_modules", ".bin", "ng"), [command, ...params], {
-					cwd: path.join(this.app.path, folder)
+				stream.stderr.on('data', (d) => {
+					data += d;
 				});
-			} /*else {
-				stream = execa(path.join(path.resolve(), `resources/node_modules/.bin/npm`), [command, ...params], {
-					cwd: this.app.path
+
+				stream.on('close', (code) => {
+					if (code == 0) {
+						return resolve(data);
+					} else {
+						return reject({
+							code,
+							data
+						});
+					}
 				});
-			}*/
-			stream.stdout.on('data', d => {
-				console.log(`Ng stdout: ${d}`);
-				data += d;
-			});
-			stream.stderr.on('data', (d) => {
-				console.log(`Ng stderr: ${d}`);
-				data += d;
-			});
-
-			stream.on('close', (code) => {
-				console.log(`Ng child process exited with code ${code}`);
-				if (code == 0) {
-					return resolve(data);
-				} else {
-					return reject({
-						code,
-						data
-					});
-				}
-			});
-
+			} else {
+				reject(new Error(`@angular/cli dependency not found in ${path.join(cwd, "node_modules")}`));
+			}
 		});
 	}
 
