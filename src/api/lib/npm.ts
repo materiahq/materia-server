@@ -32,10 +32,9 @@ export class Npm {
 			this.app.logger.log(`NPM -> ${command} ${params.join(' ')}`);
 		}
 		return this.getNpmPath().then(npmPath => {
-			return execa(npmPath, [command, ...params], {
-				cwd: path.join(this.cwd, folder)
-			});
-		})
+			const npmProc = execa(npmPath, [command, ...params], {cwd: folder ? folder : this.cwd});
+			return { proc: npmProc };
+		});
 	}
 
 	exec(command: string, params?: string[], stream?: (data: any, error?: boolean) => void): Promise<any> {
