@@ -3,6 +3,7 @@ import { Npm } from '../lib/npm';
 import { WebsocketInstance } from '../../lib/websocket';
 import { IClientConfig } from '@materia/interfaces';
 import * as stripAnsi from 'strip-ansi';
+import { join } from 'path';
 
 export class ClientController {
 	npm: Npm;
@@ -13,79 +14,84 @@ export class ClientController {
 		this.npm = new Npm(this.app.path);
 	}
 
-	startWatching(req, res) {
-		res.status(200).send({})
-		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT)
+	async startWatching(req, res) {
+		res.status(200).send({});
+		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
 		const script = conf.scripts && conf.scripts.watch ? conf.scripts.watch : 'watch';
+		await this._kill(this.npmProc);
+		const result = await this.npm.execInFolderBackground(join(this.app.path, conf.src), 'run-script', [script]);
+		this.npmProc = result.proc;
+		let last = -1;
+		let errors = [];
+		let building = false;
+		const sendProgress = (data) => {
+			const progress = this._parseProgress(data);
+			const err = this._parseErrors(data);
+			const end = this._parseEnd(data);
 
-		this._kill(this.npmProc).then(() => {
-			this.npmProc = this.npm.execInFolderBackground(conf.src, 'run-script', [script])
-
-			let last = -1;
-			let errors = []
-			let building = false;
-			const sendProgress = (data) => {
-				const progress = this._parseProgress(data);
-				const err = this._parseErrors(data);
-				const end = this._parseEnd(data);
-
-				if (progress) {
-					if (!building) {
-						this.websocket.broadcast({
-							type: 'client:build'
-						})
-						building = true;
-					}
-					if (progress.progress > last) {
-						this.app.logger.log(`npm run ${script}: ${data}`);
-						last = progress.progress
-					}
-					this.websocket.broadcast({
-						type: 'client:watch:progress',
-						progress: progress.progress,
-						status: progress.progressStatus
-					})
-				} else if (err.length) {
-					errors.concat(err);
-					if ( ! building ) {
-						this.websocket.broadcast({
-							type: 'client:build:error',
-							error: errors,
-							hasStatic: this.app.server.hasStatic()
-						})
-					}
-				} else if (end) {
-					building = false;
-					if (errors) {
-						this.websocket.broadcast({
-							type: 'client:build:error',
-							error: errors,
-							hasStatic: this.app.server.hasStatic()
-						})
-					} else {
-						this.websocket.broadcast({
-							type: 'client:build:success',
-							hasStatic: this.app.server.hasStatic()
-						});
-					}
-				} else {
-					this.app.logger.log(data);
-				}
+			if ( ! building) {
+				this.websocket.broadcast({
+					type: 'client:watch:building',
+					status: data
+				});
+				building = true;
 			}
 
-			this.npmProc.stdout.on('data', d => {
-				sendProgress(d.toString());
-			})
-			this.npmProc.stderr.on('data', d => {
-				sendProgress(d.toString());
-			})
-
-			this.npmProc.on('close', code => {
+			if (progress) {
+				if (progress.progress > last) {
+					this.app.logger.log(`npm run ${script}: ${data}`);
+					last = progress.progress;
+				}
 				this.websocket.broadcast({
-					type: 'client:watch:terminate'
-				})
-			})
-		})
+					type: 'client:watch:progress',
+					progress: progress.progress,
+					status: progress.progressStatus
+				});
+			} else if (end) {
+				building = false;
+				if (errors.length) {
+					this.websocket.broadcast({
+						type: 'client:build:error',
+						error: errors,
+						hasStatic: this.app.server.hasStatic()
+					});
+				} else {
+					this.websocket.broadcast({
+						type: 'client:build:success',
+						hasStatic: this.app.server.hasStatic()
+					});
+				}
+			} else if (err.length) {
+				errors.concat(err);
+				if ( ! building ) {
+					this.websocket.broadcast({
+						type: 'client:build:error',
+						error: errors,
+						hasStatic: this.app.server.hasStatic()
+					});
+				}
+			} else {
+				this.app.logger.log(data);
+				this.websocket.broadcast({
+					type: 'client:watch:building',
+					status: data
+				});
+			}
+		}
+
+		this.npmProc.stdout.on('data', d => {
+			sendProgress(d.toString());
+		});
+		this.npmProc.stderr.on('data', d => {
+			sendProgress(d.toString());
+		});
+
+		this.npmProc.on('close', code => {
+			this.websocket.broadcast({
+				type: 'client:watch:terminate',
+				hasStatic: this.app.server.hasStatic()
+			});
+		});
 	}
 
 	stopWatching(req, res) {
@@ -104,7 +110,7 @@ export class ClientController {
 		});
 		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
 		let script = null;
-		if ( ! req.body.prod && conf.scripts.build) {
+		if (!req.body.prod && conf.scripts.build) {
 			script = conf.scripts.build;
 		}
 		if (req.body.prod && conf.scripts.prod) {
