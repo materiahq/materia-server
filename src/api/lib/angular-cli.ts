@@ -9,13 +9,13 @@ export class AngularCli {
 
 	constructor(private app: App) { }
 
-	exec(cwd: string, command: string, params?: string[]): Promise<string> {
+	exec(command: string, params?: string[], cwd?: string): Promise<string> {
 		return new Promise((resolve, reject) => {
 			let data = '';
 			let stream = null;
 			if (fs.existsSync(path.join(cwd, "node_modules", ".bin", "ng"))) {
 				stream = execa(path.join(cwd, "node_modules", ".bin", "ng"), [command, ...params], {
-					cwd: cwd
+					cwd: cwd ? cwd : this.app.path
 				});
 				stream.stdout.on('data', d => {
 					data += d;
