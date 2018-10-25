@@ -299,6 +299,12 @@ export class Git {
 	stage(statusPath: string): Promise<IGitWorkingCopy> {
 		const status = this.workingCopy.files.find(s => s.path == statusPath);
 		let res;
+		if (status.path.substr(0, 1) == '"') {
+			status.path = status.path.substr(1);
+		}
+		if (status.path.substr(status.path.length - 1, 1) == '"') {
+			status.path = status.path.substr(0, status.path.length - 1);
+		}
 		if (status.index == 'D') {
 			res = this.client.rmKeepLocal([status.path]);
 		}
@@ -308,6 +314,12 @@ export class Git {
 
 	unstage(statusPath: string): Promise<IGitWorkingCopy> {
 		const status = this.workingCopy.files.find(s => s.path == statusPath);
+		if (status.path.substr(0, 1) == '"') {
+			status.path = status.path.substr(1);
+		}
+		if (status.path.substr(status.path.length - 1, 1) == '"') {
+			status.path = status.path.substr(0, status.path.length - 1);
+		}
 		return this.client
 			.reset(['HEAD', status.path])
 			.catch(e => {
