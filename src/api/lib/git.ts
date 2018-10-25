@@ -166,12 +166,7 @@ export class Git {
 		}
 		const status = this.workingCopy.files.find(p => p.path == statusPath);
 		let content = null;
-		if (statusPath.substr(0, 1) == '"') {
-			statusPath = statusPath.substr(1);
-		}
-		if (statusPath.substr(statusPath.length - 1, 1) == '"') {
-			statusPath = statusPath.substr(0, statusPath.length - 1);
-		}
+		statusPath = this._fixGitPath(statusPath);
 		try {
 			const size = fs.statSync(path.join(this.app.path, statusPath)).size;
 			if (size > 1000000.0) {
@@ -299,12 +294,7 @@ export class Git {
 	stage(statusPath: string): Promise<IGitWorkingCopy> {
 		const status = this.workingCopy.files.find(s => s.path == statusPath);
 		let res;
-		if (status.path.substr(0, 1) == '"') {
-			status.path = status.path.substr(1);
-		}
-		if (status.path.substr(status.path.length - 1, 1) == '"') {
-			status.path = status.path.substr(0, status.path.length - 1);
-		}
+		status.path = this._fixGitPath(status.path);
 		if (status.index == 'D') {
 			res = this.client.rmKeepLocal([status.path]);
 		}
@@ -314,12 +304,7 @@ export class Git {
 
 	unstage(statusPath: string): Promise<IGitWorkingCopy> {
 		const status = this.workingCopy.files.find(s => s.path == statusPath);
-		if (status.path.substr(0, 1) == '"') {
-			status.path = status.path.substr(1);
-		}
-		if (status.path.substr(status.path.length - 1, 1) == '"') {
-			status.path = status.path.substr(0, status.path.length - 1);
-		}
+		status.path = this._fixGitPath(status.path);
 		return this.client
 			.reset(['HEAD', status.path])
 			.catch(e => {
@@ -474,5 +459,15 @@ export class Git {
 
 	stashPop() {
 		return this.client.stash(['pop']);
+	}
+
+	private _fixGitPath(filePath): string {
+		if (filePath.substr(0, 1) == '"') {
+			filePath = filePath.substr(1);
+		}
+		if (filePath.substr(filePath.length - 1, 1) == '"') {
+			filePath = filePath.substr(0, filePath.length - 1);
+		}
+		return filePath;
 	}
 }
