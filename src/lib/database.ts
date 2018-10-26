@@ -210,15 +210,15 @@ export class Database {
 					tmp = new Sequelize(null, null, null, opts)
 				}
 			} catch (e) {
-				return reject(e)
+				reject(e)
 			}
 			d.add(tmp.query)
 			d.on('error', (e) => {
 				d.remove(tmp.query)
-				return reject(e)
+				reject(e)
 			})
 			d.run(() => {
-				return tmp.authenticate().then(() => {
+				tmp.authenticate().then(() => {
 					tmp.close()
 					accept()
 				}).catch((e) => { reject(e) })
