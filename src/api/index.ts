@@ -167,7 +167,7 @@ export class MateriaApi {
 		 */
 		this.api.get('/materia/controllers', this.oauth.isAuth, this.endpointsCtrl.getControllers.bind(this.endpointsCtrl));
 		this.api.get('/materia/endpoints', this.oauth.isAuth, this.endpointsCtrl.getEndpoints.bind(this.endpointsCtrl));
-		this.api.get('/materia/controllers', this.oauth.isAuth, this.endpointsCtrl.loadController.bind(this.endpointsCtrl));
+		this.api.get('/materia/controllers/:name*', this.oauth.isAuth, this.endpointsCtrl.loadController.bind(this.endpointsCtrl));
 		this.api.post('/materia/endpoints/generate', this.oauth.isAuth, this.endpointsCtrl.generate.bind(this.endpointsCtrl));
 		this.api.post('/materia/endpoints/code', this.oauth.isAuth, this.endpointsCtrl.createCode.bind(this.endpointsCtrl));
 		this.api.post('/materia/endpoints/query', this.oauth.isAuth, this.endpointsCtrl.createQuery.bind(this.endpointsCtrl));
