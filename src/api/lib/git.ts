@@ -158,7 +158,7 @@ export class Git {
 	getStatusDiff(
 		statusPath: string
 	): Promise<{ before: string; after: string }> {
-		if (!statusPath) {
+		if ( ! statusPath ) {
 			return Promise.resolve({
 				before: '',
 				after: ''
@@ -166,6 +166,7 @@ export class Git {
 		}
 		const status = this.workingCopy.files.find(p => p.path == statusPath);
 		let content = null;
+		statusPath = this._fixGitPath(statusPath);
 		try {
 			const size = fs.statSync(path.join(this.app.path, statusPath)).size;
 			if (size > 1000000.0) {
@@ -183,15 +184,8 @@ export class Git {
 				after: content
 			});
 		} else {
-			if (statusPath.substr(0, 1) == '"') {
-				statusPath = statusPath.substr(1);
-			}
-			if (statusPath.substr(statusPath.length - 1, 1) == '"') {
-				statusPath = statusPath.substr(0, statusPath.length - 1);
-			}
-			statusPath = statusPath.replace(' ', '\\ ');
 			return this.client
-				.show(`HEAD:${statusPath}`)
+				.raw(['show', `HEAD:${statusPath}`])
 				.then(oldVersion => {
 					if (oldVersion.length > 1000000) {
 						oldVersion = '// The content is too long to display...';
@@ -201,8 +195,6 @@ export class Git {
 						after: content
 					};
 				})
-				.catch(e => {
-				})
 		}
 	}
 
@@ -210,7 +202,6 @@ export class Git {
 		hash: string
 	): Promise<IGitHistoryDetails> {
 		const log = this.history.find(h => h.hash == hash);
-		const isLast = this.history[this.history.length - 1].hash == hash;
 		return this.getCommit(log.hash).then(details => {
 			const t = details.message.split('\n');
 			details.summary = t[0];
@@ -220,57 +211,13 @@ export class Git {
 			}
 			details.description = t.join('\n');
 
-			let p: Promise<any> = Promise.resolve();
-
-			if (!isLast) {
-				const promises = [];
-				const tmp = log.parents.split(' ');
-				const parentCommit = tmp[tmp.length - 1];
-				details.changes.forEach(change => {
-					const errCallback = e => {
-						return '';
-					};
-					if ('A' == change[0]) {
-						promises.push(
-							this.client
-								.show(`${log.hash}:${change[1]}`)
-								.catch(errCallback)
-						);
-						promises.push(Promise.resolve(''));
-					} else if ('D' == change[0]) {
-						promises.push(Promise.resolve(''));
-						promises.push(
-							this.client
-								.show(`${parentCommit}:${change[1]}`)
-								.catch(errCallback)
-						);
-					} else {
-						promises.push(
-							this.client
-								.show(`${log.hash}:${change[1]}`)
-								.catch(errCallback)
-						);
-						promises.push(
-							this.client
-								.show(`${parentCommit}:${change[1]}`)
-								.catch(errCallback)
-						);
-					}
-				});
-				p = Promise.all(promises);
-			}
-
-			return p.then(data => {
-				if (data) {
-					details.changes = details.changes.map((change, i) => {
-						return {
-							index: change[0],
-							path: change[1]
-						};
-					});
-				}
-				return details;
+			details.changes = details.changes.map((change, i) => {
+				return {
+					index: change[0],
+					path: change.slice(1).join(' ')
+				};
 			});
+			return details;
 		});
 	}
 
@@ -282,14 +229,14 @@ export class Git {
 			const promises = [];
 			let p: Promise<any> = Promise.resolve();
 			details.changes.forEach(change => {
-				if (change[1] === filepath) {
+				if (change.slice(1).join(' ') === filepath) {
 					const errCallback = e => {
-						return '';
+						return null;
 					};
 					if ('A' == change[0]) {
 						promises.push(
 							this.client
-								.show(`${hash}:${change[1]}`)
+								.raw(['show', `${hash}:${filepath}`])
 								.catch(errCallback)
 						);
 						promises.push(Promise.resolve(''));
@@ -297,18 +244,18 @@ export class Git {
 						promises.push(Promise.resolve(''));
 						promises.push(
 							this.client
-								.show(`${parentCommit}:${change[1]}`)
+								.raw(['show', `${parentCommit}:${filepath}`])
 								.catch(errCallback)
 						);
 					} else {
 						promises.push(
 							this.client
-								.show(`${hash}:${change[1]}`)
+								.raw(['show', `${hash}:${filepath}`])
 								.catch(errCallback)
 						);
 						promises.push(
 							this.client
-								.show(`${parentCommit}:${change[1]}`)
+								.raw(['show', `${parentCommit}:${filepath}`])
 								.catch(errCallback)
 						);
 					}
@@ -316,7 +263,7 @@ export class Git {
 			});
 			p = Promise.all(promises);
 			return p.then(data => {
-				let change = {original: '', modified: ''};
+				let change = { original: '', modified: '' };
 				if (data) {
 					change = {
 						original: data[1],
@@ -341,12 +288,13 @@ export class Git {
 					message: result[0].trim(),
 					changes: changes
 				};
-			})
+			});
 	}
 
 	stage(statusPath: string): Promise<IGitWorkingCopy> {
 		const status = this.workingCopy.files.find(s => s.path == statusPath);
 		let res;
+		status.path = this._fixGitPath(status.path);
 		if (status.index == 'D') {
 			res = this.client.rmKeepLocal([status.path]);
 		}
@@ -356,6 +304,7 @@ export class Git {
 
 	unstage(statusPath: string): Promise<IGitWorkingCopy> {
 		const status = this.workingCopy.files.find(s => s.path == statusPath);
+		status.path = this._fixGitPath(status.path);
 		return this.client
 			.reset(['HEAD', status.path])
 			.catch(e => {
@@ -510,5 +459,15 @@ export class Git {
 
 	stashPop() {
 		return this.client.stash(['pop']);
+	}
+
+	private _fixGitPath(filePath): string {
+		if (filePath.substr(0, 1) == '"') {
+			filePath = filePath.substr(1);
+		}
+		if (filePath.substr(filePath.length - 1, 1) == '"') {
+			filePath = filePath.substr(0, filePath.length - 1);
+		}
+		return filePath;
 	}
 }
