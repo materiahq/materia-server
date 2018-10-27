@@ -3,7 +3,7 @@ import * as path from 'path'
 import chalk from 'chalk'
 
 import { App, AppMode } from './app'
-import { IServerConfig, IClientConfig } from '@materia/interfaces'
+import { IServerConfig, IClientConfig, IAppConfig } from '@materia/interfaces'
 import { ConfigType, IConfigOptions } from './config'
 
 import * as express from 'express'
@@ -116,6 +116,18 @@ export class Server {
 	*/
 	getBaseUrl(path?: string, mode?: AppMode, options?: IConfigOptions) {
 		path = path || '/api'
+		let appConf = this.app.config.get<IAppConfig>(
+			mode,
+			ConfigType.APP,
+			options
+		);
+		if (mode == AppMode.PRODUCTION && appConf.live && appConf.live.url) {
+			let base = appConf.live.url;
+			if (base.substr(base.length - 1, 1) == '/') {
+				base = base.substr(0, base.length - 1);
+			}
+			return base + path;
+		}
 		let conf = this.app.config.get<IServerConfig>(mode, ConfigType.SERVER, options)
 		if (!conf) {
 			return ""
