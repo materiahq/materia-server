@@ -66,13 +66,15 @@ export class AppController {
 			}
 
 			const clientToSave: IClientConfig = {
-				src: client.src
+				www: client.www
 			}
-			if (client.enabled && client.build && client.build.enabled && client.dist && client.dist.length > 0 && client.src !== client.dist) {
-				clientToSave.dist = client.dist
-				this.app.server.dynamicStatic.setPath(path.join(this.app.path, client.dist));
-			} else if (client.enabled && client.src) {
-				this.app.server.dynamicStatic.setPath(path.join(this.app.path, client.src));
+			if (client.www) {
+				this.app.server.dynamicStatic.setPath(path.join(this.app.path, client.www));
+			}
+			if (client.packageJson) {
+				clientToSave.packageJsonPath = client.packageJsonPath
+			} else if (client.build && client.build.enabled) {
+				clientToSave.build = true;
 			}
 			if (client.scripts && (client.scripts.build || client.scripts.watch || client.scripts.prod)) {
 				clientToSave.scripts = {}
