@@ -40,10 +40,13 @@ export class VueCli {
 		});
 	}
 
-	execVueCliService(cwd: string, command: string, params?: string[]): Promise<any> {
+	execVueCliService(command: string, params?: string[], cwd?: string): Promise<any> {
 		return new Promise((resolve, reject) => {
 			let data = '';
 			let stream = null;
+			if (! cwd) {
+				cwd = this.app.path;
+			}
 			if (fs.existsSync(path.join(cwd, "node_modules", ".bin", "vue-cli-service"))) {
 				stream = execa(path.join(cwd, "node_modules", ".bin", "vue-cli-service"), [command, ...params], {
 					cwd: cwd

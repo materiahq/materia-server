@@ -58,7 +58,7 @@ export class BoilerplateController {
 			return this._renameItem(path.join(this.app.path, params.name), path.join(this.app.path, params.output));
 		}).then(() => {
 			this._emitMessage('Build angular application');
-			return this.angularCli.exec(path.join(this.app.path, params.output), 'build', []);
+			return this.angularCli.exec('build', [], path.join(this.app.path, params.output));
 		}).then(() => {
 			const boilerplateProjectPath = path.join(this.app.path, params.output);
 			return this._fileToJson(path.join(boilerplateProjectPath, 'package.json'));
@@ -135,7 +135,7 @@ export class BoilerplateController {
 			return this.npm.exec('install', []);
 		}).then(() => {
 			this._emitMessage('Build angular application');
-			return this.angularCli.exec(this.app.path, 'build', []);
+			return this.angularCli.exec('build', []);
 		}).then(() => {
 			this.app.config.set({
 				src: '',
@@ -197,7 +197,7 @@ export class BoilerplateController {
 				return this.app.config.save();
 			}).then(() => {
 				this._emitMessage('Build React application');
-				return this.npm.execInFolder(params.output, 'run-script', ['build']);
+				return this.npm.exec('run-script', ['build'], path.join(this.app.path, params.output));
 			}).then(() => {
 				this.app.server.dynamicStatic.setPath(path.join(this.app.path, `${params.output}/build`));
 				const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
@@ -237,7 +237,7 @@ export class BoilerplateController {
 				this._renameItem(path.join(this.app.path, params.name), path.join(this.app.path, params.output))
 			).then(() => {
 				this._emitMessage('Build vue application');
-				return this.vueCli.execVueCliService(path.join(this.app.path, params.output), 'build', []);
+				return this.vueCli.execVueCliService('build', [], path.join(this.app.path, params.output));
 			}).then(() => {
 				this.app.config.set({
 					src: params.output,
@@ -307,7 +307,7 @@ export class BoilerplateController {
 				return this.npm.exec('install', []);
 			}).then(() => {
 				this._emitMessage('Build vue application');
-				return this.vueCli.execVueCliService(this.app.path, 'build', []);
+				return this.vueCli.execVueCliService('build', []);
 			}).then(() => {
 				this.app.config.set({
 					src: '',
@@ -431,7 +431,7 @@ export class BoilerplateController {
 	}
 
 	private _newAngularProject(params: string[], projectName?: string) {
-		return this.angularCli.exec(this.app.path, 'new', [
+		return this.angularCli.exec('new', [
 			projectName ? projectName : this.app.config.packageJson.name,
 			...params
 		]);

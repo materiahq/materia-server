@@ -18,7 +18,7 @@ export class PackageManagerController {
 		this.app.watcher.disable()
 
 		try {
-			this.npm.exec('install', [name, '--save'], (data, error) => {
+			this.npm.exec('install', [name, '--save'], null, (data, error) => {
 				this.app.logger.log(data);
 			}).then(data => {
 				this.app.watcher.enable()
@@ -46,7 +46,7 @@ export class PackageManagerController {
 	}
 
 	installAll(req, res) {
-		return this.npm.exec('install', [], (data, error) => {
+		return this.npm.exec('install', [], null, (data, error) => {
 			this.app.logger.log(data);
 		}).then(data => {
 			res.status(200).send({data});
@@ -62,7 +62,7 @@ export class PackageManagerController {
 			: req.params.dependency;
 
 		try {
-			this.npm.exec('uninstall', [name, '--save'], (data, error) => {
+			this.npm.exec('uninstall', [name, '--save'], null, (data, error) => {
 				this.app.logger.log(data);
 			}).then(data => {
 				this.app.watcher.enable()
