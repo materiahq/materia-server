@@ -45,26 +45,32 @@ export class Client {
 			}
 		}*/
 		if ( ! this.config ) {
-			this.config = { buildEnabled: false }
+			this.config = { build: false }
 			this.app.logger.log(` │ └── ${chalk.bold('No build scripts detected')}`)
 		}
 
-		/*if ( ! this.config.build ) {
-			this.config.build = 'web'
-		}*/
-		if ( ! this.config.src ) {
-			this.config.src = 'client'
+		if ( ! this.config.www ) {
+			this.config.www = '';
+		} else {
+			this.app.logger.log(` │ └── Static folder ${chalk.bold('./' + this.config.www)} detected`)
 		}
-		if ( ! this.config.dist) {
-			this.config.dist = this.config.src
+		if ( ! this.config.packageJsonPath) {
+			this.config.packageJsonPath = '';
+		} else {
+			this.config.build = true;
+		}
+		if (this.config.packageJsonPath || this.config.build)  {
+			this.app.logger.log(` │ └── ${chalk.bold('Build system detected')}`)
 		}
 
 		if ( ! this.config.scripts ) {
 			this.config.scripts = {}
-		}
-		else {
-			this.config.buildEnabled = true
-			this.app.logger.log(` │ └── Build scripts detected in ${chalk.bold('package.json')}`)
+		} else {
+			let packagePath = './package.json';
+			if (this.config.packageJsonPath) {
+				packagePath = `./${this.config.packageJsonPath}/package.json`;
+			}
+			this.app.logger.log(` │ └── Build scripts detected in ${chalk.bold(packagePath)}`)
 		}
 
 		if ( ! this.config.autoWatch ) {
@@ -75,18 +81,18 @@ export class Client {
 	}
 
 	hasOneScript() {
-		return !!((this.hasBuildScript(ScriptMode.BUILD) || this.hasBuildScript(ScriptMode.WATCH) || this.hasBuildScript(ScriptMode.PROD)) && this.config.dist)
+		return !!((this.hasBuildScript(ScriptMode.BUILD) || this.hasBuildScript(ScriptMode.WATCH) || this.hasBuildScript(ScriptMode.PROD)) && this.config.www)
 	}
 
 	hasBuildScript(mode?:ScriptMode, script?:string) {
-		if ( ! this.config || ! this.config.src) {
+		if ( ! this.config || ! this.config.www || (this.config.www && ! this.config.build && ! this.config.packageJsonPath)) {
 			return false
 		}
 		try {
 			let pkgTxt = ''
-			if (fs.existsSync(path.join(this.app.path, this.config.src, 'package.json'))) {
-				pkgTxt = fs.readFileSync(path.join(this.app.path, this.config.src, 'package.json'), 'utf-8')
-				this.pkgPath = path.join(this.app.path, this.config.src)
+			if (fs.existsSync(path.join(this.app.path, this.config.packageJsonPath, 'package.json'))) {
+				pkgTxt = fs.readFileSync(path.join(this.app.path, this.config.packageJsonPath, 'package.json'), 'utf-8')
+				this.pkgPath = path.join(this.app.path, this.config.packageJsonPath)
 			}
 			else if (fs.existsSync(path.join(this.app.path, 'package.json'))) {
 				pkgTxt = fs.readFileSync(path.join(this.app.path, 'package.json'), 'utf-8')
