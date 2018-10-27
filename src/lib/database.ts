@@ -210,7 +210,7 @@ export class Database {
 					tmp = new Sequelize(null, null, null, opts)
 				}
 			} catch (e) {
-				reject(e)
+				return reject(e)
 			}
 			d.add(tmp.query)
 			d.on('error', (e) => {
