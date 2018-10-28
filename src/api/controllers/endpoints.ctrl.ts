@@ -34,7 +34,10 @@ export class EndpointsController {
 	}
 
 	loadController(req, res) {
-		let controllerName = req.query.name;
+		let controllerName = req.params.name;
+		if (req.params[0]) {
+			controllerName += req.params[0];
+		}
 		try {
 			let endpointPath = path.join(this.app.path, 'server', 'controllers');
 			const fromAddon = controllerName.split('@materia').length > 1;
@@ -45,7 +48,7 @@ export class EndpointsController {
 				stringArray.forEach((value, i) => {
 					if (i == 0) {
 						addonName += value;
-					} else {
+					} else if (i < stringArray.length - 1) {
 						addonName += '/' + value;
 					}
 				});
@@ -67,8 +70,7 @@ export class EndpointsController {
 				.toString();
 			res.status(200).send(code);
 		} catch (err) {
-			const error = JSON.parse(err);
-			res.status(500).json(error);
+			res.status(500).send(err);
 		}
 	}
 
