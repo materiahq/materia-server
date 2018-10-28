@@ -77,12 +77,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:webshell/materia-server.git"
+    "url": "git@github.com:materiahq/materia-server.git"
   },
   "author": "Webshell <team@oauth.io>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/webshell/materia-server/issues"
+    "url": "https://github.com/materiahq/materia-server/issues"
   },
-  "homepage": "https://github.com/webshell/materia-server"
+  "homepage": "https://github.com/materiahq/materia-server"
 }
