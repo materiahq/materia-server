@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as fse from 'fs-extra';
 import * as path from 'path';
+import { IClientConfig } from '@materia/interfaces';
 
 import { App, AppMode, ConfigType } from '../../lib';
 import { Npm } from '../lib/npm';
@@ -29,6 +30,13 @@ export class BoilerplateController {
 
 	initMinimal(req, res) {
 		this.app.initializeStaticDirectory()
+			.then(() => {
+				const clientConfig: IClientConfig = {
+					www: 'client'
+				}
+				this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
+				return this.app.config.save();
+			})
 			.then(() => res.status(200).json({ init: true }))
 			.catch((err) => res.status(500).send(err.message));
 	}
@@ -67,17 +75,18 @@ export class BoilerplateController {
 			angularPackageJson.scripts.prod = 'ng build --prod';
 			return this.app.saveFile(path.join(this.app.path, params.output, 'package.json'), JSON.stringify(angularPackageJson, null, 2));
 		}).then(() => {
-			this.app.config.set({
-				src: params.output,
-				dist: `${params.output}/dist/${params.name}`,
-				buildEnabled: true,
+			const clientConfig: IClientConfig = {
+				packageJsonPath: params.output,
+				www: `${params.output}/dist/${params.name}`,
+				build: true,
 				scripts: {
 					build: "build",
 					watch: "watch",
 					prod: "prod"
 				},
 				autoWatch: false
-			}, AppMode.DEVELOPMENT, ConfigType.CLIENT);
+			};
+			this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
 			return this.app.config.save();
 		}).then(() => {
 			this.app.server.dynamicStatic.setPath(path.join(this.app.path, `${params.output}/dist/${params.name}`));
@@ -137,17 +146,17 @@ export class BoilerplateController {
 			this._emitMessage('Build angular application');
 			return this.angularCli.exec('build', []);
 		}).then(() => {
-			this.app.config.set({
-				src: '',
-				dist: 'client/dist',
-				buildEnabled: true,
+			const clientConfig: IClientConfig = {
+				www: 'client/dist',
+				build: true,
 				scripts: {
 					build: "build",
 					watch: "watch",
 					prod: "prod"
 				},
 				autoWatch: false
-			}, AppMode.DEVELOPMENT, ConfigType.CLIENT);
+			};
+			this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
 			return this.app.config.save();
 		}).then(() => {
 			this.app.server.dynamicStatic.setPath(path.join(this.app.path, 'client/dist'));
@@ -163,10 +172,10 @@ export class BoilerplateController {
 		res.status(200).send({});
 		this.app.watcher.disable();
 		const params = req.body;
-		if (! params.name) {
+		if ( ! params.name ) {
 			params.name = this.app.config.packageJson.name;
 		}
-		if (! params.output) {
+		if ( ! params.output ) {
 			params.output = 'client';
 		}
 		this._emitMessage('Create React application');
@@ -177,19 +186,20 @@ export class BoilerplateController {
 				return this._renameItem(path.join(this.app.path, params.name), path.join(this.app.path, params.output));
 			}).then(() => {
 				this._emitMessage('Add client config');
-				this.app.config.set({
-					src: params.output,
-					dist: `${params.output}/build`,
-					buildEnabled: true,
+				const clientConfig: IClientConfig = {
+					packageJsonPath: params.output,
+					www: `${params.output}/build`,
+					build: true,
 					scripts: {
 						build: "build",
 						watch: "watch",
 						prod: "prod"
 					},
 					autoWatch: false
-				}, AppMode.DEVELOPMENT, ConfigType.CLIENT);
+				};
+				this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
 				this._emitMessage('Add scripts to root package.json');
-				if (!this.app.config.packageJson['scripts']) {
+				if ( ! this.app.config.packageJson['scripts'] ) {
 					this.app.config.packageJson['scripts'] = {};
 				}
 				this.app.config.packageJson['scripts']['build'] = "cd client && npm run build";
@@ -218,10 +228,10 @@ export class BoilerplateController {
 
 	initDefaultVue(params) {
 
-		if (! params.name) {
+		if ( ! params.name ) {
 			params.name = this.app.config.packageJson.name;
 		}
-		if (! params.output) {
+		if ( ! params.output ) {
 			params.output = 'client';
 		}
 		this.app.watcher.disable();
@@ -239,16 +249,17 @@ export class BoilerplateController {
 				this._emitMessage('Build vue application');
 				return this.vueCli.execVueCliService('build', [], path.join(this.app.path, params.output));
 			}).then(() => {
-				this.app.config.set({
-					src: params.output,
-					dist: `${params.output}/dist`,
-					buildEnabled: true,
+				const clientConfig: IClientConfig = {
+					packageJsonPath: params.output,
+					www: `${params.output}/dist`,
+					build: true,
 					scripts: {
 						build: "build",
 						prod: "build"
 					},
 					autoWatch: false
-				}, AppMode.DEVELOPMENT, ConfigType.CLIENT);
+				}
+				this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
 				this.app.server.dynamicStatic.setPath(path.join(this.app.path, params.output, 'dist'));
 				return this.app.config.save();
 			}).then(() => {
@@ -262,7 +273,7 @@ export class BoilerplateController {
 		this.app.watcher.disable();
 		this._emitMessage('Install @vue/cli');
 
-		if (! params.name) {
+		if ( ! params.name ) {
 			params.name = this.app.config.packageJson.name;
 		}
 
@@ -309,16 +320,16 @@ export class BoilerplateController {
 				this._emitMessage('Build vue application');
 				return this.vueCli.execVueCliService('build', []);
 			}).then(() => {
-				this.app.config.set({
-					src: '',
-					dist: 'client/dist',
-					buildEnabled: true,
+				const clientConfig: IClientConfig = {
+					www: 'client/dist',
+					build: true,
 					scripts: {
 						build: "build",
 						prod: "build"
 					},
 					autoWatch: false
-				}, AppMode.DEVELOPMENT, ConfigType.CLIENT);
+				}
+				this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
 				this.app.server.dynamicStatic.setPath(path.join(this.app.path, 'client/dist'));
 				return this.app.config.save();
 			}).then(() => {

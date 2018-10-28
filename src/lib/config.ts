@@ -74,6 +74,7 @@ export interface IConfigOptions {
 export class Config {
 	config: IFullConfig;
 
+	clientPackageJson: IPackageJson;
 	packageJson: IPackageJson;
 	materiaJson: IMateriaJson;
 	materiaProdJson: any;
@@ -140,6 +141,20 @@ export class Config {
 			);
 		} catch (e) {
 			this.entitiesPosition = {};
+		}
+
+		try {
+			const packageJsonPath = this.materiaJson.client && this.materiaJson.client.packageJsonPath ?
+			path.join(this.app.path, this.materiaJson.client.packageJsonPath, "package.json") :
+			path.join(this.app.path, "package.json");
+			this.clientPackageJson = JSON.parse(
+				fs.readFileSync(
+					packageJsonPath,
+					"utf-8"
+				)
+			);
+		} catch (e) {
+			this.clientPackageJson = this.packageJson;
 		}
 	}
 

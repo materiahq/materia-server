@@ -154,10 +154,8 @@ export class Server {
 		// DEPRECATED or should call this.app.client.hasIndexFile() as it's not the concern of the server implementation to know about the client
 		const clientConfig: IClientConfig = this.app.config.get(this.app.mode, ConfigType.CLIENT);
 		let p;
-		if (clientConfig && clientConfig.dist) {
-			p = clientConfig.dist
-		} else if ( clientConfig && ! clientConfig.dist && clientConfig.src) {
-			p = clientConfig.src;
+		if (clientConfig && clientConfig.www) {
+			p = clientConfig.www
 		} else {
 			p = 'client';
 		}
@@ -177,10 +175,8 @@ export class Server {
 
 					let webDir;
 					// console.log(clientConfig);
-					if (clientConfig && clientConfig.dist) {
-						webDir = clientConfig.dist
-					} else if (clientConfig && !clientConfig.dist && clientConfig.src) {
-						webDir = clientConfig.src
+					if (clientConfig && clientConfig.www) {
+						webDir = clientConfig.www
 					} else {
 						webDir = 'client'
 					}
@@ -197,11 +193,11 @@ export class Server {
 					})
 
 					this.expressApp.all('/*', (req, res) => {
-						if (clientConfig && fs.existsSync(path.join(this.app.path, clientConfig.dist, '404.html'))) {
-							res.sendFile(path.join(this.app.path, clientConfig.dist, '404.html'))
+						if (clientConfig && fs.existsSync(path.join(this.app.path, clientConfig.www, '404.html'))) {
+							res.sendFile(path.join(this.app.path, clientConfig.www, '404.html'))
 						}
 						else if (this.hasStatic()) {
-							res.sendFile(path.join(this.app.path, clientConfig.dist, 'index.html'))
+							res.sendFile(path.join(this.app.path, clientConfig.www, 'index.html'))
 						}
 						else {
 							res.status(404).send({
