@@ -11,7 +11,7 @@ Installation
 
 You can install Materia Server using NPM.
 
-`$ (sudo) npm install -g materia-server`
+`$ (sudo) npm install -g @materia/server`
 
 then you can use Materia Server in 2 ways:
 
