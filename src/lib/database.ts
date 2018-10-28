@@ -215,10 +215,10 @@ export class Database {
 			d.add(tmp.query)
 			d.on('error', (e) => {
 				d.remove(tmp.query)
-				return reject(e)
+				reject(e)
 			})
 			d.run(() => {
-				return tmp.authenticate().then(() => {
+				tmp.authenticate().then(() => {
 					tmp.close()
 					accept()
 				}).catch((e) => { reject(e) })

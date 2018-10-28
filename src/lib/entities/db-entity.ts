@@ -229,17 +229,12 @@ export class DBEntity extends Entity {
 					return this.app.database.interface.dropConstraint(this.name, { field: fieldobj.name, type: "references" })
 				}
 			}).then(() => {
-				return this.app.database.interface.castColumnType(this.name, fieldobj.name, oldfield.type, field.type)
-			}).then((castedType) => {
-				if (castedType) {
-					delete field.type
-				}
 				let dbfield = this.app.database.interface.fieldToColumn(field)
 				if (Object.keys(dbfield).length == 0)
 					return Promise.resolve()
 
 				// sequelize changeColumn must constain type and nullable
-				if (!dbfield.type) {
+				if ( ! dbfield.type ) {
 					field.type = oldfield.type
 				}
 				if (dbfield.allowNull == undefined) {
@@ -257,7 +252,7 @@ export class DBEntity extends Entity {
 				}
 
 				let p = Promise.resolve()
-				if (field.required && !field.default && field.defaultValue) {
+				if (field.required && ! field.default && field.defaultValue) {
 					p = p.then(() => {
 						field.default = true
 						field.required = false
