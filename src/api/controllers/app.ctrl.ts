@@ -55,7 +55,7 @@ export class AppController {
 		}
 	}
 
-	private saveClientSettings(app, settings) {
+	private saveClientSettings(app: App, settings: any) {
 		if (settings.client) {
 			const client = settings.client;
 			if (client.packageJson) {
@@ -70,28 +70,31 @@ export class AppController {
 			}
 			if (client.www) {
 				this.app.server.dynamicStatic.setPath(path.join(this.app.path, client.www));
-			}
-			if (client.packageJson) {
-				clientToSave.packageJsonPath = client.packageJsonPath
-			} else if (client.build && client.build.enabled) {
-				clientToSave.build = true;
-			}
-			if (client.scripts && (client.scripts.build || client.scripts.watch || client.scripts.prod)) {
-				clientToSave.scripts = {}
-				if (client.scripts.build) {
-					clientToSave.scripts.build = client.scripts.build;
+				if (client.packageJsonPath) {
+					clientToSave.packageJsonPath = client.packageJsonPath
+				} else if (client.build && client.build.enabled) {
+					clientToSave.build = true;
 				}
-				if (client.scripts.watch) {
-					clientToSave.scripts.watch = client.scripts.watch;
+				if (client.scripts && (client.scripts.build || client.scripts.watch || client.scripts.prod)) {
+					clientToSave.scripts = {}
+					if (client.scripts.build) {
+						clientToSave.scripts.build = client.scripts.build;
+					}
+					if (client.scripts.watch) {
+						clientToSave.scripts.watch = client.scripts.watch;
+					}
+					if (client.scripts.prod) {
+						clientToSave.scripts.prod = client.scripts.prod;
+					}
 				}
-				if (client.scripts.prod) {
-					clientToSave.scripts.prod = client.scripts.prod;
+				if (client.autoWatch) {
+					clientToSave.autoWatch = client.autoWatch;
 				}
+				app.config.set(clientToSave, 'dev', ConfigType.CLIENT);
+			} else {
+				app.config.delete(ConfigType.CLIENT);
 			}
-			if (client.autoWatch) {
-				clientToSave.autoWatch = client.autoWatch;
-			}
-			app.config.set(clientToSave, 'dev', ConfigType.CLIENT);
+
 		}
 
 	}
