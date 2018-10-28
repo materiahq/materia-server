@@ -13,9 +13,12 @@ export class AngularCli {
 		return new Promise((resolve, reject) => {
 			let data = '';
 			let stream = null;
+			if ( ! cwd) {
+				cwd = this.app.path;
+			}
 			if (fs.existsSync(path.join(cwd, "node_modules", ".bin", "ng"))) {
 				stream = execa(path.join(cwd, "node_modules", ".bin", "ng"), [command, ...params], {
-					cwd: cwd ? cwd : this.app.path
+					cwd: cwd
 				});
 				stream.stdout.on('data', d => {
 					data += d;
