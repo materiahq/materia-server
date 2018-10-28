@@ -30,6 +30,13 @@ export class BoilerplateController {
 
 	initMinimal(req, res) {
 		this.app.initializeStaticDirectory()
+			.then(() => {
+				const clientConfig: IClientConfig = {
+					www: 'client'
+				}
+				this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
+				return this.app.config.save();
+			})
 			.then(() => res.status(200).json({ init: true }))
 			.catch((err) => res.status(500).send(err.message));
 	}
