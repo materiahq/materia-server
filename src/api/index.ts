@@ -74,6 +74,7 @@ export class MateriaApi {
 		 * App Endpoints
 		 */
 		this.api.post('/materia/token', this.oauth.token);
+		this.api.post('/materia/docker', this.oauth.isAuth, this.appCtrl.createDockerfile.bind(this.appCtrl));
 
 		this.api.post('/materia/restart', this.oauth.isAuth, this.appCtrl.restart.bind(this.appCtrl));
 		this.api.get('/materia/infos/minimal', this.oauth.isAuth, this.appCtrl.getInfos.bind(this.appCtrl));

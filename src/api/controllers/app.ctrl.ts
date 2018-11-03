@@ -152,6 +152,15 @@ export class AppController {
 
 	search(req, res) { }
 
+	createDockerfile(req, res) {
+		try {
+			this.app.createDockerfile(req.body);
+			res.status(200).send();
+		} catch(err) {
+			res.status(500).send(err);
+		}
+	}
+
 	getMinimalInfo(req, res) {
 		res.status(200).json({
 			id: this.app.id,
