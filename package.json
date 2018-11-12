@@ -60,6 +60,7 @@
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "chai-http": "^3.0.0",
+    "crlf": "^1.1.1",
     "mocha": "^3.2.0",
     "ncp": "^2.0.0",
     "request": "^2.79.0",
@@ -67,12 +68,14 @@
     "typescript": "^2.5.2"
   },
   "scripts": {
+    "build": "tsc -p . && ncp package.json dist/package.json && ncp src/cli dist/cli",
+    "prepublishOnly": "true || IF a==a crlf --set=LF cli/*",
+    "postpublish": "true || IF a==a crlf --set=CRLF cli/*",
     "test": "mocha -R spec dist/test/**/*.js",
     "test-watch": "mocha -R spec 'dist/test/**/*.js' --watch",
     "test-postgres": "DIALECT=postgres npm test",
     "test-sqlite": "npm test",
     "test-all": "npm run test-sqlite -s && npm run test-postgres -s",
-    "build": "tsc -p . && ncp package.json dist/package.json && ncp src/cli dist/cli",
     "watch": "tsc -p . -w"
   },
   "repository": {
