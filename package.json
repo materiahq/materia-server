@@ -68,9 +68,9 @@
     "typescript": "^2.5.2"
   },
   "scripts": {
-    "build": "tsc -p . && ncp package.json dist/package.json && ncp src/cli dist/cli",
-    "prepublishOnly": "true || IF a==a crlf --set=LF cli/*",
-    "postpublish": "true || IF a==a crlf --set=CRLF cli/*",
+    "build": "tsc -p . && ncp package.json dist/package.json && ncp src/cli dist/cli && ncp scripts dist/scripts",
+    "prepublishOnly": "node scripts/prepublish.js",
+    "postpublish": "node scripts/postpublish.js",
     "test": "mocha -R spec dist/test/**/*.js",
     "test-watch": "mocha -R spec 'dist/test/**/*.js' --watch",
     "test-postgres": "DIALECT=postgres npm test",
