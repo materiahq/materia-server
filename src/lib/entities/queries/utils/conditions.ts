@@ -2,7 +2,7 @@ import { Condition, ICondition } from './condition'
 import { DBEntity } from '../../db-entity'
 
 import { Query, QueryParamResolver, IQueryParam } from '../../query'
-import { MateriaError } from '../../../error'
+import { MateriaError } from '../../../error';
 
 /*
 Conditions manage a list of condition (associated with `operand`)
@@ -20,7 +20,6 @@ Conditions structure:
 	}
 ]
 */
-
 
 const SequelizeOperatorsKeys = {
 	'=': '$eq',
@@ -71,14 +70,23 @@ export class Conditions {
 					let resolvedParam = QueryParamResolver.resolve(condition, params)
 					let opkey = SequelizeOperatorsKeys[condition.operator.toUpperCase()]
 					cond = {}
-					cond[opkey] = resolvedParam
+					if (
+						(condition.operator === 'LIKE'
+						|| condition.operator === 'ILIKE'
+						|| condition.operator === 'NOT LIKE'
+						|| condition.operator === 'NOT ILIKE')
+						&& resolvedParam.indexOf('%') === -1
+					) {
+						resolvedParam = `%${resolvedParam}%`;
+					}
+					cond[opkey] = resolvedParam;
 				}
 				cond = { [condition.name]: cond }
 
 				if (condition.operand && condition.operand.toUpperCase() == 'OR') {
-					$or.push(cond)
+					$or.push(cond);
 				} else {
-					$and.push(cond)
+					$and.push(cond);
 				}
 			}
 		}
