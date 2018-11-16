@@ -48,12 +48,12 @@ export class FilesController {
 
 		if (req.body.isDir) {
 			fse.mkdirSync(p);
-			res.status(201).json({ saved: true })
+			res.status(201).json({ saved: true });
 		} else {
 			this.app.saveFile(p, req.body.content, {
 				mkdir: true
 			});
-			res.status(201).json({ saved: true })
+			res.status(201).json({ saved: true });
 		}
 	}
 
