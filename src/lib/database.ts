@@ -14,6 +14,7 @@ import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfa
 
 import { DatabaseInterface } from './database/interface'
 import { MateriaError } from './error'
+import { Op } from 'Sequelize';
 
 export enum Dialect {
 	POSTGRES,
@@ -28,6 +29,7 @@ export interface ISequelizeConfig {
 	logging: any,
 	storage?: string
 	dialectOptions?: any
+	operatorsAliases?: {[alias: string]: any}
 }
 
 const dialect = {
@@ -105,18 +107,35 @@ export class Database {
 		this.started = false
 
 		let logging: any
-		if (this.app.options.logSql == true)
+		if (this.app.options.logSql == true) {
 			logging = (...args) => { this.app.logger.log.apply(this.app.logger, args) }
-		else if (this.app.options.logSql !== undefined)
+		}
+		else if (this.app.options.logSql !== undefined) {
 			logging = this.app.options.logSql
-		else
+		}
+		else {
 			logging = false
+		}
+
+		const operatorsAliases = {
+			$eq: Op.eq,
+			$ne: Op.ne,
+			$gte: Op.gte,
+			$gt: Op.gt,
+			$lte: Op.lte,
+			$lt: Op.lt,
+			$like: Op.like,
+			$notLike: Op.notLike,
+			$iLike: Op.iLike,
+			$notILike: Op.notILike
+		};
 
 		this.opts = {
  			dialect: this.type,
 			host: this.host,
 			port: this.port,
-			logging: logging
+			logging: logging,
+			operatorsAliases
 		}
 
 		if (Database.isSQLite(settings)) {
