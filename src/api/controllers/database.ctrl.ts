@@ -270,6 +270,7 @@ export class DatabaseController {
 	listActions(req, res) {
 		res.status(200).json(this.app.actions.findAll())
 	}
+
 	addAction(req, res) {
 		DatabaseLib.generateActionId().then(id => {
 			const action = Object.assign({}, req.body, {
@@ -289,6 +290,7 @@ export class DatabaseController {
 			}
 		});
 	}
+
 	updateAction(req, res) {
 		const action = req.body;
 
@@ -305,6 +307,7 @@ export class DatabaseController {
 			});
 		}
 	}
+
 	removeAction(req, res) {
 		if (this.app.actions.remove(req.params.id, { save: true })) {
 			res.status(200).json(
@@ -401,7 +404,7 @@ export class DatabaseController {
 		return this.app.synchronizer.diff().then((diffs) => {
 			res.status(200).send(diffs);
 		}).catch(err => {
-			res.status(500).send(err)
+			res.status(500).send(err.message)
 		});
 
 	};
@@ -420,7 +423,7 @@ export class DatabaseController {
 			return this.app.synchronizer.databaseToEntities(diffs, null)
 				.then((result) =>
 					res.status(200).send(result)
-				).catch(err => res.status(500).send(err));
+				).catch(err => res.status(500).send(err.message));
 		} else {
 			return res.status(500).send(new Error(`Sync type '${type}' not found`));
 		}
