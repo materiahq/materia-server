@@ -127,7 +127,10 @@ export class Database {
 			$like: Op.like,
 			$notLike: Op.notLike,
 			$iLike: Op.iLike,
-			$notILike: Op.notILike
+			$notILike: Op.notILike,
+			$and: Op.and,
+			$or: Op.or,
+			$not: Op.not
 		};
 
 		this.opts = {
