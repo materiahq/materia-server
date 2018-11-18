@@ -266,12 +266,12 @@ export class App extends events.EventEmitter {
 		.then(() => warning)
 	}
 
-	createDockerfile(options) {
+	createDockerfile(options?) {
 		let dockerfile = path.join(this.path, 'Dockerfile')
 		let dbProd = this.config.get<IDatabaseConfig>(AppMode.PRODUCTION, ConfigType.DATABASE)
 		let webProd = this.config.get<IServerConfig>(AppMode.PRODUCTION, ConfigType.SERVER)
 		fs.writeFileSync(dockerfile, `FROM node:7.10-alpine
-MAINTAINER ${options.author}
+MAINTAINER ${options && options.author ? options.author : 'me@company.com'}
 
 RUN mkdir -p /app
 
