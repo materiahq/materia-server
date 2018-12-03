@@ -8,18 +8,18 @@ import { EndpointsLib } from '../lib/endpoints';
 import { WebsocketInstance } from '../../lib/websocket';
 
 export class EndpointsController {
-	constructor(private app: App, websocket: WebsocketInstance) {}
+	constructor(private app: App, websocket: WebsocketInstance) { }
 
 	getEndpoints(req, res) {
 		const endpoints: IEndpoint[] = this.app.api.findAll().map(api =>
 			Object.assign({}, api.toJson(), {
 				fromAddon: api.fromAddon
 					? {
-							name: api.fromAddon.name,
-							logo: api.fromAddon.logo,
-							package: api.fromAddon.package,
-							path: api.fromAddon.path
-					  }
+						name: api.fromAddon.name,
+						logo: api.fromAddon.logo,
+						package: api.fromAddon.package,
+						path: api.fromAddon.path
+					}
 					: {},
 				params: api.getAllParams(),
 				data: api.getAllData()
@@ -159,57 +159,55 @@ export class EndpointsController {
 		const newEndpoint = req.body.newEndpoint;
 		const oldEndpointId = req.body.oldEndpointId;
 		const [method, endpoint] = oldEndpointId;
-		return new Promise((resolve, reject) => {
-			const controller = newEndpoint.controller.replace(
-				/(\.ctrl)?\.js$/,
-				''
-			);
-			const basePath = this.app.path;
-			const fullpath = path.join(
-				basePath,
-				'server',
-				'controllers',
-				controller + '.ctrl.js'
-			);
-			this.app.watcher.disable();
-			this.app
-				.saveFile(fullpath, newEndpoint.code)
-				.then(() => {
-					let params;
-					if (newEndpoint.params) {
-						params = EndpointsLib.cleanParams(newEndpoint.params);
-					}
-					this.app.api.remove(method, endpoint);
-					this.app.api.add({
-						method: newEndpoint.method,
-						url: newEndpoint.url,
-						controller: controller,
-						action: newEndpoint.action,
-						params: params ? params : [],
-						permissions: newEndpoint.permissions
-					});
-
-					EndpointsLib
-						.list(this.app)
-						.find(
-							endpoint =>
-								endpoint.method + endpoint.url ==
-								newEndpoint.method +
-									newEndpoint.url
-						);
-					this.app.watcher.enable();
-					res.status(200).json({
-						endpoints: EndpointsLib.list(this.app),
-						newSelectedId:
-							newEndpoint.method +
-							newEndpoint.url,
-						controllers: this.app.api.getControllers()
-					});
-				})
-				.catch(err => {
-					res.status(500).json(err.message);
+		const controller = newEndpoint.controller.replace(
+			/(\.ctrl)?\.js$/,
+			''
+		);
+		const basePath = this.app.path;
+		const fullpath = path.join(
+			basePath,
+			'server',
+			'controllers',
+			controller + '.ctrl.js'
+		);
+		this.app.watcher.disable();
+		this.app
+			.saveFile(fullpath, newEndpoint.code)
+			.then(() => {
+				let params;
+				if (newEndpoint.params) {
+					params = EndpointsLib.cleanParams(newEndpoint.params);
+				}
+				this.app.api.remove(method, endpoint);
+				this.app.api.add({
+					method: newEndpoint.method,
+					url: newEndpoint.url,
+					controller: controller,
+					action: newEndpoint.action,
+					params: params ? params : [],
+					permissions: newEndpoint.permissions
 				});
-		});
+
+				EndpointsLib
+					.list(this.app)
+					.find(
+						endpoint =>
+							endpoint.method + endpoint.url ==
+							newEndpoint.method +
+							newEndpoint.url
+					);
+				this.app.watcher.enable();
+				res.status(200).json({
+					endpoints: EndpointsLib.list(this.app),
+					newSelectedId:
+						newEndpoint.method +
+						newEndpoint.url,
+					controllers: this.app.api.getControllers()
+				});
+			})
+			.catch(err => {
+				res.status(500).json(err.message);
+			});
 
 	}
 
@@ -255,7 +253,7 @@ export class EndpointsController {
 			url += `/${t}`
 		});
 		this.app.watcher.disable();
-		this.app.api.remove(method, url, {apply: true});
+		this.app.api.remove(method, url, { apply: true });
 		this.app.watcher.enable();
 		return res.status(200).send();
 	}
@@ -271,6 +269,6 @@ export class EndpointsController {
 		EndpointsLib.generate(this.app, entity, 'put', 'update');
 		EndpointsLib.generate(this.app, entity, 'delete', 'delete');
 
-		res.status(200).json({endpoints: EndpointsLib.list(this.app)});
+		res.status(200).json({ endpoints: EndpointsLib.list(this.app) });
 	}
 }
