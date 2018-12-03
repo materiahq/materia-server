@@ -189,20 +189,11 @@ export class MateriaApi {
 		/**
 		 * Addon Endpoints
 		 */
-
-		this.api.get('/materia/addons/:pkg/bundle.js', this.addonsCtrl.bundle.bind(this.addonsCtrl))
-		this.api.get('/materia/addons/:owner/:pkg/bundle.js', this.addonsCtrl.bundle.bind(this.addonsCtrl))
-
+		this.api.get('/materia/addons/:pkg*/bundle.js', this.addonsCtrl.bundle.bind(this.addonsCtrl))
 		this.api.get('/materia/addons/:pkg*/setup', this.oauth.isAuth, this.addonsCtrl.getConfig.bind(this.addonsCtrl));
-
-		this.api.post('/materia/addons/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
-		this.api.post('/materia/addons/:owner/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
-
-		this.api.post('/materia/addons/:pkg/enable', this.oauth.isAuth, this.addonsCtrl.enable.bind(this.addonsCtrl));
-		this.api.post('/materia/addons/:owner/:pkg/enable', this.oauth.isAuth, this.addonsCtrl.enable.bind(this.addonsCtrl));
-
-		this.api.post('/materia/addons/:pkg/disable', this.oauth.isAuth, this.addonsCtrl.disable.bind(this.addonsCtrl));
-		this.api.post('/materia/addons/:owner/:pkg/disable', this.oauth.isAuth, this.addonsCtrl.disable.bind(this.addonsCtrl));
+		this.api.post('/materia/addons/:pkg*/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
+		this.api.post('/materia/addons/:pkg*/enable', this.oauth.isAuth, this.addonsCtrl.enable.bind(this.addonsCtrl));
+		this.api.post('/materia/addons/:pkg*/disable', this.oauth.isAuth, this.addonsCtrl.disable.bind(this.addonsCtrl));
 
 		/**
 		 * Client Endpoints
