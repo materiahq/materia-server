@@ -169,8 +169,7 @@ export class MateriaApi {
 		this.api.get('/materia/endpoints', this.oauth.isAuth, this.endpointsCtrl.getEndpoints.bind(this.endpointsCtrl));
 		this.api.post('/materia/endpoints/generate', this.oauth.isAuth, this.endpointsCtrl.generate.bind(this.endpointsCtrl));
 		this.api.post('/materia/endpoints', this.oauth.isAuth, this.endpointsCtrl.add.bind(this.endpointsCtrl));
-		this.api.put('/materia/endpoints/code', this.oauth.isAuth, this.endpointsCtrl.updateCode.bind(this.endpointsCtrl));
-		this.api.put('/materia/endpoints/query', this.oauth.isAuth, this.endpointsCtrl.updateQuery.bind(this.endpointsCtrl));
+		this.api.put('/materia/endpoints', this.oauth.isAuth, this.endpointsCtrl.update.bind(this.endpointsCtrl));
 		// Delete with id: btoa(endpoint.method + endpoint.url)
 		this.api.delete('/materia/endpoints/:id', this.oauth.isAuth, this.endpointsCtrl.remove.bind(this.endpointsCtrl));
 

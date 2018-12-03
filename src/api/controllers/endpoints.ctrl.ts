@@ -81,12 +81,11 @@ export class EndpointsController {
 		} else if (newEndpoint.query) {
 			this.createQuery(req, res);
 		}
-
 	}
 
 	createCode(req, res) {
 		const endpoint = req.body.endpoint;
-		const options = req.body.options || {};
+		const options = req.body.options;
 		if (endpoint.fromAddon && endpoint.fromAddon.package) {
 			endpoint.fromAddon = this.app.addons.get('@materia/aws-s3');
 		}
@@ -133,7 +132,7 @@ export class EndpointsController {
 	}
 
 	createQuery(req, res) {
-		const options = req.body.options || {};
+		const options = req.body.options;
 		const endpoint = req.body.endpoint;
 		this.app.watcher.disable();
 		const newEndpoint: any = {
@@ -155,7 +154,17 @@ export class EndpointsController {
 		});
 	}
 
+	update(req, res) {
+		const newEndpoint = req.body.newEndpoint;
+		if (newEndpoint.controller && newEndpoint.action) {
+			this.updateCode(req, res);
+		} else if (newEndpoint.query) {
+			this.updateQuery(req, res);
+		}
+	}
+
 	updateCode(req, res) {
+		const options = req.options;
 		const newEndpoint = req.body.newEndpoint;
 		const oldEndpointId = req.body.oldEndpointId;
 		const [method, endpoint] = oldEndpointId;
@@ -171,47 +180,53 @@ export class EndpointsController {
 			controller + '.ctrl.js'
 		);
 		this.app.watcher.disable();
-		this.app
-			.saveFile(fullpath, newEndpoint.code)
-			.then(() => {
-				let params;
-				if (newEndpoint.params) {
-					params = EndpointsLib.cleanParams(newEndpoint.params);
-				}
-				this.app.api.remove(method, endpoint);
-				this.app.api.add({
-					method: newEndpoint.method,
-					url: newEndpoint.url,
-					controller: controller,
-					action: newEndpoint.action,
-					params: params ? params : [],
-					permissions: newEndpoint.permissions
-				});
+		let promise = Promise.resolve();
+		if (req.body.code) {
+			promise = promise.then(() => this.app.saveFile(fullpath, req.body.code));
+		}
+		promise.then(() => {
+			let params;
+			if (newEndpoint.params) {
+				params = EndpointsLib.cleanParams(newEndpoint.params);
+			}
+			this.app.api.remove(method, endpoint);
+			const payload: any = {
+				method: newEndpoint.method,
+				url: newEndpoint.url,
+				controller: controller,
+				action: newEndpoint.action,
+				params: params ? params : [],
+				permissions: newEndpoint.permissions
+			};
+			if (newEndpoint.fromAddon && newEndpoint.fromAddon.package) {
+				payload.fromAddon = this.app.addons.get(newEndpoint.fromAddon.package);
+			}
+			this.app.api.add(payload, options);
 
-				EndpointsLib
-					.list(this.app)
-					.find(
-						endpoint =>
-							endpoint.method + endpoint.url ==
-							newEndpoint.method +
-							newEndpoint.url
-					);
-				this.app.watcher.enable();
-				res.status(200).json({
-					endpoints: EndpointsLib.list(this.app),
-					newSelectedId:
+			EndpointsLib
+				.list(this.app)
+				.find(
+					endpoint =>
+						endpoint.method + endpoint.url ==
 						newEndpoint.method +
-						newEndpoint.url,
-					controllers: this.app.api.getControllers()
-				});
-			})
-			.catch(err => {
-				res.status(500).json(err.message);
+						newEndpoint.url
+				);
+			this.app.watcher.enable();
+			res.status(200).json({
+				endpoints: EndpointsLib.list(this.app),
+				newSelectedId:
+					newEndpoint.method +
+					newEndpoint.url,
+				controllers: this.app.api.getControllers()
 			});
+		}).catch(err => {
+			res.status(500).json(err.message);
+		});
 
 	}
 
 	updateQuery(req, res) {
+		const options = req.options;
 		const newEndpoint = req.body.newEndpoint;
 		const oldEndpointId = req.body.oldEndpointId;
 		this.app.watcher.disable();
@@ -227,7 +242,7 @@ export class EndpointsController {
 		if (!newEndpoint.permissions) {
 			newEndpoint.permissions = [];
 		}
-		this.app.api.add({
+		const payload: any = {
 			method: newEndpoint.method,
 			url: newEndpoint.url,
 			params: newEndpoint.params
@@ -235,7 +250,11 @@ export class EndpointsController {
 				: [],
 			permissions: newEndpoint.permissions,
 			query: newEndpoint.query
-		});
+		};
+		if (newEndpoint.fromAddon && newEndpoint.fromAddon.package) {
+			payload.fromAddon = this.app.addons.get(newEndpoint.fromAddon.package);
+		}
+		this.app.api.add(payload, options);
 		this.app.watcher.enable();
 		res.status(200).json({
 			endpoints: EndpointsLib.list(this.app),
