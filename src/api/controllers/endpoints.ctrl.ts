@@ -74,17 +74,32 @@ export class EndpointsController {
 		}
 	}
 
+	add(req, res) {
+		const newEndpoint = req.body.endpoint;
+		if (newEndpoint.controller && newEndpoint.action) {
+			this.createCode(req, res);
+		} else if (newEndpoint.query) {
+			this.createQuery(req, res);
+		}
+
+	}
+
 	createCode(req, res) {
-		const controller = req.body.fromAddon
-			? req.body.controller
-					.split('/')
-					[req.body.controller.split('/').length - 1].replace(
-						/(\.ctrl)?\.js$/,
-						''
-					)
-			: req.body.controller.replace(/(\.ctrl)?\.js$/, '');
-		const basePath = req.body.fromAddon
-			? req.body.fromAddon.path
+		const endpoint = req.body.endpoint;
+		const options = req.body.options || {};
+		if (endpoint.fromAddon && endpoint.fromAddon.package) {
+			endpoint.fromAddon = this.app.addons.get('@materia/aws-s3');
+		}
+		const controller = endpoint.fromAddon
+			? endpoint.controller
+				.split('/')
+			[endpoint.controller.split('/').length - 1].replace(
+				/(\.ctrl)?\.js$/,
+				''
+			)
+			: endpoint.controller.replace(/(\.ctrl)?\.js$/, '');
+		const basePath = endpoint.fromAddon
+			? endpoint.fromAddon.path
 			: this.app.path;
 		const fullpath = path.join(
 			basePath,
@@ -92,41 +107,50 @@ export class EndpointsController {
 			'controllers',
 			controller + '.ctrl.js'
 		);
-		this.app
-			.saveFile(fullpath, req.body.code, { mkdir: true })
-			.then(() => {
-				this.app.api.add({
-					method: req.body.method,
-					url: req.body.url,
-					controller: controller,
-					action: req.body.action,
-					params: req.body.params,
-					permissions: req.body.permissions
-				});
-				res.status(201).json({
-					endpoints: EndpointsLib.list(this.app),
-					newSelectedId: req.body.method + req.body.url,
-					controllers: this.app.api.getControllers()
-				});
-			})
-			.catch(err => {
-				res.status(500).json(err);
+		let promise = Promise.resolve();
+		if (req.body.code) {
+			promise = promise.then(() => this.app.saveFile(fullpath, req.body.code, { mkdir: true }));
+		}
+		promise.then(() => {
+			const newEndpoint: any = {
+				method: endpoint.method,
+				url: endpoint.url,
+				controller: controller,
+				action: endpoint.action,
+				params: endpoint.params,
+				permissions: endpoint.permissions
+			}
+			if (endpoint.fromAddon) {
+				newEndpoint.fromAddon = endpoint.fromAddon;
+			}
+			this.app.api.add(newEndpoint, options);
+			res.status(201).json({
+				endpoints: EndpointsLib.list(this.app),
+				newSelectedId: endpoint.method + endpoint.url,
+				controllers: this.app.api.getControllers()
 			});
+		}).catch(err => res.status(500).send(err.message));
 	}
 
 	createQuery(req, res) {
+		const options = req.body.options || {};
+		const endpoint = req.body.endpoint;
 		this.app.watcher.disable();
-		this.app.api.add({
-			method: req.body.method,
-			url: req.body.url,
-			params: req.body.params,
-			permissions: req.body.permissions,
-			query: req.body.query
-		});
+		const newEndpoint: any = {
+			method: endpoint.method,
+			url: endpoint.url,
+			params: endpoint.params,
+			permissions: endpoint.permissions,
+			query: endpoint.query
+		}
+		if (endpoint.fromAddon && endpoint.fromAddon.package) {
+			newEndpoint.fromAddon = this.app.addons.get(endpoint.fromAddon.package);
+		}
+		this.app.api.add(newEndpoint, options);
 		this.app.watcher.enable();
 		res.status(201).json({
 			endpoints: EndpointsLib.list(this.app),
-			newSelectedId: req.body.method + req.body.url,
+			newSelectedId: endpoint.method + endpoint.url,
 			controllers: this.app.api.getControllers()
 		});
 	}
