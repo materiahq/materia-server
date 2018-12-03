@@ -5,6 +5,18 @@ import * as fs from 'fs';
 export class AddonsController {
 	constructor(private app: App, websocket: WebsocketInstance) {}
 
+	getConfig(req, res) {
+		let pkg = req.params.pkg;
+		if (req.params[0]) {
+			pkg += req.params[0];
+		}
+		if (! pkg || ! this.app.addons.get(pkg)) {
+			res.status(404).send();
+		} else {
+			res.status(200).send(this.app.addons.addonsConfig[pkg]);
+		}
+	}
+
 	setup(req, res) {
 		this.app.watcher.disable();
 		const pkg = this.getPkgFromRequest(req);

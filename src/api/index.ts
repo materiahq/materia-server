@@ -193,6 +193,8 @@ export class MateriaApi {
 		this.api.get('/materia/addons/:pkg/bundle.js', this.addonsCtrl.bundle.bind(this.addonsCtrl))
 		this.api.get('/materia/addons/:owner/:pkg/bundle.js', this.addonsCtrl.bundle.bind(this.addonsCtrl))
 
+		this.api.get('/materia/addons/:pkg*/setup', this.oauth.isAuth, this.addonsCtrl.getConfig.bind(this.addonsCtrl));
+
 		this.api.post('/materia/addons/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
 		this.api.post('/materia/addons/:owner/:pkg/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
 
