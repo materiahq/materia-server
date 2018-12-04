@@ -671,23 +671,10 @@
 						"description": "Success"
 					}
 				}
-			}
-		},
-		"/endpoints/generate": {
+			},
 			"post": {
 				"tags": ["Api"],
-				"summary": "Generate default endpoints (GET/POST/PUT/DELETE) for a given entity",
-				"responses": {
-					"200": {
-						"description": "Success"
-					}
-				}
-			}
-		},
-		"/endpoints/code": {
-			"post": {
-				"tags": ["Api"],
-				"summary": "Create a new endpoint using a code controller",
+				"summary": "Add a new endpoint",
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -698,33 +685,48 @@
 						"application/json": {
 							"schema": {
 								"properties": {
-									"method": {
-										"type": "string",
-										"example": "get"
-									},
-									"url": {
-										"type": "string",
-										"example": "/todos"
-									},
-									"controller": {
-										"type": "string",
-										"example": "default"
+									"endpoint": {
+										"properties": {
+											"method": {
+												"type": "string",
+												"example": "get"
+											},
+											"url": {
+												"type": "string",
+												"example": "/todos"
+											},
+											"controller": {
+												"type": "string",
+												"example": "default"
+											},
+											"action": {
+												"type": "string",
+												"example": "getTodos"
+											},
+											"query": {
+												"type": "object",
+												"example": {
+													"entity": "todos",
+													"id": "findAll"
+												}
+											},
+											"params": {
+												"type": "array",
+												"example": []
+											},
+											"permissions": {
+												"type": "array",
+												"example": ["Anyone"]
+											}
+										}
 									},
 									"code": {
 										"type": "string",
 										"example": "class defaultCtrl { constructor(app) { this.app = app; } getTodos(req, res, next) { return this.app.entities.get('todos').getQuery('findAll').run() } } module.exports = defaultCtrl; "
 									},
-									"action": {
-										"type": "string",
-										"example": "getTodos"
-									},
-									"params": {
-										"type": "array",
-										"example": []
-									},
-									"permissions": {
-										"type": "array",
-										"example": ["Anyone"]
+									"options": {
+										"type": "object",
+										"example": {"save": true}
 									}
 								}
 							}
@@ -734,7 +736,7 @@
 			},
 			"put": {
 				"tags": ["Api"],
-				"summary": "Modify an endpoint using a code controller",
+				"summary": "Update an endpoint",
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -759,100 +761,9 @@
 												"type": "string",
 												"example": "default"
 											},
-											"code": {
-												"type": "string",
-												"example": "class defaultCtrl { constructor(app) { this.app = app; } getTodos(req, res, next) { return this.app.entities.get('todos').getQuery('findAll').run() } } module.exports = defaultCtrl; "
-											},
 											"action": {
 												"type": "string",
 												"example": "getTodos"
-											},
-											"params": {
-												"type": "array",
-												"example": []
-											},
-											"permissions": {
-												"type": "array",
-												"example": ["Anyone"]
-											}
-										}
-									},
-									"oldEnpointId": {
-										"type": "array",
-										"example": ["get", "/todos"]
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		"/endpoints/query": {
-			"post": {
-				"tags": ["Api"],
-				"summary": "Create a new endpoint that run an entity query",
-				"responses": {
-					"200": {
-						"description": "Success"
-					}
-				},
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"properties": {
-									"method": {
-										"type": "string",
-										"example": "get"
-									},
-									"url": {
-										"type": "string",
-										"example": "/todos"
-									},
-									"query": {
-										"type": "object",
-										"example": {
-											"entity": "todos",
-											"id": "findAll"
-										}
-									},
-									"params": {
-										"type": "array",
-										"example": []
-									},
-									"permissions": {
-										"type": "array",
-										"example": ["Anyone"]
-									}
-								}
-							}
-						}
-					}
-				}
-			},
-			"put": {
-				"tags": ["Api"],
-				"summary": "Modify an endpoint using that run an entity query",
-				"responses": {
-					"200": {
-						"description": "Success"
-					}
-				},
-				"requestBody": {
-					"content": {
-						"application/json": {
-							"schema": {
-								"properties": {
-									"newEndpoint": {
-										"properties": {
-											"method": {
-												"type": "string",
-												"example": "get"
-											},
-											"url": {
-												"type": "string",
-												"example": "/todos2"
 											},
 											"query": {
 												"type": "object",
@@ -871,6 +782,14 @@
 											}
 										}
 									},
+									"code": {
+										"type": "string",
+										"example": "class defaultCtrl { constructor(app) { this.app = app; } getTodos(req, res, next) { return this.app.entities.get('todos').getQuery('findAll').run() } } module.exports = defaultCtrl; "
+									},
+									"options": {
+										"type": "object",
+										"example": {"save": true}
+									},
 									"oldEnpointId": {
 										"type": "array",
 										"example": ["get", "/todos"]
@@ -882,6 +801,17 @@
 				}
 			}
 		},
+		"/endpoints/generate": {
+			"post": {
+				"tags": ["Api"],
+				"summary": "Generate default endpoints (GET/POST/PUT/DELETE) for a given entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
 		"/endpoints/:id": {
 			"delete": {
 				"tags": ["Api"],
@@ -889,7 +819,7 @@
 				"parameters": [{
 					"name": "id",
 					"in": "path",
-					"description": "The unique identifier of the endpoint to delete",
+					"description": "The unique identifier (btoa(method + url)) of the endpoint to delete.",
 					"required": true,
 					"schema": {
 						"type": "string"
@@ -1949,36 +1879,6 @@
 				}]
 			}
 		},
-		"/addons/:owner/:pkg/bundle.js": {
-			"get": {
-				"tags": ["Addons"],
-				"summary": "Get the frontend bundle of an addon",
-				"responses": {
-					"200": {
-						"description": "Success"
-					}
-				},
-				"parameters": [{
-						"in": "path",
-						"name": "pkg",
-						"required": true,
-						"description": "Name of the package",
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "path",
-						"name": "owner",
-						"required": true,
-						"description": "Owner of the package",
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
 		"/addons/:pkg/setup": {
 			"post": {
 				"tags": ["Addons"],
@@ -1997,36 +1897,6 @@
 						"type": "string"
 					}
 				}]
-			}
-		},
-		"/addons/:owner/:pkg/setup": {
-			"post": {
-				"tags": ["Addons"],
-				"summary": "Update the setup of an installed addon",
-				"responses": {
-					"200": {
-						"description": "Success"
-					}
-				},
-				"parameters": [{
-						"in": "path",
-						"name": "pkg",
-						"required": true,
-						"description": "Name of the package",
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "path",
-						"name": "owner",
-						"required": true,
-						"description": "Owner of the package",
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
 			}
 		},
 		"/addons/:pkg/enable": {
@@ -2049,36 +1919,6 @@
 				}]
 			}
 		},
-		"/addons/:owner/:pkg/enable": {
-			"post": {
-				"tags": ["Addons"],
-				"summary": "Enable an addon",
-				"responses": {
-					"200": {
-						"description": "Success"
-					}
-				},
-				"parameters": [{
-						"in": "path",
-						"name": "pkg",
-						"required": true,
-						"description": "Name of the package",
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "path",
-						"name": "owner",
-						"required": true,
-						"description": "Owner of the package",
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
 		"/addons/:pkg/disable": {
 			"post": {
 				"tags": ["Addons"],
@@ -2097,36 +1937,6 @@
 						"type": "string"
 					}
 				}]
-			}
-		},
-		"/addons/:owner/:pkg/disable": {
-			"post": {
-				"tags": ["Addons"],
-				"summary": "Disable an addon",
-				"responses": {
-					"200": {
-						"description": "Success"
-					}
-				},
-				"parameters": [{
-						"in": "path",
-						"name": "pkg",
-						"required": true,
-						"description": "Name of the package",
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "path",
-						"name": "owner",
-						"required": true,
-						"description": "Owner of the package",
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
 			}
 		},
 		"/permissions": {
