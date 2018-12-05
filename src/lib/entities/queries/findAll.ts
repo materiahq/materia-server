@@ -155,7 +155,7 @@ export class FindAllQuery extends Query {
 			if ( ! options || ! options.raw) {
 				res.toJSON = () => {
 					return {
-						count: res.count,
+						count: res.count && typeof res.count === 'number' ? res.count : 0,
 						data: res.data.map(elt => elt.toJSON())
 					}
 				}
