@@ -80,9 +80,9 @@ describe('[Controller Endpoints]', () => {
 			it('should run endpoint for model action "testParam" with a missing parameter', () => {
 				return tpl.post('/api/params/true', {
 					param_text: "ok"
-				}).should.be.rejectedWith({
+				}).should.become({
 					error: true,
-					message: 'Missing required parameter'
+					message: 'Missing required parameter: param_date'
 				})
 			})
 			it('should run endpoint for controller action "testPromise" that returns a promise', () => {
@@ -102,7 +102,7 @@ describe('[Controller Endpoints]', () => {
 				return tpl.post('/api/ctrl/params', {
 					param_number: 42,
 					param_text: "bar"
-				}).should.be.rejectedWith({
+				}).should.become({
 					error: true,
 					message: 'Missing required parameter: param_date'
 				})

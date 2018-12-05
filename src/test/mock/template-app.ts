@@ -1,9 +1,7 @@
-import * as fs from 'fs'
 import * as path from 'path'
-
-// import * as chaiHttp from 'chai-http'
 import * as fse from 'fs-extra'
 import * as request from 'request'
+import * as os from 'os'
 
 import * as chaiAsPromised from 'chai-as-promised'
 
@@ -34,8 +32,8 @@ export class TemplateApp {
 		this.before_creation = before_creation
 	}
 
-	createInstance(mode?: string): App {
-		let app_path = fs.mkdtempSync((process.env.TMPDIR || '/tmp/') + 'materia-test-')
+	createInstance(mode?: string): Promise<App> {
+		let app_path = fse.mkdtempSync(path.join(os.tmpdir() + 'materia-test-'))
 		fse.copySync(path.join(__dirname, '..', '..', '..', 'src', 'test', 'apps', this.name), app_path, { clobber: true, recursive: true })
 
 		// this.request =
@@ -46,7 +44,7 @@ export class TemplateApp {
 		return this.createApp(app_path, mode)
 	}
 
-	createApp(app_path: string, mode?: string): App {
+	createApp(app_path: string, mode?: string): Promise<App> {
 		const debug_mode = !!process.env.DEBUG
 
 		mode = mode || 'dev';
@@ -55,11 +53,13 @@ export class TemplateApp {
 			logSql: debug_mode,
 			mode: mode
 		})
-
+		app.config.reloadConfig()
+		app.name = this.name
 		app.config.set({
 			"host": "localhost",
 			"port": 8798
 		}, mode, ConfigType.SERVER)
+		// app.config.set({name: this.name}, null, ConfigType.APP)
 
 		if (process.env.DIALECT == "postgres") {
 			const cnf: IDatabaseConfig = {
@@ -86,11 +86,11 @@ export class TemplateApp {
 				error: function () { }
 			})
 		}
-		return app
+		return app.config.save().then(() => app);
 	}
 
-	runApp(mode?: string): Promise<App> {
-		let app = this.createInstance(mode || 'dev')
+	async runApp(mode?: string): Promise<App> {
+		let app = await this.createInstance(mode || 'dev')
 		let off = Promise.resolve(this.before_creation(app))
 		return off.then(() => app.load()).then(() => {
 			if (process.env.DIALECT == "postgres") {
@@ -106,13 +106,11 @@ export class TemplateApp {
 		}).then(() => app.start()).then(() => app)
 	}
 
-	resetApp(app: App, while_off?: (new_app: App) => any): Promise<App> {
+	async resetApp(app: App, while_off?: (new_app: App) => any): Promise<App> {
 		let new_app: App
-		return app.stop()
-		.then(() => {
-			new_app = this.createApp(app.path)
-			return Promise.resolve(this.before_creation(app))
-		})
+		await app.stop()
+		new_app = await this.createApp(app.path)
+		return Promise.resolve(this.before_creation(app))
 		.then(() => while_off ? Promise.resolve(while_off(app)) : Promise.resolve())
 		.then(() => new_app.load()).then(() => new_app.start())
 		.catch(e => {
