@@ -1,0 +1,2411 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"description": "This is the Admin API Documentation of Materia Server (@materia/server).",
+		"version": "1.0.0",
+		"title": "Materia Server",
+		"contact": {
+			"email": "team@getmateria.com"
+		},
+		"license": {
+			"name": "Apache 2.0",
+			"url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+		}
+	},
+	"tags": [{
+			"name": "Actions",
+			"description": "Manage actions/hooks on queries/endpoints events",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		},
+		{
+			"name": "Addons",
+			"description": "Manage addons in your Materia application",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		},
+		{
+			"name": "Api",
+			"description": "Manage the API REST exposed by your Materia application",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		},
+		{
+			"name": "App",
+			"description": "Manage your Materia application",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		},
+		{
+			"name": "Client",
+			"description": "Manage the client/frontend of your Materia application",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		},
+		{
+			"name": "Database",
+			"description": "Check database connection and synchronize with app state",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		},
+		{
+			"name": "Dependencies",
+			"description": "Manage dependencies in your Materia application",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		},
+		{
+			"name": "Entities",
+			"description": "Manage entities in your Materia application",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		},
+		{
+			"name": "Files",
+			"description": "Manage folders and files in your Materia application tree",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		},
+		{
+			"name": "Git",
+			"description": "Manage your git repository",
+			"externalDocs": {
+				"description": "Find out more",
+				"url": "http://getmateria.com"
+			}
+		}
+	],
+	"paths": {
+		"/infos": {
+			"get": {
+				"tags": [
+					"App"
+				],
+				"summary": "Get current Materia application infos",
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"id": {
+											"type": "string",
+											"example": "WhEZXlzIaXU="
+										},
+										"package": {
+											"type": "string",
+											"example": "my-materia-app"
+										},
+										"name": {
+											"type": "string",
+											"example": "My Materia App"
+										},
+										"path": {
+											"type": "string",
+											"example": "C:\\Users\\USER\\Documents\\materia\\apps\\my-materia-app"
+										},
+										"icon": {
+											"type": "string",
+											"example": "green-500"
+										},
+										"hasStatic": {
+											"type": "boolean",
+											"example": "false"
+										},
+										"url": {
+											"type": "string",
+											"example": "http://localhost:8080"
+										},
+										"mode": {
+											"type": "string",
+											"example": "dev"
+										},
+										"addons": {
+											"type": "array",
+											"example": []
+										},
+										"entities": {
+											"type": "array",
+											"example": []
+										},
+										"relations": {
+											"type": "array",
+											"example": []
+										},
+										"api": {
+											"type": "array",
+											"example": []
+										},
+										"permissions": {
+											"type": "array",
+											"example": []
+										},
+										"controllers": {
+											"type": "array",
+											"example": []
+										},
+										"models": {
+											"type": "array",
+											"example": []
+										},
+										"server": {
+											"type": "object",
+											"example": {
+												"dev": {
+													"host": "localhost",
+													"port": "8080"
+												}
+											}
+										},
+										"client": {
+											"type": "object",
+											"example": {}
+										},
+										"database": {
+											"type": "object",
+											"example": {
+												"disabled": true,
+												"config": {}
+											}
+										},
+										"live": {
+											"type": "object",
+											"example": {
+												"url": null
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/infos/minimal": {
+			"get": {
+				"tags": [
+					"App"
+				],
+				"summary": "Get current Materia application minimal infos",
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"id": {
+											"type": "string",
+											"example": "WhEZXlzIaXU="
+										},
+										"package": {
+											"type": "string",
+											"example": "my-materia-app"
+										},
+										"name": {
+											"type": "string",
+											"example": "My Materia App"
+										},
+										"path": {
+											"type": "string",
+											"example": "C:\\Users\\USER\\Documents\\materia\\apps\\my-materia-app"
+										},
+										"icon": {
+											"type": "string",
+											"example": "green-500"
+										},
+										"hasStatic": {
+											"type": "boolean",
+											"example": false
+										},
+										"url": {
+											"type": "string",
+											"example": "http://localhost:8080"
+										},
+										"mode": {
+											"type": "string",
+											"example": "dev"
+										},
+										"addons": {
+											"type": "array",
+											"example": []
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/token": {
+			"post": {
+				"tags": [
+					"App"
+				],
+				"summary": "Get authorization token for Materia Admin API",
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"access_token": {
+											"type": "string",
+											"example": "0g3Nlfh6wi0dX8KGP/BM+au/eo1KSF4TuoXsXLvw0nQ="
+										}
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"client_id": {
+										"type": "string",
+										"description": "Your Materia admin login",
+										"example": "admin"
+									},
+									"client_secret": {
+										"type": "string",
+										"description": "Your Materia admin root password",
+										"example": "@SeCURedPassWORD"
+									},
+									"grant_type": {
+										"type": "string",
+										"example": "client_credentials"
+									}
+								}
+							},
+							"examples": {
+								"one": {
+									"value": "My Super Aplication name"
+								}
+							}
+						}
+					}
+				},
+				"security": []
+			}
+
+		},
+		"/restart": {
+			"post": {
+				"tags": [
+					"App"
+				],
+				"summary": "Restart currently launched app",
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"message": {
+											"type": "string",
+											"example": "Shutting down the server... waiting for restart."
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/config": {
+			"post": {
+				"tags": ["App"],
+				"summary": "Set application settings",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"example": {
+									"general": {
+										"name": "Materia Application",
+										"icon": "green-500",
+										"package": "materia-application",
+										"path": "c:\\Users\\USER\\Documents\\materia\\apps\\materia-application"
+									},
+									"server": {
+										"dev": {
+											"host": "localhost",
+											"port": 8083,
+											"ssl": false
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"example": {
+										"general": {
+											"name": "Materia Application",
+											"icon": "green-500",
+											"package": "materia-application",
+											"path": "c:\\Users\\USER\\Documents\\materia\\apps\\materia-application"
+										},
+										"server": {
+											"dev": {
+												"host": "localhost",
+												"port": 8083,
+												"ssl": false
+											}
+										},
+										"database": {
+											"type": "sqlite",
+											"storage": "database.sqlite"
+										}
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal serveur error"
+					},
+					"404": {
+						"description": "File not found"
+					}
+				}
+
+			},
+			"delete": {
+				"tags": ["App"],
+				"summary": "Delete an application setting",
+				"parameters": [{
+						"name": "type",
+						"in": "query",
+						"required": true,
+						"description": "The setting type to delete ('client' or 'database')",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "mode",
+						"required": true,
+						"in": "query",
+						"description": "The setting environment mode ('dev' or 'prod')",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"500": {
+						"description": "Internal serveur error"
+					},
+					"404": {
+						"description": "File not found"
+					}
+				}
+			}
+
+		},
+		"/files/isDirectory/:path": {
+			"get": {
+				"tags": [
+					"Files"
+				],
+				"summary": "Retrieve information of whether an item in the file tree is a folder or file",
+				"operationId": "isFileTreeItemDirectory",
+				"parameters": [{
+					"name": "path",
+					"in": "path",
+					"required": true,
+					"description": "The relative or absolute path of the file tree element",
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"500": {
+						"description": "Internal serveur error"
+					},
+					"404": {
+						"description": "File not found"
+					}
+				}
+			}
+		},
+		"/files": {
+			"get": {
+				"tags": [
+					"Files"
+				],
+				"summary": "Retrieve a file or folder content",
+				"operationId": "getFileOrFolder",
+				"parameters": [{
+						"name": "path",
+						"in": "query",
+						"required": true,
+						"description": "The relative or absolute path of the file tree element",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "depth",
+						"in": "query",
+						"required": false,
+						"description": "Depth of the file tree structure if the item is a folder",
+						"schema": {
+							"type": "number"
+						}
+					}
+				],
+				"responses": {
+					"500": {
+						"description": "Internal serveur error"
+					},
+					"404": {
+						"description": "File not found"
+					}
+				}
+			},
+			"post": {
+				"tags": [
+					"Files"
+				],
+				"summary": "Add a file or folder in your application tree",
+				"description": "",
+				"operationId": "addFileOrFolder",
+				"parameters": [{
+					"name": "path",
+					"in": "query",
+					"description": "Relative or absolute path where the item will be created",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"isDir": {
+										"type": "boolean",
+										"description": "Whether or not the new item is a directory",
+										"example": false
+									},
+									"content": {
+										"description": "The content if the new item is a file",
+										"type": "string",
+										"example": "Hello world"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"500": {
+						"description": "Internal serveur error"
+					},
+					"404": {
+						"description": "File not found"
+					}
+				},
+				"security": [{
+					"petstore_auth": [
+						"write:pets",
+						"read:pets"
+					]
+				}]
+			},
+			"put": {
+				"tags": [
+					"Files"
+				],
+				"summary": "Move an existing file or folder in your application tree",
+				"description": "",
+				"operationId": "moveFile",
+				"parameters": [{
+					"name": "path",
+					"in": "query",
+					"schema": {
+						"type": "string"
+					},
+					"required": true,
+					"description": "Relative or absolute path of the item to be move"
+				}],
+				"responses": {
+					"500": {
+						"description": "Internal server error"
+					}
+				},
+				"security": [{
+					"petstore_auth": [
+						"write:pets",
+						"read:pets"
+					]
+				}],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"newPath": {
+										"type": "string",
+										"description": "Relative or absolute path where the item will be moved",
+										"example": "hello_world2.txt"
+									}
+								}
+							}
+						}
+					},
+					"required": true
+				}
+			},
+			"delete": {
+				"tags": [
+					"Files"
+				],
+				"summary": "Delete a file or folder from your application tree",
+				"parameters": [{
+					"name": "path",
+					"in": "query",
+					"description": "Relative or absolute path where the item will be created",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"500": {
+						"description": "Internal server error"
+					}
+				}
+			}
+		},
+		"/controllers": {
+			"get": {
+				"tags": ["Api"],
+				"summary": "Get the list of controllers existing in your application",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/controllers/:name": {
+			"get": {
+				"tags": ["Api"],
+				"summary": "Get the content of a controller",
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "string",
+									"example": "export DefaultCtrl {\n  constructor(app){\n    this.app = app \n   }\n } \n module.exports = DefaultCtrl"
+								}
+
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error"
+					}
+				},
+				"parameters": [{
+					"name": "name",
+					"in": "path",
+					"required": true,
+					"description": "Name of the controller you want to retrieve the content",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/endpoints": {
+			"get": {
+				"tags": ["Api"],
+				"summary": "Get the list of endpoints existing in your application",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			},
+			"post": {
+				"tags": ["Api"],
+				"summary": "Add a new endpoint",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"endpoint": {
+										"properties": {
+											"method": {
+												"type": "string",
+												"example": "get"
+											},
+											"url": {
+												"type": "string",
+												"example": "/todos"
+											},
+											"controller": {
+												"type": "string",
+												"example": "default"
+											},
+											"action": {
+												"type": "string",
+												"example": "getTodos"
+											},
+											"query": {
+												"type": "object",
+												"example": {
+													"entity": "todos",
+													"id": "findAll"
+												}
+											},
+											"params": {
+												"type": "array",
+												"example": []
+											},
+											"permissions": {
+												"type": "array",
+												"example": ["Anyone"]
+											}
+										}
+									},
+									"code": {
+										"type": "string",
+										"example": "class defaultCtrl { constructor(app) { this.app = app; } getTodos(req, res, next) { return this.app.entities.get('todos').getQuery('findAll').run() } } module.exports = defaultCtrl; "
+									},
+									"options": {
+										"type": "object",
+										"example": {"save": true}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": ["Api"],
+				"summary": "Update an endpoint",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"newEndpoint": {
+										"properties": {
+											"method": {
+												"type": "string",
+												"example": "get"
+											},
+											"url": {
+												"type": "string",
+												"example": "/todos2"
+											},
+											"controller": {
+												"type": "string",
+												"example": "default"
+											},
+											"action": {
+												"type": "string",
+												"example": "getTodos"
+											},
+											"query": {
+												"type": "object",
+												"example": {
+													"entity": "todos",
+													"id": "findAll"
+												}
+											},
+											"params": {
+												"type": "array",
+												"example": []
+											},
+											"permissions": {
+												"type": "array",
+												"example": ["Anyone"]
+											}
+										}
+									},
+									"code": {
+										"type": "string",
+										"example": "class defaultCtrl { constructor(app) { this.app = app; } getTodos(req, res, next) { return this.app.entities.get('todos').getQuery('findAll').run() } } module.exports = defaultCtrl; "
+									},
+									"options": {
+										"type": "object",
+										"example": {"save": true}
+									},
+									"oldEnpointId": {
+										"type": "array",
+										"example": ["get", "/todos"]
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/endpoints/generate": {
+			"post": {
+				"tags": ["Api"],
+				"summary": "Generate default endpoints (GET/POST/PUT/DELETE) for a given entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/endpoints/:id": {
+			"delete": {
+				"tags": ["Api"],
+				"summary": "Delete an enpoint",
+				"parameters": [{
+					"name": "id",
+					"in": "path",
+					"description": "The unique identifier (btoa(method + url)) of the endpoint to delete.",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git": {
+			"get": {
+				"tags": ["Git"],
+				"summary": "Load current git repository infos (working copy, branches, history ..)",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/statuses": {
+			"get": {
+				"tags": ["Git"],
+				"summary": "Get current diffs",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/history": {
+			"get": {
+				"tags": ["Git"],
+				"summary": "Get git repository history",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/history/:hash": {
+			"get": {
+				"tags": ["Git"],
+				"summary": "Get git repository commit content from history",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "hash",
+					"in": "path",
+					"description": "Commit hash",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/git/history/:hash/file": {
+			"get": {
+				"tags": ["Git"],
+				"summary": "Get git repository commit file content from history",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+						"name": "hash",
+						"in": "path",
+						"description": "Commit hash",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "path",
+						"in": "query",
+						"required": true,
+						"description": "Path of the file",
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/git/init": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Initialize a repository",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/fetch": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Update the local working copy database with changes from the default remote repo and branch,",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/commit": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Commits changes on the named files with the supplied message",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"summary": {
+										"type": "string",
+										"example": "Initial commit"
+									},
+									"description": {
+										"type": "string",
+										"example": ""
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/git/branches": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Create a branch",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"name": {
+										"type": "string",
+										"example": "dev"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": ["Git"],
+				"summary": "Select a branch",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"branchName": {
+										"type": "string",
+										"example": "dev"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/git/pull": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Pulls all updates from the default tracked repo",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/push": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Pushes to a named remote/branch",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/stash": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Stash the working directory",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/stash/pop": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Stash pop the working directory",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/stage": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Add file to be under source control",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"path": {
+										"type": "string",
+										"example": ".gitignore"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/git/stage_all": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Add all files to be under source control",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/git/unstage": {
+			"delete": {
+				"tags": ["Git"],
+				"summary": "Remove a file from source control",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "path",
+					"in": "query",
+					"description": "Path of the file. If not specified all files will be unstaged.",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/git/unstage_all": {
+			"delete": {
+				"tags": ["Git"],
+				"summary": "Remove all files from source control",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/database/synchronize": {
+			"get": {
+				"tags": ["Database"],
+				"summary": "Retrieve differences between application and database states",
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"entities": {
+											"type": "array",
+											"example": []
+										},
+										"fields": {
+											"type": "array",
+											"example": []
+										},
+										"relations": {
+											"type": "array",
+											"example": []
+										},
+										"length": {
+											"type": "number",
+											"example": 0
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["Database"],
+				"summary": "Synchronize your application and database states",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"type": {
+										"type": "string",
+										"example": "entitiesToDatabase"
+									},
+									"diffs": {
+										"type": "object",
+										"example": {
+											"entities": [],
+											"relations": [],
+											"fields": [],
+											"length": 0
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/database/try": {
+			"post": {
+				"tags": ["Database"],
+				"summary": "Try connection to the database with passed config",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"type": {
+										"type": "string",
+										"example": "postgres"
+									},
+									"host": {
+										"type": "string",
+										"example": "localhost"
+									},
+									"port": {
+										"type": "number",
+										"example": 5432
+									},
+									"database": {
+										"type": "string",
+										"example": "database_name"
+									},
+									"username": {
+										"type": "string",
+										"example": "postgres"
+									},
+									"password": {
+										"type": "string",
+										"example": "xxxxxxxxxxx"
+									}
+
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/sql": {
+			"post": {
+				"tags": ["Database"],
+				"summary": "Run an sql query",
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"example": {
+										"count": 1,
+										"data": [{
+											"id_test": 1,
+											"name": "test"
+										}]
+									}
+								}
+							}
+						}
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"query": {
+										"type": "string",
+										"example": "SELECT * FROM test LIMIT 1"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/entities": {
+			"get": {
+				"tags": ["Entities"],
+				"summary": "Get the list of entities of the currently running application",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			},
+			"post": {
+				"tags": ["Entities"],
+				"summary": "Create a new entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"name": {
+										"type": "string",
+										"description": "Name of the entity to add. Should be unique.",
+										"example": "todos"
+									},
+									"fields": {
+										"type": "array",
+										"items": {
+											"type": "object"
+										},
+										"example": [{
+												"name": "id_todos",
+												"type": "number",
+												"primary": true,
+												"unique": true,
+												"required": true,
+												"autoIncrement": true
+											},
+											{
+												"name": "name",
+												"type": "text"
+											}
+										]
+									},
+									"endpointsGenerated": {
+										"type": "object",
+										"example": {
+											"list": {
+												"enabled": true,
+												"url": "/todos"
+											},
+											"create": {
+												"enabled": true,
+												"url": "/todos"
+											},
+											"get": {
+												"enabled": true,
+												"url": "/todos/:id_todos"
+											},
+											"update": {
+												"enabled": true,
+												"url": "/todos/:id_todos"
+											},
+											"delete": {
+												"enabled": false,
+												"url": "/todos/:id_todos"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/entities/:entity": {
+			"put": {
+				"tags": ["Entities"],
+				"summary": "Rename an entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "entity",
+					"in": "path",
+					"required": true,
+					"description": "Name of the entity to rename",
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"requestBody": {
+					"content": {
+						"text/plain": {
+							"schema": {
+								"type": "string",
+								"description": "New name of the entity",
+								"example": "old_todos"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Entities"],
+				"summary": "Delete an entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "entity",
+					"in": "path",
+					"required": true,
+					"description": "Name of the entity to delete",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/entities/:entity/position": {
+			"put": {
+				"tags": ["Entities"],
+				"summary": "Update an entity position",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "entity",
+					"in": "path",
+					"required": true,
+					"description": "Name of the entity",
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"x": {
+										"type": "number",
+										"description": "x position of the entity to update",
+										"example": 100
+									},
+									"y": {
+										"type": "number",
+										"description": "y position of the entity to update",
+										"example": 250
+									}
+
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/entities/relations": {
+			"get": {
+				"tags": ["Entities"],
+				"summary": "Get the list of relations",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			},
+			"post": {
+				"tags": ["Entities"],
+				"summary": "Create a new relationship between two entities",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"rel1": {
+										"type": "object",
+										"example": {
+											"type": "belongsTo",
+											"field": "id_users",
+											"reference": {
+												"entity": "users",
+												"field": "id_users"
+											}
+										}
+									},
+									"rel2": {
+										"type": "object",
+										"example": {
+											"type": "hasMany",
+											"reference": {
+												"entity": "todos",
+												"field": "id_users"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/entities/:entity/relations/:type/:relationFieldOrEntity": {
+			"delete": {
+				"tags": ["Entities"],
+				"summary": "Delete a relationship between two entities",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+						"name": "entity",
+						"in": "path",
+						"required": true,
+						"description": "Name of the entity whose relationship will be removed",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "type",
+						"in": "path",
+						"required": true,
+						"description": "Type of relation to remove",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "relationFieldOrEntity",
+						"in": "path",
+						"required": true,
+						"description": "Field name (for hasMany/BelongsTo or hasOne/belongsTo) or entity name (for hasMany/belongsToMany) implied in the relationship to remove",
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/entities/:entity/queries": {
+			"post": {
+				"tags": ["Entities"],
+				"summary": "Add a query to an entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"id": {
+										"type": "string",
+										"description": "unique query identifier (must be unique inside an entity)",
+										"example": "customFindAll"
+									},
+									"type": {
+										"type": "string",
+										"description": "Query type",
+										"enum": ["findAll", "create", "update", "delete", "custom", "sql"],
+										"example": "findAll"
+									},
+									"opts": {
+										"type": "object",
+										"description": "Query options",
+										"example": {
+											"params": [],
+											"conditions": []
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/entities/:entity/queries/:id": {
+			"post": {
+				"tags": ["Entities"],
+				"summary": "Run a query of an entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+						"name": "entity",
+						"in": "path",
+						"required": true,
+						"description": "Name of the entity in which the query will be executed ",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"description": "Unique identifier of the query to run",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"description": "Query options",
+								"example": {
+									"params": [],
+									"conditions": []
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Entities"],
+				"summary": "Delete a query of an entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+						"name": "entity",
+						"in": "path",
+						"required": true,
+						"description": "Name of the entity in which the query will be deleted",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"description": "Unique identifier of the query to delete",
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/entities/:entity/fields": {
+			"post": {
+				"tags": ["Entities"],
+				"summary": "Add a field to an entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "entity",
+					"in": "path",
+					"required": true,
+					"description": "Name of the entity in which the field will be added",
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"description": "Field object to add",
+								"example": {
+									"name": "updated_at",
+									"type": "date",
+									"required": true
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/entities/:entity/fields/:field": {
+			"delete": {
+				"tags": ["Entities"],
+				"summary": "Delete a field of an entity",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+						"name": "entity",
+						"in": "path",
+						"required": true,
+						"description": "Name of the entity in which the field will be deleted",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "field",
+						"in": "path",
+						"required": true,
+						"description": "Unique identifier of the field to delete",
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/client/build": {
+			"post": {
+				"tags": ["Client"],
+				"summary": "Build your frontend sources",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/client/watch/start": {
+			"post": {
+				"tags": ["Client"],
+				"summary": "Launch watch script of your frontend sources",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/client/watch/stop": {
+			"post": {
+				"tags": ["Client"],
+				"summary": "Stop watch script of your frontend",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/client/boilerplate/init": {
+			"post": {
+				"tags": ["Client"],
+				"summary": "Initialize simple static directory with an index.html file",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/client/boilerplate/init/angular": {
+			"post": {
+				"tags": ["Client"],
+				"summary": "Initialize a new angular application with @angular/cli",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"type": {
+										"type": "string",
+										"description": "The type of client: monopackage or twopackage",
+										"example": "twopackage"
+									},
+									"name": {
+										"type": "string",
+										"description": "The name of the Angular application that will be generated",
+										"example": "pizzeria-website"
+									},
+									"output": {
+										"type": "string",
+										"description": "Name of your final Angular application folder.",
+										"example": "angular-client"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/client/boilerplate/init/react": {
+			"post": {
+				"tags": ["Client"],
+				"summary": "Initialize a new React application with create-react-app",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"name": {
+										"type": "string",
+										"description": "The name of the React application that will be generated",
+										"example": "pizzeria-website"
+									},
+									"output": {
+										"type": "string",
+										"description": "Name of your final React application folder.",
+										"example": "react-client"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/client/boilerplate/init/vue": {
+			"post": {
+				"tags": ["Client"],
+				"summary": "Initialize a new Vue application with @vue/cli",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"type": {
+										"type": "string",
+										"description": "The type of client: monopackage or twopackage",
+										"example": "twopackage"
+									},
+									"name": {
+										"type": "string",
+										"description": "The name of the Vue application that will be generated",
+										"example": "pizzeria-website"
+									},
+									"output": {
+										"type": "string",
+										"description": "Name of your final Vue application folder.",
+										"example": "vue-client"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/addons/:pkg/bundle.js": {
+			"get": {
+				"tags": ["Addons"],
+				"summary": "Get the frontend bundle of an addon",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"in": "path",
+					"name": "pkg",
+					"required": true,
+					"description": "Name of the package",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/addons/:pkg/setup": {
+			"post": {
+				"tags": ["Addons"],
+				"summary": "Update the setup of an installed addon",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"in": "path",
+					"name": "pkg",
+					"required": true,
+					"description": "Name of the package",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/addons/:pkg/enable": {
+			"post": {
+				"tags": ["Addons"],
+				"summary": "Enable an addon",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"in": "path",
+					"name": "pkg",
+					"required": true,
+					"description": "Name of the package",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/addons/:pkg/disable": {
+			"post": {
+				"tags": ["Addons"],
+				"summary": "Disable an addon",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"in": "path",
+					"name": "pkg",
+					"required": true,
+					"description": "Name of the package",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/permissions": {
+			"get": {
+				"tags": ["Api"],
+				"summary": "Get the list of permissions",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			},
+			"post": {
+				"tags": ["Api"],
+				"summary": "Create a new permission",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/permissions/new": {
+			"post": {
+				"tags": ["Api"],
+				"summary": "Generate a new permission file",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"name": {
+										"type": "string",
+										"description": "Name of the permission to add",
+										"example": "Connected User"
+									},
+									"file": {
+										"type": "string",
+										"description": "Filename of the permission to add",
+										"example": "connected-user"
+									},
+									"description": {
+										"type": "string",
+										"description": "Description of the permission to add",
+										"example": "Only connected user are allowed"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/permissions/:permission": {
+			"put": {
+				"tags": ["Api"],
+				"summary": "Update permission code content",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "permission",
+					"in": "path",
+					"required": true,
+					"description": "Permission name to update",
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"permission": {
+										"properties": {
+											"name": {
+												"type": "string",
+												"description": "Name of the permission",
+												"example": "Connected User Renamed"
+											},
+											"file": {
+												"type": "string",
+												"description": "Filename of the permission",
+												"example": "connected-user"
+											},
+											"description": {
+												"type": "string",
+												"description": "Description of the permission",
+												"example": "Only connected user are allowed"
+											}
+										}
+									},
+									"oldName": {
+										"type": "string",
+										"description": "Name of the permission before update",
+										"example": "Connected User"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Api"],
+				"summary": "Delete a permission",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "permission",
+					"in": "path",
+					"required": true,
+					"description": "Permission name to delete",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/actions": {
+			"get": {
+				"tags": ["Actions"],
+				"summary": "Get the list of actions",
+				"responses": {
+					"200": {
+						"description": "Success",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "object"
+									}
+								},
+								"example": [{
+										"id": "vbG3S/FSIa8=",
+										"type": "afterQuery",
+										"filter": {
+											"entity": "users",
+											"query": "signup",
+											"onlySuccess": true
+										},
+										"action": {
+											"entity": "mailjet-message",
+											"query": "send",
+											"params": {
+												"email": "newuser@email.com",
+												"subject": "welcome",
+												"content": "Welcome new user!"
+											}
+										}
+									},
+									{
+										"id": "adG6P/TLVk0=",
+										"type": "afterQuery",
+										"filter": {
+											"entity": "users",
+											"query": "unsubscribe",
+											"onlySuccess": true
+										},
+										"action": {
+											"entity": "mailjet-message",
+											"query": "send",
+											"params": {
+												"email": "newuser@email.com",
+												"subject": "Account deleted",
+												"content": "Dear user your account has been succefully deleted!"
+											}
+										}
+									}
+								]
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["Actions"],
+				"summary": "Add an action",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"type": {
+										"type": "string",
+										"example": "afterQuery"
+									},
+									"filter": {
+										"type": "object",
+										"example": {
+											"entity": "users",
+											"query": "signup",
+											"onlySuccess": true
+										}
+									},
+									"action": {
+										"type": "object",
+										"example": {
+											"entity": "mailjet-message",
+											"query": "send",
+											"params": {
+												"email": "newuser@email.com",
+												"message": "Hello new user !"
+											}
+										}
+
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/actions/:id": {
+			"put": {
+				"tags": ["Actions"],
+				"summary": "Update an action",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"description": "Unique identifier of the action to modify",
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"type": {
+										"type": "string",
+										"example": "afterQuery"
+									},
+									"filter": {
+										"type": "object",
+										"example": {
+											"entity": "users",
+											"query": "signup",
+											"onlySuccess": true
+										}
+									},
+									"action": {
+										"type": "object",
+										"example": {
+											"entity": "mailjet-message",
+											"query": "send",
+											"params": {
+												"email": "newuser@email.com",
+												"message": "Hello new user !"
+											}
+										}
+
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Actions"],
+				"summary": "Delete an action",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"description": "Unique identifier of the action to modify",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/dependencies": {
+			"post": {
+				"tags": ["Dependencies"],
+				"summary": "Install all dependencies",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				}
+			}
+		},
+		"/dependencies/:dependency": {
+			"post": {
+				"tags": ["Dependencies"],
+				"summary": "Install a dependency",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "dependency",
+					"in": "path",
+					"required": true,
+					"description": "Package name to install",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			},
+			"put": {
+				"tags": ["Dependencies"],
+				"summary": "Upgrade a dependency",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "dependency",
+					"in": "path",
+					"required": true,
+					"description": "Package name to upgrade",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			},
+			"delete": {
+				"tags": ["Dependencies"],
+				"summary": "Delete a dependency",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "dependency",
+					"in": "path",
+					"required": true,
+					"description": "Package name to uninstall",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		},
+		"/dependencies/:owner/:dependency": {
+			"post": {
+				"tags": ["Dependencies"],
+				"summary": "Install a dependency",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "owner",
+					"in": "path",
+					"required": true,
+					"description": "Owner of the package to install",
+					"schema": {
+						"type": "string"
+					}
+				}, {
+					"name": "dependency",
+					"in": "path",
+					"required": true,
+					"description": "Package name to install",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			},
+			"put": {
+				"tags": ["Dependencies"],
+				"summary": "Upgrade a dependency",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "owner",
+					"in": "path",
+					"required": true,
+					"description": "Owner of the package to upgrade",
+					"schema": {
+						"type": "string"
+					}
+				}, {
+					"name": "dependency",
+					"in": "path",
+					"required": true,
+					"description": "Package name to upgrade",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			},
+			"delete": {
+				"tags": ["Dependencies"],
+				"summary": "Delete a dependency",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "owner",
+					"in": "path",
+					"required": true,
+					"description": "Owner of the package to uninstall",
+					"schema": {
+						"type": "string"
+					}
+				}, {
+					"name": "dependency",
+					"in": "path",
+					"required": true,
+					"description": "Package name to uninstall",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			}
+		}
+	},
+	"externalDocs": {
+		"description": "Find out more about Materia",
+		"url": "http://getmateria.com"
+	},
+	"servers": [{
+		"url": "http://localhost:8080/materia"
+	}],
+	"components": {
+		"securitySchemes": {
+			"bearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT"
+			}
+		},
+		"schemas": {}
+	},
+	"security": [{
+		"bearerAuth": []
+	}]
+}
