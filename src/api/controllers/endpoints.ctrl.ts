@@ -8,18 +8,18 @@ import { EndpointsLib } from '../lib/endpoints';
 import { WebsocketInstance } from '../../lib/websocket';
 
 export class EndpointsController {
-	constructor(private app: App, websocket: WebsocketInstance) {}
+	constructor(private app: App, websocket: WebsocketInstance) { }
 
 	getEndpoints(req, res) {
 		const endpoints: IEndpoint[] = this.app.api.findAll().map(api =>
 			Object.assign({}, api.toJson(), {
 				fromAddon: api.fromAddon
 					? {
-							name: api.fromAddon.name,
-							logo: api.fromAddon.logo,
-							package: api.fromAddon.package,
-							path: api.fromAddon.path
-					  }
+						name: api.fromAddon.name,
+						logo: api.fromAddon.logo,
+						package: api.fromAddon.package,
+						path: api.fromAddon.path
+					}
 					: {},
 				params: api.getAllParams(),
 				data: api.getAllData()
@@ -74,17 +74,31 @@ export class EndpointsController {
 		}
 	}
 
+	add(req, res) {
+		const newEndpoint = req.body.endpoint;
+		if (newEndpoint.controller && newEndpoint.action) {
+			this.createCode(req, res);
+		} else if (newEndpoint.query) {
+			this.createQuery(req, res);
+		}
+	}
+
 	createCode(req, res) {
-		const controller = req.body.fromAddon
-			? req.body.controller
-					.split('/')
-					[req.body.controller.split('/').length - 1].replace(
-						/(\.ctrl)?\.js$/,
-						''
-					)
-			: req.body.controller.replace(/(\.ctrl)?\.js$/, '');
-		const basePath = req.body.fromAddon
-			? req.body.fromAddon.path
+		const endpoint = req.body.endpoint;
+		const options = req.body.options;
+		if (endpoint.fromAddon && endpoint.fromAddon.package) {
+			endpoint.fromAddon = this.app.addons.get('@materia/aws-s3');
+		}
+		const controller = endpoint.fromAddon
+			? endpoint.controller
+				.split('/')
+			[endpoint.controller.split('/').length - 1].replace(
+				/(\.ctrl)?\.js$/,
+				''
+			)
+			: endpoint.controller.replace(/(\.ctrl)?\.js$/, '');
+		const basePath = endpoint.fromAddon
+			? endpoint.fromAddon.path
 			: this.app.path;
 		const fullpath = path.join(
 			basePath,
@@ -92,104 +106,127 @@ export class EndpointsController {
 			'controllers',
 			controller + '.ctrl.js'
 		);
-		this.app
-			.saveFile(fullpath, req.body.code, { mkdir: true })
-			.then(() => {
-				this.app.api.add({
-					method: req.body.method,
-					url: req.body.url,
-					controller: controller,
-					action: req.body.action,
-					params: req.body.params,
-					permissions: req.body.permissions
-				});
-				res.status(201).json({
-					endpoints: EndpointsLib.list(this.app),
-					newSelectedId: req.body.method + req.body.url,
-					controllers: this.app.api.getControllers()
-				});
-			})
-			.catch(err => {
-				res.status(500).json(err);
+		let promise = Promise.resolve();
+		if (req.body.code) {
+			promise = promise.then(() => this.app.saveFile(fullpath, req.body.code, { mkdir: true }));
+		}
+		promise.then(() => {
+			const newEndpoint: any = {
+				method: endpoint.method,
+				url: endpoint.url,
+				controller: controller,
+				action: endpoint.action,
+				params: endpoint.params,
+				permissions: endpoint.permissions
+			}
+			if (endpoint.fromAddon) {
+				newEndpoint.fromAddon = endpoint.fromAddon;
+			}
+			this.app.api.add(newEndpoint, options);
+			res.status(201).json({
+				endpoints: EndpointsLib.list(this.app),
+				newSelectedId: endpoint.method + endpoint.url,
+				controllers: this.app.api.getControllers()
 			});
+		}).catch(err => res.status(500).send(err.message));
 	}
 
 	createQuery(req, res) {
+		const options = req.body.options;
+		const endpoint = req.body.endpoint;
 		this.app.watcher.disable();
-		this.app.api.add({
-			method: req.body.method,
-			url: req.body.url,
-			params: req.body.params,
-			permissions: req.body.permissions,
-			query: req.body.query
-		});
+		const newEndpoint: any = {
+			method: endpoint.method,
+			url: endpoint.url,
+			params: endpoint.params,
+			permissions: endpoint.permissions,
+			query: endpoint.query
+		}
+		if (endpoint.fromAddon && endpoint.fromAddon.package) {
+			newEndpoint.fromAddon = this.app.addons.get(endpoint.fromAddon.package);
+		}
+		this.app.api.add(newEndpoint, options);
 		this.app.watcher.enable();
 		res.status(201).json({
 			endpoints: EndpointsLib.list(this.app),
-			newSelectedId: req.body.method + req.body.url,
+			newSelectedId: endpoint.method + endpoint.url,
 			controllers: this.app.api.getControllers()
 		});
 	}
 
+	update(req, res) {
+		const newEndpoint = req.body.newEndpoint;
+		if (newEndpoint.controller && newEndpoint.action) {
+			this.updateCode(req, res);
+		} else if (newEndpoint.query) {
+			this.updateQuery(req, res);
+		}
+	}
+
 	updateCode(req, res) {
+		const options = req.options;
 		const newEndpoint = req.body.newEndpoint;
 		const oldEndpointId = req.body.oldEndpointId;
 		const [method, endpoint] = oldEndpointId;
-		return new Promise((resolve, reject) => {
-			const controller = newEndpoint.controller.replace(
-				/(\.ctrl)?\.js$/,
-				''
-			);
-			const basePath = this.app.path;
-			const fullpath = path.join(
-				basePath,
-				'server',
-				'controllers',
-				controller + '.ctrl.js'
-			);
-			this.app.watcher.disable();
-			this.app
-				.saveFile(fullpath, newEndpoint.code)
-				.then(() => {
-					let params;
-					if (newEndpoint.params) {
-						params = EndpointsLib.cleanParams(newEndpoint.params);
-					}
-					this.app.api.remove(method, endpoint);
-					this.app.api.add({
-						method: newEndpoint.method,
-						url: newEndpoint.url,
-						controller: controller,
-						action: newEndpoint.action,
-						params: params ? params : [],
-						permissions: newEndpoint.permissions
-					});
+		const controller = newEndpoint.controller.replace(
+			/(\.ctrl)?\.js$/,
+			''
+		);
+		const basePath = this.app.path;
+		const fullpath = path.join(
+			basePath,
+			'server',
+			'controllers',
+			controller + '.ctrl.js'
+		);
+		this.app.watcher.disable();
+		let promise = Promise.resolve();
+		if (req.body.code) {
+			promise = promise.then(() => this.app.saveFile(fullpath, req.body.code));
+		}
+		promise.then(() => {
+			let params;
+			if (newEndpoint.params) {
+				params = EndpointsLib.cleanParams(newEndpoint.params);
+			}
+			this.app.api.remove(method, endpoint);
+			const payload: any = {
+				method: newEndpoint.method,
+				url: newEndpoint.url,
+				controller: controller,
+				action: newEndpoint.action,
+				params: params ? params : [],
+				permissions: newEndpoint.permissions
+			};
+			if (newEndpoint.fromAddon && newEndpoint.fromAddon.package) {
+				payload.fromAddon = this.app.addons.get(newEndpoint.fromAddon.package);
+			}
+			this.app.api.add(payload, options);
 
-					EndpointsLib
-						.list(this.app)
-						.find(
-							endpoint =>
-								endpoint.method + endpoint.url ==
-								newEndpoint.method +
-									newEndpoint.url
-						);
-					this.app.watcher.enable();
-					res.status(200).json({
-						endpoints: EndpointsLib.list(this.app),
-						newSelectedId:
-							newEndpoint.method +
-							newEndpoint.url,
-						controllers: this.app.api.getControllers()
-					});
-				})
-				.catch(err => {
-					res.status(500).json(err.message);
-				});
+			EndpointsLib
+				.list(this.app)
+				.find(
+					endpoint =>
+						endpoint.method + endpoint.url ==
+						newEndpoint.method +
+						newEndpoint.url
+				);
+			this.app.watcher.enable();
+			res.status(200).json({
+				endpoints: EndpointsLib.list(this.app),
+				newSelectedId:
+					newEndpoint.method +
+					newEndpoint.url,
+				controllers: this.app.api.getControllers()
+			});
+		}).catch(err => {
+			res.status(500).json(err.message);
 		});
 
 	}
 
 	updateQuery(req, res) {
+		const options = req.options;
 		const newEndpoint = req.body.newEndpoint;
 		const oldEndpointId = req.body.oldEndpointId;
 		this.app.watcher.disable();
@@ -205,7 +242,7 @@ export class EndpointsController {
 		if (!newEndpoint.permissions) {
 			newEndpoint.permissions = [];
 		}
-		this.app.api.add({
+		const payload: any = {
 			method: newEndpoint.method,
 			url: newEndpoint.url,
 			params: newEndpoint.params
@@ -213,7 +250,11 @@ export class EndpointsController {
 				: [],
 			permissions: newEndpoint.permissions,
 			query: newEndpoint.query
-		});
+		};
+		if (newEndpoint.fromAddon && newEndpoint.fromAddon.package) {
+			payload.fromAddon = this.app.addons.get(newEndpoint.fromAddon.package);
+		}
+		this.app.api.add(payload, options);
 		this.app.watcher.enable();
 		res.status(200).json({
 			endpoints: EndpointsLib.list(this.app),
@@ -231,7 +272,7 @@ export class EndpointsController {
 			url += `/${t}`
 		});
 		this.app.watcher.disable();
-		this.app.api.remove(method, url, {apply: true});
+		this.app.api.remove(method, url, { apply: true });
 		this.app.watcher.enable();
 		return res.status(200).send();
 	}
@@ -247,6 +288,6 @@ export class EndpointsController {
 		EndpointsLib.generate(this.app, entity, 'put', 'update');
 		EndpointsLib.generate(this.app, entity, 'delete', 'delete');
 
-		res.status(200).json({endpoints: EndpointsLib.list(this.app)});
+		res.status(200).json({ endpoints: EndpointsLib.list(this.app) });
 	}
 }
