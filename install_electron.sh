@@ -3,7 +3,7 @@
 sudo rm -rf node_modules/
 
 # Electron's version.
-export npm_config_target=2.0.0-beta.1
+export npm_config_target=2.0.0
 # The architecture of Electron, can be ia32 or x64.
 export npm_config_arch=x64
 export npm_config_target_arch=x64

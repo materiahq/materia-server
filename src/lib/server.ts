@@ -116,6 +116,7 @@ export class Server {
 	*/
 	getBaseUrl(path?: string, mode?: AppMode, options?: IConfigOptions) {
 		path = path || '/api'
+		mode = mode || this.app.mode;
 		let appConf = this.app.config.get<IAppConfig>(
 			mode,
 			ConfigType.APP,
