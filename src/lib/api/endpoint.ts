@@ -278,7 +278,7 @@ export class Endpoint {
 			return this.app.actions.handle('beforeEndpoint', {
 				method: req.method,
 				url: req.url
-			}, Object.assign(req.query, req.body, req.params), false).then(() => {
+			}, Object.assign({}, req.query, req.body, req.params), false).then(() => {
 				if (params.errors.length == 1) {
 					return res.status(500).send({
 						error: true,
@@ -296,7 +296,7 @@ export class Endpoint {
 			return this.app.actions.handle('beforeEndpoint', {
 				method: req.method,
 				url: req.url
-			}, Object.assign(req.query, req.body, req.params), true).then(() => {
+			}, Object.assign({}, req.query, req.body, req.params), true).then(() => {
 				this.app.logger.log(` └── Parameters: ${JSON.stringify(params.resolvedParams)}`)
 				if (this.controller && this.action) {
 					let obj
@@ -316,7 +316,7 @@ export class Endpoint {
 						return this.app.actions.handle('afterEndpoint', {
 							method: req.method,
 							url: req.url
-						}, Object.assign(req.query, req.body, req.params), false)
+						}, Object.assign({}, req.query, req.body, req.params), false)
 							.then(() => fn())
 							.catch(() => fn())
 					}
@@ -335,7 +335,7 @@ export class Endpoint {
 						return this.app.actions.handle('afterEndpoint', {
 							method: req.method,
 							url: req.url
-						}, Object.assign(req.query, req.body, req.params), true)
+						}, Object.assign({}, req.query, req.body, req.params), true)
 					}
 				}
 				else {
@@ -344,7 +344,7 @@ export class Endpoint {
 					return this.app.actions.handle('beforeEndpoint', {
 						method: req.method,
 						url: req.url
-					}, Object.assign(req.query, req.body, req.params), true)
+					}, Object.assign({}, req.query, req.body, req.params), true)
 						.then(() =>
 							this.query.run(params.resolvedParams)
 						)
@@ -363,7 +363,7 @@ export class Endpoint {
 							return this.app.actions.handle('afterEndpoint', {
 								method: req.method,
 								url: req.url
-							}, Object.assign(req.query, req.body, req.params), true)
+							}, Object.assign({}, req.query, req.body, req.params), true)
 								.then(() => {
 									res.status(500).send(err)
 								})

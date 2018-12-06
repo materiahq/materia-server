@@ -44,6 +44,8 @@ describe('[Entities]', () => {
 				should.exist(app.entities.get('test'))
 				app.entities.get('test').toJson().should.deep.equal({
 					id: "fake-id",
+					x: undefined,
+					y: undefined,
 					fields: [
 						{
 							name: "id_test",

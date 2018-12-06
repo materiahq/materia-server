@@ -16,7 +16,7 @@ module.exports = class MyTestCtrl {
 	testParams(req, res, next) {
 		return Promise.resolve({
 			body: req.body,
-			query: req.query,
+			query: {...req.query},
 			params: req.params
 		})
 	}

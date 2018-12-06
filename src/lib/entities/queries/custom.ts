@@ -117,7 +117,7 @@ export class CustomQuery extends Query {
 			}
 		}
 		if (success) { return Promise.resolve(); }
-		else { return Promise.reject(false) }
+		else { return Promise.reject(new MateriaError('Missing required parameter')) }
 	}
 
 	private _run(instance, params) {
