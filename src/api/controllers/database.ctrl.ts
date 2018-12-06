@@ -293,6 +293,10 @@ export class DatabaseController {
 		const action = req.body;
 
 		try {
+			action.id = req.params.id;
+			if (req.params[0]) {
+				action.id += req.params[0];
+			}
 			this.app.actions.register(action, {
 				save: true
 			});
@@ -306,7 +310,11 @@ export class DatabaseController {
 		}
 	}
 	removeAction(req, res) {
-		if (this.app.actions.remove(req.params.id, { save: true })) {
+		let id = req.params.id;
+		if (req.params[0]) {
+			id += req.params[0];
+		}
+		if (this.app.actions.remove(id, { save: true })) {
 			res.status(200).json(
 				DatabaseLib.loadEntitiesJson(this.app)
 			);

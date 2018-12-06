@@ -137,9 +137,10 @@ export class MateriaApi {
 		this.api.get('/materia/database/synchronize', this.oauth.isAuth, this.databaseCtrl.getDiffs.bind(this.databaseCtrl));
 		this.api.post('/materia/database/synchronize', this.oauth.isAuth, this.databaseCtrl.sync.bind(this.databaseCtrl));
 		this.api.post('/materia/database/try', this.oauth.isAuth, this.databaseCtrl.tryAuth.bind(this.databaseCtrl));
-		this.api.get('/materia/entities', this.oauth.isAuth, this.databaseCtrl.getEntities.bind(this.databaseCtrl))
-		this.api.get('/materia/entities/relations', this.oauth.isAuth, this.databaseCtrl.getRelations.bind(this.databaseCtrl))
+
+		this.api.get('/materia/entities', this.oauth.isAuth, this.databaseCtrl.getEntities.bind(this.databaseCtrl));
 		this.api.post('/materia/entities', this.oauth.isAuth, this.databaseCtrl.createEntity.bind(this.databaseCtrl));
+
 		this.api.delete('/materia/entities/:entity', this.oauth.isAuth, this.databaseCtrl.removeEntity.bind(this.databaseCtrl));
 		this.api.put('/materia/entities/:entity', this.oauth.isAuth, this.databaseCtrl.renameEntity.bind(this.databaseCtrl));
 		this.api.put('/materia/entities/:entity/position', this.oauth.isAuth, this.databaseCtrl.moveEntity.bind(this.databaseCtrl));
@@ -153,14 +154,15 @@ export class MateriaApi {
 		this.api.post('/materia/entities/:entity/queries/:queryId', this.oauth.isAuth, this.databaseCtrl.runQuery.bind(this.databaseCtrl));
 		this.api.post('/materia/sql', this.oauth.isAuth, this.databaseCtrl.runSql.bind(this.databaseCtrl));
 		// Relations
+		this.api.get('/materia/entities/relations', this.oauth.isAuth, this.databaseCtrl.getRelations.bind(this.databaseCtrl));
 		this.api.post('/materia/entities/relations', this.oauth.isAuth, this.databaseCtrl.createRelation.bind(this.databaseCtrl));
 		this.api.delete('/materia/entities/:entity/relations/:type/:relationFieldOrEntity', this.oauth.isAuth, this.databaseCtrl.removeRelation.bind(this.databaseCtrl));
 
 		// Actions
-		this.api.get('materia/actions', this.oauth.isAuth, this.databaseCtrl.listActions.bind(this.databaseCtrl));
+		this.api.get('/materia/actions', this.oauth.isAuth, this.databaseCtrl.listActions.bind(this.databaseCtrl));
 		this.api.post('/materia/actions', this.oauth.isAuth, this.databaseCtrl.addAction.bind(this.databaseCtrl));
-		this.api.put('/materia/actions/:id', this.oauth.isAuth, this.databaseCtrl.updateAction.bind(this.databaseCtrl));
-		this.api.delete('/materia/actions/:id', this.oauth.isAuth, this.databaseCtrl.removeAction.bind(this.databaseCtrl));
+		this.api.put('/materia/actions/:id*', this.oauth.isAuth, this.databaseCtrl.updateAction.bind(this.databaseCtrl));
+		this.api.delete('/materia/actions/:id*', this.oauth.isAuth, this.databaseCtrl.removeAction.bind(this.databaseCtrl));
 
 
 		/**
