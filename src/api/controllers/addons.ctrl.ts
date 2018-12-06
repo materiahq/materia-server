@@ -5,6 +5,15 @@ import * as fs from 'fs';
 export class AddonsController {
 	constructor(private app: App, websocket: WebsocketInstance) {}
 
+	getConfig(req, res) {
+		const pkg = this.getPkgFromRequest(req);
+		if (! pkg || ! this.app.addons.get(pkg)) {
+			res.status(404).send();
+		} else {
+			res.status(200).send(this.app.addons.addonsConfig[pkg]);
+		}
+	}
+
 	setup(req, res) {
 		this.app.watcher.disable();
 		const pkg = this.getPkgFromRequest(req);
@@ -53,8 +62,10 @@ export class AddonsController {
 		}
 	}
 	private getPkgFromRequest(req) {
-		return req.params.owner
-			? `${req.params.owner}/${req.params.pkg}`
-			: req.params.pkg;
+		let pkg = req.params.pkg;
+		if (req.params[0]) {
+			pkg += req.params[0];
+		}
+		return pkg;
 	}
 }
