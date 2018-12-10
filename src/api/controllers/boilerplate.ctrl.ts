@@ -346,7 +346,7 @@ export class BoilerplateController {
 
 	private _emitError(err) {
 		const type = "boilerplate:error";
-		this.app.materiaApi.websocket.broadcast({ type, message: err.data });
+		this.app.materiaApi.websocket.broadcast({ type, message: err });
 	}
 
 	private _fileToJson(filePath) {
