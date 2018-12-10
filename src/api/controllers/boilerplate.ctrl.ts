@@ -198,12 +198,6 @@ export class BoilerplateController {
 					autoWatch: false
 				};
 				this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
-				this._emitMessage('Add scripts to root package.json');
-				if ( ! this.app.config.packageJson['scripts'] ) {
-					this.app.config.packageJson['scripts'] = {};
-				}
-				this.app.config.packageJson['scripts']['build'] = "cd client && npm run build";
-				this.app.config.packageJson['scripts']['prod'] = "cd client && npm run build";
 				return this.app.config.save();
 			}).then(() => {
 				this._emitMessage('Build React application');
