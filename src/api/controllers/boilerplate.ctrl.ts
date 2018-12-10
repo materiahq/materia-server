@@ -43,7 +43,7 @@ export class BoilerplateController {
 
 	initBoilerplate(req, res) {
 		const framework = req.params.framework;
-		switch(framework) {
+		switch (framework) {
 			case 'angular':
 				return this.initAngular(req, res);
 			case 'react':
@@ -56,12 +56,14 @@ export class BoilerplateController {
 	}
 
 	initAngular(req, res) {
-		res.status(200).send({});
-		if (req.body && req.body.type === 'monopackage') {
-			this.initAngularMonoPackage(req.body);
-		} else {
-			this.initDefaultAngular(req.body);
-		}
+		this._checkFolderParams(req.body).then(params => {
+			res.status(200).send();
+			if (params && params.type === 'monopackage') {
+				this.initAngularMonoPackage(params);
+			} else {
+				this.initDefaultAngular(params);
+			}
+		}).catch(err => res.status(500).send(err.message));
 	}
 
 	initDefaultAngular(params: { type: string, output: string, name: string }) {
@@ -183,19 +185,15 @@ export class BoilerplateController {
 	}
 
 	initReact(req, res) {
-		res.status(200).send({});
-		this.app.watcher.disable();
-		const params = req.body;
-		if ( ! params.name ) {
-			params.name = this.app.config.packageJson.name;
-		}
-		if ( ! params.output ) {
-			params.output = 'client';
-		}
-		this._emitMessage('Create React application');
-		return this.npx.exec('create-react-app', [
-			params.name
-		]).then(() => {
+		let params;
+		return this._checkFolderParams(req.body).then((modifiedParams) => {
+			res.status(200).send();
+			this.app.watcher.disable();
+			params = modifiedParams;
+			this._emitMessage('Create React application');
+			return this.npx.exec('create-react-app', [
+				params.name
+			]).then(() => {
 				this._emitMessage('Rename React app folder');
 				return this._renameItem(path.join(this.app.path, params.name), path.join(this.app.path, params.output));
 			}).then(() => {
@@ -223,25 +221,21 @@ export class BoilerplateController {
 				this.app.watcher.enable();
 				this.app.materiaApi.websocket.broadcast({ type, client: client });
 			}).catch(err => this._emitError(err));
+		}).catch(err => res.status(500).send(err.message))
 	}
 
 	initVue(req, res) {
-		res.status(200).send({});
-		if (req.body.type === 'monopackage') {
-			this.initVueMonoPackage(req.body);
-		} else {
-			this.initDefaultVue(req.body);
-		}
+		this._checkFolderParams(req.body).then((params) => {
+			res.status(200).send();
+			if (params.type === 'monopackage') {
+				this.initVueMonoPackage(params);
+			} else {
+				this.initDefaultVue(params);
+			}
+		}).catch(err => res.status(500).send(err.message));
 	}
 
 	initDefaultVue(params) {
-
-		if ( ! params.name ) {
-			params.name = this.app.config.packageJson.name;
-		}
-		if ( ! params.output ) {
-			params.output = 'client';
-		}
 		this.app.watcher.disable();
 		this._emitMessage('Install @vue/cli');
 		return this._installBoilerplateCli('@vue/cli')
@@ -280,11 +274,6 @@ export class BoilerplateController {
 	initVueMonoPackage(params) {
 		this.app.watcher.disable();
 		this._emitMessage('Install @vue/cli');
-
-		if ( ! params.name ) {
-			params.name = this.app.config.packageJson.name;
-		}
-
 		return this._removeItemIfExist(path.join(this.app.path, 'package-lock.json'))
 			.then(() => this._removeItemIfExist(path.join(this.app.path, 'yarn.lock')))
 			.then(() => this._removeItemIfExist(path.join(this.app.path, 'node_modules')))
@@ -357,6 +346,22 @@ export class BoilerplateController {
 		this.app.materiaApi.websocket.broadcast({ type, message: err });
 	}
 
+	private _checkFolderParams(params): Promise<any> {
+		if ( ! params.name ) {
+			params.name = this.app.config.packageJson.name;
+		}
+		if ( ! params.output ) {
+			params.output = 'client';
+		}
+		if (fs.existsSync(path.join(this.app.path, params.name))) {
+			return Promise.reject(new Error(`The folder '${path.join(this.app.path, params.name)}' already exists.`))
+		}
+		if (fs.existsSync(path.join(this.app.path, params.output))) {
+			return Promise.reject(new Error(`The output folder '${path.join(this.app.path, params.output)}' already exists.`))
+		}
+		return Promise.resolve(params);
+	}
+
 	private _fileToJson(filePath) {
 		return new Promise((resolve, reject) => {
 			fs.readFile(filePath, 'utf-8', (e, data) => {
@@ -373,13 +378,13 @@ export class BoilerplateController {
 		await this.npm.exec('install', [name, '--save']);
 		const tmp = await getPackageJson(this.app, name);
 		const pkg = this.app.config.packageJson;
-		if ( ! pkg['scripts'] ) {
+		if (!pkg['scripts']) {
 			pkg['scripts'] = {};
 		}
-		if ( ! pkg['dependencies'] ) {
+		if (!pkg['dependencies']) {
 			pkg['dependencies'] = {};
 		}
-		if ( ! pkg['devDependencies'] ) {
+		if (!pkg['devDependencies']) {
 			pkg['devDependencies'] = {};
 		}
 		pkg['devDependencies'][name] = `~${tmp['version']}`;
@@ -392,14 +397,14 @@ export class BoilerplateController {
 			const pkg = this.app.config.packageJson;
 			const boilerplateProjectPath = path.join(this.app.path, projectName);
 			this._fileToJson(path.join(boilerplateProjectPath, 'package.json'))
-			.then((boilerplateProjectPackage: any) => {
-				delete boilerplateProjectPackage.scripts.start;
-				this.app.config.set(Object.assign({}, pkg.devDependencies, boilerplateProjectPackage.devDependencies), AppMode.DEVELOPMENT, ConfigType.DEPENDENCIES);
-				this.app.config.set(Object.assign({}, pkg.dependencies, boilerplateProjectPackage.dependencies), AppMode.PRODUCTION, ConfigType.DEPENDENCIES);
-				this.app.config.set(Object.assign({}, pkg.scripts, boilerplateProjectPackage.scripts, { watch: 'ng build --watch', prod: 'ng build --prod' }), this.app.mode, ConfigType.SCRIPTS);
-				this.app.config.save();
-				resolve();
-			}).catch(err => reject(err));
+				.then((boilerplateProjectPackage: any) => {
+					delete boilerplateProjectPackage.scripts.start;
+					this.app.config.set(Object.assign({}, pkg.devDependencies, boilerplateProjectPackage.devDependencies), AppMode.DEVELOPMENT, ConfigType.DEPENDENCIES);
+					this.app.config.set(Object.assign({}, pkg.dependencies, boilerplateProjectPackage.dependencies), AppMode.PRODUCTION, ConfigType.DEPENDENCIES);
+					this.app.config.set(Object.assign({}, pkg.scripts, boilerplateProjectPackage.scripts, { watch: 'ng build --watch', prod: 'ng build --prod' }), this.app.mode, ConfigType.SCRIPTS);
+					this.app.config.save();
+					resolve();
+				}).catch(err => reject(err));
 		});
 	}
 
