@@ -41,6 +41,20 @@ export class BoilerplateController {
 			.catch((err) => res.status(500).send(err.message));
 	}
 
+	initBoilerplate(req, res) {
+		const framework = req.params.framework;
+		switch(framework) {
+			case 'angular':
+				return this.initAngular(req, res);
+			case 'react':
+				return this.initReact(req, res);
+			case 'vue':
+				return this.initVue(req, res);
+			default:
+				res.status(500).send(new Error(`'${framework}' framework not supported`));
+		}
+	}
+
 	initAngular(req, res) {
 		res.status(200).send({});
 		if (req.body && req.body.type === 'monopackage') {
@@ -100,7 +114,7 @@ export class BoilerplateController {
 	}
 
 	initAngularMonoPackage(params) {
-		this._emitMessage('install @angular/cli');
+		this._emitMessage('Install @angular/cli');
 
 		this.app.watcher.disable();
 		return this._installBoilerplateCli('@angular/cli').then(() => {
