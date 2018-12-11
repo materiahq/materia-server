@@ -75,7 +75,7 @@ export class BoilerplateController {
 			this.app.config.save();
 			return this._newAngularProject(['--routing', '--style=scss'], params.name);
 		}).then(() => {
-			return this._removeItemIfExist(path.join(this.app.path, params.name, '.git'));
+			return this._removeItemIfExists(path.join(this.app.path, params.name, '.git'));
 		}).then(() => {
 			this._emitMessage('Rename angular project folder');
 			return this._moveItem(path.join(this.app.path, params.name), path.join(this.app.path, params.output));
@@ -129,9 +129,9 @@ export class BoilerplateController {
 		}).then(() => {
 			return this._removeBoilerplatePackage(params.name);
 		}).then(() => {
-			return this._removeItemIfExist(path.join(this.app.path, params.name, 'readme.md'));
+			return this._removeItemIfExists(path.join(this.app.path, params.name, 'readme.md'));
 		}).then(() => {
-			return this._removeItemIfExist(path.join(this.app.path, params.name, '.git'));
+			return this._removeItemIfExists(path.join(this.app.path, params.name, '.git'));
 		}).then(() => {
 			return this._moveItem(path.join(this.app.path, '.gitignore'), path.join(this.app.path, '.gitignore2'));
 		}).then(() => {
@@ -272,11 +272,6 @@ export class BoilerplateController {
 
 	initVueMonoPackage(params) {
 		this.app.watcher.disable();
-		/*this._emitMessage('Clean node modules and lock files');
-		return this._removeItemIfExist(path.join(this.app.path, 'package-lock.json'))
-			.then(() => this._removeItemIfExist(path.join(this.app.path, 'yarn.lock')))
-			.then(() => this._removeItemIfExist(path.join(this.app.path, 'node_modules')))
-			.then(() => {*/
 		this._emitMessage('Install @vue/cli');
 		return this._installBoilerplateCli('@vue/cli')
 		.then(() => {
@@ -479,7 +474,7 @@ outputDir: './client/dist'
 		return fse.remove(projectPath);
 	}
 
-	private _removeItemIfExist(itemPath): Promise<void> {
+	private _removeItemIfExists(itemPath): Promise<void> {
 		if (fse.existsSync(itemPath)) {
 			return fse.remove(path.join(itemPath));
 		}
