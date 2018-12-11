@@ -110,14 +110,15 @@ export class ClientController {
 		});
 		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
 		let script = null;
-		if (!req.body.prod && conf.scripts.build) {
+		if ( ! req.body.prod && conf.scripts.build) {
 			script = conf.scripts.build;
 		}
 		if (req.body.prod && conf.scripts.prod) {
 			script = conf.scripts.prod;
 		}
 		if (script) {
-			this.npm.exec('run-script', [script], join(this.app.path, conf.packageJsonPath), (data, error) => {
+			const packageJsonPath = conf && conf.packageJsonPath ? join(this.app.path, conf.packageJsonPath) : this.app.path;
+			this.npm.exec('run-script', [script], packageJsonPath, (data, error) => {
 				const progress = this._parseProgress(data);
 				if (progress) {
 					this.websocket.broadcast({
