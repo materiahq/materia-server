@@ -1880,6 +1880,26 @@
 			}
 		},
 		"/addons/:pkg/setup": {
+			"get": {
+				"tags": ["Addons"],
+				"summary": "Get the setup of an installed addon",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [
+					{
+						"in": "path",
+						"name": "pkg",
+						"required": true,
+						"description": "Name of the package",
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
 			"post": {
 				"tags": ["Addons"],
 				"summary": "Update the setup of an installed addon",
