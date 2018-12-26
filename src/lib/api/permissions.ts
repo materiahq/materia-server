@@ -107,7 +107,10 @@ export class Permissions {
 		}
 	}
 
-	load(): Promise<any> {
+	/**
+	Load all the registered permissions
+	 */
+	load(): Promise<void> {
 		this.clear();
 		let permissionsPath, resolvedPath, permissionsRaw;
 		try {
@@ -131,7 +134,7 @@ export class Permissions {
 				results.push(this.add(obj));
 			});
 			return Promise.all(results).then(() => {
-				return true;
+				return;
 			});
 		} else {
 			return Promise.resolve();
