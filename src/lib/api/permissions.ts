@@ -18,8 +18,6 @@ export class Permissions {
 		this.clear();
 	}
 
-	isAuthorized(permission) {}
-
 	check(permissionsName: Array<string>) {
 		return (req, res, next) => {
 			let chain = (req, res, next) => {
