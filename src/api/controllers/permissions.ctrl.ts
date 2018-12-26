@@ -1,10 +1,11 @@
-import { App } from '../../lib';
-
 import * as path from 'path';
 import * as fs from 'fs';
+
+import { App } from '../../lib';
 import { WebsocketInstance } from '../../lib/websocket';
 
 export class PermissionsController {
+
 	constructor(private app: App, websocket: WebsocketInstance) {}
 
 	initCreate(req, res) {
@@ -153,7 +154,7 @@ export class PermissionsController {
 
 	private _checkNewPermission(perm) {
 		return new Promise((resolve, reject) => {
-			const filepath = 	path.join(
+			const filepath = path.join(
 				this.app.path,
 				'server',
 				'permissions',
