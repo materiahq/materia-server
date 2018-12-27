@@ -53,7 +53,7 @@ export class PermissionsController {
 						selected: newPermission.name
 					});
 				})
-				.catch(err => res.status(500).json(err))
+				.catch(err => res.status(500).send(err.message))
 			});
 		} else {
 			res.status(500).send(`The permission "${newPermission.name}" already exists`);
@@ -101,10 +101,10 @@ export class PermissionsController {
 		const oldName = req.params.permission;
 		const oldPermission = this.app.api.permissions.get(oldName);
 		if ( ! oldPermission) {
-			return res.status(500).json(new Error('Impossible to update: no permission selected'));
+			return res.status(500).send('Impossible to update: no permission selected');
 		}
 		if (oldPermission.readOnly) {
-			return res.status(500).json(new Error('Impossible to update: permission is in readonly'));
+			return res.status(500).send('Impossible to update: permission is in readonly');
 		}
 		let promise = Promise.resolve();
 		if (oldPermission.name !== permission.name || oldPermission.description !== permission.description || oldPermission.file !== permission.file) {
@@ -132,7 +132,7 @@ export class PermissionsController {
 				permissions: PermissionsLib.list(this.app),
 				selected: updatedPermission.name
 			});
-		}).catch(err => res.status(500).json(err));;
+		}).catch(err => res.status(500).send(err.message));;
 	}
 
 	private _checkNewPermission(perm): Promise<string> {
