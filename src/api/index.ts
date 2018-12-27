@@ -184,6 +184,7 @@ export class MateriaApi {
 		 * Endpoints Permissions
 		 */
 		this.api.get('/materia/permissions', this.oauth.isAuth, this.permissionsCtrl.list.bind(this.permissionsCtrl));
+		this.api.get('/materia/permissions/:permission', this.oauth.isAuth, this.permissionsCtrl.get.bind(this.permissionsCtrl));
 		this.api.post('/materia/permissions', this.oauth.isAuth, this.permissionsCtrl.add.bind(this.permissionsCtrl));
 		this.api.put('/materia/permissions/:permission', this.oauth.isAuth, this.permissionsCtrl.update.bind(this.permissionsCtrl));
 		this.api.delete('/materia/permissions/:permission', this.oauth.isAuth, this.permissionsCtrl.remove.bind(this.permissionsCtrl));

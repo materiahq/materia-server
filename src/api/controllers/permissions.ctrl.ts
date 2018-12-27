@@ -60,6 +60,17 @@ export class PermissionsController {
 		}
 	}
 
+	get(req, res) {
+		const name = req.params.permission;
+		const permissions = PermissionsLib.list(this.app);
+		const permission = permissions.find(p => p.name === name);
+		if (permission) {
+			res.status(200).send(permission);
+		} else {
+			res.status(500).send(`Permission with name '${name}' not found`);
+		}
+	}
+
 	list(req, res) {
 		res.status(200).json(PermissionsLib.list(this.app));
 	}
