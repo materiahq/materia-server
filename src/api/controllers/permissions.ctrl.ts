@@ -119,6 +119,23 @@ export class PermissionsController {
 				{ save: true }
 			));
 		}
+		if (oldPermission.name !== permission.name) {
+			const endpointsToEdit = this.app.api.endpoints.filter((endpoint) => {
+				if (endpoint.permissions && endpoint.permissions.indexOf(oldPermission.name) !== -1) {
+					return true;
+				}
+				return false;
+			});
+			if (endpointsToEdit && endpointsToEdit.length) {
+				endpointsToEdit.forEach((endpoint) => {
+					const index = endpoint.permissions.indexOf(oldPermission.name);
+					endpoint.permissions[index] = permission.name;
+					const endpointIndex = this.app.api.endpoints.findIndex(e => e.method + e.url === endpoint.method + endpoint.url);
+					this.app.api.put(endpoint, endpointIndex, {save: true});
+				});
+				this.app.api.updateEndpoints();
+			}
+		}
 		if (permission.code) {
 			const filename = this._getPermissionFilepath(this.app.api.permissions.get(permission.name));
 			promise = promise.then(() => this.app.saveFile(filename, permission.code, {
@@ -180,7 +197,7 @@ export class PermissionsLib {
 	static list(app: App) {
 		return app.api.permissions.findAll().map(permission => {
 			return Object.assign({}, permission.toJson(), {
-				code: `module.exports = ${permission.middleware.toString()}`
+				code: permission.invalid ? null : `module.exports = ${permission.middleware.toString()}`
 			});
 		});
 	}
