@@ -61,6 +61,7 @@ export class AddonsController {
 			res.status(200).send( bundle )
 		}
 	}
+
 	private getPkgFromRequest(req) {
 		let pkg = req.params.pkg;
 		if (req.params[0]) {

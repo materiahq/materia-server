@@ -87,12 +87,9 @@ export class MateriaApi {
 		 * PackageManager Endpoints
 		 */
 		this.api.post('/materia/dependencies', this.oauth.isAuth, this.packageManagerCtrl.installAll.bind(this.packageManagerCtrl));
-		this.api.post('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.install.bind(this.packageManagerCtrl))
-		this.api.post('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.install.bind(this.packageManagerCtrl))
-		this.api.put('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.upgrade.bind(this.packageManagerCtrl))
-		this.api.put('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.upgrade.bind(this.packageManagerCtrl))
-		this.api.delete('/materia/dependencies/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstall.bind(this.packageManagerCtrl))
-		this.api.delete('/materia/dependencies/:owner/:dependency', this.oauth.isAuth, this.packageManagerCtrl.uninstall.bind(this.packageManagerCtrl))
+		this.api.post('/materia/dependencies/:dependency*', this.oauth.isAuth, this.packageManagerCtrl.install.bind(this.packageManagerCtrl));
+		this.api.put('/materia/dependencies/:dependency*', this.oauth.isAuth, this.packageManagerCtrl.upgrade.bind(this.packageManagerCtrl));
+		this.api.delete('/materia/dependencies/:dependency*', this.oauth.isAuth, this.packageManagerCtrl.uninstall.bind(this.packageManagerCtrl));
 
 		/**
 		 * Files Endpoints
@@ -110,7 +107,6 @@ export class MateriaApi {
 		this.api.get('/materia/git', this.oauth.isAuth, this.gitCtrl.load.bind(this.gitCtrl));
 		this.api.post('/materia/git/init', this.oauth.isAuth, this.gitCtrl.init.bind(this.gitCtrl));
 		this.api.post('/materia/git/fetch', this.oauth.isAuth, this.gitCtrl.fetch.bind(this.gitCtrl));
-		// this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl..bind(this.gitCtrl));
 		this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.getStatus.bind(this.gitCtrl));
 		this.api.post('/materia/git/stage', this.oauth.isAuth, this.gitCtrl.stage.bind(this.gitCtrl));
 		this.api.delete('/materia/git/unstage', this.oauth.isAuth, this.gitCtrl.unstage.bind(this.gitCtrl));

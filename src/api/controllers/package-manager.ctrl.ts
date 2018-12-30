@@ -1,7 +1,6 @@
 import { App } from "../../lib";
-
-import { WebsocketInstance } from "../../lib/websocket";
 import { Npm } from "../lib/npm";
+import { WebsocketInstance } from "../../lib/websocket";
 
 export class PackageManagerController {
 	npm: Npm;
@@ -12,10 +11,8 @@ export class PackageManagerController {
 	}
 
 	install(req, res) {
-		const name = req.params.owner
-			? `${req.params.owner}/${req.params.dependency}`
-			: req.params.dependency;
-		this.app.watcher.disable()
+		this.app.watcher.disable();
+		const name = this.getPkgFromRequest(req);
 
 		try {
 			this.npm.exec('install', [name, '--save'], null, (data, error) => {
@@ -34,46 +31,68 @@ export class PackageManagerController {
 	}
 
 	upgrade(req, res) {
-		const name = req.params.owner
-			? `${req.params.owner}/${req.params.dependency}`
-			: req.params.dependency;
+		this.app.watcher.disable();
+		const name = this.getPkgFromRequest(req);
 
-		return this.npm.exec('upgrade', [name, '--save']).then(data => {
-			res.status(200).send({data});
-		}).catch(e => {
-			res.status(500).send(e);
-		});
+		try {
+			this.npm.exec('upgrade', [name, '--save'], null, (data, error) => {
+				this.app.logger.log(data);
+			}).then(data => {
+				this.app.watcher.enable();
+				return res.status(200).send({data});
+			}).catch(e => {
+				this.app.watcher.enable();
+				return res.status(500).send(e);
+			});
+		} catch(e) {
+			this.app.watcher.enable();
+			return res.status(502).send(e);
+		}
 	}
 
 	installAll(req, res) {
-		return this.npm.exec('install', [], null, (data, error) => {
-			this.app.logger.log(data);
-		}).then(data => {
-			res.status(200).send({data});
-		}).catch(e => {
-			res.status(500).send(e);
-		});
+		this.app.watcher.disable();
+		try {
+			this.npm.exec('install', [], null, (data, error) => {
+				this.app.logger.log(data);
+			}).then(data => {
+				this.app.watcher.enable();
+				return res.status(200).send({data});
+			}).catch(e => {
+				this.app.watcher.enable();
+				return res.status(500).send(e);
+			});
+		} catch(e) {
+			this.app.watcher.enable();
+			return res.status(502).send(e);
+		}
 	}
 
 	uninstall(req, res) {
 		this.app.watcher.disable();
-		const name = req.params.owner
-			? `${req.params.owner}/${req.params.dependency}`
-			: req.params.dependency;
+		const name = this.getPkgFromRequest(req);
 
 		try {
 			this.npm.exec('uninstall', [name, '--save'], null, (data, error) => {
 				this.app.logger.log(data);
 			}).then(data => {
-				this.app.watcher.enable()
-				return res.status(200).send({data})
+				this.app.watcher.enable();
+				return res.status(200).send({data});
 			}).catch(err => {
-				this.app.watcher.enable()
-				return res.status(501).send(err)
+				this.app.watcher.enable();
+				return res.status(501).send(err);
 			});
 		} catch(e) {
-			this.app.watcher.enable()
+			this.app.watcher.enable();
 			return res.status(502).send(e);
 		}
+	}
+
+	private getPkgFromRequest(req) {
+		let pkg = req.params.pkg;
+		if (req.params[0]) {
+			pkg += req.params[0];
+		}
+		return pkg;
 	}
 }
