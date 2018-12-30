@@ -1,94 +1,83 @@
-import { App } from '../../lib';
-
 import * as path from 'path';
 import * as fs from 'fs';
+
+import { App, Permission } from '../../lib';
 import { WebsocketInstance } from '../../lib/websocket';
+import { IPermission } from '@materia/interfaces';
 
 export class PermissionsController {
+
 	constructor(private app: App, websocket: WebsocketInstance) {}
 
-	initCreate(req, res) {
-		const perm = req.body;
-		let middleware;
-		this._checkNewPermission(perm).then(result => {
-			if (result !== '') {
-				try {
-					let file = path.join(
-						this.app.path,
-						'server',
-						'permissions',
-						perm.file
-					);
-					let rp = require.resolve(file);
-					if (require.cache[rp]) {
-						delete require.cache[rp];
+	add(req, res) {
+		const newPermission: IPermission = req.body;
+		const exists: boolean = this.app.api.permissions.findAll().findIndex(p => p.name === newPermission.name) !== -1;
+		if ( ! exists) {
+			let middleware = this._getDefaultMiddleware();
+			this._checkNewPermission(newPermission).then((permissionCode) => {
+				if (permissionCode !== '') {
+					try {
+						let file = path.join(
+							this.app.path,
+							'server',
+							'permissions',
+							newPermission.file
+						);
+						let rp = require.resolve(file);
+						if (require.cache[rp]) {
+							delete require.cache[rp];
+						}
+						middleware = require(file);
+					} catch (err) {}
+				}
+
+				this.app.api.permissions.add(
+					{
+						name: newPermission.name,
+						description: newPermission.description,
+						middleware: newPermission.code ? eval(newPermission.code) : middleware,
+						file: newPermission.file
+					},
+					{ save: true }
+				)
+				.then((result) => {
+					const reloadPerm = this.app.api.permissions
+						.get(newPermission.name);
+
+					if (reloadPerm) {
+						reloadPerm.reload();
 					}
-					middleware = require(file);
-				}
-				catch {
-					middleware = (req, res, next) => {
-	next();
-};
-				}
-			} else {
-				middleware = (req, res, next) => {
-	next();
-};
-			}
-			this.app.api.permissions
-			.add(
-				{
-					name: perm.name,
-					description: perm.description,
-					middleware: middleware,
-					file: perm.file
-				},
-				{ save: true }
-			)
-			.then(result => {
-				const reloadPerm = this.app.api.permissions
-					.get(perm.name);
 
-				if (reloadPerm) {
-					reloadPerm.reload();
-				}
-
-				res.status(200).json({
-					permissions: PermissionsLib.list(this.app),
-					selected: perm.name
-				});
-			})
-			.catch(err => res.status(500).json(err));
-		})
+					res.status(200).json({
+						permissions: PermissionsLib.list(this.app),
+						selected: newPermission.name
+					});
+				})
+				.catch(err => res.status(500).send(err.message))
+			});
+		} else {
+			res.status(500).send(`The permission "${newPermission.name}" already exists`);
+		}
 	}
 
-	update(req, res) { // payload: { permission: IPermission; oldName: string }) {
-		const perm = req.body;
-		const oldName = req.params.permission;
-		return this.app.api.permissions
-			.update(
-				oldName,
-				{
-					name: perm.name,
-					description: perm.description,
-					file: perm.file
-				},
-				{ save: true }
-			)
-			.then(result => {
-				const reloadPerm = this.app.api.permissions.get(perm.name);
-				reloadPerm.reload();
-				res.status(200).json({
-					permissions: PermissionsLib.list(this.app),
-					selected: perm.name
-				});
-			})
-			.catch(err => res.status(500).json(err));
+	get(req, res) {
+		const name = req.params.permission;
+		const permissions = PermissionsLib.list(this.app);
+		const permission = permissions.find(p => p.name === name);
+		if (permission) {
+			res.status(200).send(permission);
+		} else {
+			res.status(500).send(`Permission with name '${name}' not found`);
+		}
 	}
 
-	remove(req, res) { // payload: { permission: IPermission; action: string }) {
+	list(req, res) {
+		res.status(200).json(PermissionsLib.list(this.app));
+	}
+
+	remove(req, res) {
 		const perm = req.params.permission;
-		const action = req.query.action;
+		const action = req.query.action ? req.query.action : 'confirm and keep';
 		const reloadPerm = this.app.api.permissions.get(perm);
 		if (reloadPerm) {
 			reloadPerm.reload();
@@ -107,53 +96,65 @@ export class PermissionsController {
 		res.status(200).json(PermissionsLib.list(this.app));
 	}
 
-	save(req, res) {
-		const perm = this.app.api.permissions.get(req.body.name)
-			? this.app.api.permissions.get(req.body.name)
-			: req.body;
-		let filename = perm.file;
-		if (filename.indexOf(path.sep) == -1) {
-			filename = path.join(
-				this.app.path,
-				'server',
-				'permissions',
-				perm.file
-			);
+	update(req, res) {
+		const permission : IPermission = req.body;
+		const oldName = req.params.permission;
+		const oldPermission = this.app.api.permissions.get(oldName);
+		if ( ! oldPermission) {
+			return res.status(500).send('Impossible to update: no permission selected');
 		}
-		if (filename.indexOf('.js') == -1) {
-			filename = filename + '.js';
+		if (oldPermission.readOnly) {
+			return res.status(500).send('Impossible to update: permission is in readonly');
 		}
-
-		if (!perm) {
-			return res.status(500).json(new Error('Impossible to save: no permission selected'));
+		let promise = Promise.resolve();
+		if (oldPermission.name !== permission.name || oldPermission.description !== permission.description || oldPermission.file !== permission.file) {
+			promise = promise.then(() => this.app.api.permissions
+			.update(
+				oldName,
+				{
+					name: permission.name,
+					description: permission.description,
+					file: permission.file
+				},
+				{ save: true }
+			));
 		}
-		if (perm.readOnly) {
-			return res.status(500).json(new Error('Impossible to save: permission is in readonly'));
-		}
-
-		return this.app
-			.saveFile(filename, req.body.code, {
-				mkdir: true
-			})
-			.then(() => {
-				const reloadPerm = this.app.api.permissions.get(perm.name);
-				if (reloadPerm) {
-					reloadPerm.reload();
+		if (oldPermission.name !== permission.name) {
+			const endpointsToEdit = this.app.api.endpoints.filter((endpoint) => {
+				if (endpoint.permissions && endpoint.permissions.indexOf(oldPermission.name) !== -1) {
+					return true;
 				}
-				res.status(200).json(PermissionsLib.list(this.app));
-			})
-			.catch(err => {
-				res.status(500).json(err);
+				return false;
 			});
+			if (endpointsToEdit && endpointsToEdit.length) {
+				endpointsToEdit.forEach((endpoint) => {
+					const index = endpoint.permissions.indexOf(oldPermission.name);
+					endpoint.permissions[index] = permission.name;
+					const endpointIndex = this.app.api.endpoints.findIndex(e => e.method + e.url === endpoint.method + endpoint.url);
+					this.app.api.put(endpoint, endpointIndex, {save: true});
+				});
+				this.app.api.updateEndpoints();
+			}
+		}
+		if (permission.code) {
+			const filename = this._getPermissionFilepath(this.app.api.permissions.get(permission.name));
+			promise = promise.then(() => this.app.saveFile(filename, permission.code, {
+				mkdir: true
+			}));
+		}
+		return promise.then(() => {
+			const updatedPermission = this.app.api.permissions.get(permission.name);
+			updatedPermission.reload();
+			res.status(200).json({
+				permissions: PermissionsLib.list(this.app),
+				selected: updatedPermission.name
+			});
+		}).catch(err => res.status(500).send(err.message));;
 	}
 
-	list(req, res) {
-		res.status(200).json(PermissionsLib.list(this.app));
-	}
-
-	private _checkNewPermission(perm) {
+	private _checkNewPermission(perm): Promise<string> {
 		return new Promise((resolve, reject) => {
-			const filepath = 	path.join(
+			const filepath = path.join(
 				this.app.path,
 				'server',
 				'permissions',
@@ -164,9 +165,31 @@ export class PermissionsController {
 				if (err && err.code === 'ENOENT') {
 					return resolve('');
 				}
-				return resolve(fs.readFileSync(filepath));
+				return resolve(fs.readFileSync(filepath, 'utf-8'));
 			});
 		});
+	}
+
+	private _getDefaultMiddleware() {
+		return (req, res, next) => {
+			next();
+		};
+	}
+
+	private _getPermissionFilepath(permission: Permission) {
+		let filename = permission.file;
+		if (filename.indexOf(path.sep) == -1) {
+			filename = path.join(
+				this.app.path,
+				'server',
+				'permissions',
+				permission.file
+			);
+		}
+		if (filename.indexOf('.js') == -1) {
+			filename = filename + '.js';
+		}
+		return filename;
 	}
 }
 
@@ -174,7 +197,7 @@ export class PermissionsLib {
 	static list(app: App) {
 		return app.api.permissions.findAll().map(permission => {
 			return Object.assign({}, permission.toJson(), {
-				code: `module.exports = ${permission.middleware.toString()}`
+				code: permission.invalid ? null : `module.exports = ${permission.middleware.toString()}`
 			});
 		});
 	}

@@ -1976,22 +1976,13 @@
 					"200": {
 						"description": "Success"
 					}
-				}
-			}
-		},
-		"/permissions/new": {
-			"post": {
-				"tags": ["Api"],
-				"summary": "Generate a new permission file",
-				"responses": {
-					"200": {
-						"description": "Success"
-					}
 				},
 				"requestBody": {
 					"content": {
 						"application/json": {
 							"schema": {
+								"required": ["name", "file"],
+								"uniqueItems": true,
 								"properties": {
 									"name": {
 										"type": "string",
@@ -2005,8 +1996,13 @@
 									},
 									"description": {
 										"type": "string",
-										"description": "Description of the permission to add",
+										"description": " Description of the permission to add",
 										"example": "Only connected user are allowed"
+									},
+									"code": {
+										"type": "string",
+										"description": "Middleware function",
+										"example": "module.exports = (req, res, next) => { if (req.user) { return next(); } return next(new Error('Unauthorized');}"
 									}
 								}
 							}
@@ -2018,7 +2014,7 @@
 		"/permissions/:permission": {
 			"put": {
 				"tags": ["Api"],
-				"summary": "Update permission code content",
+				"summary": "Update a permission",
 				"responses": {
 					"200": {
 						"description": "Success"
@@ -2028,7 +2024,7 @@
 					"name": "permission",
 					"in": "path",
 					"required": true,
-					"description": "Permission name to update",
+					"description": "The permission's name before update",
 					"schema": {
 						"type": "string"
 					}
@@ -2037,30 +2033,27 @@
 					"content": {
 						"application/json": {
 							"schema": {
+								"required": ["name", "file"],
 								"properties": {
-									"permission": {
-										"properties": {
-											"name": {
-												"type": "string",
-												"description": "Name of the permission",
-												"example": "Connected User Renamed"
-											},
-											"file": {
-												"type": "string",
-												"description": "Filename of the permission",
-												"example": "connected-user"
-											},
-											"description": {
-												"type": "string",
-												"description": "Description of the permission",
-												"example": "Only connected user are allowed"
-											}
-										}
-									},
-									"oldName": {
+									"name": {
 										"type": "string",
-										"description": "Name of the permission before update",
-										"example": "Connected User"
+										"description": "New name of the permission",
+										"example": "Connected User Renamed"
+									},
+									"file": {
+										"type": "string",
+										"description": "New filename of the permission",
+										"example": "connected-user"
+									},
+									"description": {
+										"type": "string",
+										"description": "New description of the permission",
+										"example": "Only connected user are allowed"
+									},
+									"code": {
+										"type": "string",
+										"description": "Middleware function",
+										"example": "module.exports = (req, res, next) => { if (req.user) { return next(); } return next(new Error('Unauthorized');}"
 									}
 								}
 							}
@@ -2080,7 +2073,25 @@
 					"name": "permission",
 					"in": "path",
 					"required": true,
-					"description": "Permission name to delete",
+					"description": "Permission's name to delete",
+					"schema": {
+						"type": "string"
+					}
+				}]
+			},
+			"get": {
+				"tags": ["Api"],
+				"summary": "Get a permission",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"parameters": [{
+					"name": "permission",
+					"in": "path",
+					"required": true,
+					"description": "Permission's name to get",
 					"schema": {
 						"type": "string"
 					}
