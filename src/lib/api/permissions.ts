@@ -370,10 +370,11 @@ export class Permissions {
 			};
 		}
 		catch (e) {
+			const code = fs.existsSync(permissionPath + 'js') ? fs.readFileSync(permissionPath + '.js', 'utf8') : null;
 			return {
 				name: permission.name,
 				description: permission.description,
-				middleware: fs.readFileSync(permissionPath + '.js', 'utf8'),
+				middleware: code,
 				invalid: true,
 				file: permissionPath
 			};

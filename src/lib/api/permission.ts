@@ -17,6 +17,7 @@ export class Permission {
 	readOnly: boolean = false;
 	middleware: any;
 	file: string;
+	invalid: boolean;
 
 	constructor(app, data: IPermission) {
 		this.app = app;
@@ -31,15 +32,18 @@ export class Permission {
 		if (data.middleware) {
 			this.middleware = data.middleware;
 		}
+		if (data.invalid) {
+			this.invalid = data.invalid;
+		}
 	}
 
-	reload() {
+	reload(): Promise<void> {
 		if (this.file) {
 			let file = this.file;
 			if (
 				this.file.indexOf(
 					path.join(this.app.path, 'server', 'permissions')
-				) == -1
+				) === -1
 			) {
 				file = path.join(
 					this.app.path,
