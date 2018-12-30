@@ -64,7 +64,7 @@ export class FilesController {
 		fse.move(
 			filePath,
 			newPath,
-			{ clobber: true },
+			{ overwrite: true },
 			err => {
 				if (err) {
 					return res.status(500).json(err);
