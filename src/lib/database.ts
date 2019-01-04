@@ -2,7 +2,8 @@ import * as fs from 'fs'
 import * as path from 'path'
 import chalk from 'chalk'
 
-import * as Sequelize from 'sequelize'
+import * as Sequelize from 'sequelize';
+const Op = require('sequelize').Op;
 
 let domain = require('domain')
 
@@ -14,7 +15,6 @@ import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfa
 
 import { DatabaseInterface } from './database/interface'
 import { MateriaError } from './error'
-import { Op } from 'Sequelize';
 
 export enum Dialect {
 	POSTGRES,
@@ -59,8 +59,7 @@ export class Database {
 	started: boolean
 
 	opts: ISequelizeConfig
-
-	sequelize: Sequelize.Sequelize
+	sequelize: Sequelize.Sequelize;
 
 	constructor(private app: App) {
 		this.interface = new DatabaseInterface(this)
@@ -116,7 +115,6 @@ export class Database {
 		else {
 			logging = false
 		}
-
 		const operatorsAliases = {
 			$eq: Op.eq,
 			$ne: Op.ne,
