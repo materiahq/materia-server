@@ -89,7 +89,7 @@ export class PackageManagerController {
 	}
 
 	private getPkgFromRequest(req) {
-		let pkg = req.params.pkg;
+		let pkg = req.params.dependency;
 		if (req.params[0]) {
 			pkg += req.params[0];
 		}
