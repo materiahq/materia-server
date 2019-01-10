@@ -9,7 +9,7 @@ import {
 } from '@materia/interfaces';
 
 import * as fs from 'fs';
-import * as path from 'path';
+import { join } from 'path';
 
 import * as git from 'simple-git/promise';
 import { App } from '../../lib';
@@ -168,12 +168,12 @@ export class Git {
 		let content = null;
 		statusPath = this._fixGitPath(statusPath);
 		try {
-			const size = fs.statSync(path.join(this.app.path, statusPath)).size;
+			const size = fs.statSync(join(this.app.path, statusPath)).size;
 			if (size > 1000000.0) {
 				content = '// The content is too long to display...';
 			} else {
 				content = fs.readFileSync(
-					path.join(this.app.path, statusPath),
+					join(this.app.path, statusPath),
 					'utf8'
 				);
 			}
@@ -315,9 +315,9 @@ export class Git {
 						/ambiguous argument 'HEAD': unknown revision/
 					)
 				) {
-					return this.client.reset([path]); // no HEAD yet
+					return this.client.reset([status.path]); // no HEAD yet
 				}
-				throw e;
+				return Promise.reject(e);
 			})
 			.then(() => this.refreshWorkingCopy())
 	}
