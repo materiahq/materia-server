@@ -393,38 +393,22 @@ manual_scaling:
 	}
 
 	/**
-	Set the a value in materia app configuration
-	@param {string} - The configuration key
-	@param {value} - The value to set
-	*/
-	// updateInfo(key, value) {
-	// 	if (key == "name") {
-	// 		this.name = this.infos.name = value
-	// 	} else if (key == 'package') {
-	// 		this.package = value
-	// 	} else {
-	// 		this.infos[key] = value
-	// 	}
-	// }
-
-	/**
 	Starts the materia app
+	@returns {Promise<number>}
 	*/
-	start() {
-		let warning
+	start(): Promise<number> {
 		const errors = {} as any;
-		this.logger.log(`${chalk.bold('(Start)')} Application ${chalk.yellow.bold(this.name)}`)
-		let p = this.database.started ? Promise.resolve() : this.database.start()
+		this.logger.log(`${chalk.bold('(Start)')} Application ${chalk.yellow.bold(this.name)}`);
+		let p = this.database.started ? Promise.resolve() : this.database.start();
 		return p.catch((e) => {
 			errors.db = e;
 		}).then((e) => {
 			if (this.database.disabled) {
-				this.logger.log(` └── Database: ${chalk.red.bold('Disabled')}`)
+				this.logger.log(` └── Database: ${chalk.red.bold('Disabled')}`);
 			}
 			else {
-				this.logger.log(` └── Database: ${chalk.green.bold('OK')}`)
+				this.logger.log(` └── Database: ${chalk.green.bold('OK')}`);
 			}
-			warning = e
 			if (Object.keys(errors).length == 0) {
 				return this.entities.start().catch((e) => {
 					errors.entities = e;
@@ -434,7 +418,7 @@ manual_scaling:
 			}
 		}).then(() => {
 			if ( ! this.database.disabled ) {
-				this.logger.log(` └── Entities: ${chalk.green.bold('OK')}`)
+				this.logger.log(` └── Entities: ${chalk.green.bold('OK')}`);
 			}
 			if (Object.keys(errors).length == 0) {
 				return this.addons.start().catch((e) => {
@@ -444,36 +428,28 @@ manual_scaling:
 				return Promise.resolve();
 			}
 		}).then(() => {
-			this.logger.log(` └── Addons: ${chalk.bold.green('OK')}`)
+			this.logger.log(` └── Addons: ${chalk.bold.green('OK')}`);
 			if (Object.keys(errors).length == 0 && this.mode == AppMode.PRODUCTION && ! this.live) {
 				return this.synchronizer.diff().then((diffs) => {
 					if (diffs && diffs.length == 0) {
-						this.logger.log(` └── Synchronize: ${chalk.bold('DB already up to date')}`)
-						return
+						this.logger.log(` └── Synchronize: ${chalk.bold('DB already up to date')}`);
+						return;
 					}
-					this.logger.log(` └─┬ Synchronize: ${chalk.yellow.bold('The database structure differs from entities.')}`)
+					this.logger.log(` └─┬ Synchronize: ${chalk.yellow.bold('The database structure differs from entities.')}`);
 					return this.synchronizer.entitiesToDatabase(diffs, {}).then((actions) => {
-						this.logger.log(` │ └── Database: ${chalk.green.bold('Updated successfully')}. (Applied ${chalk.bold(actions.length.toString())} actions)`)
+						this.logger.log(` │ └── Database: ${chalk.green.bold('Updated successfully')}. (Applied ${chalk.bold(actions.length.toString())} actions)`);
 					})
 				}).catch((e) => {
-					this.logger.log(` │ └── Database: ${chalk.red.bold('Fail - An action could not be applied: ' + e)}`)
-					e.errorType = 'sync'
-					throw e
+					this.logger.log(` │ └── Database: ${chalk.red.bold('Fail - An action could not be applied: ' + e)}`);
+					e.errorType = 'sync';
+					throw e;
 				})
 			}
 		}).then(() =>
 			this.server.start({
 				fallback: Object.keys(errors).length > 0
-			}).catch((e) => {
-				errors.server = e;
 			})
-		).then(() => {
-			if (Object.keys(errors).length === 0) {
-				this.status = true
-				this.logger.log('')
-				return warning
-			}
-		})
+		);
 	}
 
 	startWithoutFailure() {
@@ -482,6 +458,7 @@ manual_scaling:
 
 	/**
 	Stops the materia app
+	@returns {Promise}
 	*/
 	stop():Promise<void> {
 		return this.server.stop()
@@ -490,7 +467,7 @@ manual_scaling:
 			.then(() => { this.status = false; })
 	}
 
-	_getFile(file, p) {
+	private _getFile(file, p) {
 		return new Promise((resolve, reject) => {
 			fs.lstat(path.join(p, file), (err, stats) => {
 				if ( err ) {
@@ -609,7 +586,7 @@ manual_scaling:
 		return p;
 	}
 
-	_getWatchableFiles(files) {
+	private _getWatchableFiles(files) {
 		let res = []
 		for (let file of files) {
 			if ( ! Array.isArray(file.children)) {
