@@ -228,12 +228,7 @@ export class AppController {
 					data: api.getAllData()
 				});
 			}),
-			permissions: this.app.api.permissions.findAll().map(permission => {
-				return Object.assign({}, permission.toJson(), {
-					code: `module.exports = ${permission.middleware.toString()}`,
-					file: permission.file
-				});
-			}),
+			permissions: this.app.api.permissions.toJson(),
 			controllers: this.app.api.getControllers(),
 			addons: this.app.addons.findAll().map(addon =>
 				Object.assign({}, addon.toJson(), {

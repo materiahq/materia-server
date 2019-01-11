@@ -1,14 +1,7 @@
 import { App } from '../app';
-import * as path from 'path';
-
-export interface IPermission {
-	name: string;
-	description: string;
-	readOnly?: boolean;
-	middleware: ((req: any, res: any, next: any) => any) | string;
-	invalid?: boolean;
-	file?: string;
-}
+import { join } from 'path';
+import { existsSync, readFileSync } from 'fs';
+import { IPermission } from '@materia/interfaces';
 
 export class Permission {
 	app: App;
@@ -35,17 +28,18 @@ export class Permission {
 		if (data.invalid) {
 			this.invalid = data.invalid;
 		}
+		this.reload();
 	}
 
-	reload(): Promise<void> {
+	reload(): void {
 		if (this.file) {
 			let file = this.file;
 			if (
 				this.file.indexOf(
-					path.join(this.app.path, 'server', 'permissions')
+					join(this.app.path, 'server', 'permissions')
 				) === -1
 			) {
-				file = path.join(
+				file = join(
 					this.app.path,
 					'server',
 					'permissions',
@@ -58,32 +52,39 @@ export class Permission {
 					delete require.cache[rp];
 				}
 				this.middleware = require(file);
-				return Promise.resolve();
+				if (this.invalid) {
+					delete this.invalid;
+				}
 			} catch (e) {
-				return Promise.reject(e);
+				if (existsSync(`${file}.js`)) {
+					this.middleware = readFileSync(`${file}.js`, 'utf8');
+				} else {
+					this.middleware = null;
+				}
+				this.invalid = true;
 			}
-		} else {
-			return Promise.resolve();
 		}
 	}
 
-	toJson() {
+	toJson(): IPermission {
 		let file = this.file;
 		if (
 			this.file &&
 			this.file.indexOf(
-				path.join(this.app.path, 'server', 'permissions')
+				join(this.app.path, 'server', 'permissions')
 			) != -1
 		) {
 			file = this.file.substr(
-				path.join(this.app.path, 'server', 'permissions').length + 1
+				join(this.app.path, 'server', 'permissions').length + 1
 			);
 		}
 		return {
 			name: this.name,
 			description: this.description,
 			file: file,
-			readOnly: this.readOnly
+			readOnly: this.readOnly,
+			invalid: this.invalid,
+			code: this.invalid ? this.middleware : this.middleware ? `module.exports = ${this.middleware.toString()}` : null
 		};
 	}
 }

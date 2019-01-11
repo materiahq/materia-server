@@ -10,7 +10,7 @@ export class EndpointsLib {
 							logo: api.fromAddon.logo,
 							package: api.fromAddon.package,
 							path: api.fromAddon.path
-					  }
+					}
 					: {},
 				params: api.getAllParams(),
 				data: api.getAllData()

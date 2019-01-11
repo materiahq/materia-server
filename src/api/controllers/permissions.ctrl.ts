@@ -195,10 +195,6 @@ export class PermissionsController {
 
 export class PermissionsLib {
 	static list(app: App) {
-		return app.api.permissions.findAll().map(permission => {
-			return Object.assign({}, permission.toJson(), {
-				code: permission.invalid ? null : `module.exports = ${permission.middleware.toString()}`
-			});
-		});
+		return app.api.permissions.toJson();
 	}
 }

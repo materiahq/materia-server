@@ -3,7 +3,9 @@ import * as path from 'path';
 
 import { App } from '../app';
 import { MateriaError } from '../error';
-import { IPermission, Permission } from './permission';
+import { Permission } from './permission';
+
+import { IPermission } from '@materia/interfaces';
 
 /**
  * @class Permissions
@@ -99,9 +101,10 @@ export class Permissions {
 		}
 		if (permissionsRaw && permissionsRaw.length) {
 			let results = [];
-			permissionsRaw.forEach(permissionRaw => {
-				let obj = this.loadPermission(permissionRaw);
-				results.push(this.add(obj));
+			permissionsRaw.forEach((permissionRaw: IPermission) => {
+				if (permissionRaw.file && permissionRaw.name) {
+					results.push(this.add(permissionRaw));
+				}
 			});
 			return Promise.all(results).then(() => {
 				return;
@@ -149,13 +152,13 @@ export class Permissions {
 	 * Add a permission.
 	 * @param {IPermission} - The permission's JSON representation to add
 	 * @param {object} - options
-	 * @returns {Permission} - Newly added permission object
+	 * @returns {Promise<Permission>} - Newly added permission object
 	*/
 	add(perm: IPermission, opts?: any): Promise<Permission> {
-		if (!perm) {
+		if ( ! perm) {
 			return Promise.reject(new MateriaError(`The information of the permission to be added not found`));
 		}
-		if (!opts) {
+		if ( ! opts) {
 			opts = {};
 		}
 		if (
@@ -204,7 +207,7 @@ export class Permissions {
 	 * @param {string} - Name of the permission before update
 	 * @param {IPermission} - permission json representation
 	 * @param {object} - options
-	 * @returns {Permission} - Permission object
+	 * @returns {Promise<Permission>} - Permission object
 	*/
 	update(name: string, permission: IPermission, opts?: any): Promise<Permission> {
 		return new Promise((resolve, reject) => {
@@ -277,6 +280,7 @@ export class Permissions {
 	/**
 	 * Remove a permission
 	 * @param {string} - The permission name
+	 * @returns {Promise}
 	*/
 	remove(name, opts?): Promise<void> {
 		let permission = this.permissions.find(permission => {
@@ -309,9 +313,14 @@ export class Permissions {
 	 * Save all current permissions as JSON in APP_PATH/server/permissions.json
 	*/
 	save(): Promise<void> {
+		const permissionsToSave: IPermission[] = this.toJson().filter((perm: IPermission) => ! perm.readOnly).map(perm => ({
+			name: perm.name,
+			description: perm.description,
+			file: perm.file
+		}));
 		return this.app.saveFile(
 			path.join(this.app.path, 'server', 'permissions.json'),
-			JSON.stringify(this.toJson(), null, 2),
+			JSON.stringify(permissionsToSave, null, 2),
 			{
 				mkdir: true
 			}
@@ -325,11 +334,7 @@ export class Permissions {
 	toJson(): IPermission[] {
 		let result = [];
 		this.permissions.forEach(permission => {
-			let json = permission.toJson();
-			if (!json.readOnly) {
-				delete json.readOnly;
-				result.push(json);
-			}
+			result.push(permission.toJson())
 		});
 		return result;
 	}
@@ -343,41 +348,5 @@ export class Permissions {
 					!Object.getOwnPropertyDescriptor(fn, 'prototype').writable // or your fave
 			)
 		);
-	}
-
-	private loadPermission(permission): IPermission {
-		if (!permission.file) {
-			return null;
-		}
-		let permissionPath = path.join(
-			this.app.path,
-			'server',
-			'permissions',
-			permission.file
-		);
-		try {
-
-			const rp = require.resolve(permissionPath);
-			if (require.cache[rp]) {
-				delete require.cache[rp];
-			}
-			const middleware = require(permissionPath);
-			return {
-				name: permission.name,
-				description: permission.description,
-				middleware: middleware,
-				file: permissionPath
-			};
-		}
-		catch (e) {
-			const code = fs.existsSync(permissionPath + 'js') ? fs.readFileSync(permissionPath + '.js', 'utf8') : null;
-			return {
-				name: permission.name,
-				description: permission.description,
-				middleware: code,
-				invalid: true,
-				file: permissionPath
-			};
-		}
 	}
 }
