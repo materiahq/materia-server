@@ -165,7 +165,7 @@ export class Server {
 
 	/**
 	Starts the server and listen on its endpoints.
-	@returns {Promise<void>}
+	@returns {Promise<number>}
 	*/
 	start(opts?: any): Promise<number> {
 		const clientConfig: IClientConfig = this.app.config.get(this.app.mode, ConfigType.CLIENT)
