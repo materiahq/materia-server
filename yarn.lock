@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@materia/interfaces@^1.0.0-beta.2":
-  version "1.0.0-beta.2"
-  resolved "https://registry.yarnpkg.com/@materia/interfaces/-/interfaces-1.0.0-beta.2.tgz#403b9082cc4e95100843486a3ea0a0bf9c9bd90d"
-  integrity sha512-st2cPRGXkOGDKIdbsdehbDMqaqHfDzizrcX4/fRU5dT5gOeZiFs6IFJUTJSBWuwmnniHkAK7uYy8aQisQ9aHzA==
+"@materia/interfaces@^1.0.0-beta.3":
+  version "1.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/@materia/interfaces/-/interfaces-1.0.0-beta.3.tgz#2a80c77c470cdcd491abe0704dd85af534cf638b"
+  integrity sha512-+bNstHsQSkHAKTQfvSDznVYuVUh7mcFmNFJD6zoCBaX/UP5TQpFUbYEPJOEQzVInGv6P+eEE0zDIyhBM3KNR1w==
 
 "@types/bluebird@*":
   version "3.5.20"
@@ -143,10 +143,10 @@
     "@types/form-data" "*"
     "@types/node" "*"
 
-"@types/sequelize@^4.0.39":
-  version "4.27.14"
-  resolved "https://registry.yarnpkg.com/@types/sequelize/-/sequelize-4.27.14.tgz#621dcc33db884e1fca368dc1b9fa7a60b38785d3"
-  integrity sha512-HhVIMkod7zsr8XeonUwVtFYs3XGWFvyB7FlicBXwLEFKKQwQ2xpO+4YuwGDir7CrmsT5bhCru4VhEAZQAwPonQ==
+"@types/sequelize@^4.27.33":
+  version "4.27.33"
+  resolved "https://registry.yarnpkg.com/@types/sequelize/-/sequelize-4.27.33.tgz#1e906565f371c7efbda0bf2bfa322bea4b5bb1a2"
+  integrity sha512-4w36T30hQKtsVj3BWktRauAls+amAkJsjn6EdQBQ5Pq5iiMm2qRgdFsQj/OHYM1LCYtH7eR4/g4ffbmFux1q2A==
   dependencies:
     "@types/bluebird" "*"
     "@types/continuation-local-storage" "*"
@@ -865,6 +865,13 @@ debug@3.1.0, debug@^3.1.0:
   integrity sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==
   dependencies:
     ms "2.0.0"
+
+debug@^4.0.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.1.1.tgz#3b72260255109c6b589cee050f1d516139664791"
+  integrity sha512-pYAIzeRo8J6KPEaJ0VWOh5Pzkbw/RetuzehGM7QRRX5he4fPHx2rdKMB256ehJCkX+XRQm16eZLqLNS8RSZXZw==
+  dependencies:
+    ms "^2.1.1"
 
 decamelize@^1.0.0, decamelize@^1.1.1:
   version "1.2.0"
@@ -2286,6 +2293,11 @@ ms@2.0.0:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
   integrity sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g=
 
+ms@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz#30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a"
+  integrity sha512-tgp+dl5cGk28utYktBsrFqA7HKgrhgPsg6Z/EfhWI4gl1Hwq8B/GmY/0oXZ6nF8hDVesS/FpnYaD/kOWhYQvyg==
+
 mysql2@^1.6.1:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/mysql2/-/mysql2-1.6.1.tgz#9027fd93a05c5d86e79bfada35c9b677b3a0d7c5"
@@ -3146,10 +3158,10 @@ sequelize-cli@^3.0.0-3:
     umzug "^2.1.0"
     yargs "^8.0.2"
 
-sequelize@^4.39.1:
-  version "4.39.1"
-  resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-4.39.1.tgz#160df2ca771b3b0ae8f747c6850daf5563743668"
-  integrity sha512-uR7lk+TUmXQHPp7O1LTfESjww62bvTUkbd4q2C2G6GwYSZ3+do85wCiC62W+cykBt0Et1NZX82EQKnNZkXn5pQ==
+sequelize@^4.42.0:
+  version "4.42.0"
+  resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-4.42.0.tgz#439467ba7bfe7d5afcc56d62b3e091860fbf18f3"
+  integrity sha512-qxAYnX4rcv7PbNtEidb56REpxNJCdbN0qyk1jb3+e6sE7OrmS0nYMU+MFVbNTJtZfSpOEEL1TX0TkMw+wzZBxg==
   dependencies:
     bluebird "^3.5.0"
     cls-bluebird "^2.1.0"
@@ -3246,12 +3258,12 @@ signal-exit@^3.0.0:
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
   integrity sha1-tf3AjxKH6hF4Yo5BXiUTK3NkbG0=
 
-simple-git@^1.92.0:
-  version "1.92.0"
-  resolved "https://registry.yarnpkg.com/simple-git/-/simple-git-1.92.0.tgz#6061468eb7d19f0141078fc742e62457e910f547"
-  integrity sha1-YGFGjrfRnwFBB4/HQuYkV+kQ9Uc=
+simple-git@^1.107.0:
+  version "1.107.0"
+  resolved "https://registry.yarnpkg.com/simple-git/-/simple-git-1.107.0.tgz#12cffaf261c14d6f450f7fdb86c21ccee968b383"
+  integrity sha512-t4OK1JRlp4ayKRfcW6owrWcRVLyHRUlhGd0uN6ZZTqfDq8a5XpcUdOKiGRNobHEuMtNqzp0vcJNvhYWwh5PsQA==
   dependencies:
-    debug "^3.1.0"
+    debug "^4.0.1"
 
 snapdragon-node@^2.0.1:
   version "2.1.1"
@@ -3359,9 +3371,9 @@ split@^1.0.0:
     through "2"
 
 sqlite3@^4.0.2:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-4.0.2.tgz#1bbeb68b03ead5d499e42a3a1b140064791c5a64"
-  integrity sha512-51ferIRwYOhzUEtogqOa/y9supADlAht98bF/gbIi6WkzRJX6Yioldxbzj1MV4yV+LgdKD/kkHwFTeFXOG4htA==
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-4.0.4.tgz#1f75e3ededad6e26f7dd819929460ce44a49dfcd"
+  integrity sha512-CO8vZMyUXBPC+E3iXOCc7Tz2pAdq5BWfLcQmOokCOZW5S5sZ/paijiPOCdvzpdP83RroWHYa5xYlVqCxSqpnQg==
   dependencies:
     nan "~2.10.0"
     node-pre-gyp "^0.10.3"
