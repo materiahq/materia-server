@@ -1,12 +1,14 @@
-# [1.0.0-beta.8](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.8) (2018-12-06)
+# [1.0.0-beta.8](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.8) (2019-01-11)
 
 ### Bug fixes
 
 * **boirlerplates**: Emit complete error object on boilerplate generation failure instead of `error.data` ([7f54544](https://github.com/materiahq/materia-server/commit/7f54544))
 * **boirlerplates**: Reject an error if `output` or `projectName` folders already exists to prevent unexpected failure or unwanted overwrite ([ba24c49](https://github.com/materiahq/materia-server/commit/ba24c49))
 * **boirlerplates**: Fix client package.json path `undefined` after boilerplate project generation ([2697d2](https://github.com/materiahq/materia-server/commit/2697d2))
+* **git**: Fix `unstage` file not working in newly created repo without `HEAD` ([a51854f](https://github.com/materiahq/materia-server/commit/a51854f))
 * **git**: Fix Admin API `POST '/materia/git/pull'` endpoint error response ([77af2ac](https://github.com/materiahq/materia-server/commit/77af2ac))
-* **permissions**: Handle invalid permissions with missing files ([7ec092e](https://github.com/materiahq/materia-server/commit/7ec092e))
+* **package-manager**: Fix Admin API endpoints broken after url param name change ([f48cb00](https://github.com/materiahq/materia-server/commit/f48cb00))
+* **permissions**: Handle invalid permissions with missing files ([7ec092e](https://github.com/materiahq/materia-server/commit/7ec092e)) ([0946a28](https://github.com/materiahq/materia-server/commit/0946a28))
 * **permissions**: Fix Admin API permissions endpoints empty error responses, send `error.message` instead of full error ([2e7240d](https://github.com/materiahq/materia-server/commit/2e7240d))
 * **sequelize**: Fix `Sequelize.Op` import error when packaged in Materia Designer ([ea973ac](https://github.com/materiahq/materia-server/commit/ea973ac))
 
@@ -16,9 +18,10 @@
 * **boirlerplates**: Admin API endpoint `POST '/materia/boilerplates/:framework'` don't need a body anymore. Default value are used when no `output`/`projectName` value found. ([ba24c49](https://github.com/materiahq/materia-server/commit/ba24c49))
 * **boilerplates/React**: Root `package.json` scripts not modified anymore when generating a React project ([7c03ba1](https://github.com/materiahq/materia-server/commit/7c03ba1))
 * **boilerplates/Vue**: Node_modules and lock files are not deleted anymore before Vue monopackage project generation ([9d2a1d9](https://github.com/materiahq/materia-server/commit/9d2a1d9))
+* **dependencies**: Upgrade to @materia/interfaces v1.0.0-beta.3
 * **dependencies**: Upgrade fs-extra and related @types/fs-extra to v4
 ([72f7284](https://github.com/materiahq/materia-server/commit/72f7284))
-* **dependencies**: Admin API dependencies endpoints, `owner` and `packageName` params are now managed in a single url param (remove duplicated endpoints url)
+* **dependencies**: Admin API dependencies endpoints, `owner` and `pkg` params are now managed in a single url param `dependency` (remove duplicated endpoints url)
 ([d415aa0](https://github.com/materiahq/materia-server/commit/d415aa0))
 * **documentation**: Add missing doc for Admin API endpoint `GET '/materia/addons/:pkg/setup'`
 ([db29a58](https://github.com/materiahq/materia-server/commit/db29a58))
@@ -26,15 +29,18 @@
 ([578d4aa](https://github.com/materiahq/materia-server/commit/578d4aa))
 * **documentation**: Update permissions Admin API swagger docs
 ([578d4aa](https://github.com/materiahq/materia-server/commit/578d4aa))
+* **documentation**: New `CHANGELOG.md` file ([eeafe94](https://github.com/materiahq/materia-server/commit/eeafe94))
 * **permissions**: Add/update method comments and enhance typings ([f593509](https://github.com/materiahq/materia-server/commit/f593509)) ([b38e180](https://github.com/materiahq/materia-server/commit/b38e180))
 
 ### Features
 
-* **permissions**: New Admin API endpoint `GET /materia/permissions/:permissionName` that allow to retrieve a single permission by his name
+* **permissions**: New Admin API endpoint `GET /materia/permissions/:permission` that allow to retrieve a single permission by his name ([2a4912e](https://github.com/materiahq/materia-server/commit/2a4912e))
 * **permissions**: When a permission's name is updated with the Admin API endpoint `PUT '/materia/permissions/:permission'`, all related endpoints using this permission are automatically updated with the new permission name ([8528da4](https://github.com/materiahq/materia-server/commit/8528da4))
 
 ### Breaking changes
 
+* **lib/App**: `app.start()` method now returns `Promise<number>` corresponding to the launched server port ([1a3f8d4](https://github.com/materiahq/materia-server/commit/1a3f8d4))
+* **permissions**: Use interface `IPermission` from `@materia/interfaces@1.0.0-beta.3` (delete duplicated `IPermission` from `@materia/server`) ([0946a28](https://github.com/materiahq/materia-server/commit/0946a28))
 * **permissions**: Single admin API endpoint `POST '/materia/permissions'` used to add a permission with his related code file. The admin API endpoint `POST '/materia/permissions/new'` doesn't exists anymore ([91f43d9](https://github.com/materiahq/materia-server/commit/91f43d9))
 * **permissions**: Admin API endpoint `PUT 'materia/permissions/permission'` can now be used to either modify the permission informations or the permission's file content ([91f43d9](https://github.com/materiahq/materia-server/commit/91f43d9))
 
