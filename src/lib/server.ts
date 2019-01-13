@@ -169,7 +169,6 @@ export class Server {
 	*/
 	start(opts?: any): Promise<number> {
 		const clientConfig: IClientConfig = this.app.config.get(this.app.mode, ConfigType.CLIENT)
-
 		return new Promise<number>((resolve, reject) => {
 			this.stop().then(() => {
 				if (! opts || ! opts.fallback) {
@@ -185,7 +184,7 @@ export class Server {
 					// Initialize dynamic Express static Object.
 					this.createDynamicStatic(path.join(this.app.path, webDir));
 					this.expressApp.use(this.dynamicStatic);
-					this.app.api.registerEndpoints()
+					this.app.api.registerEndpoints();
 					this.expressApp.all('/api/*', (req, res) => {
 						res.status(404).send({
 							error: true,

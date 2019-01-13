@@ -220,6 +220,8 @@ export class App extends events.EventEmitter {
 		let warning, elapsedTimeQueries, elapsedTimeEntities, elapsedTimeAPI
 		let elapsedTimeGlobal = new Date().getTime()
 
+		this.api.removeAll({save: false});
+
 		return this.loadMateria()
 		.then(() => {
 			this.logger.log(`${chalk.bold('(Load)')} Application: ${chalk.yellow.bold(this.name || this.package)}`)
