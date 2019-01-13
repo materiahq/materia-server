@@ -476,19 +476,21 @@ export class DatabaseLib {
 			fromAddon: entity.fromAddon ? entity.fromAddon.toJson() : null,
 			relatedEntities: entity
 				.getRelatedEntities()
-				.map((relatedEntity: any) =>
-					Object.assign({}, relatedEntity.toJson(), {
-						name: relatedEntity.name,
-						fields: relatedEntity.fields.map(field =>
-							field.toJson()
-						),
-						queries: relatedEntity.getQueries().map(query => {
-							const q = query.toJson();
-							q.params = query.params;
-							return q;
+				.map((relatedEntity: any) => {
+					if (relatedEntity) {
+						Object.assign({}, relatedEntity.toJson(), {
+							name: relatedEntity.name,
+							fields: relatedEntity.fields.map(field =>
+								field.toJson()
+							),
+							queries: relatedEntity.getQueries().map(query => {
+								const q = query.toJson();
+								q.params = query.params;
+								return q;
+							})
 						})
-					})
-				)
+					}
+				})
 		});
 	}
 
