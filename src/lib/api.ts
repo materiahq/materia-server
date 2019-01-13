@@ -105,6 +105,22 @@ export class Api {
 	}
 
 	/**
+	Remove all registered endpoint.
+	@param {object} - Action's options
+	*/
+	removeAll(options?: IApplyOptions): void {
+		if (this.endpoints && this.endpoints.length) {
+			const endpoints = this.findAll().map((e) => e.toJson());
+			endpoints.forEach((e) => {
+				this.remove(e.method, e.url, Object.assign({}, options, {apply: false}));
+			});
+			if (options.apply != false) {
+				this.updateEndpoints();
+			}
+		}
+	}
+
+	/**
 	Get a registered endpoint.
 	@param {string} - HTTP method. `get`, `post`, `put` or `delete`
 	@param {string} - HTTP url relative to the API base.
