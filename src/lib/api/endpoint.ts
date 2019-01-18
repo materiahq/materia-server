@@ -269,8 +269,8 @@ export class Endpoint {
 		return { resolvedParams, errors }
 	}
 
-	handle(req, res, next):Promise<any> {
-		this.app.logger.log(`${chalk.bold('(Endpoint)')} Handle ${this.app.api.getMethodColor(req.method.toUpperCase())} ${chalk.bold(req.url)}`)
+	private handleHttp(req, res, next): Promise<any> {
+		this.app.logger.log(`${chalk.bold('(Endpoint)')} Handle ${this.app.api.getMethodColor(this.method.toUpperCase())} ${chalk.bold(req.url)}`)
 
 		let params = this.handleParams(req, this.params)
 
@@ -373,6 +373,26 @@ export class Endpoint {
 						})
 				}
 			})
+		}
+	}
+
+	private handleWS(wss): Promise<any> {
+		if (this.controller && this.action) {
+			try {
+				let instance = this._getController().instance()
+				this.app.logger.log(` └── Execute: (Controller) ${chalk.bold(instance.constructor.name)}.${chalk.bold(this.action)}\n`)
+				instance[this.action](wss)
+			} catch (e) {
+			}
+		}
+		return Promise.resolve();
+	}
+
+	handle(req, res, next):Promise<any> {
+		if (this.method.toLowerCase() !== 'ws') {
+			return this.handleHttp(req, res, next);
+		} else {
+			return this.handleWS(req);
 		}
 	}
 
