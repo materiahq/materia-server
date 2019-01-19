@@ -194,32 +194,45 @@ export class Api {
 			return chalk.yellow.bold("PUT");
 		} else if (method == "DELETE") {
 			return chalk.red.bold("DELETE");
-		} else { return chalk.bold("method"); }
+		} else { return chalk.bold(method.toUpperCase()); }
+	}
+
+	updateEndpointHttp(endpoint) {
+		let route = this.router[endpoint.method.toLowerCase()]
+		route.call(this.router, endpoint.url, this.permissions.check(endpoint.permissions), (req, res, next) => {
+			const endpointResult = endpoint.handle(req, res, next);
+			if (endpointResult && endpointResult.catch) {
+				endpointResult.catch((e) => {
+					if (e instanceof Error) {
+						e = {
+							error: true,
+							message: e.message
+						}
+					}
+					if (this.app.mode != AppMode.PRODUCTION) {
+						e.stack = e.stack
+					}
+					if (! res.headerSent) {
+						res.status(e.statusCode || 500).send(e)
+					}
+				})
+			}
+		})
+	}
+
+	updateEndpointWS(endpoint) {
+		const wss = this.app.server.websocket.register(endpoint.url)
+		endpoint.handle(wss, null, () => {});
 	}
 
 	updateEndpoints() {
 		this.router = express.Router()
 		this.endpoints.forEach((endpoint) => {
-			let route = this.router[endpoint.method.toLowerCase()]
-			route.call(this.router, endpoint.url, this.permissions.check(endpoint.permissions), (req, res, next) => {
-				const endpointResult = endpoint.handle(req, res, next);
-				if (endpointResult && endpointResult.catch) {
-					endpointResult.catch((e) => {
-						if (e instanceof Error) {
-							e = {
-								error: true,
-								message: e.message
-							}
-						}
-						if (this.app.mode != AppMode.PRODUCTION) {
-							e.stack = e.stack
-						}
-						if (! res.headerSent) {
-							res.status(e.statusCode || 500).send(e)
-						}
-					})
-				}
-			})
+			if (endpoint.method.toLowerCase() !== 'ws') {
+				this.updateEndpointHttp(endpoint);
+			} else {
+				this.updateEndpointWS(endpoint);
+			}
 		})
 	}
 
