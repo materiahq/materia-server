@@ -87,7 +87,7 @@ export class EndpointsController {
 		const endpoint = req.body.endpoint;
 		const options = req.body.options;
 		if (endpoint.fromAddon && endpoint.fromAddon.package) {
-			endpoint.fromAddon = this.app.addons.get('@materia/aws-s3');
+			endpoint.fromAddon = this.app.addons.get(endpoint.fromAddon.package);
 		}
 		const controller = endpoint.fromAddon
 			? endpoint.controller
