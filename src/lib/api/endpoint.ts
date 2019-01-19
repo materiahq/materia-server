@@ -327,7 +327,7 @@ export class Endpoint {
 							return this.app.actions.handle('afterEndpoint', {
 								method: req.method,
 								url: req.url
-							}, Object.assign(req.query, req.body, req.params, data), true).then(() => {
+							}, Object.assign({}, req.query, req.body, req.params, data), true).then(() => {
 								res.status(200).send(data)
 							})
 						}).catch(err => res.status(500).send(err));
@@ -352,7 +352,7 @@ export class Endpoint {
 							return this.app.actions.handle('afterEndpoint', {
 								method: req.method,
 								url: req.url
-							}, Object.assign(req.query, req.body, req.params, data), true)
+							}, Object.assign({}, req.query, req.body, req.params, data), true)
 								.then(() => {
 									res.status(200).json(data)
 								}).catch(() => {
