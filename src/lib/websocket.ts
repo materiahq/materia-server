@@ -44,7 +44,6 @@ export class WebsocketServers {
 			const urlParsed = url.parse(request.url);
 			const pathname = urlParsed.pathname;
 			if (this.servers[pathname] && this.servers[pathname].instance) {
-				this.servers[pathname].instance.close()
 				this.servers[pathname].instance.handleUpgrade(request, socket, head, ws => {
 					this.servers[pathname].instance.emit('connection', ws, request)
 				})
