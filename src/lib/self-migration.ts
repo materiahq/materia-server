@@ -4,16 +4,9 @@ import * as path from 'path'
 
 import { App } from './app'
 
-// import * as fse from 'fs-extra'
-
 export class SelfMigration {
 
-	constructor(private app: App) {
-	}
-
-	// private formatName(name) {
-	// 	return name.replace(/[.\s_+()\[\]\+]/g, '-').replace(/-[a-zA-Z]/g, v => v.substr(1).toUpperCase()).replace(/-/g, '')
-	// }
+	constructor(private app: App) { }
 
 	private fileExists(p: string): Promise<void> {
 		return new Promise((resolve, reject) => {
@@ -102,14 +95,16 @@ export class SelfMigration {
 					.then(() => this.readJsonFile(path.join(".materia", "client.json")))
 					.then(clientContent => {
 						config.client = {
-							src: clientContent.src,
-							scripts: clientContent.scripts,
-							autoWatch: clientContent.autoWatch
-						}
+							www: clientContent.src
+						};
 						if (clientContent.src != clientContent.build) {
-							config.client['dist'] = clientContent.build
+							config.client.packageJsonPath = clientContent.src;
+							config.client.www = clientContent.build;
+							config.scripts = clientContent.scripts ? config.scripts : {};
+							if (clientContent.autoWatch) {
+								config.autoWatch = clientContent.autoWatch;
+							}
 						}
-
 					})
 					.catch(() => {})
 					.then(() => this.readJsonFile(path.join(".materia", "addons.json")))
