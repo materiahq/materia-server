@@ -21,7 +21,7 @@ export class FilesController {
 				p = path.join(this.app.path, relativePath);
 			}
 		}
-		return process.platform !== 'win32' ? p.replace('\\', '\/') : p;
+		return process.platform !== 'win32' ? p.replace(/\\/g, '/') : p;
 	}
 
 	read(req, res) {
@@ -38,8 +38,10 @@ export class FilesController {
 				res.status(200).send(this.app.readFile(p))
 			}
 		} else {
-			const files = this.app.getFiles(req.query.depth || 1)
-			res.status(200).send(files);
+			res.status(404).send({
+				error: true,
+				message: 'File not found'
+			});
 		}
 	}
 
