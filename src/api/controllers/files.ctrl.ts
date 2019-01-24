@@ -21,7 +21,7 @@ export class FilesController {
 				p = path.join(this.app.path, relativePath);
 			}
 		}
-		return p;
+		return process.platform !== 'win32' ? p.replace('\\', '\/') : p;
 	}
 
 	read(req, res) {
