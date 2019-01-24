@@ -1,6 +1,6 @@
 import { App } from "../../lib";
 import { WebsocketInstance } from "../../lib/websocket";
-import * as fs from 'fs';
+import * as fse from 'fs-extra';
 
 export class AddonsController {
 	constructor(private app: App, websocket: WebsocketInstance) {}
@@ -57,8 +57,10 @@ export class AddonsController {
 		if (! pkg || ! this.app.addons.get(pkg)) {
 			res.status(404).send();
 		} else {
-			const bundle = fs.readFileSync(this.app.addons.get(pkg).getBundlePath());
-			res.status(200).send( bundle )
+			return fse.readFile(this.app.addons.get(pkg).getBundlePath()).then((bundle) =>
+				res.status(200).send(bundle)
+			).catch((err) => res.status(500).send(err));
+
 		}
 	}
 
