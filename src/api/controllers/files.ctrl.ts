@@ -1,5 +1,5 @@
 import { Application as ExpressApplication } from 'express';
-import { App } from "../../lib";
+import { App } from '../../lib';
 
 import * as path from 'path';
 import * as fse from 'fs-extra';
@@ -9,8 +9,7 @@ export class FilesController {
 
 	get api(): ExpressApplication { return this.app.server.expressApp; }
 
-	constructor(private app: App, websocket: WebsocketInstance) {
-	}
+	constructor(private app: App, websocket: WebsocketInstance) {}
 
 	getFullPath(relativePath) {
 		let p = this.app.path;
@@ -25,23 +24,31 @@ export class FilesController {
 	}
 
 	read(req, res) {
-		const p = this.getFullPath(req.query.path);
-		if (req.query.path && fse.existsSync(p)) {
-			if (fse.lstatSync(p).isDirectory()) {
-				const splittedName = p.split(path.sep);
-				const length = splittedName.length;
-				const filename = splittedName[length - 1];
-				const files = this.app.getFiles(req.query.depth || 1, filename, p);
-				res.status(200).send(files);
-			}
-			else {
-				res.status(200).send(this.app.readFile(p))
+		if (req.query.path) {
+			const p = this.getFullPath(req.query.path);
+			if (fse.existsSync(p)) {
+				if (fse.lstatSync(p).isDirectory()) {
+					const splittedName = p.split(path.sep);
+					const length = splittedName.length;
+					const filename = splittedName[length - 1];
+					const files = this.app.getFiles(
+						req.query.depth || 1,
+						filename,
+						p
+					);
+					res.status(200).send(files);
+				} else {
+					res.status(200).send(this.app.readFile(p));
+				}
+			} else {
+				res.status(404).send({
+					error: true,
+					message: 'No such file or directory'
+				});
 			}
 		} else {
-			res.status(404).send({
-				error: true,
-				message: 'File not found'
-			});
+			const files = this.app.getFiles(req.query.depth || 1);
+			res.status(200).send(files);
 		}
 	}
 
@@ -63,26 +70,18 @@ export class FilesController {
 		const filePath = this.getFullPath(req.query.path);
 		const newPath = this.getFullPath(req.body.newPath);
 
-		fse.move(
-			filePath,
-			newPath,
-			{ overwrite: true },
-			err => {
-				if (err) {
-					return res.status(500).json(err);
-				}
-				res.status(200).json({ moved: true });
+		fse.move(filePath, newPath, { overwrite: true }, err => {
+			if (err) {
+				return res.status(500).json(err);
 			}
-		);
+			res.status(200).json({ moved: true });
+		});
 	}
 
 	isDirectory(req, res) {
 		const p = this.getFullPath(req.query.path);
 
-		if (
-			fse.existsSync(p) &&
-			fse.lstatSync(p).isDirectory()
-		) {
+		if (fse.existsSync(p) && fse.lstatSync(p).isDirectory()) {
 			res.status(200).json(true);
 		} else {
 			res.status(200).json(false);
@@ -90,15 +89,12 @@ export class FilesController {
 	}
 
 	remove(req, res) {
-		fse.remove(
-			this.getFullPath(req.query.path),
-			(err) => {
-				if (err) {
-					res.status(500).send(err);
-				} else {
-					res.status(200).json({ removed: true });
-				}
+		fse.remove(this.getFullPath(req.query.path), err => {
+			if (err) {
+				res.status(500).send(err);
+			} else {
+				res.status(200).json({ removed: true });
 			}
-		);
+		});
 	}
 }
