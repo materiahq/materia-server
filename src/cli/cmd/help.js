@@ -1,8 +1,9 @@
 'use strict'
 
-let pckg_info = require('../../package.json')
+const pckg_info = require('../../package.json');
+const chalk = require('chalk');
 
-let topics = {
+const topics = {
 	'-': [
 		'Usage: materia <command>',
 		'',
@@ -56,7 +57,7 @@ function displayTopic(topic, fallback) {
 	for (let line of content)
 		console.log(line)
 	console.log('')
-	console.log('version ' + pckg_info.name + '@' + pckg_info.version.yellow)
+	console.log(pckg_info.name + '@' + chalk.yellow(pckg_info.version))
 }
 
 module.exports = {
