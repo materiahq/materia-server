@@ -1,3 +1,31 @@
+# [1.0.0-beta.10](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.8) (2019-01-28)
+
+### Bug fixes
+
+* **files.ctrl**: Fix win32 path separator `\` in live mode on Unix server ([c741f17](https://github.com/materiahq/materia-server/commit/c741f17)) ([48bd2d9](https://github.com/materiahq/materia-server/commit/48bd2d9)) ([da2d17e](https://github.com/materiahq/materia-server/commit/da2d17e))
+
+### Features
+
+* **lib/self-migration**: Update client config migration ([532e089](https://github.com/materiahq/materia-server/commit/532e089))
+* **addons.ctrl**: Use async readFile() method when retrieving bundle file ([56c175c](https://github.com/materiahq/materia-server/commit/56c175c))
+
+# [1.0.0-beta.9](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.8) (2019-01-20)
+
+### Bug fixes
+
+* **database.ctrl**: Fix AdminAPI `DatabaseLib.loadEntitiesJSon()` method fail if DB disabled ([ec1d889](https://github.com/materiahq/materia-server/commit/ec1d889))
+* **endpoints.ctrl**: Fix addon custom endpoints cannot be added through the Admin API ([1173114](https://github.com/materiahq/materia-server/commit/1173114))
+* **hooks**: Fix req.query modified in `afterEndpoint` hook ([03554a9](https://github.com/materiahq/materia-server/commit/03554a9))
+* **websocket**: Fix closing other sockets on connect ([10c86a8](https://github.com/materiahq/materia-server/commit/10c86a8))
+
+### Features
+
+* **lib/app**: Reset App's API Rest on reload ([df6c469](https://github.com/materiahq/materia-server/commit/df6c469))
+* **lib/api**: Handle `websocket` endpoints in api.json ([b642adf](https://github.com/materiahq/materia-server/commit/b642adf))
+* **lib/api**: new removeAll() method ([c2e19b2](https://github.com/materiahq/materia-server/commit/c2e19b2))
+* **dependencies/ws**: Upgrade from `v5.1.1` to `v6.1.2` ([2133f6d](https://github.com/materiahq/materia-server/commit/2133f6d))
+
+
 # [1.0.0-beta.8](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.8) (2019-01-11)
 
 ### Bug fixes
