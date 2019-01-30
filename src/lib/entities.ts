@@ -128,9 +128,6 @@ export class Entities {
 	}
 
 	loadEntities(addon?: Addon):Promise<any> {
-		if ( this.app.database.disabled ) {
-			return Promise.resolve()
-		}
 		let basePath = addon ? addon.path : this.app.path
 		let promises = []
 		let opts: IApplyOptions = {
@@ -155,7 +152,11 @@ export class Entities {
 			if (file.virtual) {
 				promises.push(this.addVirtual(file, opts));
 			} else {
-				promises.push(this.add(file, opts));
+				if ( this.app.database.disabled ) {
+					promises.push(Promise.resolve());
+				} else {
+					promises.push(this.add(file, opts));
+				}
 			}
 		}
 
@@ -300,6 +301,9 @@ export class Entities {
 	@returns {Promise<Entity>}
 	*/
 	add(entityobj, options?):Promise<Entity> {
+		if (this.app.database.disabled) {
+			return Promise.reject({error: true, message: 'The database is disabled'});
+		}
 		options = options || {}
 
 		let entity: Entity, createPromise
