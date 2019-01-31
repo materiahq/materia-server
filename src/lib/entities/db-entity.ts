@@ -159,7 +159,7 @@ export class DBEntity extends Entity {
 		let oldfield = this.getField(name)
 
 		return new Promise((accept, reject) => {
-			if (!oldfield) {
+			if ( ! oldfield) {
 				return reject(new MateriaError('This field does not exist'))
 			}
 
@@ -326,9 +326,9 @@ export class DBEntity extends Entity {
 		}) : options;
 
 		return super.addFieldAt(field, at, newOpts).then((fieldobj) => {
-
-			if (options.db == false)
+			if (options.db == false) {
 				return Promise.resolve(fieldobj)
+			}
 
 			let p = Promise.resolve()
 			if (options.apply != false) {
@@ -350,22 +350,21 @@ export class DBEntity extends Entity {
 						let entityFromPk = entityFrom.getPK()[0]
 						return entityFrom.getQuery('list').run({ limit: 1 }, {raw: true}).then((list) => {
 							if ( ! list.data.length) {
-								return this.getQuery('list').run({ limit: 1 }).then((from_list) => {
+								const query: any = this.getQuery('list');
+								query.select = query.select.filter(fieldName => fieldName !== field.name);
+								return query.run({ limit: 1 }).then((from_list) => {
 									if (from_list.data.length) {
 										field.required = false
 										field.default = false
 									} else {
 										delete field.defaultValue
 									}
-								}).catch(e => {
-									// Hard fix for new relation
-									console.error(new Error(e));
 								})
 							}
 							else {
 								field.defaultValue = list.data[0][entityFromPk.name]
 							}
-						})
+						});
 					});
 				}
 				p = p.then(() => {
@@ -480,16 +479,16 @@ export class DBEntity extends Entity {
 			if (entityDest && entityDest instanceof DBEntity) {
 				//@model.hasMany entityDest.model, relation.dstField if relation.type == '1-n' and relation.cardinality == '1'
 				if (!relation.type || relation.type == 'belongsTo') {
-					/*				console.log(this.name + ' belongs to ' + entityDest.name + ' with fk: ' + relation.field)
-									//entityDest.model.belongsTo @model, foreignKey: relation.dstField
-									let keyReference = entityDest.getPK()
-									if (relation.reference.field && relation.reference.field != keyReference.name) {
-										let f = entityDest.getField(relation.reference.field)
-										if ( ! f.unique) {
-											throw f.name + ' cannot be a key (need unique/primary field)'
-										}
-										keyReference = f
-									}*/
+					/*console.log(this.name + ' belongs to ' + entityDest.name + ' with fk: ' + relation.field)
+					//entityDest.model.belongsTo @model, foreignKey: relation.dstField
+					let keyReference = entityDest.getPK()
+					if (relation.reference.field && relation.reference.field != keyReference.name) {
+						let f = entityDest.getField(relation.reference.field)
+						if ( ! f.unique) {
+							throw f.name + ' cannot be a key (need unique/primary field)'
+						}
+						keyReference = f
+					}*/
 					let key = entityDest.getPK()[0].name
 					if (relation.reference.field) {
 						key = relation.reference.field
