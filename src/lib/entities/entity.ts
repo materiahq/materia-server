@@ -404,7 +404,7 @@ export abstract class Entity {
 				uniqueField = relation.unique
 			}
 
-			p = this.addField({
+			const newField: IField = {
 				name: relation.field,
 				type: keyReference.type,
 				default: false,
@@ -415,7 +415,12 @@ export abstract class Entity {
 				primary: false,
 				unique: uniqueField,
 				isRelation: relation
-			}, options)
+			};
+			if (relation.reference.entity === this.name) {
+				delete newField.generateFrom;
+			}
+
+			p = this.addField(newField, options)
 		}
 		else if (relation.type == 'hasMany' || relation.type == 'hasOne') {
 			if (options.apply != false) {
@@ -434,8 +439,9 @@ export abstract class Entity {
 				let field1 = this.getPK()[0]
 				let field2 = this.app.entities.get(relation.reference.entity).getPK()[0]
 
-				if ( ! relation.as)
+				if ( ! relation.as) {
 					relation.as = field1.name
+				}
 
 				let isRelation = [{
 						field: relation.as,
@@ -859,7 +865,7 @@ export abstract class Entity {
 		}
 
 		if (options.save != false) {
-			this.save(options)
+			this.save(options);
 		}
 
 		if (options.generateQueries !== false) {

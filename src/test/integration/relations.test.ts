@@ -211,5 +211,24 @@ describe('[Relations]', () => {
 				})
 			})
 		})
+		it('should add a relation test belongsTo test', () => {
+			return app.entities.get('test').getQuery('delete').run({
+				id_test: 1
+			}).then(() => {
+				return app.entities.get('test')
+					.addRelation({
+						type: 'belongsTo',
+						field: 'id_test_2',
+						reference: {
+							entity: 'test',
+							field: 'id_test'
+						}
+				}).then(() => {
+					return app.entities.get('test').getField('id_test_2');
+				}).then((data) => {
+					data.should.exist
+				})
+			});
+		});
 	});
 });
