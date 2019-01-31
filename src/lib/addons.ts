@@ -1,10 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
-
 import * as fse from 'fs-extra';
 import chalk from 'chalk';
 
-import { App,  } from './app';
+import { App } from './app';
 import { MateriaError } from './error';
 import { Addon } from './addons/addon';
 import { ConfigType } from './config';

@@ -1,15 +1,13 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs from 'fs';
+import * as path from 'path';
+import * as express from 'express';
+import chalk from 'chalk';
 
-import * as express from 'express'
-import chalk from 'chalk'
-import { Endpoint, IEndpoint } from './api/endpoint'
-import { Permissions } from './api/permissions'
-
-import { App, AppMode, IApplyOptions } from './app'
-import { MateriaError } from './error'
-
-import { IAddon } from './addons'
+import { Endpoint, IEndpoint } from './api/endpoint';
+import { Permissions } from './api/permissions';
+import { App, AppMode, IApplyOptions } from './app';
+import { MateriaError } from './error';
+import { IAddon } from './addons';
 
 /**
  * @class Api
@@ -18,13 +16,13 @@ import { IAddon } from './addons'
  * @property {Permissions} permissions - The access to the permission filters
  */
 export class Api {
-	endpoints: Endpoint[]
-	permissions: any
-	router: express.Router
+	endpoints: Endpoint[];
+	permissions: Permissions;
+	router: express.Router;
 
 	constructor(private app: App) {
-		this.endpoints = []
-		this.permissions = new Permissions(app)
+		this.endpoints = [];
+		this.permissions = new Permissions(app);
 	}
 
 	/**

@@ -106,7 +106,7 @@ export class PermissionsController {
 		if (oldPermission.readOnly) {
 			return res.status(500).send('Impossible to update: permission is in readonly');
 		}
-		let promise = Promise.resolve();
+		let promise: Promise<any> = Promise.resolve();
 		if (oldPermission.name !== permission.name || oldPermission.description !== permission.description || oldPermission.file !== permission.file) {
 			promise = promise.then(() => this.app.api.permissions
 			.update(
