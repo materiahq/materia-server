@@ -1,5 +1,5 @@
 import { App, IApplyOptions } from './app';
-import { IAddon } from './addons';
+import { IAddon } from '@materia/interfaces';
 import { IAction, IActionFilter } from '@materia/interfaces';
 
 import * as path from 'path';

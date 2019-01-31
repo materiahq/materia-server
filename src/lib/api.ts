@@ -2,12 +2,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as express from 'express';
 import chalk from 'chalk';
+import { IAddon } from '@materia/interfaces';
 
 import { Endpoint, IEndpoint } from './api/endpoint';
 import { Permissions } from './api/permissions';
 import { App, AppMode, IApplyOptions } from './app';
 import { MateriaError } from './error';
-import { IAddon } from './addons';
 
 /**
  * @class Api

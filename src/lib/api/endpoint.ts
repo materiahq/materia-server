@@ -1,12 +1,10 @@
 import * as path from 'path'
 import * as fs from 'fs'
-
 import chalk from 'chalk'
+import { IAddon } from '@materia/interfaces';
 
 import { App } from '../app'
 import { MateriaError } from '../error'
-
-import { IAddon } from '../addons'
 
 // Not used yet
 export enum Method {
@@ -18,8 +16,8 @@ export enum Method {
 }
 
 export interface IParam {
-	name: string,
-	required: boolean,
+	name: string
+	required: boolean
 	type: string
 }
 /*

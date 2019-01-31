@@ -2,12 +2,10 @@ import * as events from 'events'
 import chalk from 'chalk'
 import * as fs from 'fs'
 import * as path from 'path'
-
 import * as fse from 'fs-extra'
+import { IAddon, IAppConfig, IDatabaseConfig, IServerConfig } from '@materia/interfaces'
 
 import { Logger } from './logger'
-
-import { IAppConfig, IDatabaseConfig, IServerConfig } from "@materia/interfaces";
 import { Config, ConfigType } from './config'
 import { Server } from './server'
 import { Entities } from './entities'
@@ -17,7 +15,7 @@ import { SelfMigration } from './self-migration'
 import { History } from './history'
 import { Client } from './client'
 
-import { Addons, IAddon } from './addons'
+import { Addons } from './addons'
 import { Api } from './api'
 
 import { MateriaError } from './error'

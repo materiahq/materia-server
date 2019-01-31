@@ -1,37 +1,14 @@
-import * as fs from 'fs';
 import * as path from 'path';
-import * as fse from 'fs-extra';
 import chalk from 'chalk';
 
 import { App } from './app';
-import { MateriaError } from './error';
 import { Addon } from './addons/addon';
 import { ConfigType } from './config';
-
-
-export interface IAddon {
-	package: string
-	name: string
-	path: string
-	config: any
-	obj: any,
-	description: string
-	logo: string
-	author: string
-	version: string
-	installed: boolean
-	installing: boolean
-	published?: any
-}
 
 export interface IAddonConfig {
 	[name:string]: {
 		[param_name:string]: any
 	}
-}
-
-export interface IAddonOptions {
-
 }
 
 /**
@@ -145,24 +122,6 @@ export class Addons {
 	loadConfig():IAddonConfig {
 		this.addonsConfig = this.app.config.get(this.app.mode, ConfigType.ADDONS)
 		return this.addonsConfig;
-
-		// let pkg = require(path.join(this.app.path, 'package.json'))
-		// this.addonsConfig = pkg.materia && pkg.materia.addons || {}
-		// try {
-		// 	let p = path.join(this.app.path, '.materia', 'addons.json')
-		// 	let addonsConfigPath = require.resolve(p)
-		// 	if (require.cache[addonsConfigPath]) {
-		// 		delete require.cache[addonsConfigPath]
-		// 	}
-
-		// 	let setup:IAddonConfig = require(p)
-		// 	this.addonsConfig = Object.assign({}, this.addonsConfig, setup)
-		// } catch(e) {
-		// 	if (e.code != 'MODULE_NOT_FOUND') {
-		// 		return Promise.reject(new MateriaError(`Error in .materia/addons.json`))
-		// 	}
-		// }
-		// return Promise.resolve(this.addonsConfig)
 	}
 
 	/**
@@ -215,73 +174,6 @@ export class Addons {
 
 		this.app.config.set(this.addonsConfig, this.app.mode, ConfigType.ADDONS);
 		return this.app.config.save()
-		// let p = path.join(this.app.path, '.materia', 'addons.json')
-		// let content = JSON.stringify(this.addonsConfig, null, 2)
-		// return this.app.saveFile(p, content, {
-		// 	mkdir: true
-		// })
-	}
-
-	//OUT OF DATE
-	private _checkName(name:string):Promise<void> {
-		if ( ! name ) {
-			return Promise.reject(new MateriaError('A name is required to create an addon.'))
-		}
-		let regexp = /[a-zA-Z0-9][.a-zA-Z0-9-_]*/g
-		if ( ! regexp.test(name)) {
-			return Promise.reject(new MateriaError('The addon name contains bad characters.'))
-		}
-		if (fs.existsSync(path.join(this.app.path, 'node_modules', name))) {
-			return Promise.reject(new MateriaError('The addon already exists: ' + name))
-		}
-	}
-
-	//OUT OF DATE
-	create(name:string, description:string, options?: IAddonOptions):Promise<any> {
-		return this._checkName(name).then(() => {
-			return new Promise((resolve, reject) => {
-				fse.mkdirp(path.join(this.app.path, 'node_modules', name), (err) => {
-					if (err) {
-						return reject(err)
-					}
-					let nameCapitalizeFirst = name.charAt(0).toUpperCase() + name.slice(1)
-
-					//TODO: Get Git name & email for the package.json
-					//TODO: Put these files in external template files (for readability)
-					let content = `'use strict';
-
-class ${nameCapitalizeFirst} {
-	constructor(app, config) {
-		//TODO
-	}
-
-	start() {
-		//TODO
-		return Promise.resolve()
-	}
-}
-
-module.exports = ${nameCapitalizeFirst};`
-
-				let contentPackageJson = `{
-	"name": "${name}",
-	"version": "0.1.0",
-	"description": ${JSON.stringify(description || '')},
-	"author": {
-		"name": "you@domain.com"
-	},
-	"license": "MIT",
-	"main": "index.js",
-	"materia": {},
-	"dependencies": {
-	}
-}`
-					fs.writeFileSync(path.join(this.app.path, 'node_modules', name, 'index.js'), content);
-					fs.writeFileSync(path.join(this.app.path, 'node_modules', name, 'package.json'), contentPackageJson);
-					resolve();
-				})
-			})
-		})
 	}
 
 	start():Promise<void> {
