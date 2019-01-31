@@ -1,4 +1,4 @@
-import { App, DBEntity } from '../../lib';
+import { App, DBEntity, Entity } from '../../lib';
 import { IEntity } from '@materia/interfaces';
 
 import * as path from 'path';
@@ -29,7 +29,22 @@ export class DatabaseController {
 
 	createEntity(req, res) {
 		const entity = req.body;
-		this.app.entities
+		let p : Promise<Entity>;
+		if (entity.virtual) {
+			p = this.app.entities
+			.addVirtual(
+				{
+					name: entity.name,
+					fields: entity.fields
+				},
+				{
+					apply: true,
+					save: true,
+					history: true
+				}
+			);
+		} else {
+			p = this.app.entities
 			.add(
 				{
 					name: entity.name,
@@ -40,7 +55,9 @@ export class DatabaseController {
 					save: true,
 					history: true
 				}
-			).then(e => {
+			);
+		}
+		return p.then(e => {
 				res.status(201).json(e.toJson());
 			}).catch(e => res.status(500).json(e));
 	}
