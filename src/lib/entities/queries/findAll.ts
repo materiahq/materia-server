@@ -154,9 +154,10 @@ export class FindAllQuery extends Query {
 			res.data = res.rows
 			if ( ! options || ! options.raw) {
 				res.toJSON = () => {
+					const data = res.data.map(elt => elt.toJSON());
 					return {
-						count: res.count && typeof res.count === 'number' ? res.count : 0,
-						data: res.data.map(elt => elt.toJSON())
+						count: res.count && typeof res.count === 'number' ? res.count : data.length,
+						data: data
 					}
 				}
 			}

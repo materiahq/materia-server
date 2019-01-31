@@ -72,7 +72,6 @@ describe('[Relations]', () => {
 			.should.become({ id_test2: 1, t2_data: 'foo' })
 		})
 
-		// fix count (sequelize ?)
 		it('should add a relation test belongsTo test2 and receive all values', () => {
 			return app.entities.get('test').addRelation({
 				type: 'belongsTo',
@@ -97,7 +96,7 @@ describe('[Relations]', () => {
 			}).then(() => app.entities.get('test').getQuery('getAll').run())
 			.then(data => data.toJSON())
 			.should.become({
-				count: 0,
+				count: 1,
 				data: [
 					{
 						id_test: 1,
