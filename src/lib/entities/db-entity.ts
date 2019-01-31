@@ -527,6 +527,7 @@ export class DBEntity extends Entity {
 
 	toJson(): IEntityConfig {
 		let json = super.toJson()
+		json.queries = json.queries.filter(query => ['get', 'list', 'update', 'create', 'delete'].indexOf(query.id) == -1);
 		return json
 	}
 }

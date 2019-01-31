@@ -963,13 +963,11 @@ export abstract class Entity {
 			})
 		}
 
-		let queriesJson = []
+		let queriesJson = [];
 		if (this.queries) {
 			this.queries.forEach(query => {
-				if (['get', 'list', 'update', 'create', 'delete'].indexOf(query.id) == -1) {
-					queriesJson.push(query.toJson())
-				}
-			})
+				queriesJson.push(query.toJson());
+			});
 		}
 
 		let res: IEntityConfig = {
