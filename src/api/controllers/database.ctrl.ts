@@ -1,4 +1,4 @@
-import { App, DBEntity, Entity } from '../../lib';
+import { App, DBEntity, Entity, MateriaError } from '../../lib';
 import { IEntity } from '@materia/interfaces';
 
 import * as path from 'path';
@@ -30,6 +30,7 @@ export class DatabaseController {
 	createEntity(req, res) {
 		const entity = req.body;
 		let p : Promise<Entity>;
+		this.app.watcher.disable();
 		if (entity.virtual) {
 			p = this.app.entities
 			.addVirtual(
@@ -57,58 +58,76 @@ export class DatabaseController {
 				}
 			);
 		}
-		return p.then(e => {
-				res.status(201).json(e.toJson());
-			}).catch(e => res.status(500).json(e));
+		return p.then((entity: Entity) => {
+				this.app.watcher.enable();
+				res.status(201).json(entity.toJson());
+			}).catch(err => {
+				this.app.watcher.enable();
+				res.status(500).json(err)
+			});
 	}
 
 	removeEntity(req, res) {
 		const name = req.params.entity;
+		this.app.watcher.disable();
 		this.app.entities.remove(name, {
 			save: true,
 			apply: true,
 			history: true
-		}).then(() => res.status(200).json({ entities: DatabaseLib.loadEntitiesJson(this.app), endpoints: this.app.api.findAll().map(e => e.toJson()) }))
-		.catch(e => res.status(500).json(e));
+		}).then(() => {
+			this.app.watcher.enable();
+			res.status(200).json({ entities: DatabaseLib.loadEntitiesJson(this.app), endpoints: this.app.api.findAll().map(e => e.toJson()) })
+		}).catch(e => {
+			this.app.watcher.enable();
+			res.status(500).json(e)
+		});
 	}
 
 	moveEntity(req, res) {
 		const {x, y} = req.body;
-		this.app.watcher.disable();
 		const entity = this.app.entities.get(req.params.entity);
 		if ( ! entity ) {
-			return res.status(500).json(new Error(`Entity ${req.params.entity} does not exist`));
+			return res.status(400).json(new Error(`Entity ${req.params.entity} does not exist`));
 		}
+		this.app.watcher.disable();
 		entity.move(x, y).then(() => {
-			// Hack: I don't know why we need this timeout, move(x, y) should be resolved when the file is written
-			// Need more investigation.
-			setTimeout(() => {
-				this.app.watcher.enable();
-			}, 1000);
+			this.app.watcher.enable();
 			res.status(200).json(entity.toJson());
-		});
+		}).catch(err => {
+			this.app.watcher.enable();
+			res.status(500).send(err)
+		})
 	}
 
 	renameEntity(req, res) {
 		const oldName = req.params.entity;
 		const {new_name} = req.body;
-
-		this.app.entities
-			.rename(oldName, new_name, {
+		this.app.watcher.disable();
+		this.app.entities.rename(oldName, new_name, {
 				save: true,
 				apply: true,
 				history: true
 			})
-			.then(() => res.status(200).json(
+			.then(() => {
+				this.app.watcher.enable();
+				res.status(200).json(
 				Object.assign({}, this.app.entities.get(new_name).toJson(), {
 					name: new_name
 				}))
-			).catch(e => res.status(500).json(e));
+			}).catch(e => {
+				this.app.watcher.enable();
+				res.status(500).json(e)
+			});
 	}
 
 	saveField(req, res) {
 		const field = req.body;
 		const entityName = req.params.entity;
+		const entity = this.app.entities.get(entityName);
+
+		if ( ! entity) {
+			return res.status(400).send(new MateriaError(`Entity ${req.params.entity} does not exists`));
+		}
 
 		if (field.primary) {
 			field.unique = true;
@@ -139,34 +158,36 @@ export class DatabaseController {
 			}
 		}
 
-		if (field.type != 'number' && field.autoIncrement) {
+		if (field.type !== 'number' && field.autoIncrement) {
 			delete field.autoIncrement;
 		}
 
-		const en = this.app.entities.get(entityName);
-		let promiseResponse;
-		if (en.getField(field.name)) {
-			promiseResponse = en.updateField(field.name, field, {
+		this.app.watcher.disable();
+		let promise;
+
+		if (entity.getField(field.name)) {
+			promise = entity.updateField(field.name, field, {
 				save: true,
 				apply: true,
-				history: true
+				history: true,
+				db: true
 			});
 		} else {
-			promiseResponse = en.addField(field, {
+			promise = entity.addField(field, {
 				save: true,
 				apply: true,
-				history: true
+				history: true,
+				db: true
 			});
 		}
-		promiseResponse.then(() => {
-			return res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
-		}).catch(e => res.status(500).json(e));
+		promise.then(() => {
+			this.app.watcher.enable();
+			return res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
+		}).catch(err => {
+			this.app.watcher.enable();
+			return res.status(500).send(err);
+		});
 	}
-
-	updateField(req, res) {
-
-	}
-
 
 	loadModel(req, res) {
 		const fromAddon: string = req.query.fromAddon
@@ -194,60 +215,76 @@ export class DatabaseController {
 	}
 
 	removeField(req, res) {
-		const { entity, field } = req.params;
-
-		this.app.entities
-			.get(entity)
-			.removeField(field, {
-				save: true,
-				apply: true,
-				history: true
-			})
-			.then(() => res.status(200).json(DatabaseLib.loadEntitiesJson(this.app)))
-			.catch(e => res.status(500).json(e));
+		const { entityName, field } = req.params;
+		const entity = this.app.entities.get(entityName);
+		if ( ! entity) {
+			return res.status(400).send(new MateriaError(`Entity ${entityName} does not exists`));
+		}
+		this.app.watcher.disable();
+		entity.removeField(field, {
+			save: true,
+			apply: true,
+			history: true
+		})
+		.then(() => {
+			this.app.watcher.enable();
+			res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
+		})
+		.catch(e => {
+			this.app.watcher.enable();
+			res.status(500).json(e);
+		});
 	}
 
 	createQuery(req, res) {
-		this.app.watcher.disable();
 		const entity = this.app.entities.get(req.params.entity)
 		const query = req.body;
-		if (entity) {
-			if (query.type == 'sql') {
-				query.opts.query = query.code;
-			}
-			if (query.type == 'custom') {
-				const basePath = entity.fromAddon
-					? entity.fromAddon.path
-					: this.app.path;
-				this.app.saveFile(
-					path.join(
-						basePath,
-						'server',
-						'models',
-						'queries',
-						query.opts.model + '.js'
-					),
-					query.code,
-					{ mkdir: true }
-				).then(() => {
-					entity.addQuery(query);
-					res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
-					this.app.watcher.enable();
-				});
-			} else {
-				entity.addQuery(query);
-				res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
-				this.app.watcher.enable();
-			}
+		if ( ! entity) {
+			return res.status(400).send(new MateriaError(`Entity ${req.params.entity} does not exists`));
 		}
+		this.app.watcher.disable();
+		let p = Promise.resolve();
+		if (query.type == 'sql') {
+			query.opts.query = query.code;
+		}
+		if (query.type == 'custom') {
+			const basePath = entity.fromAddon
+				? entity.fromAddon.path
+				: this.app.path;
+			p = p.then(() => this.app.saveFile(
+				path.join(
+					basePath,
+					'server',
+					'models',
+					'queries',
+					query.opts.model + '.js'
+				),
+				query.code,
+				{ mkdir: true }
+			))
+		}
+		p.then(() => entity.addQuery(query)).then(() => {
+			this.app.watcher.enable();
+			res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
+		}).catch(err => {
+			this.app.watcher.enable();
+			res.status(500).send(err);
+		})
 	}
 
 	removeQuery(req, res) {
-		this.app.watcher.disable();
 		const entity = this.app.entities.get(req.params.entity);
-		entity.removeQuery(req.params.queryId);
-		res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
-		this.app.watcher.enable();
+		if ( ! entity) {
+			return res.status(400).send(new MateriaError(`Entity ${req.params.entity} does not exists`));
+		}
+		this.app.watcher.disable();
+		entity.removeQuery(req.params.queryId).then(() => {
+			this.app.watcher.enable();
+			res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
+		}).catch(err => {
+			this.app.watcher.enable();
+			res.status(500).send(err);
+		});
 	}
 
 	runQuery(req, res) {
@@ -293,24 +330,29 @@ export class DatabaseController {
 			const action = Object.assign({}, req.body, {
 				id
 			});
+			this.app.watcher.disable();
 			try {
 				this.app.actions.register(action, {
 					save: true
 				});
+				this.app.watcher.enable();
 				res.status(200).json(
 					DatabaseLib.loadEntitiesJson(this.app)
 				);
 			} catch (e) {
+				this.app.watcher.enable();
 				res.status(400).json({
 					error: e.message
 				});
 			}
-		});
+		}).catch(err => {
+			res.status(500).send(err);
+		})
 	}
 
 	updateAction(req, res) {
 		const action = req.body;
-
+		this.app.watcher.disable();
 		try {
 			action.id = req.params.id;
 			if (req.params[0]) {
@@ -319,10 +361,12 @@ export class DatabaseController {
 			this.app.actions.register(action, {
 				save: true
 			});
+			this.app.watcher.enable();
 			res.status(200).json(
 				DatabaseLib.loadEntitiesJson(this.app)
 			);
 		} catch (e) {
+			this.app.watcher.enable();
 			res.status(400).json({
 				error: e.message
 			});
@@ -334,17 +378,21 @@ export class DatabaseController {
 		if (req.params[0]) {
 			id += req.params[0];
 		}
+		this.app.watcher.disable();
 		if (this.app.actions.remove(id, { save: true })) {
+			this.app.watcher.enable();
 			res.status(200).json(
 				DatabaseLib.loadEntitiesJson(this.app)
 			);
 		} else {
+			this.app.watcher.enable();
 			res.status(400).json({ error: `Action id '${req.params.id}' not found.`});
 		}
 	}
 
 	createRelation(req, res) {
 		const payload = req.body;
+		this.app.watcher.disable();
 		this.app.entities
 			.get(payload.rel2.reference.entity)
 			.addRelation(payload.rel1, {
@@ -352,8 +400,7 @@ export class DatabaseController {
 				apply: true,
 				history: true,
 				db: true
-			})
-			.then(() => {
+			}).then(() => {
 				return this.app.entities
 					.get(payload.rel1.reference.entity)
 					.addRelation(payload.rel2, {
@@ -362,22 +409,24 @@ export class DatabaseController {
 						history: true,
 						db: true
 					});
-			})
-			.then(() => {
+			}).then(() => {
+				this.app.watcher.enable();
 				return res.status(201).json({
 					entities: DatabaseLib.loadEntitiesJson(this.app),
 					relations: this.app.entities.findAllRelations({
 						implicit: true
 					})
 				});
-			}).catch(e => res.status(500).json(e));
+			}).catch(e => {
+				this.app.watcher.enable();
+				res.status(500).json(e);
+			});
 	}
 
 	removeRelation(req, res) {
 		let relation = null;
-		let entity = null;
 		const type = req.params.type;
-		entity = this.app.entities.get(req.params.entity);
+		let entity = this.app.entities.get(req.params.entity);
 		if (type === 'belongsToMany') {
 			const entityRelation = req.params.relationFieldOrEntity;
 			relation = entity.getBelongsToManyRelation(entityRelation);
@@ -386,12 +435,16 @@ export class DatabaseController {
 			relation = entity.getRelationByField(field);
 		}
 		if (! relation) {
-			return res.status(500).send('Relation not found');
+			return res.status(400).send('Relation not found');
 		}
 		if (relation.type === 'hasMany' || relation.type === 'hasOne') {
 			entity = this.app.entities.get(relation.reference.entity)
 			relation = entity.getRelationByField(relation.reference.field);
 		}
+		if ( ! entity) {
+			return res.status(400).send(new MateriaError(`Entity ${req.params.entity} does not exists`));
+		}
+		this.app.watcher.disable();
 		entity.removeRelation(relation, {
 			save: true,
 			apply: true,
@@ -399,15 +452,17 @@ export class DatabaseController {
 			db: true
 		})
 		.then(() => {
+			this.app.watcher.enable();
 			return res.status(200).json({
 				entities: DatabaseLib.loadEntitiesJson(this.app),
 				relations: this.app.entities.findAllRelations({
 					implicit: true
 				})
 			});
-		}).catch(e =>
-			res.status(500).json(e)
-		);
+		}).catch(err => {
+			this.app.watcher.enable();
+			res.status(500).json(err);
+		});
 	}
 
 	runSql(req, res) {
@@ -439,16 +494,26 @@ export class DatabaseController {
 		const type = req.body.type;
 
 		if (type === 'entitiesToDatabase') {
-			return this.app.synchronizer.entitiesToDatabase(diffs, null)
-				.then((result) =>
-					res.status(200).send(result)
-				).catch(err => res.status(500).send(err));
+			this.app.watcher.disable();
+			this.app.synchronizer.entitiesToDatabase(diffs, {save: true})
+				.then((result) => {
+					this.app.watcher.enable();
+					res.status(200).send(result);
+				}).catch(err => {
+					this.app.watcher.enable();
+					res.status(500).send(err);
+				});
 
 		} else if (type === 'databaseToEntities') {
-			return this.app.synchronizer.databaseToEntities(diffs, null)
-				.then((result) =>
-					res.status(200).send(result)
-				).catch(err => res.status(500).send(err.message));
+			this.app.watcher.disable();
+			this.app.synchronizer.databaseToEntities(diffs, {save: true})
+				.then((result) => {
+					this.app.watcher.enable();
+					res.status(200).send(result);
+				}).catch(err => {
+					this.app.watcher.enable();
+					res.status(500).send(err.message);
+				});
 		} else {
 			return res.status(500).send(new Error(`Sync type '${type}' not found`));
 		}
@@ -493,21 +558,19 @@ export class DatabaseLib {
 			fromAddon: entity.fromAddon ? entity.fromAddon.toJson() : null,
 			relatedEntities: entity
 				.getRelatedEntities()
-				.map((relatedEntity: any) => {
-					if (relatedEntity) {
-						Object.assign({}, relatedEntity.toJson(), {
-							name: relatedEntity.name,
-							fields: relatedEntity.fields.map(field =>
-								field.toJson()
-							),
-							queries: relatedEntity.getQueries().map(query => {
-								const q = query.toJson();
-								q.params = query.params;
-								return q;
-							})
+				.map((relatedEntity: Entity) => {
+					return Object.assign({}, relatedEntity.toJson(), {
+						name: relatedEntity.name,
+						fields: relatedEntity.fields.map(field =>
+							field.toJson()
+						),
+						queries: relatedEntity.getQueries().map(query => {
+							const q = query.toJson();
+							q.params = query.params;
+							return q;
 						})
-					}
-				})
+					})
+				}).filter(relatedEntity => relatedEntity && relatedEntity.name)
 		});
 	}
 

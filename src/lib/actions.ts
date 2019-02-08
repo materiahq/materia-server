@@ -105,7 +105,7 @@ export class Actions {
 	register(action: IAction, opts?: IApplyOptions) {
 		this.remove(action.id);
 		this.actions.push(action);
-		if (opts && opts.save && !action.fromAddon) {
+		if (opts && opts.save && ! action.fromAddon) {
 			this.save();
 		}
 	}
