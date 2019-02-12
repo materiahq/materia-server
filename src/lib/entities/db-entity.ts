@@ -1,3 +1,5 @@
+import * as Sequelize from 'sequelize'
+
 import { Entity, IEntityConfig } from './entity'
 import { MateriaError } from '../error'
 
@@ -18,8 +20,7 @@ export class DBEntity extends Entity {
 	type: string
 	currentDiff: Array<any>
 	currentDiffUndo: Array<any>
-
-	public model: any
+	public model: Sequelize.Model<{}, {}>;
 
 	reservedQueries = [
 		'create', 'list', 'get', 'update', 'delete'
@@ -251,7 +252,7 @@ export class DBEntity extends Entity {
 					field.onDelete = dbfield.onDelete
 				}
 
-				let p = Promise.resolve()
+				let p: Promise<any> = Promise.resolve();
 				if (field.required && ! field.default && field.defaultValue) {
 					p = p.then(() => {
 						field.default = true
@@ -265,7 +266,6 @@ export class DBEntity extends Entity {
 						let where = {}
 						vals[fieldobj.name] = dbfield.defaultValue
 						where[fieldobj.name] = null
-
 						return this.model.update(vals, { where: where })
 					})
 				}
@@ -291,7 +291,7 @@ export class DBEntity extends Entity {
 							}
 							if (need_save) {
 								if (options.save != false) {
-									entity.save(options)
+									p = p.then(() => entity.save())
 								}
 								p = p.then(() => {
 									return entity.loadModel().then(() => {
@@ -325,6 +325,7 @@ export class DBEntity extends Entity {
 			generateQueries: false
 		}) : options;
 
+		// await promise;
 		return super.addFieldAt(field, at, newOpts).then((fieldobj) => {
 			if (options.db == false) {
 				return Promise.resolve(fieldobj)
@@ -342,7 +343,7 @@ export class DBEntity extends Entity {
 
 			// When field is required and doesn't have default value
 			// if it has data in the entity, it will make an error because the field can't be null and we don't know what do put into
-			if (field.required && !field.default) {
+			if (field.required && ! field.default) {
 				field.default = true
 				if (field.generateFrom) {
 					p = p.then(() => {
@@ -356,6 +357,20 @@ export class DBEntity extends Entity {
 									if (from_list.data.length) {
 										field.required = false
 										field.default = false
+										field.onDelete = 'NO ACTION'
+										const fieldInstance = this.getField(field.name);
+										fieldInstance.update(
+											Object.assign({},
+											fieldInstance.toJson(),
+											{
+												onDelete: 'NO ACTION',
+												required: false,
+												default: false,
+												unique: isUnique,
+												primary: false,
+												autoIncrement: false
+											}
+										));
 									} else {
 										delete field.defaultValue
 									}
@@ -377,7 +392,7 @@ export class DBEntity extends Entity {
 							'boolean': false,
 							'date': new Date(0)
 						}
-						field.defaultValue = defs[field.type] === undefined ? "" : defs[field.type]
+						field.defaultValue = defs[field.type] === undefined ? "" : defs[field.type];
 					}
 
 					return this.app.database.interface.addColumn(this.name, field.name, field)
@@ -390,8 +405,7 @@ export class DBEntity extends Entity {
 						return this.app.database.interface.changeColumn(this.name, field.name, field)
 					})
 				}
-			}
-			else {
+			} else {
 				p = p.then(() => {
 					return this.app.database.interface.addColumn(this.name, field.name, field)
 				})
@@ -452,33 +466,33 @@ export class DBEntity extends Entity {
 		qg.generateQueries()
 	}
 
-	loadModel() {
+	loadModel(): Promise<void> {
 		let idField = this.getField('id')
 		let idPKforce = false
-		if (idField && !this.getPK().length) {
+		if (idField && ! this.getPK().length) {
 			idPKforce = true
 			idField.primary = true
 		}
 		try {
-			this.model = this.app.database.interface.define(this)
+			this.model = this.app.database.interface.define(this);
 		} catch (e) {
-			return Promise.reject(e)
+			return Promise.reject(e);
 		}
 		if (idPKforce) {
-			idField.primary = false
+			idField.primary = false;
 		}
-		if (!this.getField('id')) {
-			this.model.removeAttribute('id')
+		if ( ! idField && this.model['rawAttributes'].id) {
+			this.model.removeAttribute('id');
 		}
-		return Promise.resolve()
+		return Promise.resolve();
 	}
 
-	loadRelationsInModel() {
+	loadRelationsInModel():void {
 		this.relations.forEach(relation => {
 			let entityDest = this.app.entities.get(relation.reference.entity)
 			if (entityDest && entityDest instanceof DBEntity) {
 				//@model.hasMany entityDest.model, relation.dstField if relation.type == '1-n' and relation.cardinality == '1'
-				if (!relation.type || relation.type == 'belongsTo') {
+				if ( ! relation.type || relation.type == 'belongsTo') {
 					/*console.log(this.name + ' belongs to ' + entityDest.name + ' with fk: ' + relation.field)
 					//entityDest.model.belongsTo @model, foreignKey: relation.dstField
 					let keyReference = entityDest.getPK()
@@ -495,7 +509,7 @@ export class DBEntity extends Entity {
 					}
 
 					this.model.belongsTo(entityDest.model, { foreignKey: relation.field, targetKey: key })
-					entityDest.model.hasMany(this.model, { foreignKey: relation.field, targetKey: key })
+					entityDest.model.hasMany(this.model, { foreignKey: relation.field })
 				}
 				else if (relation.type == 'hasMany') {
 					let key = this.getPK()[0].name
@@ -504,20 +518,24 @@ export class DBEntity extends Entity {
 					}
 
 					entityDest.model.belongsTo(this.model, { foreignKey: relation.reference.field, targetKey: key })
-					this.model.hasMany(entityDest.model, { foreignKey: relation.reference.field, targetKey: key })
+					this.model.hasMany(entityDest.model, { foreignKey: relation.reference.field })
 				}
 				else if (relation.type == 'belongsToMany') {
 					let entityThrough = this.app.entities.get(relation.through) as DBEntity
-					if (!entityThrough) {
+					if ( ! entityThrough) {
 						console.error('Through table not found')
 					} else {
-						this.model.belongsToMany(entityDest.model, {
+						const relationModel: Sequelize.AssociationOptionsBelongsToMany = {
 							through: {
 								model: entityThrough.model
 							},
 							foreignKey: relation.as,
 							otherKey: relation.reference.as
-						})
+						}
+						if (this.model.getTableName() === entityDest.model.getTableName()) {
+							relationModel.as = entityThrough.model + Math.random().toString();
+						}
+						this.model.belongsToMany(entityDest.model, relationModel)
 					}
 				}
 			}
