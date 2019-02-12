@@ -1,31 +1,23 @@
-const fs = require('fs')
-const path = require('path')
-
-import * as fse from 'fs-extra'
-import chalk from 'chalk'
-
-import * as Sequelize from 'sequelize'
-
-import { App, IApplyOptions } from './app'
-import { MateriaError } from './error'
-
-import { Addon } from './addons/addon'
-
-import { MigrationType } from './history'
-
-import { CustomQuery } from './entities/queries/custom'
-
-import { DBEntity } from './entities/db-entity'
-import { Entity } from './entities/entity'
-import { IField } from './entities/field'
-import { ConfigType } from './config';
+import * as fse from 'fs-extra';
+import chalk from 'chalk';
+import * as Sequelize from 'sequelize';
+import { join } from 'path';
 import { IEndpoint } from '@materia/interfaces';
-import { VirtualEntity } from './entities/virtual-entity';
 
-//TODO: add when entities/entity will be converted in ts
-/*export interface IEntities {
-     [index: string]:Entity[];
-}*/
+import { App, IApplyOptions } from './app';
+import { MateriaError } from './error';
+
+import { Addon } from './addons/addon';
+
+import { MigrationType } from './history';
+
+import { CustomQuery } from './entities/queries/custom';
+
+import { DBEntity } from './entities/db-entity';
+import { Entity } from './entities/entity';
+import { IField } from './entities/field';
+import { ConfigType } from './config';
+import { VirtualEntity } from './entities/virtual-entity';
 
 /**
  * @class Entities
@@ -41,19 +33,19 @@ export class Entities {
 		this.entitiesJson = {}
 
 		this.app.history.register(MigrationType.CREATE_ENTITY, (data, opts) => {
-			return this.add(data.value, opts)
+			return this.add(data.value, opts);
 		})
 
 		this.app.history.register(MigrationType.RENAME_ENTITY, (data, opts):any => {
-			return this.rename(data.table, data.value, opts)
+			return this.rename(data.table, data.value, opts);
 		})
 
 		this.app.history.register(MigrationType.DELETE_ENTITY, (data, opts) => {
-			return this.remove(data.table, opts)
+			return this.remove(data.table, opts);
 		})
 
 		this.app.history.register(MigrationType.ADD_FIELD, (data, opts) => {
-			return this.get(data.table).addFieldAt(data.value as IField, data.position, opts)
+			return this.get(data.table).addFieldAt(data.value as IField, data.position, opts);
 		})
 
 		this.app.history.register(MigrationType.CHANGE_FIELD, (data, opts) => {
@@ -87,8 +79,13 @@ export class Entities {
 		})
 	}
 
-	clear() {
+	clear():void {
 		this.entities = {}
+		this.entitiesJson = {}
+	}
+
+	cleanFiles():void {
+		delete this.entitiesJson
 		this.entitiesJson = {}
 	}
 
@@ -98,18 +95,20 @@ export class Entities {
 		this.entitiesJson[basePath] = []
 
 		let files;
+		let p = Promise.resolve();
 		try {
-			files = fs.readdirSync(path.join(basePath, 'server', 'models'))
+			files = fse.readdirSync(join(basePath, 'server', 'models'))
+			p = p.then(() => Promise.resolve());
 		} catch (e) {
 			files = []
-			fse.mkdirsSync(path.join(basePath, 'server', 'models'))
+			fse.mkdirsSync(join(basePath, 'server', 'models'))
 			return Promise.resolve(false)
 		}
 		const entitiesPositions = this.app.config.get<{[name: string]: {x: number, y: number}}>(null, ConfigType.ENTITIES_POSITION) || {};
 		for (let file of files) {
 			try {
 				if (file.substr(file.length - 5, 5) == '.json') {
-					let content = fs.readFileSync(path.join(basePath, 'server', 'models', file))
+					let content = fse.readFileSync(join(basePath, 'server', 'models', file))
 					let entity = JSON.parse(content.toString())
 					entity.name = file.substr(0, file.length - 5)
 					if (entitiesPositions[entity.name]) {
@@ -117,19 +116,21 @@ export class Entities {
 						entity.y = entitiesPositions[entity.name].y;
 					}
 					this.entitiesJson[basePath].push(entity)
+					p = p.then(() => Promise.resolve());
 				}
 			} catch (e) {
 				e += ' in ' + file
 				this.app.logger.error(new Error(e));
+				p = p.then(() => Promise.resolve());
 			}
 		}
 
-		return Promise.resolve()
+		return p;
 	}
 
-	loadEntities(addon?: Addon):Promise<any> {
+	loadEntities(addon?: Addon):Promise<Entity[]> {
 		let basePath = addon ? addon.path : this.app.path
-		let promises = []
+		let promises: Promise<Entity>[] = []
 		let opts: IApplyOptions = {
 			history: false,
 			db: false,
@@ -152,9 +153,7 @@ export class Entities {
 			if (file.virtual) {
 				promises.push(this.addVirtual(file, opts));
 			} else {
-				if ( this.app.database.disabled ) {
-					promises.push(Promise.resolve());
-				} else {
+				if ( ! this.app.database.disabled ) {
 					promises.push(this.add(file, opts));
 				}
 			}
@@ -163,7 +162,7 @@ export class Entities {
 		return Promise.all(promises)
 	}
 
-	loadQueries(addon?: Addon):Promise<any> {
+	loadQueries(addon?: Addon):Promise<void> {
 		let basePath = addon ? addon.path : this.app.path
 
 
@@ -203,14 +202,9 @@ export class Entities {
 		return Promise.all(promises)
 	}
 
-	cleanFiles() {
-		delete this.entitiesJson
-		this.entitiesJson = {}
-	}
-
 	start():Promise<any> {
 		if ( this.app.database.disabled ) {
-			return Promise.resolve()
+			return Promise.resolve();
 		}
 
 		//detect rename then sync database
@@ -219,20 +213,26 @@ export class Entities {
 		return Promise.resolve()
 		.then(() => {
 			//Convert orphan n-n through tables
-			let promises = []
+			let promises = [];
 			for (let name in this.entities) {
-				promises.push(this.entities[name].fixIsRelation({save:false, db:false, history:false}))
+				promises.push(this.entities[name].fixIsRelation({save:false, db:false, history:false}));
 			}
-			return Promise.all(promises)
+			return Promise.all(promises);
 		}).then(() => {
-			return this.sync()
+			return this.sync();
 		}).then(() => {
-			return this.detect_rename()
+			return this.detect_rename();
 		}).then(() => {
-			return this.app.database.sequelize.sync()
-		})
+			return this.app.database.sequelize.sync();
+		});
 	}
 
+	/**
+	Add a new virtual entity
+	@param {object} - Entity description
+	@param {object} - Action's options
+	@returns {Promise<Entity>}
+	*/
 	addVirtual(entityobj, options?) {
 		options = options || {}
 
@@ -259,8 +259,7 @@ export class Entities {
 			}
 
 			if (options.save != false) {
-				entity.save(options)
-				return this._save_id_map(options)
+				return entity.save().then(() => this._save_id_map(options));
 			}
 		}).then(() => {
 			if (options.overwritable)
@@ -335,7 +334,7 @@ export class Entities {
 				return Promise.resolve(entity)
 			}
 			if (entityobj.isRelation && entityobj.relations) {
-				delete entityobj.relations //NEED TO CHECK THIS / NOT SURE ITS GOOD AS A RELATION TABLE CAN ALSO HAVE RELATIONS
+				delete entityobj.relations // NEED TO CHECK THIS / NOT SURE ITS GOOD AS A RELATION TABLE CAN ALSO HAVE RELATIONS
 			}
 			createPromise = entity.create(entityobj, {wait_relations:options.wait_relations, fromAddon: options.fromAddon})
 		}
@@ -347,13 +346,14 @@ export class Entities {
 			}
 
 			if (options.save != false) {
-				entity.save(options)
-				return this._save_id_map(options)
+				return entity.save().then(() => this._save_id_map(options));
+			} else {
+				return Promise.resolve();
 			}
 		}).then(() => {
-
-			if (options.overwritable)
-				return entity
+			if (options.overwritable) {
+				return entity;
+			}
 
 			if (options.history != false) {
 				this.app.history.push({
@@ -366,57 +366,44 @@ export class Entities {
 				})
 			}
 
-			if (options.db == false)
-				return entity
+			if (options.db == false) {
+				return entity;
+			}
 
-			let p
+			let p = Promise.resolve();
 			if (options.apply != false) {
 				entity.generateDefaultQueries()
 				p = this.sync().then(() => {
-					entity.refreshQueries()
-				})
-			}
-			else {
+					return entity.refreshQueries()
+				});
+			} else {
 				p = entity.loadModel()
 			}
 
 			return p.then(() => {
-				return entity.model.sync()
+				return entity.model.sync();
 			}).then(() => {
-				return entity
+				return entity;
 			})
 		})
 	}
 
-	_save_id_map(opts?):Promise<any> {
-		opts = opts || {}
-
-		let name_map = {}
-		for (let entity_name in this.entities) {
-			let entity = this.entities[entity_name]
-			name_map[entity.id] = entity_name
-		}
-
-		let actions = Object.assign({}, opts)
-		actions.mkdir = true
-		return this.app.saveFile(path.join(this.app.path, '.materia', 'ids.json'), JSON.stringify(name_map, null, '\t'), actions)
-	}
-
 	detect_rename():Promise<any> {
-		let name_map
+		let name_map;
 		try {
-			let content = fs.readFileSync(path.join(this.app.path, '.materia', 'ids.json')).toString()
-			name_map = JSON.parse(content)
+			let content = fse.readFileSync(join(this.app.path, '.materia', 'ids.json')).toString();
+			name_map = JSON.parse(content);
 		} catch (e) {
-			if (e.code == 'ENOENT')
-				return Promise.resolve()
-			console.error(e)
-			return Promise.reject(e)
+			if (e.code == 'ENOENT') {
+				return Promise.resolve();
+			}
+			console.error(e);
+			return Promise.reject(e);
 		}
 
-		let diffs = []
+		let diffs = [];
 		for (let entity_name in this.entities) {
-			let entity = this.entities[entity_name]
+			let entity = this.entities[entity_name];
 			if (name_map[entity.id] && name_map[entity.id] != entity_name) {
 				diffs.push({
 					redo: {
@@ -429,22 +416,21 @@ export class Entities {
 						table: entity_name,
 						value: name_map[entity.id]
 					}
-				})
+				});
 			}
 		}
 
 		if (diffs.length == 0) {
-			return Promise.resolve()
+			return Promise.resolve();
 		}
 
 		for (let diff of diffs) {
-			this.app.logger.log(chalk.bold(`Detected entity rename: ${chalk.yellow(diff.redo.table)} -> ${chalk.yellow(diff.redo.value)}`))
+			this.app.logger.log(chalk.bold(`Detected entity rename: ${chalk.yellow(diff.redo.table)} -> ${chalk.yellow(diff.redo.value)}`));
 		}
 
 		return this.app.history.apply(diffs, {
-			//save: false,
 			full_rename: false
-		})
+		});
 	}
 
 	/**
@@ -495,14 +481,14 @@ export class Entities {
 				delete this.entities[name]
 			}
 
-			let relativePath = path.join('server', 'models', name + '.json')
-			if (options.save != false && entity && fs.existsSync(path.join(this.app.path, relativePath))) {
+			let relativePath = join('server', 'models', name + '.json')
+			if (options.save != false && entity && fse.existsSync(join(this.app.path, relativePath))) {
 				if (options && options.beforeSave) {
 					options.beforeSave(relativePath)
 				}
 
 				//TODO: this.app.path replaced by basepath computed with fromAddon
-				fs.unlinkSync(path.join(this.app.path, relativePath))
+				fse.unlinkSync(join(this.app.path, relativePath))
 				if (options && options.afterSave) {
 					options.afterSave()
 				}
@@ -524,15 +510,19 @@ export class Entities {
 	@param {object} - Action's options
 	@returns {Promise}
 	*/
-	rename(name, new_name, options?):Promise<any> {
+	rename(name: string, new_name: string, options?):Promise<any> {
 		options = options || {}
 		let entity = this.get(name)
 
-		if ( ! entity && options.full_rename != false)
-			return Promise.reject(new MateriaError('Entity ' + name + ' does not exist.'))
+		if ( ! entity && options.full_rename != false) {
+			return Promise.reject(new MateriaError('Entity ' + name + ' does not exist.'));
+		}
 
-		if ( entity && this.get(new_name))
+		if ( entity && this.get(new_name)) {
 			return Promise.reject(new MateriaError('Entity ' + new_name + ' already exists.'))
+		}
+
+		let p = Promise.resolve();
 
 		if (options.history != false) {
 			this.app.history.push({
@@ -562,8 +552,8 @@ export class Entities {
 					}
 				}
 				if (need_save && options.save != false) {
-					entity.save(options)
-					entitiesChanged.push(entity)
+					entitiesChanged.push(entity);
+					p = p.then(() => entity.save());
 				}
 			}
 
@@ -580,34 +570,37 @@ export class Entities {
 		}
 
 		if (options.save != false) {
-			let relativePath = path.join('server', 'models', name + '.json')
-			if (fs.existsSync(path.join(this.app.path, relativePath))) {
+			let relativePath = join('server', 'models', name + '.json')
+			if (fse.existsSync(join(this.app.path, relativePath))) {
 				if (options && options.beforeSave) {
 					options.beforeSave(relativePath)
 				}
-				fs.unlinkSync(path.join(this.app.path, relativePath))
-				this._save_id_map(options)
+				fse.unlinkSync(join(this.app.path, relativePath))
+				p = p.then(() => this._save_id_map(options))
 				if (options && options.afterSave) {
 					options.afterSave()
 				}
 			}
-			this.save(options)
+			p = p.then(() => this.save());
 		}
 
 
-		if (options.db == false)
-			return Promise.resolve()
+		if (options.db == false) {
+			return Promise.resolve();
+		}
 
-		return this.app.database.sequelize.getQueryInterface().renameTable(name, new_name).then(() => {
-			let p = Promise.resolve()
-			for (let entity of entitiesChanged) {
-				p = p.then(() => {
-					return entity.loadModel().then(() => {
-						entity.loadRelationsInModel()
+		return p.then(() =>
+				this.app.database.sequelize.getQueryInterface().renameTable(name, new_name)
+			).then(() => {
+				let promise = Promise.resolve()
+				for (let entity of entitiesChanged) {
+					promise = promise.then(() => {
+						return entity.loadModel().then(() => {
+							entity.loadRelationsInModel()
+						})
 					})
-				})
-			}
-			return p
+				}
+				return promise;
 		})
 	}
 
@@ -637,30 +630,20 @@ export class Entities {
 	@returns {Entity}
 	*/
 	getOrAdd(name, entityobj, options) {
-		if (this.entities[name])
-			return Promise.resolve(this.entities[name])
-		entityobj.name = name
-		return this.add(entityobj, options)
+		if (this.entities[name]) {
+			return Promise.resolve(this.entities[name]);
+		}
+		entityobj.name = name;
+		return this.add(entityobj, options);
 	}
 
-	save(opts) {
+	save(): Promise<void> {
+		let p = Promise.resolve();
 		for (let ent in this.entities) {
-			this.entities[ent].save(opts)
+			p = p .then(() => this.entities[ent].save());
 		}
+		return p;
 	}
-
-	/*getCurrentDiff() {
-		let diffs = []
-		this.entities.forEach((entity) => {
-			//entity.
-		})
-	}
-
-	hasDiff() {
-		for (let entity of this.entities) {
-
-		}
-	}*/
 
 	sync() {
 		let promises = []
@@ -712,11 +695,23 @@ export class Entities {
 		})
 	}
 
-	resetModels() {
-		if ( this.app.database.disabled ) {
-			return Promise.resolve()
+	resetModels():void {
+		if ( ! this.app.database.disabled ) {
+			CustomQuery.resetModels();
+		}
+	}
+
+	private _save_id_map(opts?):Promise<any> {
+		opts = opts || {}
+
+		let name_map = {}
+		for (let entity_name in this.entities) {
+			let entity = this.entities[entity_name]
+			name_map[entity.id] = entity_name
 		}
 
-		CustomQuery.resetModels()
+		let actions = Object.assign({}, opts)
+		actions.mkdir = true
+		return this.app.saveFile(join(this.app.path, '.materia', 'ids.json'), JSON.stringify(name_map, null, '\t'), actions)
 	}
 }

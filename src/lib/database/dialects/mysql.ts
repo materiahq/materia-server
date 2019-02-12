@@ -1,9 +1,34 @@
 import { AbstractDialect } from './abstract'
 import { MateriaError } from '../../error'
+import sequelize = require('sequelize');
 
 export class MysqlDialect extends AbstractDialect {
 	constructor(sequelize) {
 		super(sequelize)
+	}
+
+	define(entityName, cols, defOptions) {
+		for(let colName in cols) {
+			const col = cols[colName];
+			if (col && col.defaultValue && col.defaultValue === sequelize.NOW && col.type === 'date') {
+				col.defaultValue = sequelize.fn('NOW');
+			}
+		}
+		return super.define(entityName, cols, defOptions);
+	}
+
+	addColumn(table, column_name, attributes):any {
+		if (attributes.defaultValue === sequelize.NOW) {
+			attributes.defaultValue = sequelize.fn('NOW');
+		}
+		return super.addColumn(table, column_name, attributes)
+	}
+
+	changeColumn(table, column_name, attributes):any {
+		if (attributes.defaultValue === sequelize.NOW) {
+			attributes.defaultValue = sequelize.fn('NOW');
+		}
+		return super.changeColumn(table, column_name, attributes)
 	}
 
 	_describeTable(table) {

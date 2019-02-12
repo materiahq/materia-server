@@ -1,58 +1,169 @@
-import { App } from './app'
-import { MigrationType, IActionData } from './history'
+import * as Sequelize from 'sequelize';
+import { App, IApplyOptions } from './app';
+import { MigrationType, IActionData } from './history';
 import { DBEntity } from './entities/db-entity';
+import { IDatabaseDiffs, IRelation } from '@materia/interfaces';
+import { Entity } from './entities/entity';
 
 export class Synchronizer {
+
 	constructor(private app: App) {}
 
-	_compareField(dbfield, field, entity):any {
-		let props = ['name', 'type', 'primary', 'required', 'autoIncrement', 'default', 'defaultValue', 'onUpdate', 'onDelete']
+	diff(): Promise<IDatabaseDiffs> {
+		return this.app.database.interface.showTables().then((dbTables) => {
+			let entities = this.app.entities.findAll().filter((entity: Entity): entity is DBEntity => entity instanceof DBEntity);
+			let diffs = this._diffMap(entities, dbTables);
+			return Promise.resolve(diffs);
+		})
+	}
 
-		let diff = [{},{}] as any
-		let found = false
+	entitiesToDatabase(diffs: IDatabaseDiffs, options?: IApplyOptions): Promise<IActionData[]> {
+		options = Object.assign({}, options || {})
+		options.history = false
+		options.apply = false
+		options.save = false
+
+		let actions = []
+		for (let type of ['relations', 'fields', 'entities']) {
+			for (let action of diffs[type]) {
+				actions.push(action)
+			}
+		}
+		return this.app.history.revert(actions, options)
+	}
+
+	databaseToEntities(diffs: IDatabaseDiffs, options?: IApplyOptions): Promise<IActionData[]> {
+		options = Object.assign({}, options || {})
+		options.history = false
+		options.db = false
+
+		let actions = []
+		actions = this._constructEntitiesDiffs(diffs['entities']);
+		for (let type of ['fields', 'relations']) {
+			for (let action of diffs[type]) {
+				actions.push(action)
+			}
+		}
+		return this.app.history.apply(actions, options)
+			.then(() => this.app.entities.sync())
+			.then(() => actions)
+	}
+
+	private _compareField(dbfield, field, entity):any {
+		let props = ['name', 'type', 'primary', 'required', 'autoIncrement', 'default', 'defaultValue', 'onUpdate', 'onDelete'];
+		let diff = [{},{}] as any;
+		let found = false;
+
+		if (field.defaultValue === Sequelize.NOW) {
+			field.defaultValue = 'now()';
+		}
 		for (let k of props) {
 			if (Array.isArray(dbfield[k])) {
 				if (dbfield[k].indexOf(field[k]) == -1) {
-					diff[0][k] = dbfield[k][0]
-					diff[1][k] = field[k]
-					found = true
+					diff[0][k] = dbfield[k][0];
+					diff[1][k] = field[k];
+					found = true;
 				}
-			} else {
-				if (dbfield[k] != field[k]
-					&& (k != 'defaultValue' || (new Date(dbfield[k])).getTime() != (new Date(field[k])).getTime())) {
-					diff[0][k] = dbfield[k]
-					diff[1][k] = field[k]
-					found = true
-				}
+			} else if (
+				dbfield[k] != field[k] &&
+				(k != 'defaultValue' || (new Date(dbfield[k])).getTime() != (new Date(field[k])).getTime())
+			) {
+				diff[0][k] = dbfield[k];
+				diff[1][k] = field[k];
+				found = true;
 			}
 		}
 
-		if (dbfield.unique != field.unique && ! dbfield.primary && ! field.primary
-			&& ! (dbfield.unique == true && (typeof field.unique == 'string') && entity.getUniqueFields(field.unique).length == 1)) {
+		if (
+			dbfield.unique !== field.unique &&
+			! dbfield.primary &&
+			! field.primary &&
+			! (dbfield.unique === true &&
+			(typeof field.unique == 'string') &&
+			entity.getUniqueFields(field.unique).length == 1)
+		) {
 			diff[0].unique = dbfield.unique
 			diff[1].unique = field.unique
 			found = true
+		} else if (dbfield.primary && dbfield.number && dbfield.autoIncrement) {
+			diff[0].unique = true;
 		}
 
-		if ( ! found)
-			return false
-		return diff
+		if ( ! found) {
+			return false;
+		}
+		return diff;
 	}
 
-	_compareRelation(rel1, rel2) {
+	private _constructEntitiesDiffs(entitiesDiffs: IDatabaseDiffs["entities"]) {
+		let result = [];
+		if (entitiesDiffs && entitiesDiffs.length) {
+			const entitiesWithoutRelationsDiffs = entitiesDiffs.filter(diff =>
+				diff.redo &&
+				diff.redo.type === MigrationType.CREATE_ENTITY &&
+				diff.redo.value &&
+				(! diff.redo.value.relations || (diff.redo.value.relations
+				&& diff.redo.value.relations.length === 0))
+			);
+			const entitiesWithRelationsDiffs = entitiesDiffs.filter(diff =>
+				diff.redo &&
+				diff.redo.type === MigrationType.CREATE_ENTITY &&
+				diff.redo.value &&
+				diff.redo.value.relations &&
+				diff.redo.value.relations.length > 0
+			);
+			result = this._sortCreateEntitiesDiffsWithRelations(entitiesWithRelationsDiffs, entitiesWithoutRelationsDiffs);
+			const otherEntitiesDiffs = entitiesDiffs.filter(diff =>
+				! diff.redo || (
+				diff.redo &&
+				diff.redo.type !== MigrationType.CREATE_ENTITY
+				)
+			);
+			result = [...result, ...otherEntitiesDiffs]
+		}
+		return result;
+	}
+
+	private _sortCreateEntitiesDiffsWithRelations(entitiesWithRelationsDiffs: IDatabaseDiffs["entities"], loadedDiffs: IDatabaseDiffs["entities"]) {
+		let finish = true;
+		entitiesWithRelationsDiffs.forEach(diff => {
+			const relatedEntities = diff.redo.value.relations.map((relation: IRelation) => relation.reference.entity);
+			const alreadyLoadedEntitiesInDiffs = loadedDiffs.map(diff => diff.redo.value.name);
+			const alreadyLoadedEntities = [...this.app.entities.findAll().map(e => e.name), ...alreadyLoadedEntitiesInDiffs];
+			let missing = false;
+			relatedEntities.forEach(entityName => {
+				if (alreadyLoadedEntities.indexOf(entityName) === -1 && entityName !== diff.redo.table) {
+					missing = true;
+				}
+			});
+			if ( ! missing && alreadyLoadedEntities.indexOf(diff.redo.value.name) === -1) {
+				finish = false;
+				loadedDiffs.push(diff);
+			}
+		});
+		if (finish) {
+			return loadedDiffs;
+		} else {
+			return this._sortCreateEntitiesDiffsWithRelations(entitiesWithRelationsDiffs, loadedDiffs);
+		}
+	}
+
+	private _compareRelation(rel1, rel2) {
 		return rel1.entity != rel2.entity || rel2.field != rel2.field
 	}
 
-	_diffRelation(entity, dbField, field, diffs) {
+	private _diffRelation(entity, dbField, field, diffs) {
 		if (dbField.fk) {
-			if (dbField.unique && entity.isRelation)
-				return true
+			if (dbField.unique && entity.isRelation) {
+				return true;
+			}
 			let relations = entity.getRelations()
 			let found = false
 			for (let relation of relations) {
-				if (relation.field != dbField.name)
-					continue
-				found = true
+				if (relation.field != dbField.name) {
+					continue;
+				}
+				found = true;
 				if (this._compareRelation(relation.reference, dbField.fk)) {
 					// delete and create relation field.fk
 					diffs.relations.push({
@@ -162,7 +273,7 @@ export class Synchronizer {
 		return false
 	}
 
-	_diffEntity(entity, dbTable, diffs) {
+	private _diffEntity(entity, dbTable, diffs) {
 		let dbFields = {}
 		let isRelationTable = []
 		for (let _dbField of dbTable) {
@@ -228,12 +339,13 @@ export class Synchronizer {
 			dbFields[dbField.name] = dbField
 			let field = entity.getField(dbField.name)
 
-			if (isRelationTable.length != 2 && this._diffRelation(entity, dbField, field, diffs))
+			if (isRelationTable.length != 2 && this._diffRelation(entity, dbField, field, diffs)) {
 				continue
+			}
 
 			if (field) {
 				let fieldDiff = this._compareField(dbField, field, entity)
-				if ( fieldDiff ) {
+				if (fieldDiff[0] && ! fieldDiff[0].fk) {
 					// update field to db properties
 					dbField.read = field.read
 					dbField.write = field.write
@@ -308,7 +420,7 @@ export class Synchronizer {
 	}
 
 
-	_diffEntities(entities, dbTables, diffs) {
+	private _diffEntities(entities, dbTables, diffs) {
 		let tableCompared = []
 		for (let entity of entities) {
 			tableCompared[entity.name] = entity;
@@ -383,24 +495,37 @@ export class Synchronizer {
 				let isRelation = []
 				for (let field of dbTables[table]) {
 					if ( field.fk ) {
-						relations.push({
+						const relation: IRelation = {
 							field: field.name,
 							reference: field.fk
-						})
+						}
 						if (field.unique) {
+							if (field.unique === true) {
+								relation.unique = true;
+							}
 							isRelation.push({
 								field: field.name,
 								entity: field.fk.entity
 							})
+						}
+						relations.push(relation)
+						if((field.onDelete !== 'CASCADE') || (field.onUpdate !== 'CASCADE')) {
+							if ( ! field.onDelete) {
+								field.onDelete = 'NO ACTION';
+							}
+							if ( ! field.onUpdate) {
+								field.onUpdate = 'NO ACTION';
+							}
+							fields.push(this.app.database.interface.flattenField(this.app.database.interface.columnToField(field)))
 						}
 					} else {
 						fields.push(this.app.database.interface.flattenField(this.app.database.interface.columnToField(field)))
 					}
 				}
 
-				if (isRelation.length != 2)
+				if (isRelation.length != 2) {
 					isRelation = undefined
-				else {
+				} else {
 					relations = undefined
 					let relation = {
 						type: "belongsToMany",
@@ -468,7 +593,7 @@ export class Synchronizer {
 		}
 	}
 
-	_diffMap(entities, dbTables) {
+	private _diffMap(entities, dbTables) {
 		let diffs = {
 			entities: [],
 			fields: [],
@@ -480,44 +605,5 @@ export class Synchronizer {
 
 		diffs.length = diffs.entities.length + diffs.fields.length + diffs.relations.length
 		return diffs
-	}
-
-	diff() {
-		return this.app.database.interface.showTables().then((dbTables) => {
-			let entities = this.app.entities.findAll().filter(entity => entity instanceof DBEntity)
-
-			let diffs = this._diffMap(entities, dbTables)
-			return Promise.resolve(diffs)
-		})
-	}
-
-	entitiesToDatabase(diffs, options): Promise<IActionData[]> {
-		options = Object.assign({}, options || {})
-		options.history = false
-		options.apply = false
-		options.save = false
-
-		let actions = []
-		for (let type of ['relations', 'fields', 'entities']) {
-			for (let action of diffs[type]) {
-				actions.push(action)
-			}
-		}
-		return this.app.history.revert(actions, options)
-	}
-
-	databaseToEntities(diffs, options): Promise<IActionData[]> {
-		options = Object.assign({}, options || {})
-		options.history = false
-		options.db = false
-
-		let actions = []
-		for (let type of ['entities', 'fields', 'relations']) {
-			for (let action of diffs[type]) {
-				actions.push(action)
-			}
-		}
-
-		return this.app.history.apply(actions, options)
 	}
 }

@@ -26,16 +26,22 @@ const typemap = {
 	'serial': 'number',
 	'bigserial': 'number',
 
+	'hstore': 'text',
+	'array': 'text',
 	'character': 'text',
 	'varchar': 'text',
 	'character varying': 'text',
 	'varying character': 'text',
+	'character varying(255)[]': 'text',
 	'nchar': 'text',
 	'native character': 'text',
 	'nvarchar': 'text',
 	'text': 'text',
 	'clob': 'text',
 	'json': 'text',
+	'user-defined': 'text',
+	'bytea': 'text',
+	'tsvector': 'text',
 
 	//'blob': 'blob'
 
@@ -53,8 +59,7 @@ const typemap = {
 	'timestamp with time zone': 'date',
 	'timestamp without time zone': 'date',
 
-	'boolean': 'boolean',
-	'user-defined': 'text'
+	'boolean': 'boolean'
 }
 
 const sequelize_typemap = {
@@ -121,6 +126,10 @@ export class DatabaseInterface {
 	@returns {Promise}
 	*/
 	addColumn(table, column_name, field) {
+		if (field.type === 'date' && field.defaultValue === 'now()') {
+			field.defaultValue = Sequelize.NOW;
+			field.required = false;
+		}
 		const dbfield = this.fieldToColumn(field)
 		return this.dialectTools.addColumn(table, column_name, dbfield)
 	}
@@ -133,6 +142,9 @@ export class DatabaseInterface {
 	@returns {Promise}
 	*/
 	changeColumn(table, column_name, field) {
+		if (field.type === 'date' && field.defaultValue === 'now()') {
+			field.defaultValue = Sequelize.NOW;
+		}
 		const dbfield = this.fieldToColumn(field)
 		return this.dialectTools.changeColumn(table, column_name, dbfield)
 	}
@@ -216,7 +228,7 @@ export class DatabaseInterface {
 			name: field.name,
 			type: types.length == 1 ? types[0] : types,
 			primary: !! field.primaryKey,
-			unique: field.unique || false,
+			unique: field.unique || !! field.primaryKey,
 			required: ! field.allowNull,
 			default: false,
 			read: true,
@@ -232,7 +244,7 @@ export class DatabaseInterface {
 			for (let def of (Array.isArray(field.defaultValue) ? field.defaultValue : [field.defaultValue])) {
 				if (/nextval\(.+::regclass\)/.exec(def)) {
 					res.autoIncrement = true
-				} else  {
+				} else {
 					res.default = true
 					let textValue = /['"](.*?)['"]?::text/.exec(def)
 					defaultValues.push(textValue ? textValue[1] : def)
@@ -288,7 +300,7 @@ export class DatabaseInterface {
 			res.autoIncrement = field.autoIncrement
 		}
 		if (field.default == '$now' && type.toLowerCase() == 'date') {
-			res.default = Sequelize.NOW
+			res.default = Sequelize.fn('NOW')
 		}
 		if (field.required != undefined) {
 			res.allowNull = ! field.required
@@ -310,7 +322,7 @@ export class DatabaseInterface {
 					key: field.isRelation.reference.field
 				}
 				res.onUpdate = field.onUpdate || 'cascade'
-				res.onDelete = field.onDelete || (res.allowNull ? 'set null' : 'cascade')
+				res.onDelete = field.onDelete || (res.allowNull ? 'no action' : 'cascade')
 			}
 		}
 

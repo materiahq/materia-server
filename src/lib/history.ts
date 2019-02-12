@@ -1,7 +1,7 @@
-let fs = require('fs')
-let path = require('path')
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-import { App, ISaveOptions } from './app'
+import { App, ISaveOptions } from './app';
 
 /**
  * Default action types
@@ -53,9 +53,8 @@ export interface IMigration {
 }
 
 export interface IHistoryActions {
-	[index:number]: (data: any, opts: any) => Promise<any> | boolean
+	[index:number]: (data: any, opts: any) => Promise<any>
 }
-
 
 export interface IActionOptions {
 	full_rename?: boolean,
@@ -93,7 +92,7 @@ export class History {
 
 	load() {
 		try {
-			let changes = fs.readFileSync(path.join(this.app.path, 'changes.json'))
+			let changes = readFileSync(join(this.app.path, 'changes.json'))
 			this.diff = JSON.parse(changes.toString())
 		} catch(e) {
 			this.diff = []
@@ -128,7 +127,7 @@ export class History {
 	@param {string} - Type name
 	@param {function} - Action's function
 	*/
-	register(type:any, action: (data: IActionData, opts: any) => Promise<any>|boolean) {
+	register(type:any, action: (data: IActionData, opts: any) => Promise<any>) {
 		this.actions[type] = action
 	}
 
@@ -170,30 +169,35 @@ export class History {
 	@returns {Promise<object>} the action applied
 	*/
 	undo(opts) {
-		opts = opts || {history: false}
-		if (this.diff.length == 0)
-			return Promise.resolve({})
-		let actionobj = this.diff.pop()
-		this.diffRedo.push(actionobj)
+		opts = opts || { history: false };
+		if (this.diff.length === 0) {
+			return Promise.resolve({});
+		}
+		let actionobj = this.diff.pop();
+		this.diffRedo.push(actionobj);
 
-		let action = this.actions[actionobj.undo.type]
-		let p
+		let action = this.actions[actionobj.undo.type];
+		let p;
 		if (actionobj.undo.table
 			&& ! this.app.entities.get(actionobj.undo.table)
 			&& actionobj.redo.type != MigrationType.CREATE_ENTITY
 			&& actionobj.undo.type != MigrationType.DELETE_ENTITY
-			&& actionobj.undo.type != MigrationType.RENAME_ENTITY)
-			p = Promise.resolve()
-		else
-			p = action(actionobj.undo, opts)
+			&& actionobj.undo.type != MigrationType.RENAME_ENTITY
+		) {
+			p = Promise.resolve();
+		} else {
+			p = action(actionobj.undo, opts);
+		}
 		return p.then(() => {
-			if (opts.save)
-				this.save(opts)
-			return Promise.resolve(actionobj.undo)
+			if (opts.save) {
+				this.save(opts);
+			}
+			return Promise.resolve(actionobj.undo);
 		}).catch((err) => {
-			if (opts.save)
-				this.save(opts)
-			throw err
+			if (opts.save) {
+				this.save(opts);
+			}
+			throw err;
 		})
 	}
 
@@ -202,10 +206,11 @@ export class History {
 	@param {object} - Action's options
 	@returns {Promise<object>} the action applied
 	*/
-	redo(opts) {
+	redo(opts): Promise<any> {
 		opts = opts || {history: false}
-		if (this.diffRedo.length == 0)
-			return Promise.resolve({})
+		if (this.diffRedo.length == 0) {
+			return Promise.resolve({});
+		}
 		let actionobj = this.diffRedo.pop()
 		this.diff.push(actionobj)
 
@@ -215,17 +220,20 @@ export class History {
 			&& ! this.app.entities.get(actionobj.redo.table)
 			&& actionobj.redo.type != MigrationType.CREATE_ENTITY
 			&& actionobj.redo.type != MigrationType.DELETE_ENTITY
-			&& actionobj.redo.type != MigrationType.RENAME_ENTITY)
-			p = Promise.resolve()
-		else
-			p = action(actionobj.redo, opts)
+			&& actionobj.redo.type != MigrationType.RENAME_ENTITY) {
+				p = Promise.resolve()
+		} else {
+			p = action(actionobj.redo, opts);
+		}
 		return p.then(() => {
-			if (opts.save)
-				this.save(opts)
+			if (opts.save) {
+				this.save(opts);
+			}
 			return Promise.resolve(actionobj.redo)
 		}).catch((err) => {
-			if (opts.save)
+			if (opts.save) {
 				this.save(opts)
+			}
 			throw err
 		})
 	}

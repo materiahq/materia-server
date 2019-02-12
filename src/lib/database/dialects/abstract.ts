@@ -84,4 +84,8 @@ export class AbstractDialect {
 	authenticate(): Promise<any> {
 		return this.sequelize.authenticate()
 	}
+
+	define(entityName, cols, defOptions) {
+		return this.sequelize.define(entityName, cols, defOptions);
+	}
 }

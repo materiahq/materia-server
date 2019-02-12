@@ -1,9 +1,20 @@
 import { AbstractDialect } from './abstract'
 import { MateriaError } from '../../error'
+import sequelize = require('sequelize');
 
 export class SqliteDialect extends AbstractDialect {
 	constructor(sequelize) {
 		super(sequelize)
+	}
+
+	define(entityName, cols, defOptions) {
+		for(let colName in cols) {
+			const col = cols[colName];
+			if (col && col.defaultValue && col.defaultValue === sequelize.NOW && col.type === 'date') {
+				col.defaultValue = sequelize.literal('CURRENT_TIMESTAMP');
+			}
+		}
+		return super.define(entityName, cols, defOptions);
 	}
 
 	showTables() {
@@ -15,7 +26,7 @@ export class SqliteDialect extends AbstractDialect {
 				let infoQuery = queryInterface.describeTable(table)
 				let indexQuery = queryInterface.showIndex(table)
 				let fkQuery = qg.getForeignKeysQuery(table, 'public')
-				//let fkQuery = queryInterface.getForeignKeysForTables([table] )
+				// let fkQuery = queryInterface.getForeignKeysForTables([table] )
 				// getForeignKeysForTables not working:
 				// https://github.com/sequelize/sequelize/issues/5748
 
@@ -235,6 +246,9 @@ export class SqliteDialect extends AbstractDialect {
 	}
 
 	addColumn(table, column_name, attributes):any {
+		if (attributes.defaultValue === sequelize.NOW) {
+			attributes.defaultValue = new Date()
+		}
 		if (attributes.references && attributes.allowNull === false) {
 			// Adding a not null reference: http://stackoverflow.com/questions/24524153/adding-not-null-column-to-sqlite-table-with-references/24524935#24524935
 			let queries = []
@@ -244,7 +258,6 @@ export class SqliteDialect extends AbstractDialect {
 
 			return queries.reduce((p, f) => p.then(f), Promise.resolve())
 		}
-
 		return super.addColumn(table, column_name, attributes)
 	}
 
