@@ -417,9 +417,9 @@ export class DatabaseController {
 						implicit: true
 					})
 				});
-			}).catch(e => {
+			}).catch(err => {
 				this.app.watcher.enable();
-				res.status(500).json(e);
+				res.status(500).send(err.message);
 			});
 	}
 
@@ -461,7 +461,7 @@ export class DatabaseController {
 			});
 		}).catch(err => {
 			this.app.watcher.enable();
-			res.status(500).json(err);
+			res.status(500).send(err.message);
 		});
 	}
 
