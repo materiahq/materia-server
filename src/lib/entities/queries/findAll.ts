@@ -63,7 +63,7 @@ export class FindAllQuery extends Query {
 
 	refresh() {
 		this.select = this.opts.select
-		if (!this.select || this.select == []) {
+		if ( ! this.select || this.select == []) {
 			this.select = []
 			this.entity.fields.forEach((field) => {
 				if (field.read) {
@@ -101,11 +101,6 @@ export class FindAllQuery extends Query {
 	}
 
 	constructSequelizeOpts(params, options) {
-		let include = []
-		let includeNames = this.include
-
-		this._constructInclude(include, includeNames)
-
 		let pagination = this.getPagination(params)
 		// let principalConditions = []
 
@@ -113,16 +108,21 @@ export class FindAllQuery extends Query {
 		if (options && options.raw) {
 			raw = true
 		}
-
 		let sequelizeOpts = {
 			attributes: this.select,
 			where: this.conditions.toSequelize(params, this.entity.name),
-			include: include,
 			raw: raw
 		} as ISequelizeOpts
 
-		//Add conditions to opts recursively for included obj
-		this.conditions.constructConditions(sequelizeOpts.include, params)
+		if (this.entity.getPK().length) {
+			let include = []
+			let includeNames = this.include
+
+			this._constructInclude(include, includeNames);
+			sequelizeOpts.include = include;
+			// Add conditions to opts recursively for included obj
+			this.conditions.constructConditions(sequelizeOpts.include, params)
+		}
 
 
 		if (pagination) {
@@ -142,7 +142,6 @@ export class FindAllQuery extends Query {
 			}
 			sequelizeOpts.order.push([order.field, ascTxt]);
 		})
-
 		return sequelizeOpts
 	}
 
@@ -151,17 +150,20 @@ export class FindAllQuery extends Query {
 			if ( ! options || ! options.silent ) {
 				this.entity.app.logger.log(` └── ${chalk.green.bold('OK')}\n`);
 			}
-			res.data = res.rows
+			const result: any = {
+				data: res.rows,
+				count: res.count
+			}
 			if ( ! options || ! options.raw) {
-				res.toJSON = () => {
-					const data = res.data.map(elt => elt.toJSON());
+				result.toJSON = () => {
+					const data = result.data.map(elt => elt.toJSON());
 					return {
 						count: res.count && typeof res.count === 'number' ? res.count : data.length,
 						data: data
 					}
 				}
 			}
-			return res
+			return result;
 		})
 	}
 
@@ -182,9 +184,9 @@ export class FindAllQuery extends Query {
 		}
 
 		return this.handleBeforeActions(params, true)
-			.then(() =>
-				this._run(sequelizeOpts, options)
-			)
+			.then(() => {
+				return this._run(sequelizeOpts, options)
+			})
 			.then(res =>
 				this.handleAfterActions(params, res, true)
 					.then(() => res)
@@ -202,7 +204,7 @@ export class FindAllQuery extends Query {
 		let tmp;
 		try {
 			tmp = QueryParamResolver.resolve({ name: name, value: value }, params)
-			if (!tmp) {
+			if ( ! tmp ) {
 				throw 'error'
 			}
 		}

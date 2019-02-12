@@ -1,5 +1,6 @@
 import { Query, QueryParamResolver } from '../query';
 import chalk from 'chalk';
+import sequelize = require('sequelize');
 
 export class CreateQuery extends Query {
 	type: string;
@@ -122,10 +123,11 @@ export class CreateQuery extends Query {
 					.then(() => resolvedParams)
 			)
 			.then(resolvedParams =>
+				// Fix needed because passing Sequelize option {raw: true} not working on create query
 				this.entity.model
 					.create(resolvedParams)
-					.then(row => {
-						const result = raw && row ? row.toJSON() : row;
+					.then((resultEntity: sequelize.Instance<any>) => {
+						const result = raw && resultEntity ? resultEntity.get({plain: true}) : resultEntity;
 						return this.handleAfterActions(resolvedParams, result, true)
 							.then(() => result)
 							.catch(e => result)
