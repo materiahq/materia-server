@@ -40,8 +40,15 @@ export class Addons {
 		})
 	}
 
-	isInstalled(pkg:string) {
-
+	/**
+	 * Search if whether or not an addon is installed by its package name. It returns promise with a boolean value.
+	 * @returns Promise<boolean>
+	 */
+	isInstalled(pkg:string):Promise<boolean> {
+		return this.searchInstalledAddons().then((installedAddons) => {
+			const installedAddon = installedAddons.find(addonPkg => addonPkg === pkg);
+			return installedAddon ? true : false;
+		});
 	}
 
 	setupModule(setup:(require:NodeRequire)=>Promise<any>):Promise<any> {
@@ -217,7 +224,7 @@ export class Addons {
 	}
 
 	loadFiles():Promise<any> {
-		let p = Promise.resolve()
+		let p = Promise.resolve();
 		this.addons.forEach((addon) => {
 			p = p.then(() => {
 				if (addon.enabled) {
@@ -246,20 +253,16 @@ export class Addons {
 
 	loadEntities():Promise<any> {
 		return this.handleHook('beforeLoadEntities').then(() => {
-			let p = Promise.resolve()
+			let p: Promise<any> = Promise.resolve();
 			this.addons.forEach((addon) => {
-				p = p.then(() => {
-					if (addon.enabled) {
-						return this.app.entities.loadEntities(addon)
-					} else {
-						return Promise.resolve()
-					}
-				})
+				if (addon.enabled) {
+					p = p.then(() => this.app.entities.loadEntities(addon));
+				}
 			})
-			return p
+			return p;
 		}).then(() => {
-			return this.handleHook('afterLoadEntities')
-		})
+			return this.handleHook('afterLoadEntities');
+		});
 	}
 
 	loadQueries():Promise<void> {
