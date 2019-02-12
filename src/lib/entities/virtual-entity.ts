@@ -1,7 +1,7 @@
-import { App } from "../app";
-import { Entity } from "./entity";
-import { CustomQuery } from "./queries/custom";
-import { Field } from "./field";
+import { App } from '../app';
+import { Entity } from './entity';
+import { CustomQuery } from './queries/custom';
+import { Field } from './field';
 
 export interface IVirtualEntityConfig {
 	id: string
@@ -17,7 +17,7 @@ export interface IVirtualEntityConfig {
 export class VirtualEntity extends Entity {
 	reservedQueries = [
 		'custom'
-	]
+	];
 	model: any;
 
 	constructor(app: App) {
@@ -39,8 +39,8 @@ export class VirtualEntity extends Entity {
 	}
 
 	toJson(): IVirtualEntityConfig {
-		let json: any = super.toJson()
+		const json: any = super.toJson();
 		json.virtual = true;
-		return json
+		return json;
 	}
 }

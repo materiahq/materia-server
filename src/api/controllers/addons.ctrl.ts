@@ -1,5 +1,5 @@
-import { App } from "../../lib";
-import { WebsocketInstance } from "../../lib/websocket";
+import { App } from '../../lib';
+import { WebsocketInstance } from '../../lib/websocket';
 import * as fse from 'fs-extra';
 
 export class AddonsController {
@@ -22,10 +22,10 @@ export class AddonsController {
 		} else {
 			this.app.addons.setConfig(pkg, req.body).then(result => {
 				this.app.watcher.enable();
-				res.status(200).json(result)
+				res.status(200).json(result);
 			}).catch(err => {
 				this.app.watcher.enable();
-				res.status(500).json(err)
+				res.status(500).json(err);
 			});
 		}
 	}

@@ -1,7 +1,7 @@
-import * as path from "path";
+import {join, dirname } from 'path';
 
-import { App } from "../app";
-import { MateriaAddon } from "./helpers";
+import { App } from '../app';
+import { MateriaAddon } from './helpers';
 export interface IAddonInfo {
 	package: string;
 	name: string;
@@ -60,27 +60,27 @@ export class Addon {
 		let AddonClass, addonPackage;
 		return this.app.addons.setupModule(require => {
 			try {
-				this.path = path.dirname(
-					require.resolve(path.join(this.package, "package.json"))
+				this.path = dirname(
+					require.resolve(join(this.package, 'package.json'))
 				);
 				new App(this.path, {});
 			} catch (e) {
 				this.enabled = false;
-				this.app.logger.error(new Error(`Impossible to initialize addon ${this.package}`))
+				this.app.logger.error(new Error(`Impossible to initialize addon ${this.package}`));
 				this.app.logger.error(e);
 				return Promise.resolve(e);
 			}
 			let mod;
 			try {
-				addonPackage = require(path.join(
+				addonPackage = require(join(
 					this.package,
-					"package.json"
+					'package.json'
 				));
 				const pkg = this.package;
-				mod = require(path.join(pkg, 'server'));
+				mod = require(join(pkg, 'server'));
 			} catch (e) {
 				this.enabled = false;
-				this.app.logger.error(new Error(`Impossible to require addon ${this.package}`))
+				this.app.logger.error(new Error(`Impossible to require addon ${this.package}`));
 				this.app.logger.error(e);
 				return Promise.resolve(e);
 			}
@@ -97,7 +97,7 @@ export class Addon {
 				);
 			} catch (e) {
 				this.enabled = false;
-				this.app.logger.error(new Error(`Impossible to instantiate addon ${this.package}`))
+				this.app.logger.error(new Error(`Impossible to instantiate addon ${this.package}`));
 				this.app.logger.error(e);
 				return Promise.resolve(e);
 			}
@@ -141,12 +141,12 @@ export class Addon {
 	}
 
 	getBundlePath() {
-		return path.join(this.app.path, 'node_modules', this.package, this.packageJsonFile.main);
+		return join(this.app.path, 'node_modules', this.package, this.packageJsonFile.main);
 	}
 
 	start() {
-		if (typeof this.obj.start == "function") {
-			let startResult = this.obj.start();
+		if (typeof this.obj.start == 'function') {
+			const startResult = this.obj.start();
 			if (this._isPromise(startResult)) {
 				return startResult;
 			} else {
@@ -157,39 +157,38 @@ export class Addon {
 	}
 
 	private hook(name: string): Promise<any> {
-		if (typeof this.obj[name] == "function") {
-			let result = this.obj[name]();
+		if (typeof this.obj[name] == 'function') {
+			const result = this.obj[name]();
 			if (this._isPromise(result)) {
 				return result;
-			} else {
-				return Promise.resolve(result);
 			}
+			return Promise.resolve(result);
 		}
 		return Promise.resolve();
 	}
 
 	beforeLoadEntities(): Promise<any> {
-		return this.hook("beforeLoadEntities");
+		return this.hook('beforeLoadEntities');
 	}
 
 	afterLoadEntities(): Promise<any> {
-		return this.hook("afterLoadEntities");
+		return this.hook('afterLoadEntities');
 	}
 
 	beforeLoadQueries(): Promise<any> {
-		return this.hook("beforeLoadQueries");
+		return this.hook('beforeLoadQueries');
 	}
 
 	afterLoadQueries(): Promise<any> {
-		return this.hook("afterLoadQueries");
+		return this.hook('afterLoadQueries');
 	}
 
 	beforeLoadAPI(): Promise<any> {
-		return this.hook("beforeLoadAPI");
+		return this.hook('beforeLoadAPI');
 	}
 
 	afterLoadAPI(): Promise<any> {
-		return this.hook("afterLoadAPI");
+		return this.hook('afterLoadAPI');
 	}
 
 	setup(config: any): Promise<void> {
@@ -205,12 +204,12 @@ export class Addon {
 		this.enabled = false;
 		return this.setup(Object.assign({}, this.config || {}, {
 			disabled: true
-		}))
+		}));
 	}
 
 	enable() {
 		if (this.config && this.config.disabled) {
-			delete this.config.disabled
+			delete this.config.disabled;
 		}
 		this.enabled = true;
 		return this.setup(this.config);
@@ -234,8 +233,8 @@ export class Addon {
 			obj &&
 			obj.then &&
 			obj.catch &&
-			typeof obj.then === "function" &&
-			typeof obj.catch === "function"
+			typeof obj.then === 'function' &&
+			typeof obj.catch === 'function'
 		);
 	}
 }

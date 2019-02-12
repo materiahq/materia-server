@@ -1,4 +1,4 @@
-import { App } from ".";
+import { App } from './app';
 
 const npm = require('npm');
 const fs = require('fs');

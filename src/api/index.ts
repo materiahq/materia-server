@@ -1,37 +1,37 @@
-import { App, AppMode } from "../lib/app";
-import { OAuth } from "./oauth";
+import { App, AppMode } from '../lib/app';
+import { OAuth } from './oauth';
 
 import { Application as ExpressApplication } from 'express';
 
-import { FilesController } from "./controllers/files.ctrl";
-import { DatabaseController } from "./controllers/database.ctrl";
-import { AppController } from "./controllers/app.ctrl";
-import { GitController } from "./controllers/git.ctrl";
-import { ClientController } from "./controllers/client.ctrl";
-import { EndpointsController } from "./controllers/endpoints.ctrl";
-import { PackageManagerController } from "./controllers/package-manager.ctrl";
-import { AddonsController } from "./controllers/addons.ctrl";
-import { PermissionsController } from "./controllers/permissions.ctrl";
-import { BoilerplateController } from "./controllers/boilerplate.ctrl";
-import { WebsocketServers, WebsocketInstance } from "../lib/websocket";
+import { FilesController } from './controllers/files.ctrl';
+import { DatabaseController } from './controllers/database.ctrl';
+import { AppController } from './controllers/app.ctrl';
+import { GitController } from './controllers/git.ctrl';
+import { ClientController } from './controllers/client.ctrl';
+import { EndpointsController } from './controllers/endpoints.ctrl';
+import { PackageManagerController } from './controllers/package-manager.ctrl';
+import { AddonsController } from './controllers/addons.ctrl';
+import { PermissionsController } from './controllers/permissions.ctrl';
+import { BoilerplateController } from './controllers/boilerplate.ctrl';
+import { WebsocketServers, WebsocketInstance } from '../lib/websocket';
 
 export class MateriaApi {
-	oauth: OAuth
+	oauth: OAuth;
 	websocket: WebsocketInstance | {
 		instance: any;
 		broadcast: (data) => any;
 	};
 
-	databaseCtrl: DatabaseController
-	filesCtrl: FilesController
-	appCtrl: AppController
-	gitCtrl: GitController
-	endpointsCtrl: EndpointsController
-	packageManagerCtrl: PackageManagerController
-	addonsCtrl: AddonsController
-	permissionsCtrl: PermissionsController
-	boilerplateCtrl: BoilerplateController
-	clientCtrl: ClientController
+	databaseCtrl: DatabaseController;
+	filesCtrl: FilesController;
+	appCtrl: AppController;
+	gitCtrl: GitController;
+	endpointsCtrl: EndpointsController;
+	packageManagerCtrl: PackageManagerController;
+	addonsCtrl: AddonsController;
+	permissionsCtrl: PermissionsController;
+	boilerplateCtrl: BoilerplateController;
+	clientCtrl: ClientController;
 
 	get api(): ExpressApplication { return this.app.server.expressApp; }
 	get websocketServers(): WebsocketServers { return this.app.server.websocket; }
@@ -45,7 +45,7 @@ export class MateriaApi {
 			this.websocket = {
 				broadcast: (data) => {},
 				instance: {}
-			}
+			};
 			return false;
 		}
 		this.websocket = this.websocketServers.register('/materia/websocket', (info, cb) => {
@@ -55,7 +55,7 @@ export class MateriaApi {
 			return this.oauth.verifyToken(info.req.url.split('?token=')[1], (err, authorized) => {
 				return cb(authorized);
 			});
-		})
+		});
 
 		this.databaseCtrl = new DatabaseController(this.app, this.websocket);
 		this.filesCtrl = new FilesController(this.app, this.websocket);
@@ -68,7 +68,7 @@ export class MateriaApi {
 		this.boilerplateCtrl = new BoilerplateController(this.app, this.websocket);
 		this.clientCtrl = new ClientController(this.app, this.websocket);
 
-		this.oauth.initialize()
+		this.oauth.initialize();
 
 		/**
 		 * App Endpoints
@@ -152,7 +152,11 @@ export class MateriaApi {
 		// Relations
 		this.api.get('/materia/entities/relations', this.oauth.isAuth, this.databaseCtrl.getRelations.bind(this.databaseCtrl));
 		this.api.post('/materia/entities/relations', this.oauth.isAuth, this.databaseCtrl.createRelation.bind(this.databaseCtrl));
-		this.api.delete('/materia/entities/:entity/relations/:type/:relationFieldOrEntity', this.oauth.isAuth, this.databaseCtrl.removeRelation.bind(this.databaseCtrl));
+		this.api.delete(
+			'/materia/entities/:entity/relations/:type/:relationFieldOrEntity',
+			this.oauth.isAuth,
+			this.databaseCtrl.removeRelation.bind(this.databaseCtrl)
+		);
 
 		// Actions
 		this.api.get('/materia/actions', this.oauth.isAuth, this.databaseCtrl.listActions.bind(this.databaseCtrl));
@@ -188,7 +192,7 @@ export class MateriaApi {
 		/**
 		 * Addon Endpoints
 		 */
-		this.api.get('/materia/addons/:pkg*/bundle.js', this.addonsCtrl.bundle.bind(this.addonsCtrl))
+		this.api.get('/materia/addons/:pkg*/bundle.js', this.addonsCtrl.bundle.bind(this.addonsCtrl));
 		this.api.get('/materia/addons/:pkg*/setup', this.oauth.isAuth, this.addonsCtrl.getConfig.bind(this.addonsCtrl));
 		this.api.post('/materia/addons/:pkg*/setup', this.oauth.isAuth, this.addonsCtrl.setup.bind(this.addonsCtrl));
 		this.api.post('/materia/addons/:pkg*/enable', this.oauth.isAuth, this.addonsCtrl.enable.bind(this.addonsCtrl));
@@ -201,7 +205,11 @@ export class MateriaApi {
 		this.api.post('/materia/client/watch/start', this.oauth.isAuth, this.clientCtrl.startWatching.bind(this.clientCtrl));
 		this.api.post('/materia/client/watch/stop', this.oauth.isAuth, this.clientCtrl.stopWatching.bind(this.clientCtrl));
 		this.api.post('/materia/client/boilerplate/init', this.oauth.isAuth, this.boilerplateCtrl.initMinimal.bind(this.boilerplateCtrl));
-		this.api.post('/materia/client/boilerplate/init/:framework', this.oauth.isAuth, this.boilerplateCtrl.initBoilerplate.bind(this.boilerplateCtrl));
+		this.api.post(
+			'/materia/client/boilerplate/init/:framework',
+			this.oauth.isAuth,
+			this.boilerplateCtrl.initBoilerplate.bind(this.boilerplateCtrl)
+		);
 
 		this.api.all('/materia/*', this.oauth.isAuth, (req, res) => res.status(404).send());
 	}

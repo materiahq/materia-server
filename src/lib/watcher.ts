@@ -37,7 +37,7 @@ export class Watcher {
 	enable() {
 		setTimeout(() => {
 			this.disabled = false;
-		}, 200)
+		}, 200);
 	}
 
 	disable() {
@@ -48,10 +48,10 @@ export class Watcher {
 		if (this.app.mode === AppMode.DEVELOPMENT) {
 			this.watch(['*.json', 'server/**/*.json'], (p, type) => {
 				if ( ! this.disabled) {
-					this.app.logger.log(` └── ${type}: ${p}`)
-					this.app.materiaApi.websocket.broadcast({ type, path: p })
+					this.app.logger.log(` └── ${type}: ${p}`);
+					this.app.materiaApi.websocket.broadcast({ type, path: p });
 				}
-			})
+			});
 		}
 	}
 
@@ -120,12 +120,12 @@ export class Watcher {
 		this.chokidarWatcher = watcher;
 
 		if (process.platform === 'darwin' && !watcher.options.useFsEvents) {
-			this.app.logger.log(` └── Watchers: ${chalk.bold.red('WARNING')}`)
+			this.app.logger.log(` └── Watchers: ${chalk.bold.red('WARNING')}`);
 			this.app.logger.error(
 				new Error('Watcher is not using native fsevents library and is falling back to unefficient polling.')
 			);
 		} else {
-			this.app.logger.log(` └── Watchers: ${chalk.bold.green('OK')}`)
+			this.app.logger.log(` └── Watchers: ${chalk.bold.green('OK')}`);
 		}
 
 		watcher.on('add', this._addEvent.bind(this));

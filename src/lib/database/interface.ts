@@ -1,17 +1,17 @@
-import * as Sequelize from 'sequelize'
+import * as Sequelize from 'sequelize';
 
-import { Database } from '../database'
-import { MateriaError } from '../error'
+import { Database } from '../database';
+import { MateriaError } from '../error';
 
-import { PostgresDialect } from './dialects/postgres'
-import { MysqlDialect } from './dialects/mysql'
-import { SqliteDialect } from './dialects/sqlite'
+import { PostgresDialect } from './dialects/postgres';
+import { MysqlDialect } from './dialects/mysql';
+import { SqliteDialect } from './dialects/sqlite';
 
-var dialectClasses = {
+const dialectClasses = {
 	postgres: PostgresDialect,
 	sqlite: SqliteDialect,
 	mysql: MysqlDialect
-}
+};
 
 const typemap = {
 	'int': 'number',
@@ -43,7 +43,7 @@ const typemap = {
 	'bytea': 'text',
 	'tsvector': 'text',
 
-	//'blob': 'blob'
+	// 'blob': 'blob'
 
 	'real': 'float',
 	'double': 'float',
@@ -60,7 +60,7 @@ const typemap = {
 	'timestamp without time zone': 'date',
 
 	'boolean': 'boolean'
-}
+};
 
 const sequelize_typemap = {
 	'date': Sequelize.DATE,
@@ -68,7 +68,7 @@ const sequelize_typemap = {
 	'boolean': Sequelize.BOOLEAN,
 	'float': Sequelize.FLOAT,
 	// others are Sequelize.TEXT
-}
+};
 
 /**
  * @class DatabaseInterface
@@ -76,30 +76,30 @@ const sequelize_typemap = {
  * Contains methods to interact with the database
  */
 export class DatabaseInterface {
-	dialectTools: any
+	dialectTools: any;
 
 	constructor(private database: Database) {}
 
 	hasDialect(dialect) {
-		return !! dialectClasses[dialect]
+		return !! dialectClasses[dialect];
 	}
 
 	setDialect(dialect) {
-		this.dialectTools = new dialectClasses[dialect](this.database.sequelize)
+		this.dialectTools = new dialectClasses[dialect](this.database.sequelize);
 	}
 
 	define(entity) {
-		let defOptions = {
+		const defOptions = {
 			freezeTableName: true,
 			timestamps: false
-		}
+		};
 
-		let cols = {}
+		const cols = {};
 		entity.getFields().forEach((field) => {
-			cols[field.name] = this.fieldToColumn(field)
-		})
+			cols[field.name] = this.fieldToColumn(field);
+		});
 
-		return this.database.sequelize.define(entity.name, cols, defOptions)
+		return this.database.sequelize.define(entity.name, cols, defOptions);
 	}
 
 	/**
@@ -107,7 +107,7 @@ export class DatabaseInterface {
 	@returns {Promise<object>}
 	*/
 	showTables() {
-		return this.dialectTools.showTables()
+		return this.dialectTools.showTables();
 	}
 
 	/**
@@ -115,7 +115,7 @@ export class DatabaseInterface {
 	@returns {Promise<object>}
 	*/
 	getIndices(table) {
-		return this.dialectTools.getIndices(table)
+		return this.dialectTools.getIndices(table);
 	}
 
 	/**
@@ -130,8 +130,8 @@ export class DatabaseInterface {
 			field.defaultValue = Sequelize.NOW;
 			field.required = false;
 		}
-		const dbfield = this.fieldToColumn(field)
-		return this.dialectTools.addColumn(table, column_name, dbfield)
+		const dbfield = this.fieldToColumn(field);
+		return this.dialectTools.addColumn(table, column_name, dbfield);
 	}
 
 	/**
@@ -145,8 +145,8 @@ export class DatabaseInterface {
 		if (field.type === 'date' && field.defaultValue === 'now()') {
 			field.defaultValue = Sequelize.NOW;
 		}
-		const dbfield = this.fieldToColumn(field)
-		return this.dialectTools.changeColumn(table, column_name, dbfield)
+		const dbfield = this.fieldToColumn(field);
+		return this.dialectTools.changeColumn(table, column_name, dbfield);
 	}
 
 	/**
@@ -156,7 +156,7 @@ export class DatabaseInterface {
 	@returns {Promise}
 	*/
 	removeColumn(table, column_name) {
-		return this.dialectTools.removeColumn(table, column_name)
+		return this.dialectTools.removeColumn(table, column_name);
 	}
 
 	/**
@@ -167,27 +167,29 @@ export class DatabaseInterface {
 	@returns {Promise}
 	*/
 	renameColumn(table, column_name, column_new_name) {
-		return this.dialectTools.renameColumn(table, column_name, column_new_name)
+		return this.dialectTools.renameColumn(table, column_name, column_new_name);
 	}
 
 	/**
 	Adds a constraint
 	@param {string} - The table's name
-	@param {string} - The constraint's object: `name` for named constraint, `fields` are the fields' name to add in the constraint, `type` can be "primary" or "unique"
+	@param {string} - The constraint's object:
+	`name` for named constraint, `fields` are the fields' name to add in the constraint, `type` can be "primary" or "unique"
 	@returns {Promise}
 	*/
 	addConstraint(table, constraint) {
-		return this.dialectTools.addConstraint(table, constraint)
+		return this.dialectTools.addConstraint(table, constraint);
 	}
 
 	/**
 	Drops a constraint
 	@param {string} - The table's name
-	@param {string} - The constraint's object: `name` to drop a named constraint, `field` to drop a field from its constraints, `type` can be "primary" "unique" or "references"
+	@param {string} - The constraint's object:
+	`name` to drop a named constraint, `field` to drop a field from its constraints, `type` can be "primary" "unique" or "references"
 	@returns {Promise}
 	*/
 	dropConstraint(table, constraint) {
-		return this.dialectTools.dropConstraint(table, constraint)
+		return this.dialectTools.dropConstraint(table, constraint);
 	}
 
 	/**
@@ -199,32 +201,33 @@ export class DatabaseInterface {
 	@returns {Promise<boolean>} - `true` if it has changed the column type, `false` otherwise.
 	*/
 	castColumnType(table, column_name, old_type, type) {
-		return this.dialectTools.castColumnType(table, column_name, old_type, type)
+		return this.dialectTools.castColumnType(table, column_name, old_type, type);
 	}
 
 	authenticate() {
-		return this.dialectTools.authenticate()
+		return this.dialectTools.authenticate();
 	}
 
 	quoteIdentifier(identifier) {
-		return this.database.sequelize.getQueryInterface().QueryGenerator.quoteIdentifier(identifier)
+		return this.database.sequelize.getQueryInterface().QueryGenerator.quoteIdentifier(identifier);
 	}
 
 	escape(val) {
-		return this.database.sequelize.getQueryInterface().QueryGenerator.escape(val)
+		return this.database.sequelize.getQueryInterface().QueryGenerator.escape(val);
 	}
 
 
 	columnToField(field) {
-		let types = []
-		for (let type of (Array.isArray(field.type) ? field.type : [field.type])) {
-			let formattedType = type.toLowerCase().replace(/\(.*\)/g,'').trim()
-			if ( ! typemap[formattedType])
-				throw new MateriaError('Unknown type : "' + formattedType + '"')
-			types.push(typemap[formattedType])
+		const types = [];
+		for (const type of (Array.isArray(field.type) ? field.type : [field.type])) {
+			const formattedType = type.toLowerCase().replace(/\(.*\)/g, '').trim();
+			if ( ! typemap[formattedType]) {
+				throw new MateriaError('Unknown type : "' + formattedType + '"');
+			}
+			types.push(typemap[formattedType]);
 		}
 
-		let res: any = {
+		const res: any = {
 			name: field.name,
 			type: types.length == 1 ? types[0] : types,
 			primary: !! field.primaryKey,
@@ -233,85 +236,87 @@ export class DatabaseInterface {
 			default: false,
 			read: true,
 			autoIncrement: false
-		}
+		};
 
 		if (field.autoIncrement) {
-			res.autoIncrement = true
+			res.autoIncrement = true;
 		}
 
 		if (field.defaultValue != undefined) {
-			let defaultValues = []
-			for (let def of (Array.isArray(field.defaultValue) ? field.defaultValue : [field.defaultValue])) {
+			const defaultValues = [];
+			for (const def of (Array.isArray(field.defaultValue) ? field.defaultValue : [field.defaultValue])) {
 				if (/nextval\(.+::regclass\)/.exec(def)) {
-					res.autoIncrement = true
+					res.autoIncrement = true;
 				} else {
-					res.default = true
-					let textValue = /['"](.*?)['"]?::text/.exec(def)
-					defaultValues.push(textValue ? textValue[1] : def)
+					res.default = true;
+					const textValue = /['"](.*?)['"]?::text/.exec(def);
+					defaultValues.push(textValue ? textValue[1] : def);
 				}
 			}
 
 			if (res.default) {
-				res.defaultValue = defaultValues.length == 1 ? defaultValues[0] : defaultValues
+				res.defaultValue = defaultValues.length == 1 ? defaultValues[0] : defaultValues;
 			}
 		}
 
-		res.write = ! res.autoIncrement
+		res.write = ! res.autoIncrement;
 
 		if (field.fk) {
-			if (field.onUpdate != "CASCADE") {
-				res.onUpdate = field.onUpdate || "NO ACTION"
+			if (field.onUpdate != 'CASCADE') {
+				res.onUpdate = field.onUpdate || 'NO ACTION';
 			}
 
-			if ( ! field.allowNull && field.onDelete != "CASCADE" || field.allowNull && field.onDelete != "SET NULL") {
-				res.onDelete = field.onDelete || "NO ACTION"
+			if ( ! field.allowNull && field.onDelete != 'CASCADE' || field.allowNull && field.onDelete != 'SET NULL') {
+				res.onDelete = field.onDelete || 'NO ACTION';
 			}
 		}
 
 
-		return res
+		return res;
 	}
 
 	flattenField(field) {
-		let res = {}
-		for (let k in field) {
-			res[k] = (Array.isArray(field[k])) ? field[k][0] : field[k]
+		const res = {};
+		for (const k in field) {
+			if (k) {
+				res[k] = (Array.isArray(field[k])) ? field[k][0] : field[k];
+			}
 		}
-		return res
+		return res;
 	}
 
 	fieldToColumn(field) {
-		let type = (field.type && field.type.toLowerCase()) || 'text'
-		let res:any = {}
+		const type = (field.type && field.type.toLowerCase()) || 'text';
+		const res: any = {};
 		if (field.type != undefined) {
 			if (this.database.type == 'mysql' && ( ! type || type == 'text')) {
-				res.type = Sequelize.STRING
+				res.type = Sequelize.STRING;
 			} else {
-				res.type = (type && sequelize_typemap[type]) || Sequelize.TEXT
+				res.type = (type && sequelize_typemap[type]) || Sequelize.TEXT;
 			}
 		}
 		if (field.primary != undefined) {
-			res.primaryKey = field.primary
+			res.primaryKey = field.primary;
 		}
 		if (field.unique != undefined) {
-			res.unique = field.unique
+			res.unique = field.unique;
 		}
 		if (field.autoIncrement != undefined) {
-			res.autoIncrement = field.autoIncrement
+			res.autoIncrement = field.autoIncrement;
 		}
 		if (field.default == '$now' && type.toLowerCase() == 'date') {
-			res.default = Sequelize.fn('NOW')
+			res.default = Sequelize.fn('NOW');
 		}
 		if (field.required != undefined) {
-			res.allowNull = ! field.required
+			res.allowNull = ! field.required;
 		}
 		if (field.default != undefined) {
-			res.default = field.default
+			res.default = field.default;
 		}
 
 		if (field.defaultValue != undefined && field.default !== false) {
 			if ( ! isNaN(field.defaultValue) || type.toLowerCase() != 'number') {
-				res.defaultValue = field.defaultValue
+				res.defaultValue = field.defaultValue;
 			}
 		}
 
@@ -320,12 +325,12 @@ export class DatabaseInterface {
 				res.references = {
 					model: field.isRelation.reference.entity,
 					key: field.isRelation.reference.field
-				}
-				res.onUpdate = field.onUpdate || 'cascade'
-				res.onDelete = field.onDelete || (res.allowNull ? 'no action' : 'cascade')
+				};
+				res.onUpdate = field.onUpdate || 'cascade';
+				res.onDelete = field.onDelete || (res.allowNull ? 'no action' : 'cascade');
 			}
 		}
 
-		return res
+		return res;
 	}
 }

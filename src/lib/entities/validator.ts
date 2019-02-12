@@ -1,4 +1,4 @@
-import { Field } from './field'
+import { Field } from './field';
 
 export interface IValidator {
 	name: string,
@@ -11,6 +11,6 @@ export class Validator {
 	}
 
 	toJson(): IValidator {
-		return { name: this.name, value: this.value }
+		return { name: this.name, value: this.value };
 	}
 }

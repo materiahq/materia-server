@@ -118,7 +118,7 @@ export class EndpointsController {
 				action: endpoint.action,
 				params: endpoint.params,
 				permissions: endpoint.permissions
-			}
+			};
 			if (endpoint.fromAddon) {
 				newEndpoint.fromAddon = endpoint.fromAddon;
 			}
@@ -141,7 +141,7 @@ export class EndpointsController {
 			params: endpoint.params,
 			permissions: endpoint.permissions,
 			query: endpoint.query
-		}
+		};
 		if (endpoint.fromAddon && endpoint.fromAddon.package) {
 			newEndpoint.fromAddon = this.app.addons.get(endpoint.fromAddon.package);
 		}
@@ -203,14 +203,7 @@ export class EndpointsController {
 			}
 			this.app.api.add(payload, options);
 
-			EndpointsLib
-				.list(this.app)
-				.find(
-					endpoint =>
-						endpoint.method + endpoint.url ==
-						newEndpoint.method +
-						newEndpoint.url
-				);
+			EndpointsLib.list(this.app).find(e => e.method + e.url == newEndpoint.method + newEndpoint.url);
 			this.app.watcher.enable();
 			res.status(200).json({
 				endpoints: EndpointsLib.list(this.app),
@@ -220,6 +213,7 @@ export class EndpointsController {
 				controllers: this.app.api.getControllers()
 			});
 		}).catch(err => {
+			this.app.watcher.enable();
 			res.status(500).json(err.message);
 		});
 
@@ -265,11 +259,11 @@ export class EndpointsController {
 	}
 
 	remove(req, res) {
-		const id = Buffer.from(req.params.id, 'base64').toString()
+		const id = Buffer.from(req.params.id, 'base64').toString();
 		const [method, ...parsedUrl] = id.split('/');
 		let url = '';
 		parsedUrl.forEach((t) => {
-			url += `/${t}`
+			url += `/${t}`;
 		});
 		this.app.watcher.disable();
 		this.app.api.remove(method, url, { apply: true });
@@ -279,15 +273,17 @@ export class EndpointsController {
 
 	generate(req, res) {
 		const entity = req.body;
-		if (!entity.endpointsGenerated) {
+		if ( ! entity.endpointsGenerated) {
 			return null;
 		}
+		this.app.watcher.disable();
 		EndpointsLib.generate(this.app, entity, 'get', 'list');
 		EndpointsLib.generate(this.app, entity, 'get', 'get');
 		EndpointsLib.generate(this.app, entity, 'post', 'create');
 		EndpointsLib.generate(this.app, entity, 'put', 'update');
 		EndpointsLib.generate(this.app, entity, 'delete', 'delete');
 
+		this.app.watcher.enable();
 		res.status(200).json({ endpoints: EndpointsLib.list(this.app) });
 	}
 }

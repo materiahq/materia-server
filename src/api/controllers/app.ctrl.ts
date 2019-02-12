@@ -1,8 +1,9 @@
-import { App, ConfigType, AppMode } from '../../lib';
-import { DatabaseLib } from './database.ctrl';
-import { WebsocketInstance } from '../../lib/websocket';
 import { IClientConfig, IAppConfig } from '@materia/interfaces';
 import * as path from 'path';
+
+import { App, ConfigType, AppMode } from '../../lib';
+import { DatabaseLib } from '../lib/database';
+import { WebsocketInstance } from '../../lib/websocket';
 
 export class AppController {
 	constructor(private app: App, websocket: WebsocketInstance) { }
@@ -59,24 +60,24 @@ export class AppController {
 		if (settings.client) {
 			const client = settings.client;
 			if (client.packageJson) {
-				app.config.set(client.packageJson.devDependencies, 'dev', ConfigType.DEPENDENCIES)
-				app.config.set(client.packageJson.dependencies, 'prod', ConfigType.DEPENDENCIES)
-				app.config.set(client.packageJson.scripts, 'dev', ConfigType.SCRIPTS)
-				delete client.packageJson
+				app.config.set(client.packageJson.devDependencies, 'dev', ConfigType.DEPENDENCIES);
+				app.config.set(client.packageJson.dependencies, 'prod', ConfigType.DEPENDENCIES);
+				app.config.set(client.packageJson.scripts, 'dev', ConfigType.SCRIPTS);
+				delete client.packageJson;
 			}
 
 			const clientToSave: IClientConfig = {
 				www: client.www
-			}
+			};
 			if (client.www) {
 				this.app.server.dynamicStatic.setPath(path.join(this.app.path, client.www));
 				if (client.packageJsonPath) {
-					clientToSave.packageJsonPath = client.packageJsonPath
+					clientToSave.packageJsonPath = client.packageJsonPath;
 				} else if (client.build && client.build.enabled) {
 					clientToSave.build = true;
 				}
 				if (client.scripts && (client.scripts.build || client.scripts.watch || client.scripts.prod)) {
-					clientToSave.scripts = {}
+					clientToSave.scripts = {};
 					if (client.scripts.build) {
 						clientToSave.scripts.build = client.scripts.build;
 					}
@@ -106,7 +107,7 @@ export class AppController {
 		this.app.package = settings.general.package;
 		this.app.icon = settings.general.icon;
 
-		const appConfig = this.app.config.get<IAppConfig>(AppMode.DEVELOPMENT, ConfigType.APP)
+		const appConfig = this.app.config.get<IAppConfig>(AppMode.DEVELOPMENT, ConfigType.APP);
 		this.app.config.set({
 			name: settings.general.name,
 			package: settings.general.package,
@@ -117,7 +118,7 @@ export class AppController {
 				url: settings.general.live && settings.general.live.url,
 				rootPassword: settings.general.live && settings.general.live.rootPassword
 			}
-		}, AppMode.DEVELOPMENT, ConfigType.APP)
+		}, AppMode.DEVELOPMENT, ConfigType.APP);
 
 		this.saveServerSettings(this.app, settings, 'dev');
 		this.saveServerSettings(this.app, settings, 'prod');
@@ -156,7 +157,7 @@ export class AppController {
 		try {
 			this.app.createDockerfile(req.body);
 			res.status(200).send();
-		} catch(err) {
+		} catch (err) {
 			res.status(500).send(err);
 		}
 	}

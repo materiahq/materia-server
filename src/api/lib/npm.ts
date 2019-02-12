@@ -26,15 +26,15 @@ export class Npm {
 			return this.getNpmPath().then(npmPath => {
 				if (this.app) {
 					this.app.logger.log(`NPM -> ${command} ${params.join(' ')}`);
-					this.app.logger.log(`NPM binary used: ${npmPath}`)
+					this.app.logger.log(`NPM binary used: ${npmPath}`);
 				}
 				const proc = execa(npmPath, [command, ...params], {
 					cwd: cwd ? cwd : this.cwd
-				})
+				});
 				let working = true;
 				proc.stdout.on('data', d => {
 					if (this.app) {
-						this.app.logger.log(`npm stdout: ${d.toString()}`)
+						this.app.logger.log(`npm stdout: ${d.toString()}`);
 					}
 					if (stream && working) {
 						stream(d.toString());
@@ -43,7 +43,7 @@ export class Npm {
 				});
 				proc.stderr.on('data', (d) => {
 					if (this.app) {
-						this.app.logger.log(`npm stderr: ${d.toString()}`)
+						this.app.logger.log(`npm stderr: ${d.toString()}`);
 					}
 					if (stream && working) {
 						stream(d.toString(), true);
@@ -71,14 +71,14 @@ export class Npm {
 			which('npm', (err, npmPath) => {
 				if (err && ! npmPath) {
 					if (this.app) {
-						this.app.logger.error(`npm -> path error: ${err}`)
+						this.app.logger.error(`npm -> path error: ${err}`);
 					}
 					reject(err);
 				} else {
 					if (this.app) {
-						this.app.logger.log(`npm -> path: ${npmPath}`)
+						this.app.logger.log(`npm -> path: ${npmPath}`);
 					}
-					resolve(npmPath)
+					resolve(npmPath);
 				}
 			});
 		});

@@ -13,8 +13,8 @@ export class ReactScripts {
 		return new Promise((resolve, reject) => {
 			let data = '';
 			let stream = null;
-			if (fs.existsSync(path.join(this.app.path, "node_modules", ".bin", "react-scripts"))) {
-				stream = execa(path.join(this.app.path, "node_modules", ".bin", "react-scripts"), [command, ...params], {
+			if (fs.existsSync(path.join(this.app.path, 'node_modules', '.bin', 'react-scripts'))) {
+				stream = execa(path.join(this.app.path, 'node_modules', '.bin', 'react-scripts'), [command, ...params], {
 					cwd: this.app.path
 				});
 			} /*else {

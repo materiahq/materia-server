@@ -22,7 +22,7 @@ export class ClientController {
 		const result = await this.npm.execInBackground('run-script', [script], join(this.app.path, conf.packageJsonPath));
 		this.npmProc = result.proc;
 		let last = -1;
-		let errors = [];
+		const errors = [];
 		let building = false;
 		const sendProgress = (data) => {
 			const progress = this._parseProgress(data);
@@ -77,7 +77,7 @@ export class ClientController {
 					status: data
 				});
 			}
-		}
+		};
 
 		this.npmProc.stdout.on('data', d => {
 			sendProgress(d.toString());
@@ -99,7 +99,7 @@ export class ClientController {
 			res.status(200).send();
 		}).catch(e => {
 			res.status(500).send(e);
-		})
+		});
 	}
 
 	build(req, res) {
@@ -136,47 +136,48 @@ export class ClientController {
 				type: 'client:build:error',
 				hasStatic: this.app.server.hasStatic(),
 				error
-			}))
+			}));
 		} else {
 			this.websocket.broadcast({
 				type: 'client:build:error',
 				hasStatic: this.app.server.hasStatic(),
-				error: new Error(`'${req.body.prod ? "prod" : "build"}' script not found in client settings.`)
+				error: new Error(`'${req.body.prod ? 'prod' : 'build'}' script not found in client settings.`)
 			});
 		}
 	}
 
 
 	private _parseProgress(data) {
-		let match = stripAnsi(data).match(/([0-9]{1,2})% ([^%]+)$/)
+		const match = stripAnsi(data).match(/([0-9]{1,2})% ([^%]+)$/);
 		if (match) {
 			return {
 				progress: match[1],
 				progressStatus: match[2]
-			}
+			};
 		}
 		return false;
 	}
 
 	private _parseEnd(data) {
-		let matchEnd = stripAnsi(data).match(/Date: (.*)(\n| - )Hash: (.*)(\n| - )Time: (.*)/)
+		const matchEnd = stripAnsi(data).match(/Date: (.*)(\n| - )Hash: (.*)(\n| - )Time: (.*)/);
 		if (matchEnd) {
 			return {
 				date: matchEnd[1],
 				hash: matchEnd[3],
 				time: matchEnd[5]
-			}
+			};
 		}
 	}
 
 	private _parseErrors(data) {
 		const dataStripped = stripAnsi(data);
-		let matchError = data.match(/Error in /)
+		const matchError = data.match(/Error in /);
 		if (matchError) {
 
 			/**
 			 * Try to parse Typescript / javascript errors:
-			 * Error in client/src/app/app-routing.module.ts(11,3): error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
+			 * Error in client/src/app/app-routing.module.ts(11,3):
+			 * error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
 			 */
 			const errors = dataStripped.substr('Error in '.length)
 				.split('\n')
@@ -188,9 +189,9 @@ export class ClientController {
 							line: matchErrorLine[2],
 							column: matchErrorLine[3],
 							message: matchErrorLine[4]
-						}
+						};
 					}
-				}).filter(d => !!d)
+				}).filter(d => !!d);
 			if (errors.length > 0) {
 				return errors;
 			}
@@ -224,7 +225,7 @@ export class ClientController {
 					} else if (startRegister <= k) {
 						currentError.message += v + '\n';
 					}
-				})
+				});
 				return errorsCss;
 			}
 		}
@@ -233,17 +234,17 @@ export class ClientController {
 
 	private _kill(stream): Promise<void> {
 		if (!stream) {
-			return Promise.resolve()
+			return Promise.resolve();
 		}
 
 		return new Promise((resolve, reject) => {
-			let isWin = /^win/.test(process.platform);
+			const isWin = /^win/.test(process.platform);
 			if (!isWin) {
-				stream.kill('SIGINT')
-				return resolve()
+				stream.kill('SIGINT');
+				return resolve();
 			} else {
-				var cp = require('child_process');
-				cp.exec('taskkill /PID ' + stream.pid + ' /T /F', (error, stdout, stderr) => { return resolve() })
+				const cp = require('child_process');
+				cp.exec('taskkill /PID ' + stream.pid + ' /T /F', (error, stdout, stderr) => { return resolve(); });
 			}
 		});
 	}

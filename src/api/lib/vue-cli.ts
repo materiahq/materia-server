@@ -1,8 +1,8 @@
-import { App } from '../../lib';
-
-import * as path from 'path';
+import { join } from 'path';
 import * as fs from 'fs';
 import * as execa from 'execa';
+
+import { App } from '../../lib';
 
 export class VueCli {
 	config: any;
@@ -13,8 +13,8 @@ export class VueCli {
 		return new Promise((resolve, reject) => {
 			let data = '';
 			let stream = null;
-			if (fs.existsSync(path.join(this.app.path, "node_modules", ".bin", "vue"))) {
-				stream = execa(path.join(this.app.path, "node_modules", ".bin", "vue"), [command, ...params], {
+			if (fs.existsSync(join(this.app.path, 'node_modules', '.bin', 'vue'))) {
+				stream = execa(join(this.app.path, 'node_modules', '.bin', 'vue'), [command, ...params], {
 					cwd: this.app.path
 				});
 				stream.stdout.on('data', d => {
@@ -47,8 +47,8 @@ export class VueCli {
 			if (! cwd) {
 				cwd = this.app.path;
 			}
-			if (fs.existsSync(path.join(cwd, "node_modules", ".bin", "vue-cli-service"))) {
-				stream = execa(path.join(cwd, "node_modules", ".bin", "vue-cli-service"), [command, ...params], {
+			if (fs.existsSync(join(cwd, 'node_modules', '.bin', 'vue-cli-service'))) {
+				stream = execa(join(cwd, 'node_modules', '.bin', 'vue-cli-service'), [command, ...params], {
 					cwd: cwd
 				});
 				stream.stdout.on('data', d => {

@@ -1,7 +1,7 @@
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from 'fs';
+import * as path from 'path';
 
-import { App, AppMode } from "./app";
+import { App, AppMode } from './app';
 // import { ScriptMode } from "./client";
 // import { MateriaError } from "./error";
 
@@ -19,7 +19,7 @@ import {
 	ISession,
 	IDependencyMap,
 	IScriptsMap
-} from "@materia/interfaces";
+} from '@materia/interfaces';
 
 export interface IAddonsConfig {
 	[addon: string]: any;
@@ -52,19 +52,19 @@ export interface IFullConfig {
 }
 
 export enum ConfigType {
-	APP = <any>"app",
-	SERVER = <any>"server",
-	DATABASE = <any>"database",
-	GIT = <any>"git",
-	SESSION = <any>"session",
-	CLIENT = <any>"client",
-	DEPENDENCIES = <any>"dependencies",
-	SCRIPTS = <any>"scripts",
-	ADDONS = <any>"addons",
-	LINKS = <any>"links",
-	DEPLOYMENT = <any>"deployment",
-	SERVICES = <any>"services",
-	ENTITIES_POSITION = <any>"entitiesPosition"
+	APP = <any>'app',
+	SERVER = <any>'server',
+	DATABASE = <any>'database',
+	GIT = <any>'git',
+	SESSION = <any>'session',
+	CLIENT = <any>'client',
+	DEPENDENCIES = <any>'dependencies',
+	SCRIPTS = <any>'scripts',
+	ADDONS = <any>'addons',
+	LINKS = <any>'links',
+	DEPLOYMENT = <any>'deployment',
+	SERVICES = <any>'services',
+	ENTITIES_POSITION = <any>'entitiesPosition'
 }
 
 export interface IConfigOptions {
@@ -88,17 +88,17 @@ export class Config {
 		try {
 			this.packageJson = JSON.parse(
 				fs.readFileSync(
-					path.join(this.app.path, "package.json"),
-					"utf-8"
+					path.join(this.app.path, 'package.json'),
+					'utf-8'
 				)
 			);
 		} catch (e) {
 			this.packageJson = {
-				name: "untitled",
-				version: "0.0.1",
+				name: 'untitled',
+				version: '0.0.1',
 				scripts: {},
 				dependencies: {
-					"@materia/server": "1.0.0"
+					'@materia/server': '1.0.0'
 				}
 			};
 		}
@@ -106,16 +106,16 @@ export class Config {
 		try {
 			this.materiaJson = JSON.parse(
 				fs.readFileSync(
-					path.join(this.app.path, "materia.json"),
-					"utf-8"
+					path.join(this.app.path, 'materia.json'),
+					'utf-8'
 				)
 			);
 		} catch (e) {
 			this.app.logger.error(new Error('Impossible to read materia.json configuration. Fallback on default configuration file...'));
 			this.materiaJson = {
-				name: "Untitled App",
+				name: 'Untitled App',
 				server: {
-					host: "localhost",
+					host: 'localhost',
 					port: 8080
 				}
 			};
@@ -124,8 +124,8 @@ export class Config {
 		try {
 			this.materiaProdJson = JSON.parse(
 				fs.readFileSync(
-					path.join(this.app.path, "materia.prod.json"),
-					"utf-8"
+					path.join(this.app.path, 'materia.prod.json'),
+					'utf-8'
 				)
 			);
 		} catch (e) {
@@ -135,8 +135,8 @@ export class Config {
 		try {
 			this.entitiesPosition = JSON.parse(
 				fs.readFileSync(
-					path.join(this.app.path, ".materia", "entities-position.json"),
-					"utf8"
+					path.join(this.app.path, '.materia', 'entities-position.json'),
+					'utf8'
 				)
 			);
 		} catch (e) {
@@ -145,12 +145,12 @@ export class Config {
 
 		try {
 			const packageJsonPath = this.materiaJson.client && this.materiaJson.client.packageJsonPath ?
-			path.join(this.app.path, this.materiaJson.client.packageJsonPath, "package.json") :
-			path.join(this.app.path, "package.json");
+			path.join(this.app.path, this.materiaJson.client.packageJsonPath, 'package.json') :
+			path.join(this.app.path, 'package.json');
 			this.clientPackageJson = JSON.parse(
 				fs.readFileSync(
 					packageJsonPath,
-					"utf-8"
+					'utf-8'
 				)
 			);
 		} catch (e) {
@@ -160,8 +160,8 @@ export class Config {
 
 	private generateUrlFromConf(server: IServerConfig) {
 		if (server) {
-			return `http${server.ssl ? 's' :''}://${server.host}${server.port != 80 ? ':' + server.port.toString() : ''}/`
-		} else { return `http://localhost:8080/` }
+			return `http${server.ssl ? 's' : ''}://${server.host}${server.port != 80 ? ':' + server.port.toString() : ''}/`;
+		} else { return `http://localhost:8080/`; }
 	}
 
 	reloadConfig(): void {
@@ -246,7 +246,7 @@ export class Config {
 		if (!this.config[type]) {
 			return null;
 		}
-		let result
+		let result;
 		if ([ConfigType.SERVER,
 			ConfigType.DATABASE,
 			ConfigType.DEPENDENCIES,
@@ -308,43 +308,43 @@ export class Config {
 		].indexOf(type) != -1) {
 			delete this.config[type][mode];
 		} else {
-			delete this.config[type]
+			delete this.config[type];
 		}
 	}
 
 	save(): Promise<any> {
-		const res = this.toJson()
-		this.packageJson = res.package
-		this.materiaJson = res.materia
-		this.materiaProdJson = res.materiaProd
+		const res = this.toJson();
+		this.packageJson = res.package;
+		this.materiaJson = res.materia;
+		this.materiaProdJson = res.materiaProd;
 		this.entitiesPosition = this.config.entitiesPosition;
 		if (this.materiaJson.addons && this.materiaJson.addons.entities) {
 			delete res.materia.addons.entities;
 		}
 		return this.app
 			.saveFile(
-				path.join(this.app.path, "materia.json"),
-				JSON.stringify(res.materia, null, "\t")
+				path.join(this.app.path, 'materia.json'),
+				JSON.stringify(res.materia, null, '\t')
 			)
 			.then(() =>
 				this.app.saveFile(
-					path.join(this.app.path, "materia.prod.json"),
-					JSON.stringify(res.materiaProd, null, "\t")
+					path.join(this.app.path, 'materia.prod.json'),
+					JSON.stringify(res.materiaProd, null, '\t')
 				)
 			)
 			.then(() =>
 				this.app.saveFile(
-					path.join(this.app.path, "package.json"),
-					JSON.stringify(res.package, null, "\t")
+					path.join(this.app.path, 'package.json'),
+					JSON.stringify(res.package, null, '\t')
 				)
 			)
 			.then(() =>
 				this.app.saveFile(
-					path.join(this.app.path, ".materia", "entities-position.json"),
-					JSON.stringify(this.entitiesPosition, null, "\t"),
+					path.join(this.app.path, '.materia', 'entities-position.json'),
+					JSON.stringify(this.entitiesPosition, null, '\t'),
 					{ mkdir: true }
 				)
-			)
+			);
 	}
 
 	/**

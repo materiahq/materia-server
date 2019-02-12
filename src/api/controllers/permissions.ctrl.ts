@@ -1,9 +1,15 @@
-import * as path from 'path';
+import { join, sep } from 'path';
 import * as fs from 'fs';
+import { IPermission } from '@materia/interfaces';
 
 import { App, Permission } from '../../lib';
 import { WebsocketInstance } from '../../lib/websocket';
-import { IPermission } from '@materia/interfaces';
+
+export class PermissionsLib {
+	static list(app: App) {
+		return app.api.permissions.toJson();
+	}
+}
 
 export class PermissionsController {
 
@@ -17,13 +23,13 @@ export class PermissionsController {
 			this._checkNewPermission(newPermission).then((permissionCode) => {
 				if (permissionCode !== '') {
 					try {
-						let file = path.join(
+						const file = join(
 							this.app.path,
 							'server',
 							'permissions',
 							newPermission.file
 						);
-						let rp = require.resolve(file);
+						const rp = require.resolve(file);
 						if (require.cache[rp]) {
 							delete require.cache[rp];
 						}
@@ -35,6 +41,7 @@ export class PermissionsController {
 					{
 						name: newPermission.name,
 						description: newPermission.description,
+						// tslint:disable-next-line:no-eval
 						middleware: newPermission.code ? eval(newPermission.code) : middleware,
 						file: newPermission.file
 					},
@@ -53,7 +60,7 @@ export class PermissionsController {
 						selected: newPermission.name
 					});
 				})
-				.catch(err => res.status(500).send(err.message))
+				.catch(err => res.status(500).send(err.message));
 			});
 		} else {
 			res.status(500).send(`The permission "${newPermission.name}" already exists`);
@@ -97,7 +104,7 @@ export class PermissionsController {
 	}
 
 	update(req, res) {
-		const permission : IPermission = req.body;
+		const permission: IPermission = req.body;
 		const oldName = req.params.permission;
 		const oldPermission = this.app.api.permissions.get(oldName);
 		if ( ! oldPermission) {
@@ -107,7 +114,11 @@ export class PermissionsController {
 			return res.status(500).send('Impossible to update: permission is in readonly');
 		}
 		let promise: Promise<any> = Promise.resolve();
-		if (oldPermission.name !== permission.name || oldPermission.description !== permission.description || oldPermission.file !== permission.file) {
+		if (
+			oldPermission.name !== permission.name ||
+			oldPermission.description !== permission.description ||
+			oldPermission.file !== permission.file
+		) {
 			promise = promise.then(() => this.app.api.permissions
 			.update(
 				oldName,
@@ -149,17 +160,17 @@ export class PermissionsController {
 				permissions: PermissionsLib.list(this.app),
 				selected: updatedPermission.name
 			});
-		}).catch(err => res.status(500).send(err.message));;
+		}).catch(err => res.status(500).send(err.message));
 	}
 
 	private _checkNewPermission(perm): Promise<string> {
 		return new Promise((resolve, reject) => {
-			const filepath = path.join(
+			const filepath = join(
 				this.app.path,
 				'server',
 				'permissions',
 				perm.file + '.js'
-			)
+			);
 			fs.stat(filepath, (err, stats) => {
 				// Check if error defined and the error code is "not exists"
 				if (err && err.code === 'ENOENT') {
@@ -178,8 +189,8 @@ export class PermissionsController {
 
 	private _getPermissionFilepath(permission: Permission) {
 		let filename = permission.file;
-		if (filename.indexOf(path.sep) == -1) {
-			filename = path.join(
+		if (filename.indexOf(sep) == -1) {
+			filename = join(
 				this.app.path,
 				'server',
 				'permissions',
@@ -190,11 +201,5 @@ export class PermissionsController {
 			filename = filename + '.js';
 		}
 		return filename;
-	}
-}
-
-export class PermissionsLib {
-	static list(app: App) {
-		return app.api.permissions.toJson();
 	}
 }

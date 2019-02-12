@@ -1,4 +1,4 @@
-import { App } from "../app";
+import { App } from '../app';
 
 export interface AddonSetupField {
 	name: string,
@@ -9,7 +9,7 @@ export interface AddonSetupField {
 export interface MateriaAddon {
 	displayName: string;
 	logo: string;
-	constructor(app: App, config: any):void;
+	constructor(app: App, config: any): void;
 
 	getModule(): any;
 	getViewComponent(): any;

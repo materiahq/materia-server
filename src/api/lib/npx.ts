@@ -1,7 +1,7 @@
 import * as execa from 'execa';
 import * as which from 'which';
 
-import { App } from "../../lib";
+import { App } from '../../lib';
 
 export class Npx {
 
@@ -40,14 +40,14 @@ export class Npx {
 			which('npx', (err, npxPath) => {
 				if (err && ! npxPath) {
 					if (this.app) {
-						this.app.logger.error(`npx -> path error: ${err}`)
+						this.app.logger.error(`npx -> path error: ${err}`);
 					}
 					reject(err);
 				} else {
 					if (this.app) {
-						this.app.logger.log(`npx -> path: ${npxPath}`)
+						this.app.logger.log(`npx -> path: ${npxPath}`);
 					}
-					resolve(npxPath)
+					resolve(npxPath);
 				}
 			});
 		});

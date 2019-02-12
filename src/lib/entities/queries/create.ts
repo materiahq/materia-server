@@ -23,7 +23,7 @@ export class CreateQuery extends Query {
 			if (this.opts.default) {
 				this.params = [];
 				this.values = {};
-				let fields = this.entity.getWritableFields();
+				const fields = this.entity.getWritableFields();
 				fields.forEach(field => {
 					this.values[field.name] = '=';
 				});
@@ -50,7 +50,7 @@ export class CreateQuery extends Query {
 				if (this.values[fieldName].length > 1) {
 					paramName = this.values[fieldName].substr(1);
 				}
-				let field = this.entity.getField(fieldName);
+				const field = this.entity.getField(fieldName);
 				this.params.push({
 					name: paramName,
 					type: field.type,
@@ -68,31 +68,35 @@ export class CreateQuery extends Query {
 	}
 
 	resolveParams(params) {
-		let res = {};
-		for (let field in this.values) {
-			try {
-				res[field] = QueryParamResolver.resolve(
-					{ name: field, value: this.values[field] },
-					params
-				);
-			} catch (e) {
-				if (this.values[field].substr(0, 1) == '=') {
-					let t = this.getParam(this.values[field].substr(1));
-					if (t && t.required) {
-						return Promise.reject(e);
+		const res = {};
+		for (const field in this.values) {
+			if (field) {
+				try {
+					res[field] = QueryParamResolver.resolve(
+						{ name: field, value: this.values[field] },
+						params
+					);
+				} catch (e) {
+					if (this.values[field].substr(0, 1) == '=') {
+						const t = this.getParam(this.values[field].substr(1));
+						if (t && t.required) {
+							return Promise.reject(e);
+						}
 					}
 				}
 			}
 		}
-		for (let field of this.params) {
-			if (!this.values[field.name]) {
+		for (const field of this.params) {
+			if (field && !this.values[field.name]) {
 				try {
 					res[field.name] = QueryParamResolver.resolve(
 						{ name: field.name, value: '=' },
 						params
 					);
 				} catch (e) {
-					if (field.required) return Promise.reject(e);
+					if (field.required) {
+						return Promise.reject(e);
+					}
 				}
 			}
 		}
@@ -110,7 +114,7 @@ export class CreateQuery extends Query {
 			` └── Parameters: ${JSON.stringify(params)}\n`
 		);
 
-		let raw = options && options.raw;
+		const raw = options && options.raw;
 
 		return this.resolveParams(params)
 			.catch(e =>
@@ -130,18 +134,18 @@ export class CreateQuery extends Query {
 						const result = raw && resultEntity ? resultEntity.get({plain: true}) : resultEntity;
 						return this.handleAfterActions(resolvedParams, result, true)
 							.then(() => result)
-							.catch(e => result)
+							.catch(e => result);
 					})
 					.catch(e =>
 						this.handleAfterActions(params, {}, false)
 							.then(() => Promise.reject(e))
 							.catch(() => Promise.reject(e))
 					)
-			)
+			);
 	}
 
 	toJson() {
-		let res = {
+		const res = {
 			id: this.id,
 			type: 'create',
 			opts: {

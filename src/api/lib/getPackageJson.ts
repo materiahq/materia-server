@@ -1,4 +1,4 @@
-import { App } from "../../lib";
+import { App } from '../../lib';
 
 import * as fs from 'fs';
 import * as path from 'path';

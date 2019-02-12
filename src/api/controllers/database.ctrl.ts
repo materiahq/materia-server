@@ -1,10 +1,9 @@
-import { App, DBEntity, Entity, MateriaError } from '../../lib';
-import { IEntity } from '@materia/interfaces';
-
 import * as path from 'path';
 import * as fs from 'fs';
-import * as crypto from 'crypto';
+import { IEntity } from '@materia/interfaces';
+
 import { WebsocketInstance } from '../../lib/websocket';
+import { App, Entity, MateriaError, DatabaseLib } from '../../lib';
 
 export class DatabaseController {
 	constructor(private app: App, websocket: WebsocketInstance) {}
@@ -16,7 +15,7 @@ export class DatabaseController {
 				res.status(200).json(data);
 			}).catch(e => {
 				res.status(500).json(e);
-			})
+			});
 	}
 
 	getEntities(req, res) {
@@ -28,8 +27,8 @@ export class DatabaseController {
 	}
 
 	createEntity(req, res) {
-		const entity = req.body;
-		let p : Promise<Entity>;
+		const entity: IEntity = req.body;
+		let p: Promise<Entity>;
 		this.app.watcher.disable();
 		if (entity.virtual) {
 			p = this.app.entities
@@ -58,12 +57,12 @@ export class DatabaseController {
 				}
 			);
 		}
-		return p.then((entity: Entity) => {
+		return p.then((ent: Entity) => {
 				this.app.watcher.enable();
-				res.status(201).json(entity.toJson());
+				res.status(201).json(ent.toJson());
 			}).catch(err => {
 				this.app.watcher.enable();
-				res.status(500).json(err)
+				res.status(500).json(err);
 			});
 	}
 
@@ -76,10 +75,10 @@ export class DatabaseController {
 			history: true
 		}).then(() => {
 			this.app.watcher.enable();
-			res.status(200).json({ entities: DatabaseLib.loadEntitiesJson(this.app), endpoints: this.app.api.findAll().map(e => e.toJson()) })
+			res.status(200).json({ entities: DatabaseLib.loadEntitiesJson(this.app), endpoints: this.app.api.findAll().map(e => e.toJson()) });
 		}).catch(e => {
 			this.app.watcher.enable();
-			res.status(500).json(e)
+			res.status(500).json(e);
 		});
 	}
 
@@ -95,8 +94,8 @@ export class DatabaseController {
 			res.status(200).json(entity.toJson());
 		}).catch(err => {
 			this.app.watcher.enable();
-			res.status(500).send(err)
-		})
+			res.status(500).send(err);
+		});
 	}
 
 	renameEntity(req, res) {
@@ -113,10 +112,10 @@ export class DatabaseController {
 				res.status(200).json(
 				Object.assign({}, this.app.entities.get(new_name).toJson(), {
 					name: new_name
-				}))
+				}));
 			}).catch(e => {
 				this.app.watcher.enable();
-				res.status(500).json(e)
+				res.status(500).json(e);
 			});
 	}
 
@@ -190,8 +189,8 @@ export class DatabaseController {
 	}
 
 	loadModel(req, res) {
-		const fromAddon: string = req.query.fromAddon
-		const modelName: string = req.params.model
+		const fromAddon: string = req.query.fromAddon;
+		const modelName: string = req.params.model;
 
 		const basePath = fromAddon
 			? fromAddon
@@ -237,7 +236,7 @@ export class DatabaseController {
 	}
 
 	createQuery(req, res) {
-		const entity = this.app.entities.get(req.params.entity)
+		const entity = this.app.entities.get(req.params.entity);
 		const query = req.body;
 		if ( ! entity) {
 			return res.status(400).send(new MateriaError(`Entity ${req.params.entity} does not exists`));
@@ -261,7 +260,7 @@ export class DatabaseController {
 				),
 				query.code,
 				{ mkdir: true }
-			))
+			));
 		}
 		p.then(() => entity.addQuery(query)).then(() => {
 			this.app.watcher.enable();
@@ -269,7 +268,7 @@ export class DatabaseController {
 		}).catch(err => {
 			this.app.watcher.enable();
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	removeQuery(req, res) {
@@ -288,41 +287,41 @@ export class DatabaseController {
 	}
 
 	runQuery(req, res) {
-		const {entity, queryId} = req.params;
+		const {entityName, queryId} = req.params;
 
-		const e = this.app.entities.get(entity);
-		if ( ! e ) {
-			return res.status(400).json(new Error(`Entity ${entity} does not exists`));
+		const entity = this.app.entities.get(entityName);
+		if ( ! entity ) {
+			return res.status(400).json(new Error(`Entity ${entityName} does not exists`));
 		}
-		const query: any = e.getQuery(queryId);
+		const query: any = entity.getQuery(queryId);
 
 		if ( ! query ) {
-			return res.status(400).json(new Error(`Query ${queryId} does not exists (${entity})`));
+			return res.status(400).json(new Error(`Query ${queryId} does not exists (${entityName})`));
 		}
 		query.run(req.body, { raw: true })
-			.then((res: any) => {
-				if (Array.isArray(res)) {
-					const result = { data: res, count: res.length };
+			.then((response: any) => {
+				if (Array.isArray(response)) {
+					const result = { data: response, count: response.length };
 					return result;
-				} else if (typeof res === 'string' || typeof res === 'number') {
-					return { data: [{ response: res }], count: 1 };
-				} else if (typeof res === 'object') {
-					const keys = Object.keys(res);
-					if (res && keys.indexOf('count') != -1 && keys.indexOf('data') != -1) {
-						return res;
+				} else if (typeof response === 'string' || typeof response === 'number') {
+					return { data: [{ response: response }], count: 1 };
+				} else if (typeof response === 'object') {
+					const keys = Object.keys(response);
+					if (response && keys.indexOf('count') != -1 && keys.indexOf('data') != -1) {
+						return response;
 					} else {
-						return { data: [res], count: 1 };
+						return { data: [response], count: 1 };
 					}
 				}
 			}).then(data => {
 				res.status(200).json(data);
-			}).catch(e => {
-				res.status(400).send(e.message);
+			}).catch(error => {
+				res.status(400).send(error.message);
 			});
 	}
 
 	listActions(req, res) {
-		res.status(200).json(this.app.actions.findAll())
+		res.status(200).json(this.app.actions.findAll());
 	}
 
 	addAction(req, res) {
@@ -347,7 +346,7 @@ export class DatabaseController {
 			}
 		}).catch(err => {
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	updateAction(req, res) {
@@ -438,7 +437,7 @@ export class DatabaseController {
 			return res.status(400).send('Relation not found');
 		}
 		if (relation.type === 'hasMany' || relation.type === 'hasOne') {
-			entity = this.app.entities.get(relation.reference.entity)
+			entity = this.app.entities.get(relation.reference.entity);
 			relation = entity.getRelationByField(relation.reference.field);
 		}
 		if ( ! entity) {
@@ -484,10 +483,10 @@ export class DatabaseController {
 		return this.app.synchronizer.diff().then((diffs) => {
 			res.status(200).send(diffs);
 		}).catch(err => {
-			res.status(500).send(err.message)
+			res.status(500).send(err.message);
 		});
 
-	};
+	}
 
 	sync(req, res) {
 		const diffs = req.body.diffs;
@@ -518,156 +517,4 @@ export class DatabaseController {
 			return res.status(500).send(new Error(`Sync type '${type}' not found`));
 		}
 	}
-}
-
-export class DatabaseLib {
-	static entitySpacing = 20;
-
-
-	static generateActionId({ stringBase = 'base64', byteLength = 8 } = {}): Promise<string> {
-		return new Promise((resolve, reject) => {
-			crypto.randomBytes(byteLength, (err, buffer) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve(buffer.toString(stringBase));
-				}
-			});
-		});
-	}
-
-	static loadEntityJson(entity: DBEntity): IEntity {
-		return Object.assign({}, entity.toJson(), {
-			name: entity.name,
-			x: entity.x,
-			y: entity.y,
-			fields: entity.fields.map(field => {
-				return Object.assign({}, field.toJson(), {
-					isRelation: field.isRelation
-				});
-			}),
-			queries: entity.getQueries().map(query => {
-				const q = query.toJson();
-				q.opts.params = query.params;
-				q.actions = entity.app.actions.findAll({
-					entity: entity.name,
-					query: q.id
-				})
-				return q;
-			}),
-			fromAddon: entity.fromAddon ? entity.fromAddon.toJson() : null,
-			relatedEntities: entity
-				.getRelatedEntities()
-				.map((relatedEntity: Entity) => {
-					return Object.assign({}, relatedEntity.toJson(), {
-						name: relatedEntity.name,
-						fields: relatedEntity.fields.map(field =>
-							field.toJson()
-						),
-						queries: relatedEntity.getQueries().map(query => {
-							const q = query.toJson();
-							q.params = query.params;
-							return q;
-						})
-					})
-				}).filter(relatedEntity => relatedEntity && relatedEntity.name)
-		});
-	}
-
-	static loadEntitiesJson(app: App): IEntity[] {
-		const entities = app.entities.findAll();
-		return entities.map(entity => {
-			const finalEntity = DatabaseLib.loadEntityJson(entity);
-			if ( ! finalEntity.x && ! finalEntity.y ) {
-				const ui = DatabaseLib.loadUi(app.path, entities, entity.name);
-				finalEntity.x = isNaN(ui.x) || ui.x < 0 ? 0 : ui.x;
-				finalEntity.y = isNaN(ui.y) || ui.y < 0 ? 0 : ui.y;
-			}
-			// const ui = this.loadUi(app.path, entities, entity.name);
-			return finalEntity;
-		});
-	}
-	private static entityWidth(entity) {
-		return 200;
-	}
-
-	private static entityHeight(entity) {
-		return 40 + 48 * entity.fields.length;
-	}
-
-	private static getWorkspaceSize(entities) {
-		const workspaceSize = { width: 0, height: 0 };
-		for (const i in entities) {
-			if (entities[i].x != -1 && entities[i].y != -1) {
-				const maxX = entities[i].x + DatabaseLib.entityWidth(entities[i]);
-				const maxY = entities[i].y + DatabaseLib.entityHeight(entities[i]);
-				if (maxX > workspaceSize.width) {
-					workspaceSize.width = maxX;
-				}
-				if (maxY > workspaceSize.height) {
-					workspaceSize.height = maxY;
-				}
-			}
-		}
-		return workspaceSize;
-	}
-
-	static isAvailableSpace(entities, entity, pX, pY) {
-		const elemWidth = DatabaseLib.entityWidth(entity);
-		const elemHeight = DatabaseLib.entityHeight(entity);
-		for (const i in entities) {
-			if (entities[i].x != -1 && entities[i].y != -1) {
-				if (
-					entities[i].x > pX - DatabaseLib.entityWidth(entities[i]) &&
-					entities[i].x < pX + elemWidth &&
-					entities[i].y > pY - DatabaseLib.entityHeight(entities[i]) &&
-					entities[i].y < pY + elemHeight
-				) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	// ui storage functions
-
-	static loadUi(p, entities, entityName) {
-		const ui = {
-			x: -1,
-			y: -1
-		};
-
-		const workspaceSize = DatabaseLib.getWorkspaceSize(entities);
-		if (workspaceSize.height >= workspaceSize.width) {
-			ui.y = 0;
-			ui.x = workspaceSize.width + DatabaseLib.entitySpacing * 2;
-		} else {
-			let posX = 0;
-			let posY = 1e10;
-			for (const i in entities) {
-				if (entities[i].x != -1 && entities[i].y != -1) {
-					const pX = entities[i].x;
-					const pY =
-						entities[i].y + DatabaseLib.entityHeight(entities[i]);
-					if (
-						pY < posY &&
-						DatabaseLib.isAvailableSpace(entities, entities[i], pX, pY)
-					) {
-						posX = pX;
-						posY = pY;
-					}
-				}
-			}
-			ui.x = posX;
-			if (posY > 1e9) {
-				ui.y = 0;
-			} else {
-				ui.y = posY + DatabaseLib.entitySpacing * 2;
-			}
-		}
-
-		return ui;
-	}
-
 }

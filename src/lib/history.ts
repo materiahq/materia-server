@@ -23,19 +23,19 @@ export const MigrationType = {
 	// queries
 	ADD_QUERY: 'add_query',
 	DELETE_QUERY: 'delete_query',
-	//ADD_QUERY_PARAM: 'add_query_param',
-	//DELETE_QUERY_PARAM: 'delete_query_param',
-	//UPDATE_QUERY_VALUE: 'update_query_value',
+	// ADD_QUERY_PARAM: 'add_query_param',
+	// DELETE_QUERY_PARAM: 'delete_query_param',
+	// UPDATE_QUERY_VALUE: 'update_query_value',
 	UPDATE_QUERY: 'update_query',
 	// api
 	ADD_ENDPOINT: 'add_endpoint',
 	DELETE_ENDPOINT: 'delete_endpoint',
 	UPDATE_ENDPOINT: 'update_endpoint'
-	//ADD_API_PARAM: 'add_api_param',
-	//DELETE_API_PARAM: 'delete_api_param',
-	//ADD_API_DATA: 'add_api_data',
-	//DELETE_API_DATA: 'delete_api_data',
-}
+	// ADD_API_PARAM: 'add_api_param',
+	// DELETE_API_PARAM: 'delete_api_param',
+	// ADD_API_DATA: 'add_api_data',
+	// DELETE_API_DATA: 'delete_api_data',
+};
 
 export interface IActionData {
 	id?: string,
@@ -53,7 +53,7 @@ export interface IMigration {
 }
 
 export interface IHistoryActions {
-	[index:number]: (data: any, opts: any) => Promise<any>
+	[index: number]: (data: any, opts: any) => Promise<any>
 }
 
 export interface IActionOptions {
@@ -68,38 +68,40 @@ export interface IActionOptions {
  * Used to store the last actions and undo / redo these actions.
  */
 export class History {
-	action: any
-	diff: Array<IMigration>
-	diffRedo: Array<IMigration>
-	actions: IHistoryActions
+	action: any;
+	diff: Array<IMigration>;
+	diffRedo: Array<IMigration>;
+	actions: IHistoryActions;
 
 	constructor(private app: App) {
-		this.actions = {}
-		this.diff = []
-		this.diffRedo = []
+		this.actions = {};
+		this.diff = [];
+		this.diffRedo = [];
 	}
 
 	cleanStacks() {
-		let diff = []
-		for (let d of this.diff)
-			diff.push({undo:d.undo, redo:d.redo})
-		let diff_redo = []
-		for (let d of this.diffRedo)
-			diff_redo.push({undo:d.undo, redo:d.redo})
-		this.diff = diff
-		this.diffRedo = diff_redo
+		const diff = [];
+		for (const d of this.diff) {
+			diff.push({undo: d.undo, redo: d.redo});
+		}
+		const diff_redo = [];
+		for (const d of this.diffRedo) {
+			diff_redo.push({undo: d.undo, redo: d.redo});
+		}
+		this.diff = diff;
+		this.diffRedo = diff_redo;
 	}
 
 	load() {
 		try {
-			let changes = readFileSync(join(this.app.path, 'changes.json'))
-			this.diff = JSON.parse(changes.toString())
-		} catch(e) {
-			this.diff = []
+			const changes = readFileSync(join(this.app.path, 'changes.json'));
+			this.diff = JSON.parse(changes.toString());
+		} catch (e) {
+			this.diff = [];
 		}
 	}
 
-	save(opts?:ISaveOptions) {
+	save(opts?: ISaveOptions) {
 		// unused still undo / redo truely implemented
 		/*if (opts && opts.beforeSave) {
 			opts.beforeSave('changes.json')
@@ -117,9 +119,9 @@ export class History {
 	@param {object} - Undo action object
 	*/
 	push(redo, undo) {
-		this.diff.push({undo:undo, redo:redo})
-		this.diffRedo = []
-		this.save()
+		this.diff.push({undo: undo, redo: redo});
+		this.diffRedo = [];
+		this.save();
 	}
 
 	/**
@@ -127,8 +129,8 @@ export class History {
 	@param {string} - Type name
 	@param {function} - Action's function
 	*/
-	register(type:any, action: (data: IActionData, opts: any) => Promise<any>) {
-		this.actions[type] = action
+	register(type: any, action: (data: IActionData, opts: any) => Promise<any>) {
+		this.actions[type] = action;
 	}
 
 	/**
@@ -136,7 +138,7 @@ export class History {
 	@returns {boolean}
 	*/
 	undoable() {
-		return this.diff.length > 0
+		return this.diff.length > 0;
 	}
 
 	/**
@@ -144,7 +146,7 @@ export class History {
 	@returns {boolean}
 	*/
 	redoable() {
-		return this.diffRedo.length > 0
+		return this.diffRedo.length > 0;
 	}
 
 	/**
@@ -152,7 +154,7 @@ export class History {
 	@returns {Array}
 	*/
 	getUndoStack() {
-		return this.diff
+		return this.diff;
 	}
 
 	/**
@@ -160,7 +162,7 @@ export class History {
 	@returns {Array}
 	*/
 	getRedoStack() {
-		return this.diffRedo
+		return this.diffRedo;
 	}
 
 	/**
@@ -173,10 +175,10 @@ export class History {
 		if (this.diff.length === 0) {
 			return Promise.resolve({});
 		}
-		let actionobj = this.diff.pop();
+		const actionobj = this.diff.pop();
 		this.diffRedo.push(actionobj);
 
-		let action = this.actions[actionobj.undo.type];
+		const action = this.actions[actionobj.undo.type];
 		let p;
 		if (actionobj.undo.table
 			&& ! this.app.entities.get(actionobj.undo.table)
@@ -198,7 +200,7 @@ export class History {
 				this.save(opts);
 			}
 			throw err;
-		})
+		});
 	}
 
 	/**
@@ -207,21 +209,21 @@ export class History {
 	@returns {Promise<object>} the action applied
 	*/
 	redo(opts): Promise<any> {
-		opts = opts || {history: false}
+		opts = opts || {history: false};
 		if (this.diffRedo.length == 0) {
 			return Promise.resolve({});
 		}
-		let actionobj = this.diffRedo.pop()
-		this.diff.push(actionobj)
+		const actionobj = this.diffRedo.pop();
+		this.diff.push(actionobj);
 
-		let action = this.actions[actionobj.redo.type]
-		let p
+		const action = this.actions[actionobj.redo.type];
+		let p;
 		if (actionobj.redo.table
 			&& ! this.app.entities.get(actionobj.redo.table)
 			&& actionobj.redo.type != MigrationType.CREATE_ENTITY
 			&& actionobj.redo.type != MigrationType.DELETE_ENTITY
 			&& actionobj.redo.type != MigrationType.RENAME_ENTITY) {
-				p = Promise.resolve()
+				p = Promise.resolve();
 		} else {
 			p = action(actionobj.redo, opts);
 		}
@@ -229,21 +231,21 @@ export class History {
 			if (opts.save) {
 				this.save(opts);
 			}
-			return Promise.resolve(actionobj.redo)
+			return Promise.resolve(actionobj.redo);
 		}).catch((err) => {
 			if (opts.save) {
-				this.save(opts)
+				this.save(opts);
 			}
-			throw err
-		})
+			throw err;
+		});
 	}
 
 	/**
 	Clear the history
 	*/
 	clear() {
-		this.diff = []
-		this.diffRedo = []
+		this.diff = [];
+		this.diffRedo = [];
 	}
 
 	/**
@@ -252,42 +254,43 @@ export class History {
 	@param {object} - Action's options
 	@returns {Promise<Array>} the applied actions
 	*/
-	revert(diffs, opts) : Promise<IActionData[]> {
-		let diff_redo = this.diffRedo
-		let diff_undo = this.diff
+	revert(diffs, opts): Promise<IActionData[]> {
+		const diff_redo = this.diffRedo;
+		const diff_undo = this.diff;
 
-		this.diffRedo = []
-		this.diff = []
+		this.diffRedo = [];
+		this.diff = [];
 		if (diffs && diffs.length) {
-			for (let diff of diffs) {
-				this.diff.push(diff)
+			for (const diff of diffs) {
+				this.diff.push(diff);
 			}
 		}
 
-		let actions = []
-		let p = Promise.resolve({ type: null })
+		const actions = [];
+		let p = Promise.resolve({ type: null });
 
 		this.diff.forEach(() => {
 			p = p.then((action) => {
-				if (action.type)
-					actions.push(action)
-				return this.undo(opts)
-			})
+				if (action.type) {
+					actions.push(action);
+				}
+				return this.undo(opts);
+			});
 		});
 
 		return p.then((action) => {
 			if (action.type) {
-				actions.push(action)
+				actions.push(action);
 			}
-			this.diffRedo = diff_redo
-			this.diff = diff_undo
-			return Promise.resolve(actions)
+			this.diffRedo = diff_redo;
+			this.diff = diff_undo;
+			return Promise.resolve(actions);
 		}).catch((e) => {
-			console.error('Could not revert', e.stack)
-			this.diffRedo = diff_redo
-			this.diff = diff_undo
-			throw e
-		})
+			console.error('Could not revert', e.stack);
+			this.diffRedo = diff_redo;
+			this.diff = diff_undo;
+			throw e;
+		});
 	}
 
 	/**
@@ -296,42 +299,42 @@ export class History {
 	@param {object} - Action's options
 	@returns {Promise<Array>} the applied actions
 	*/
-	apply(diffs, opts) : Promise<IActionData[]> {
-		let diff_redo = this.diffRedo
-		let diff_undo = this.diff
+	apply(diffs, opts): Promise<IActionData[]> {
+		const diff_redo = this.diffRedo;
+		const diff_undo = this.diff;
 
-		this.diffRedo = []
-		this.diff = []
+		this.diffRedo = [];
+		this.diff = [];
 		if (diffs && diffs.length) {
-			for (let diff of diffs) {
-				this.diffRedo.unshift(diff)
+			for (const diff of diffs) {
+				this.diffRedo.unshift(diff);
 			}
 		}
 
-		let actions = []
-		let p = Promise.resolve({ type: null, table: null } as IActionData)
+		const actions = [];
+		let p = Promise.resolve({ type: null, table: null } as IActionData);
 
 		this.diffRedo.forEach(() => {
 			p = p.then((action) => {
 				if (action.type) {
-					actions.push(action)
+					actions.push(action);
 				}
-				return this.redo(opts)
-			})
+				return this.redo(opts);
+			});
 		});
 
 		return p.then((action) => {
 			if (action.type) {
-				actions.push(action)
+				actions.push(action);
 			}
-			this.diffRedo = diff_redo
-			this.diff = diff_undo
+			this.diffRedo = diff_redo;
+			this.diff = diff_undo;
 
-			return Promise.resolve(actions)
+			return Promise.resolve(actions);
 		}).catch((e) => {
-			this.diffRedo = diff_redo
-			this.diff = diff_undo
-			throw e
-		})
+			this.diffRedo = diff_redo;
+			this.diff = diff_undo;
+			throw e;
+		});
 	}
 }

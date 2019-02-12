@@ -10,14 +10,14 @@ chai.config.truncateThreshold = 500;
 chai.use(chaiAsPromised);
 chai.should();
 
-describe('[Relations]', () => {
+describe('[Relations itself]', () => {
 	let app: App;
-	let tmpl = new TemplateApp('empty-app');
+	const tmpl = new TemplateApp('empty-app');
 
 	before(() => {
 		tmpl.beforeCreate(new_app => {
 			new_app.server.disabled = true;
-		})
+		});
 		return tmpl.runApp().then(_app => app = _app);
 	});
 
@@ -26,19 +26,19 @@ describe('[Relations]', () => {
 
 		it('should create entity "test"', () => {
 			return app.entities.add({
-				name: "test",
-				id: "fake-id",
+				name: 'test',
+				id: 'fake-id',
 				fields: [
 					{
-						name: "id_test",
-						type: "number",
+						name: 'id_test',
+						type: 'number',
 						read: true,
 						write: false,
 						primary: true,
 						unique: true,
 						required: true,
 						autoIncrement: true,
-						component: "input"
+						component: 'input'
 					}
 				]
 			}).then(() => app.entities.findAll().length)
@@ -59,18 +59,18 @@ describe('[Relations]', () => {
 						}
 				}).then(() => {
 					return app.entities.get('test').getRelatedEntities().map(entity => entity.name);
-				}).should.become(['test'])
+				}).should.become(['test']);
 			});
 		});
 
 		it('should add a relation test belongsToMany test through test_has_test entity', () => {
 			return app.entities.get('test').addRelation(
 				{
-					type: "belongsToMany",
-					through: "test_has_test",
+					type: 'belongsToMany',
+					through: 'test_has_test',
 					reference: {
-						entity: "test",
-						as: "id_test_2"
+						entity: 'test',
+						as: 'id_test_2'
 					}
 				}
 			).then(() => {
@@ -92,7 +92,7 @@ describe('[Relations]', () => {
 				return app.start();
 			})
 			.then(() => {
-				return app.synchronizer.diff()
+				return app.synchronizer.diff();
 			}).then((diffs) => diffs.length === 3 && diffs.entities.length === 1 && diffs.relations.length === 2)
 			.should.become(true);
 		});

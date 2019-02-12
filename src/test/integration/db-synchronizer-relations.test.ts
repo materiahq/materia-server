@@ -12,7 +12,7 @@ chai.should();
 
 describe('[Database synchronizer with relations]', () => {
 	let app: App;
-	let tmpl = new TemplateApp('empty-app');
+	const tmpl = new TemplateApp('empty-app');
 
 	before(() => {
 		tmpl.beforeCreate(new_app => {
@@ -136,7 +136,7 @@ describe('[Database synchronizer with relations]', () => {
 					field: 'id_sayan'
 				}
 			})
-		)
+		);
 	});
 
 	describe('App', () => {
@@ -185,173 +185,173 @@ describe('[Database synchronizer with relations]', () => {
 					return app.start();
 				})
 				.then(() => {
-					return app.synchronizer.diff()
+					return app.synchronizer.diff();
 				}).should.become({
 					entities:
 					[
 						{
 							redo: {
-								table: "sayan",
-								type: "create_entity",
+								table: 'sayan',
+								type: 'create_entity',
 								value: {
 									fields: [
 									{
 										autoIncrement: true,
 										default: false,
-										name: "id_sayan",
+										name: 'id_sayan',
 										primary: true,
 										read: true,
 										required: true,
-										type: "number",
+										type: 'number',
 										unique: true,
 										write: false
 									},
 									{
 										autoIncrement: false,
 										default: false,
-										name: "name",
+										name: 'name',
 										primary: false,
 										read: true,
 										required: false,
-										type: "text",
+										type: 'text',
 										unique: false,
 										write: true
 									}
 									],
 									isRelation: undefined,
-									name: "sayan",
+									name: 'sayan',
 									queries: [],
 									relations: []
 								}
 							},
 							undo: {
-								table: "sayan",
-								type: "delete_entity"
+								table: 'sayan',
+								type: 'delete_entity'
 							}
 						},
 						{
 							redo: {
-								table: "gorille",
-								type: "create_entity",
+								table: 'gorille',
+								type: 'create_entity',
 								value: {
 									fields: [
 									{
 										autoIncrement: true,
 										default: false,
-										name: "id_gorille",
+										name: 'id_gorille',
 										primary: true,
 										read: true,
 										required: true,
-										type: "number",
+										type: 'number',
 										unique: true,
 										write: false
 									},
 									],
 									isRelation: undefined,
-									name: "gorille",
+									name: 'gorille',
 									queries: [],
 									relations: []
 								}
 							},
 							undo: {
-								table: "gorille",
-								type: "delete_entity"
+								table: 'gorille',
+								type: 'delete_entity'
 							}
 						},
 						{
 							redo: {
-								table: "subpower",
-								type: "create_entity",
+								table: 'subpower',
+								type: 'create_entity',
 								value: {
 									fields: [
 									{
 										autoIncrement: true,
 										default: false,
-										name: "id_subpower",
+										name: 'id_subpower',
 										primary: true,
 										read: true,
 										required: true,
-										type: "number",
+										type: 'number',
 										unique: true,
 										write: false
 									},
 									{
 										autoIncrement: false,
 										default: false,
-										name: "name",
+										name: 'name',
 										primary: false,
 										read: true,
 										required: false,
-										type: "text",
+										type: 'text',
 										unique: false,
 										write: true
 									}
 									],
 									isRelation: undefined,
-									name: "subpower",
+									name: 'subpower',
 									queries: [],
 									relations: [
 										{
-											field: "id_power",
+											field: 'id_power',
 											reference: {
-												entity: "power",
-												field: "id_power"
+												entity: 'power',
+												field: 'id_power'
 											}
 										}
 									]
 								}
 							},
 							undo: {
-								table: "subpower",
-								type: "delete_entity"
+								table: 'subpower',
+								type: 'delete_entity'
 							}
 						},
 						{
 							redo: {
-								table: "power",
-								type: "create_entity",
+								table: 'power',
+								type: 'create_entity',
 								value: {
 									fields: [
 									{
 										autoIncrement: true,
 										default: false,
-										name: "id_power",
+										name: 'id_power',
 										primary: true,
 										read: true,
 										required: true,
-										type: "number",
+										type: 'number',
 										unique: true,
 										write: false
 									},
 									{
 										autoIncrement: false,
 										default: false,
-										name: "name",
+										name: 'name',
 										primary: false,
 										read: true,
 										required: false,
-										type: "text",
+										type: 'text',
 										unique: false,
 										write: true
 									}
 									],
 									isRelation: undefined,
-									name: "power",
+									name: 'power',
 									queries: [],
 									relations: [
 										{
-											field: "id_sayan",
+											field: 'id_sayan',
 											reference: {
-												entity: "sayan",
-												field: "id_sayan"
+												entity: 'sayan',
+												field: 'id_sayan'
 											}
 										}
 									]
 								}
 							},
 							undo: {
-								table: "power",
-								type: "delete_entity"
+								table: 'power',
+								type: 'delete_entity'
 							}
 						}
 					],
@@ -375,7 +375,7 @@ describe('[Database synchronizer with relations]', () => {
 					return app.entities.get('subpower');
 				}).then((entity) =>
 					entity.fields.map(field => field.name)
-				).should.become(['id_subpower', 'name', 'id_power'])
+				).should.become(['id_subpower', 'name', 'id_power']);
 		});
 
 		it('Running default findAll query should work after sync', () => {
@@ -383,7 +383,7 @@ describe('[Database synchronizer with relations]', () => {
 				.should.become({
 					count: 0,
 					data: []
-				})
+				});
 		});
 	});
 });

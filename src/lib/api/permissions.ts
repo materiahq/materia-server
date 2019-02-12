@@ -31,25 +31,25 @@ export class Permissions {
 				next();
 			};
 
-			let rev_permissions = permissionsName.reverse();
+			const rev_permissions = permissionsName.reverse();
 
 			rev_permissions.every(permissionName => {
-				let permission = this.permissions.find(
-					permission => permission.name == permissionName
+				const permission = this.permissions.find(
+					p => p.name == permissionName
 				);
 
 				if (!permission) {
 					const err: any = new MateriaError(
 						'Could not find permission "' + permissionName + '"'
-					)
+					);
 					res.status(500).json(err.message);
-					next(err.message)
+					next(err.message);
 					return false;
 				}
 
-				let nextchain = chain;
+				const nextchain = chain;
 				chain = (req, res, next) => {
-					let _next = e => {
+					const _next = e => {
 						if (e) {
 							return res
 								.status(401)
@@ -100,7 +100,7 @@ export class Permissions {
 			return Promise.resolve();
 		}
 		if (permissionsRaw && permissionsRaw.length) {
-			let results = [];
+			const results = [];
 			permissionsRaw.forEach((permissionRaw: IPermission) => {
 				if (permissionRaw.file && permissionRaw.name) {
 					results.push(this.add(permissionRaw));
@@ -283,10 +283,10 @@ export class Permissions {
 	 * @returns {Promise}
 	*/
 	remove(name, opts?): Promise<void> {
-		let permission = this.permissions.find(permission => {
-			return permission.name == name;
+		const permission = this.permissions.find(p => {
+			return p.name === name;
 		});
-		let index = this.permissions.indexOf(permission);
+		const index = this.permissions.indexOf(permission);
 		let filepath = permission.file.indexOf(
 			path.join(this.app.path, 'server', 'permissions')
 		) == -1 ? path.join(
@@ -305,7 +305,8 @@ export class Permissions {
 
 			if (opts && opts.save) {
 				return this.save();
-			} else return Promise.resolve();
+			}
+			return Promise.resolve();
 		}
 	}
 
@@ -332,9 +333,9 @@ export class Permissions {
 	 * @returns {Array<IPermission>}
 	*/
 	toJson(): IPermission[] {
-		let result = [];
+		const result = [];
 		this.permissions.forEach(permission => {
-			result.push(permission.toJson())
+			result.push(permission.toJson());
 		});
 		return result;
 	}

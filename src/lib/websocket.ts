@@ -17,7 +17,7 @@ export class WebsocketInstance {
 			noServer: true,
 			verifyClient: (info, cb) => {
 				if (verifyClient) {
-					return verifyClient(info, cb)
+					return verifyClient(info, cb);
 				} else {
 					return cb(true);
 				}
@@ -45,8 +45,8 @@ export class WebsocketServers {
 			const pathname = urlParsed.pathname;
 			if (this.servers[pathname] && this.servers[pathname].instance) {
 				this.servers[pathname].instance.handleUpgrade(request, socket, head, ws => {
-					this.servers[pathname].instance.emit('connection', ws, request)
-				})
+					this.servers[pathname].instance.emit('connection', ws, request);
+				});
 			}
 		});
 	}
@@ -64,7 +64,7 @@ export class WebsocketServers {
 		Object.keys(this.servers).forEach(path => {
 			this.servers[path].instance.clients.forEach(client =>
 				client.terminate()
-			)
-		})
+			);
+		});
 	}
 }

@@ -1,23 +1,23 @@
-import * as fs from 'fs'
-import * as path from 'path'
-import chalk from 'chalk'
+import * as fs from 'fs';
+import { join } from 'path';
+import chalk from 'chalk';
 
-import { App, AppMode } from './app'
-import { IServerConfig, IClientConfig, IAppConfig } from '@materia/interfaces'
-import { ConfigType, IConfigOptions } from './config'
+import { App, AppMode } from './app';
+import { IServerConfig, IClientConfig, IAppConfig } from '@materia/interfaces';
+import { ConfigType, IConfigOptions } from './config';
 
-import * as express from 'express'
-import { createServer, Server as HttpServer } from 'http'
+import * as express from 'express';
+import { createServer, Server as HttpServer } from 'http';
 // import * as session from 'express-session'
 
 import * as passport from 'passport';
-import * as morgan from 'morgan'
-import * as methodOverride from 'method-override'
-import * as bodyParser from 'body-parser'
-import * as errorHandler from 'errorhandler'
-import * as compression from 'compression'
+import * as morgan from 'morgan';
+import * as methodOverride from 'method-override';
+import * as bodyParser from 'body-parser';
+import * as errorHandler from 'errorhandler';
+import * as compression from 'compression';
 
-import { Session } from './session'
+import { Session } from './session';
 import { WebsocketServers } from './websocket';
 
 /**
@@ -27,43 +27,43 @@ import { WebsocketServers } from './websocket';
  */
 export class Server {
 	dynamicStatic: any;
-	started: boolean = false
+	started = false;
 
-	expressApp: express.Application
-	passport: any = passport
-	websocket: WebsocketServers
-	server: HttpServer
+	expressApp: express.Application;
+	passport: any = passport;
+	websocket: WebsocketServers;
+	server: HttpServer;
 	private sockets = new Map();
 	private stopped = false;
-	session: Session
+	session: Session;
 	private config: any = {};
 
-	disabled: boolean = false
+	disabled = false;
 
 	constructor(private app: App) {
-		this.session = new Session(app)
+		this.session = new Session(app);
 	}
 
 	load() {
-		this.expressApp = express()
-		this.expressApp.use(bodyParser.urlencoded({ extended: false }))
-		this.expressApp.use(bodyParser.json())
-		this.expressApp.use(methodOverride())
-		this.expressApp.use(compression())
+		this.expressApp = express();
+		this.expressApp.use(bodyParser.urlencoded({ extended: false }));
+		this.expressApp.use(bodyParser.json());
+		this.expressApp.use(methodOverride());
+		this.expressApp.use(compression());
 
 		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
-			this.expressApp.use(morgan('dev'))
+			this.expressApp.use(morgan('dev'));
 		}
 
-		//TODO: Option to enable / disable CORS API call
+		// TODO: Option to enable / disable CORS API call
 		this.expressApp.use(function (req, res, next) {
-			res.header("Access-Control-Allow-Origin", "*");
-			res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-			res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+			res.header('Access-Control-Allow-Origin', '*');
+			res.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT');
+			res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 			next();
 		});
 
-		this.expressApp.use(errorHandler())
+		this.expressApp.use(errorHandler());
 
 		this.server = createServer(this.expressApp);
 
@@ -76,12 +76,12 @@ export class Server {
 
 	private onConnection(socket) {
 		this.sockets.set(socket, 0);
-		socket.once("close", () => this.sockets.delete(socket));
+		socket.once('close', () => this.sockets.delete(socket));
 	}
 
 	private onRequest(req, res) {
 		this.sockets.set(req.socket, this.sockets.get(req.socket) + 1);
-		res.once("finish", () => {
+		res.once('finish', () => {
 			const pending = this.sockets.get(req.socket) - 1;
 			this.sockets.set(req.socket, pending);
 			if (this.stopped && pending === 0) {
@@ -92,21 +92,21 @@ export class Server {
 	}
 
 	private listenConnections() {
-		this.server.on("connection", socket => this.onConnection(socket));
-		this.server.on("secureConnection", socket => this.onConnection(socket));
-		this.server.on("request", (req, res) => this.onRequest(req, res));
+		this.server.on('connection', socket => this.onConnection(socket));
+		this.server.on('secureConnection', socket => this.onConnection(socket));
+		this.server.on('request', (req, res) => this.onRequest(req, res));
 	}
 
 	createDynamicStatic(path) {
-		let staticFolder = express.static(path)
+		let staticFolder = express.static(path);
 		this.dynamicStatic = function (req, res, next) {
-			return staticFolder(req, res, next)
-		}
+			return staticFolder(req, res, next);
+		};
 
 		// Method to change static path at runtime
 		this.dynamicStatic.setPath = (newPath) => {
 			staticFolder = express.static(newPath);
-		}
+		};
 		return this.dynamicStatic;
 	}
 
@@ -115,9 +115,9 @@ export class Server {
 	@returns {string}
 	*/
 	getBaseUrl(path?: string, mode?: AppMode, options?: IConfigOptions) {
-		path = path || '/api'
+		path = path || '/api';
 		mode = mode || this.app.mode;
-		let appConf = this.app.config.get<IAppConfig>(
+		const appConf = this.app.config.get<IAppConfig>(
 			mode,
 			ConfigType.APP,
 			options
@@ -129,23 +129,23 @@ export class Server {
 			}
 			return base + path;
 		}
-		let conf = this.app.config.get<IServerConfig>(mode, ConfigType.SERVER, options)
+		const conf = this.app.config.get<IServerConfig>(mode, ConfigType.SERVER, options);
 		if (!conf) {
-			return ""
+			return '';
 		}
 		let url = `${conf.ssl ? 'https' : 'http'}://${conf.host}`;
 		if (conf.port != 80) {
-			url += ':' + conf.port
+			url += ':' + conf.port;
 		}
-		url += path
-		return url
+		url += path;
+		return url;
 	}
 
 	/**
 	Return true if the server is started
 	@returns {boolean}
 	*/
-	isStarted(): boolean { return this.started }
+	isStarted(): boolean { return this.started; }
 
 	/**
 	Return true if the server has a static page
@@ -156,11 +156,11 @@ export class Server {
 		const clientConfig: IClientConfig = this.app.config.get(this.app.mode, ConfigType.CLIENT);
 		let p;
 		if (clientConfig && clientConfig.www) {
-			p = clientConfig.www
+			p = clientConfig.www;
 		} else {
 			p = 'client';
 		}
-		return fs.existsSync(path.join(this.app.path, p, 'index.html'))
+		return fs.existsSync(join(this.app.path, p, 'index.html'));
 	}
 
 	/**
@@ -168,7 +168,7 @@ export class Server {
 	@returns {Promise<number>}
 	*/
 	start(opts?: any): Promise<number> {
-		const clientConfig: IClientConfig = this.app.config.get(this.app.mode, ConfigType.CLIENT)
+		const clientConfig: IClientConfig = this.app.config.get(this.app.mode, ConfigType.CLIENT);
 		return new Promise<number>((resolve, reject) => {
 			this.stop().then(() => {
 				if (! opts || ! opts.fallback) {
@@ -176,103 +176,102 @@ export class Server {
 					let webDir;
 					// console.log(clientConfig);
 					if (clientConfig && clientConfig.www) {
-						webDir = clientConfig.www
+						webDir = clientConfig.www;
 					} else {
-						webDir = 'client'
+						webDir = 'client';
 					}
 
 					// Initialize dynamic Express static Object.
-					this.createDynamicStatic(path.join(this.app.path, webDir));
+					this.createDynamicStatic(join(this.app.path, webDir));
 					this.expressApp.use(this.dynamicStatic);
 					this.app.api.registerEndpoints();
 					this.expressApp.all('/api/*', (req, res) => {
 						res.status(404).send({
 							error: true,
 							message: 'API endpoint not found'
-						})
-					})
+						});
+					});
 
 					this.expressApp.all('/*', (req, res) => {
-						if (clientConfig && fs.existsSync(path.join(this.app.path, clientConfig.www, '404.html'))) {
-							res.sendFile(path.join(this.app.path, clientConfig.www, '404.html'))
-						}
-						else if (this.hasStatic()) {
-							res.sendFile(path.join(this.app.path, clientConfig.www, 'index.html'))
-						}
-						else {
+						if (clientConfig && fs.existsSync(join(this.app.path, clientConfig.www, '404.html'))) {
+							res.sendFile(join(this.app.path, clientConfig.www, '404.html'));
+						} else if (this.hasStatic()) {
+							res.sendFile(join(this.app.path, clientConfig.www, 'index.html'));
+						} else {
 							res.status(404).send({
 								error: true,
 								message: 'API endpoint not found'
-							})
+							});
 						}
-					})
+					});
 
 					this.expressApp.use((err: any, req: express.Request, res: express.Response) => {
 						res.status(500).send({
 							error: true,
-							message: (err && err.message) || "Unexpected error"
-						})
-						return this.expressApp
-					})
+							message: (err && err.message) || 'Unexpected error'
+						});
+						return this.expressApp;
+					});
 
 					if (this.disabled) {
-						this.app.logger.log(' └── Server: Disabled (Warning)')
-						return resolve(0)
+						this.app.logger.log(' └── Server: Disabled (Warning)');
+						return resolve(0);
 					}
 				}
-				this.config = this.app.config.get<IServerConfig>(this.app.mode, ConfigType.SERVER)
-				let port = opts && opts.port || this.app.options && this.app.options.port || this.config && this.config.port || 8080
+				this.config = this.app.config.get<IServerConfig>(this.app.mode, ConfigType.SERVER);
+				let port = opts && opts.port || this.app.options && this.app.options.port || this.config && this.config.port || 8080;
 				if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT && process.env.PORT) {
-					port = +process.env.PORT
+					port = +process.env.PORT;
 				}
 				if ( ! port) {
 					if (AppMode.DEVELOPMENT === this.app.mode) {
-						port = 8080
+						port = 8080;
 					} else {
 						port = 80;
 					}
 				}
 
 				let error = 0;
-				let errListener = (e) => {
+				const errListener = (e) => {
 					if (e.code == 'EADDRINUSE') {
-						this.app.logger.error(new Error(`Impossible to start the server - The port ${port} is already used by another server.`))
+						this.app.logger.error(new Error(`Impossible to start the server - The port ${port} is already used by another server.`));
 						if (this.app.mode == AppMode.DEVELOPMENT) {
-							if ( ! opts ) { opts = {} }
+							if ( ! opts ) { opts = {}; }
 							if ( ! opts.port ) { opts.port = port + 1; }
 							error = port;
 							return this.start(opts).then(resolve).catch(reject);
 						}
+					} else {
+						this.app.logger.error(new Error('Impossible to start the server - ' + e.message));
 					}
-					else {
-						this.app.logger.error(new Error('Impossible to start the server - ' + e.message))
-					}
-					return reject(e)
-				}
+					return reject(e);
+				};
 
-				let args = [port, this.config && this.config.host || 'localhost', () => {
+				const args = [port, this.config && this.config.host || 'localhost', () => {
 					if (port == error) {
 						return;
 					}
-					this.started = true
-					this.app.logger.log(` └─┬ Server: ${chalk.green.bold('Started')}`)
+					this.started = true;
+					this.app.logger.log(` └─┬ Server: ${chalk.green.bold('Started')}`);
 					if (this.config && this.config.host == '0.0.0.0' || process.env.NO_HOST) {
-						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline(`http://localhost:${port}`) + '\n')
+						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline(`http://localhost:${port}`) + '\n');
 					} else {
-						this.app.logger.log('   └─ Listening on ' + chalk.blue.bold.underline('http://' + (this.config && this.config.host || 'localhost') + ':' + port) + '\n')
+						this.app.logger.log(
+							'   └─ Listening on ' + chalk.blue.bold.underline('http://' + (this.config && this.config.host || 'localhost') + ':' + port) + '\n'
+						);
 					}
-					this.server.removeListener('error', errListener)
-					return resolve(port)
-				}]
+					this.server.removeListener('error', errListener);
+					return resolve(port);
+				}];
 
-				//special IP - "no host"
+				// special IP - "no host"
 				if (this.config && this.config.host == '0.0.0.0' || process.env.NO_HOST) {
-					//remove the host from args
-					args[1] = args.pop()
+					// remove the host from args
+					args[1] = args.pop();
 				}
 				this.server.listen.apply(this.server, args).on('error', errListener);
-			})
-		})
+			});
+		});
 	}
 
 	/**
@@ -280,23 +279,23 @@ export class Server {
 	*/
 	stop(): Promise<void> {
 		if ( ! this.server || ! this.started ) {
-			return Promise.resolve()
+			return Promise.resolve();
 		}
 
 		return new Promise<void>(accept => {
 			this.websocket.close();
 			this.server.close(() => {
-				this.app.logger.log('\n' + chalk.bold('(Stop)') + ' Server closed\n')
+				this.app.logger.log('\n' + chalk.bold('(Stop)') + ' Server closed\n');
 				this.started = false;
-				accept()
-			})
+				accept();
+			});
 			this.stopped = true;
 			setImmediate(() => {
 				this.sockets.forEach((reqs, socket) => {
-					socket.end()
-					socket.destroy()
+					socket.end();
+					socket.destroy();
 				});
 			});
-		})
+		});
 	}
 }

@@ -57,7 +57,7 @@ export class Actions {
 						);
 						this.register(action, opts);
 					} else {
-						throw new Error('Missing required information in action.')
+						throw new Error('Missing required information in action.');
 					}
 				} catch (e) {
 					this.app.logger.warn(
@@ -95,7 +95,7 @@ export class Actions {
 				} else {
 					return true;
 				}
-			})
+			});
 	}
 
 	get(id) {
@@ -134,7 +134,7 @@ export class Actions {
 	}
 
 	handle(type: string, filter: IActionFilter, context: any, success: boolean) {
-		let promises = []
+		const promises = [];
 		this.actions
 			.filter(
 				action =>

@@ -12,16 +12,16 @@ chai.should();
 
 describe('[Database synchronizer]', () => {
 	let app: App;
-	let tmpl = new TemplateApp('empty-app');
-	let primaryFieldDefault = {
+	const tmpl = new TemplateApp('empty-app');
+	const primaryFieldDefault = {
 		autoIncrement: true,
 		primary: true,
 		read: true,
 		required: true,
-		type: "number",
+		type: 'number',
 		unique: true,
 		write: false
-	}
+	};
 
 	before(() => {
 		tmpl.beforeCreate(new_app => {
@@ -56,8 +56,8 @@ describe('[Database synchronizer]', () => {
 						.getField('id_test').toJson()
 				)
 				.should.become({
-					name: "id_test",
-					component: "input",
+					name: 'id_test',
+					component: 'input',
 					...primaryFieldDefault
 				});
 		});
@@ -88,7 +88,7 @@ describe('[Database synchronizer]', () => {
 					return app.start();
 				})
 				.then(() => {
-					return app.synchronizer.diff()
+					return app.synchronizer.diff();
 				})
 				.should.become({
 					entities: [
@@ -99,7 +99,7 @@ describe('[Database synchronizer]', () => {
 								value: {
 									fields: [
 										{
-											name: "id_test",
+											name: 'id_test',
 											default: false,
 											...primaryFieldDefault
 										}
@@ -125,16 +125,16 @@ describe('[Database synchronizer]', () => {
 		it('Synchronizing should re-add test model file with same intial property', () => {
 			return app.synchronizer.diff()
 			.then((diffs) => {
-				return app.synchronizer.databaseToEntities(diffs, null)
+				return app.synchronizer.databaseToEntities(diffs, null);
 			}).then(() => {
-				return app.entities.findAll()
+				return app.entities.findAll();
 			}).then(() => {
-				return app.entities.get('test').getField('id_test').toJson()
+				return app.entities.get('test').getField('id_test').toJson();
 			}).should.become({
-				name: "id_test",
-				component: "input",
+				name: 'id_test',
+				component: 'input',
 				...primaryFieldDefault
 			});
-		})
+		});
 	});
 });

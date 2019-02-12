@@ -24,10 +24,10 @@ export class Model {
 	}
 
 	load(name: string, entity: Entity): void {
-		let basePath = entity.fromAddon
+		const basePath = entity.fromAddon
 			? entity.fromAddon.path
 			: entity.app.path;
-		let modelPath = require.resolve(
+		const modelPath = require.resolve(
 			path.join(basePath, 'server', 'models', 'queries', name + '.js')
 		);
 		try {
@@ -38,7 +38,7 @@ export class Model {
 			this.modelStr = fs.readFileSync(modelPath, 'utf-8').toString();
 			delete this.modelInstances[entity.name];
 		} catch (e) {
-			let err = new MateriaError(
+			const err = new MateriaError(
 				'Could not load model ' + name + ' from entity ' + entity.name
 			) as any;
 			err.originalError = e;
@@ -68,8 +68,9 @@ export class CustomQuery extends Query {
 
 		this.type = 'custom';
 
-		if (!opts || !opts.action)
+		if (!opts || !opts.action) {
 			throw new MateriaError('Missing required parameter "action"');
+		}
 
 		this.params = opts.params || [];
 		this.action = opts.action;
@@ -87,7 +88,7 @@ export class CustomQuery extends Query {
 	}
 
 	refresh() {
-		let model = this._getModel();
+		const model = this._getModel();
 
 		model.load(this.model, this.entity);
 
@@ -104,7 +105,7 @@ export class CustomQuery extends Query {
 
 	resolveParams(params) {
 		let success = true;
-		for (let field of this.params) {
+		for (const field of this.params) {
 			try {
 				QueryParamResolver.resolve(
 					{ name: field.name, value: '=' },
@@ -112,19 +113,18 @@ export class CustomQuery extends Query {
 				);
 			} catch (e) {
 				if (field.required) {
-					success = false
+					success = false;
 				}
 			}
 		}
-		if (success) { return Promise.resolve(); }
-		else { return Promise.reject(new MateriaError('Missing required parameter')) }
+		if (success) { return Promise.resolve(); } else { return Promise.reject(new MateriaError('Missing required parameter')); }
 	}
 
 	private _run(instance, params) {
 		try {
 			const res = instance[this.action](params || {});
 			if (res && res.then && res.catch) {
-				//promise
+				// promise
 				return res;
 			} else {
 				return Promise.resolve(res);
@@ -144,7 +144,7 @@ export class CustomQuery extends Query {
 			` └── Parameters: ${JSON.stringify(params)}\n`
 		);
 
-		let instance = this._getModel().instance(this.entity);
+		const instance = this._getModel().instance(this.entity);
 		return this.resolveParams(params)
 			.catch(e =>
 				this.handleBeforeActions(params, false)
@@ -164,11 +164,11 @@ export class CustomQuery extends Query {
 							.then(() => Promise.reject(e))
 							.catch(() => Promise.reject(e))
 					)
-			)
+			);
 	}
 
 	toJson() {
-		let opts: ICustomQueryOpts = {
+		const opts: ICustomQueryOpts = {
 			params: this.paramsToJson(),
 			action: this.action
 		};
@@ -183,7 +183,7 @@ export class CustomQuery extends Query {
 	}
 
 	private _getModel(): Model {
-		let model_prefix = this.entity.fromAddon
+		const model_prefix = this.entity.fromAddon
 			? this.entity.fromAddon.package + '/'
 			: '';
 		if (!CustomQuery.models[model_prefix + this.model]) {

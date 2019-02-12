@@ -3,7 +3,7 @@ import * as oauth2orize from 'oauth2orize';
 import * as crypto from 'crypto';
 
 import * as passport from 'passport';
-    // , BasicStrategy = require('passport-http').BasicStrategy
+// BasicStrategy = require('passport-http').BasicStrategy
 import { Strategy as ClientPasswordStrategy } from 'passport-oauth2-client-password';
 import { Strategy as BearerStrategy } from 'passport-http-bearer';
 
@@ -14,7 +14,7 @@ export class OAuth {
 		expires_in: Date;
 		token: string;
 		scope: string[]
-	}> = []
+	}> = [];
 
 	get token() {
 		if ( ! this.app.rootPassword ) {
@@ -27,20 +27,19 @@ export class OAuth {
 			passport.authenticate(['clientPassword'], { session: false }),
 			this.server.token(),
 			this.server.errorHandler()
-		]
+		];
 	}
 
 	get isAuth() {
 		if ( ! this.app.rootPassword) {
 			return (req, res, next) => next();
 		}
-		return passport.authenticate('accessToken', { session: false })
+		return passport.authenticate('accessToken', { session: false });
 	}
 
 	constructor(private app: App) {
 		// Create the server
 		this.server = oauth2orize.createServer();
-		this.app;
 	}
 
 	initialize() {
@@ -50,14 +49,14 @@ export class OAuth {
 		this.server.exchange(
 			oauth2orize.exchange.clientCredentials((client, scope, done) =>
 				this.generateToken().then(token => {
-					//TODO: currently only memory based => need to create system entity for access tokens
-					var tokenHash = crypto.createHash('sha1').update(token).digest('hex')
+					// TODO: currently only memory based => need to create system entity for access tokens
+					const tokenHash = crypto.createHash('sha1').update(token).digest('hex');
 
 					this.tokens.push({
 						token: tokenHash,
 						expires_in: new Date(new Date().getTime() + 3600 * 48 * 1000),
 						username: 'admin',
-						scope: ["*"]
+						scope: ['*']
 					});
 					// Return the token
 					return done(
@@ -70,8 +69,8 @@ export class OAuth {
 			)
 		);
 
-		passport.use("clientPassword", new ClientPasswordStrategy(this.verifyLogin.bind(this)));
-		passport.use("accessToken", new BearerStrategy(this.verifyToken.bind(this)));
+		passport.use('clientPassword', new ClientPasswordStrategy(this.verifyLogin.bind(this)));
+		passport.use('accessToken', new BearerStrategy(this.verifyToken.bind(this)));
 	}
 
 	static getTokenFromHeaders(req): string {
@@ -80,37 +79,39 @@ export class OAuth {
 		if (!h.startWith(prefix)) {
 			return null;
 		}
-		return h.substr(prefix.length)
+		return h.substr(prefix.length);
 	}
 
 	verifyLogin(clientId, clientSecret, done) {
 		if (clientId == 'admin' && clientSecret == this.app.rootPassword) {
-			return done(null, { username: 'admin' })
+			return done(null, { username: 'admin' });
 		} else {
 			return done(null, false);
-		};
+		}
 	}
 
 	verifyToken(accessToken, done) {
 		if (!accessToken) {
 			return done(null, false);
 		}
-		var accessTokenHash = crypto.createHash('sha1').update(accessToken).digest('hex')
-		const token = this.tokens.find(token => token.token == accessTokenHash)
-		if (!token) return done(null, false)
+		const accessTokenHash = crypto.createHash('sha1').update(accessToken).digest('hex');
+		const token = this.tokens.find(t => t.token == accessTokenHash);
+		if ( ! token ) {
+			return done(null, false);
+		}
 		if (new Date() > token.expires_in) {
 			this.clearExpiredTokens();
 			done(null, false);
 		} else {
-			var info = { scope: '*' }
+			const info = { scope: '*' };
 			done(null, { username: 'admin' }, info);
 		}
 	}
 
 	private clearExpiredTokens() {
 		this.tokens = this.tokens.filter(token => {
-			return token.expires_in.getTime() <= new Date().getTime()
-		})
+			return token.expires_in.getTime() <= new Date().getTime();
+		});
 	}
 
 	private generateToken({ stringBase = 'base64', byteLength = 32 } = {}): Promise<string> {

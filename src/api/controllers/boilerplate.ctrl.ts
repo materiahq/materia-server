@@ -16,7 +16,7 @@ export class BoilerplateController {
 	npm: Npm;
 	npx: Npx;
 	angularCli: AngularCli;
-	vueCli: VueCli
+	vueCli: VueCli;
 	reactScripts: ReactScripts;
 
 	constructor(private app: App, websocket: WebsocketInstance) {
@@ -32,7 +32,7 @@ export class BoilerplateController {
 			.then(() => {
 				const clientConfig: IClientConfig = {
 					www: 'client'
-				}
+				};
 				this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
 				return this.app.config.save();
 			})
@@ -70,7 +70,7 @@ export class BoilerplateController {
 
 		this.app.watcher.disable();
 		return this._installBoilerplateCli('@angular/cli').then(() => {
-			this._emitMessage('Generate angular project')
+			this._emitMessage('Generate angular project');
 			this.app.config.packageJson['scripts']['ng'] = 'ng';
 			this.app.config.save();
 			return this._newAngularProject(['--routing', '--style=scss'], params.name);
@@ -95,9 +95,9 @@ export class BoilerplateController {
 				www: `${params.output}/dist/${params.name}`,
 				build: true,
 				scripts: {
-					build: "build",
-					watch: "watch",
-					prod: "prod"
+					build: 'build',
+					watch: 'watch',
+					prod: 'prod'
 				},
 				autoWatch: false
 			};
@@ -165,9 +165,9 @@ export class BoilerplateController {
 				www: 'client/dist',
 				build: true,
 				scripts: {
-					build: "build",
-					watch: "watch",
-					prod: "prod"
+					build: 'build',
+					watch: 'watch',
+					prod: 'prod'
 				},
 				autoWatch: false
 			};
@@ -202,9 +202,9 @@ export class BoilerplateController {
 					www: `${params.output}/build`,
 					build: true,
 					scripts: {
-						build: "build",
-						watch: "watch",
-						prod: "prod"
+						build: 'build',
+						watch: 'watch',
+						prod: 'prod'
 					},
 					autoWatch: false
 				};
@@ -220,7 +220,7 @@ export class BoilerplateController {
 				this.app.watcher.enable();
 				this.app.materiaApi.websocket.broadcast({ type, client: client });
 			}).catch(err => this._emitError(err));
-		}).catch(err => res.status(500).send(err.message))
+		}).catch(err => res.status(500).send(err.message));
 	}
 
 	initVue(req, res) {
@@ -255,11 +255,11 @@ export class BoilerplateController {
 					www: `${params.output}/dist`,
 					build: true,
 					scripts: {
-						build: "build",
-						prod: "build"
+						build: 'build',
+						prod: 'build'
 					},
 					autoWatch: false
-				}
+				};
 				this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
 				this.app.server.dynamicStatic.setPath(path.join(this.app.path, params.output, 'dist'));
 				return this.app.config.save();
@@ -317,11 +317,11 @@ outputDir: './client/dist'
 				www: 'client/dist',
 				build: true,
 				scripts: {
-					build: "build",
-					prod: "build"
+					build: 'build',
+					prod: 'build'
 				},
 				autoWatch: false
-			}
+			};
 			this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
 			this.app.server.dynamicStatic.setPath(path.join(this.app.path, 'client/dist'));
 			return this.app.config.save();
@@ -333,12 +333,12 @@ outputDir: './client/dist'
 	}
 
 	private _emitMessage(message) {
-		const type = "boilerplate";
+		const type = 'boilerplate';
 		this.app.materiaApi.websocket.broadcast({ type, message: message });
 	}
 
 	private _emitError(err) {
-		const type = "boilerplate:error";
+		const type = 'boilerplate:error';
 		this.app.materiaApi.websocket.broadcast({ type, message: err });
 	}
 
@@ -350,10 +350,10 @@ outputDir: './client/dist'
 			params.output = 'client';
 		}
 		if (fse.existsSync(path.join(this.app.path, params.name))) {
-			return Promise.reject(new Error(`The folder '${path.join(this.app.path, params.name)}' already exists.`))
+			return Promise.reject(new Error(`The folder '${path.join(this.app.path, params.name)}' already exists.`));
 		}
 		if (fse.existsSync(path.join(this.app.path, params.output))) {
-			return Promise.reject(new Error(`The output folder '${path.join(this.app.path, params.output)}' already exists.`))
+			return Promise.reject(new Error(`The output folder '${path.join(this.app.path, params.output)}' already exists.`));
 		}
 		return Promise.resolve(params);
 	}
@@ -387,9 +387,20 @@ outputDir: './client/dist'
 			this._fileToJson(path.join(boilerplateProjectPath, 'package.json'))
 				.then((boilerplateProjectPackage: any) => {
 					delete boilerplateProjectPackage.scripts.start;
-					this.app.config.set(Object.assign({}, pkg.devDependencies, boilerplateProjectPackage.devDependencies), AppMode.DEVELOPMENT, ConfigType.DEPENDENCIES);
-					this.app.config.set(Object.assign({}, pkg.dependencies, boilerplateProjectPackage.dependencies), AppMode.PRODUCTION, ConfigType.DEPENDENCIES);
-					this.app.config.set(Object.assign({}, pkg.scripts, boilerplateProjectPackage.scripts, { watch: 'ng build --watch', prod: 'ng build --prod' }), this.app.mode, ConfigType.SCRIPTS);
+					this.app.config.set(
+						Object.assign({}, pkg.devDependencies, boilerplateProjectPackage.devDependencies), AppMode.DEVELOPMENT, ConfigType.DEPENDENCIES
+					);
+					this.app.config.set(
+						Object.assign({}, pkg.dependencies, boilerplateProjectPackage.dependencies), AppMode.PRODUCTION, ConfigType.DEPENDENCIES
+					);
+					this.app.config.set(
+						Object.assign(
+							{},
+							pkg.scripts,
+							boilerplateProjectPackage.scripts,
+							{ watch: 'ng build --watch', prod: 'ng build --prod' }),
+							this.app.mode, ConfigType.SCRIPTS
+					);
 					this.app.config.save();
 					resolve();
 				}).catch(err => reject(err));
@@ -405,9 +416,9 @@ outputDir: './client/dist'
 				} else {
 					this._removeOldBoilerplateProjectDirectory(projectPath)
 						.then(() => resolve())
-						.catch(err => reject(err));
+						.catch(error => reject(error));
 				}
-			})
+			});
 		});
 	}
 
@@ -415,9 +426,22 @@ outputDir: './client/dist'
 		const pkg = this.app.config.packageJson;
 		const boilerplateProjectPath = path.join(this.app.path, projectName);
 		return this._fileToJson(path.join(boilerplateProjectPath, 'package.json')).then((boilerplateProjectPackage: any) => {
-			this.app.config.set(Object.assign({}, pkg.devDependencies, boilerplateProjectPackage.devDependencies), AppMode.DEVELOPMENT, ConfigType.DEPENDENCIES);
-			this.app.config.set(Object.assign({}, pkg.dependencies, boilerplateProjectPackage.dependencies), AppMode.PRODUCTION, ConfigType.DEPENDENCIES);
-			this.app.config.set(Object.assign({}, pkg.scripts, boilerplateProjectPackage.scripts, { "vue-cli-service": "vue-cli-service" }), this.app.mode, ConfigType.SCRIPTS);
+			this.app.config.set(
+				Object.assign({}, pkg.devDependencies, boilerplateProjectPackage.devDependencies), AppMode.DEVELOPMENT, ConfigType.DEPENDENCIES
+			);
+			this.app.config.set(
+				Object.assign({}, pkg.dependencies, boilerplateProjectPackage.dependencies), AppMode.PRODUCTION, ConfigType.DEPENDENCIES
+			);
+			this.app.config.set(
+				Object.assign(
+					{},
+					pkg.scripts,
+					boilerplateProjectPackage.scripts,
+					{ 'vue-cli-service': 'vue-cli-service' }
+				),
+				this.app.mode,
+				ConfigType.SCRIPTS
+			);
 			this.app.config.packageJson = Object.assign({},
 				this.app.config.packageJson,
 				{
@@ -427,7 +451,7 @@ outputDir: './client/dist'
 				}
 			);
 			return this.app.config.save();
-		})
+		});
 	}
 
 	private _moveItem(oldPath, newPath) {
@@ -438,7 +462,7 @@ outputDir: './client/dist'
 				} else {
 					resolve();
 				}
-			})
+			});
 		});
 	}
 

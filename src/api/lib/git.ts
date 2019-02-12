@@ -24,8 +24,7 @@ export class Git {
 		try {
 			this.client = git(this.app.path);
 			this.client.silent(true);
-		} catch (e) {
-		}
+		} catch (e) { }
 	}
 
 	init() {
@@ -45,7 +44,7 @@ export class Git {
 				remotes: data[2],
 				branches: data[3]
 			};
-		})
+		});
 	}
 
 	refreshHistory(): Promise<IGitHistory[]> {
@@ -194,7 +193,7 @@ export class Git {
 						before: oldVersion,
 						after: content
 					};
-				})
+				});
 		}
 	}
 
@@ -268,7 +267,7 @@ export class Git {
 					change = {
 						original: data[1],
 						modified: data[0]
-					}
+					};
 				}
 				return change;
 			});
@@ -299,7 +298,7 @@ export class Git {
 			res = this.client.rmKeepLocal([status.path]);
 		}
 		res = this.client.add([status.path]);
-		return res.then(() => this.refreshWorkingCopy())
+		return res.then(() => this.refreshWorkingCopy());
 	}
 
 	unstage(statusPath: string): Promise<IGitWorkingCopy> {
@@ -319,15 +318,15 @@ export class Git {
 				}
 				return Promise.reject(e);
 			})
-			.then(() => this.refreshWorkingCopy())
+			.then(() => this.refreshWorkingCopy());
 	}
 
 	stageAll(): Promise<IGitWorkingCopy> {
-		return this.client.add(['-A']).then(() => this.refreshWorkingCopy())
+		return this.client.add(['-A']).then(() => this.refreshWorkingCopy());
 	}
 
 	unstageAll(): Promise<IGitWorkingCopy> {
-		return this.client.reset(['.']).then(() => this.refreshWorkingCopy())
+		return this.client.reset(['.']).then(() => this.refreshWorkingCopy());
 	}
 
 	private refreshRemoteData(): Promise<IGitRemoteSuccessResponse> {
@@ -355,7 +354,7 @@ export class Git {
 		// }
 		return this.client
 			.raw(['fetch'])
-			.then(this.refreshRemoteData.bind(this))
+			.then(this.refreshRemoteData.bind(this));
 	}
 
 	commit(
@@ -379,7 +378,7 @@ export class Git {
 					workingCopy: res[0],
 					history: res[1]
 				};
-			})
+			});
 	}
 
 	pull(
@@ -388,11 +387,11 @@ export class Git {
 	): Promise<IGitRemoteSuccessResponse> {
 		return this.client
 			.pull(remote, branch)
-			.then(this.refreshRemoteData.bind(this))
+			.then(this.refreshRemoteData.bind(this));
 	}
 
 	push(): Promise<IGitRemoteSuccessResponse> {
-		return this.client.push().then(this.refreshRemoteData.bind(this))
+		return this.client.push().then(this.refreshRemoteData.bind(this));
 	}
 
 	publish(
@@ -401,7 +400,7 @@ export class Git {
 	): Promise<IGitRemoteSuccessResponse> {
 		return this.client
 			.push(['-u', remote, branch])
-			.then(this.refreshRemoteData.bind(this))
+			.then(this.refreshRemoteData.bind(this));
 	}
 
 	copyCheckout() { }
@@ -409,7 +408,7 @@ export class Git {
 	setupRemote(config: IGitRemote): Promise<IGitRemote[]> {
 		return this.client
 			.addRemote(config.name, config.url)
-			.then(() => this.refreshRemotes())
+			.then(() => this.refreshRemotes());
 	}
 
 	private getLogs() {
@@ -443,7 +442,7 @@ export class Git {
 	}
 
 	createLocalBranch(branchName) {
-		return this.client.checkoutLocalBranch(branchName)
+		return this.client.checkoutLocalBranch(branchName);
 	}
 
 	checkout(arg) {

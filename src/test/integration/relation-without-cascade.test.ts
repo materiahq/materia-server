@@ -10,66 +10,66 @@ chai.should();
 
 describe('[Relations without "onDelete: CASCADE"]', () => {
 	let app: App;
-	let tmpl = new TemplateApp('empty-app');
+	const tmpl = new TemplateApp('empty-app');
 
 	before(() => {
 		tmpl.beforeCreate(new_app => {
 			new_app.server.disabled = true;
-		})
+		});
 		return tmpl.runApp().then(_app => app = _app);
-	})
+	});
 
 
 	describe('App', () => {
 
 		it('should prepare entities "test" and "test2', () => {
 			return app.entities.add({
-				name: "test",
-				id: "fake-id",
+				name: 'test',
+				id: 'fake-id',
 				fields: [
 					{
-						name: "id_test",
-						type: "number",
+						name: 'id_test',
+						type: 'number',
 						read: true,
 						write: false,
 						primary: true,
 						unique: true,
 						required: true,
 						autoIncrement: true,
-						component: "input"
+						component: 'input'
 					}
 				]
 			}).then(() => app.entities.add({
-				name: "test2",
-				id: "fake-id-2",
+				name: 'test2',
+				id: 'fake-id-2',
 				fields: [
 					{
-						name: "id_test2",
-						type: "number",
+						name: 'id_test2',
+						type: 'number',
 						read: true,
 						write: false,
 						primary: true,
 						unique: true,
 						required: true,
 						autoIncrement: true,
-						component: "input"
+						component: 'input'
 					},
 					{
-						name: "t2_data",
-						type: "text",
+						name: 't2_data',
+						type: 'text',
 						read: true,
 						write: true,
 						primary: false,
 						unique: false,
 						required: false,
-						component: "input"
+						component: 'input'
 					}
 				]
 			}))
 			.then(() => app.entities.get('test2').getQuery('create').run({ t2_data: 'foo' }))
-			.then(() => app.entities.get('test2').getQuery('get').run({ id_test2: 1 }, { raw:true }))
-			.should.become({ id_test2: 1, t2_data: 'foo' })
-		})
+			.then(() => app.entities.get('test2').getQuery('get').run({ id_test2: 1 }, { raw: true }))
+			.should.become({ id_test2: 1, t2_data: 'foo' });
+		});
 
 		it('should add a relation test hasMany test2 even if test2 not empty', () => {
 			return app.entities.get('test2').addRelation({
@@ -92,10 +92,10 @@ describe('[Relations without "onDelete: CASCADE"]', () => {
 							}
 						]
 					}
-				})
+				});
 			}).then(() => app.entities.get('test').getRelatedEntities().map(entity => entity.name))
-			.should.become(['test2'])
-		})
+			.should.become(['test2']);
+		});
 
 
 		it('data in test2 should have null value for fk id_test', () => {
@@ -109,7 +109,7 @@ describe('[Relations without "onDelete: CASCADE"]', () => {
 						id_test: null
 					}
 				]}
-			)
+			);
 		});
 
 		it('should add query with join and run successfully', () => {
@@ -130,14 +130,14 @@ describe('[Relations without "onDelete: CASCADE"]', () => {
 			.should.become({
 				count: 0,
 				data: []
-			})
-		})
+			});
+		});
 
 		it('entities and database should have no diffs', () => {
 			return app.synchronizer.diff()
 				.then(diffs => {
-					return diffs.length
-				}).should.become(0)
+					return diffs.length;
+				}).should.become(0);
 		});
-	})
-})
+	});
+});

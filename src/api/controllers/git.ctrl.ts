@@ -1,6 +1,6 @@
-import { App } from "../../lib";
-import { Git } from "../lib/git";
-import { WebsocketInstance } from "../../lib/websocket";
+import { App } from '../../lib';
+import { Git } from '../lib/git';
+import { WebsocketInstance } from '../../lib/websocket';
 
 export class GitController {
 	client: Git;
@@ -14,7 +14,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err.message);
-		})
+		});
 	}
 
 	init(req, res) {
@@ -22,7 +22,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err.message);
-		})
+		});
 	}
 
 	fetch(req, res) {
@@ -30,7 +30,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	getStatus(req, res) {
@@ -41,7 +41,7 @@ export class GitController {
 		}).catch(err => {
 			this.app.watcher.enable();
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	stage(req, res) {
@@ -53,7 +53,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	unstage(req, res) {
@@ -65,7 +65,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	commit(req, res) {
@@ -73,7 +73,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	pull(req, res) {
@@ -81,7 +81,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err.message);
-		})
+		});
 	}
 
 	push(req, res) {
@@ -89,7 +89,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	getHistory(req, res) {
@@ -97,7 +97,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	getCommit(req, res) {
@@ -105,7 +105,7 @@ export class GitController {
 			res.status(200).send(data);
 		}).catch(err => {
 			res.status(500).send(err);
-		})
+		});
 	}
 
 	getHistoryFileDetail(req, res) {
@@ -122,7 +122,7 @@ export class GitController {
 			res.status(200).send()
 		).catch(err => {
 			res.status(500).send(err.message);
-		})
+		});
 	}
 
 	selectBranch(req, res) {
@@ -148,7 +148,7 @@ export class GitController {
 		.catch((err) => {
 			this.app.watcher.enable();
 			res.status(500).send(err.message);
-		})
+		});
 	}
 
 	stashPop(req, res) {
@@ -161,7 +161,7 @@ export class GitController {
 		.catch((err) => {
 			this.app.watcher.enable();
 			res.status(500).send(err.message);
-		})
+		});
 	}
 
 	// getCommitDiff(req, res) {

@@ -1,7 +1,7 @@
-import { Query, QueryParamResolver } from '../query'
-import { Conditions, IConditions } from './utils/conditions'
-import { DBEntity } from '../db-entity'
-import chalk from 'chalk'
+import { Query, QueryParamResolver } from '../query';
+import { Conditions, IConditions } from './utils/conditions';
+import { DBEntity } from '../db-entity';
+import chalk from 'chalk';
 
 export interface IUpdateQueryOpts {
 	values: any,
@@ -9,42 +9,42 @@ export interface IUpdateQueryOpts {
 }
 
 export class UpdateQuery extends Query {
-	type: string
-	values: any
-	conditions: Conditions
-	valuesType: any
+	type: string;
+	values: any;
+	conditions: Conditions;
+	valuesType: any;
 
 	constructor(entity: DBEntity, id: string, opts: IUpdateQueryOpts) {
-		super(entity, id)
+		super(entity, id);
 
-		this.type = 'update'
+		this.type = 'update';
 
-		this.values = []
+		this.values = [];
 		if ( ! opts ) {
-			opts = {} as IUpdateQueryOpts
+			opts = {} as IUpdateQueryOpts;
 		}
 		if (opts.values) {
-			this.values = opts.values
+			this.values = opts.values;
 		}
 
-		this.conditions = new Conditions(opts.conditions, this)
+		this.conditions = new Conditions(opts.conditions, this);
 
-		this.discoverParams()
+		this.discoverParams();
 	}
 
 	refresh() {}
 
 	discoverParams() {
-		this.valuesType = {}
-		this.params = []
+		this.valuesType = {};
+		this.params = [];
 		Object.keys(this.values).forEach(fieldName => {
 			if (this.values[fieldName] && this.values[fieldName].substr(0, 1) == '=') {
-				this.valuesType[fieldName] = 'param'
-				let paramName = fieldName
+				this.valuesType[fieldName] = 'param';
+				let paramName = fieldName;
 				if (this.values[fieldName].length > 1) {
-					paramName = this.values[fieldName].substr(1)
+					paramName = this.values[fieldName].substr(1);
 				}
-				let field = this.entity.getField(fieldName)
+				const field = this.entity.getField(fieldName);
 				this.params.push({
 					name: paramName,
 					type: field.type,
@@ -54,55 +54,57 @@ export class UpdateQuery extends Query {
 						entity: this.entity.name,
 						field: fieldName
 					}
-				})
+				});
+			} else {
+				this.valuesType[fieldName] = 'value';
 			}
-			else {
-				this.valuesType[fieldName] = 'value'
-			}
-		})
+		});
 
-		this.params = this.params.concat(this.conditions.discoverParams())
+		this.params = this.params.concat(this.conditions.discoverParams());
 	}
 
 	resolveParams(params) {
-		let res = {}
-		for (let field in this.values) {
-			try {
-				res[field] = QueryParamResolver.resolve({ name: field, value: this.values[field] }, params)
-			} catch (e) {
-				if ( this.values[field].substr(0, 1) == '=') {
-					let t = this.getParam(this.values[field].substr(1))
-					if (t && t.required) {
-						throw e
+		const res = {};
+		for (const field in this.values) {
+			if (field) {
+				try {
+					res[field] = QueryParamResolver.resolve({ name: field, value: this.values[field] }, params);
+				} catch (e) {
+					if ( this.values[field].substr(0, 1) == '=') {
+						const t = this.getParam(this.values[field].substr(1));
+						if (t && t.required) {
+							throw e;
+						}
 					}
 				}
 			}
 		}
-		for (let field of this.params) {
-			if ( ! this.values[field.name]) {
+		for (const field of this.params) {
+			if ( field && ! this.values[field.name]) {
 				try {
-					res[field.name] = QueryParamResolver.resolve({ name: field.name, value: "=" }, params)
-				} catch(e) {
-					if (field.required)
-						throw e
+					res[field.name] = QueryParamResolver.resolve({ name: field.name, value: '=' }, params);
+				} catch (e) {
+					if (field.required) {
+						throw e;
+					}
 				}
 			}
 		}
 
-		return res
+		return res;
 	}
 
-	run(params):Promise<any> {
-		this.entity.app.logger.log(`${chalk.bold('(Query)')} Update - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
-		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
-		let updates, where
+	run(params): Promise<any> {
+		this.entity.app.logger.log(`${chalk.bold('(Query)')} Update - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`);
+		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`);
+		let updates, where;
 		try {
-			updates = this.resolveParams(params)
-			where = this.conditions.toSequelize(params, this.entity.name)
+			updates = this.resolveParams(params);
+			where = this.conditions.toSequelize(params, this.entity.name);
 		} catch (e) {
 			return this.handleBeforeActions(params, false)
 				.then(() => Promise.reject(e))
-				.catch(() => Promise.reject(e))
+				.catch(() => Promise.reject(e));
 		}
 
 		return this.handleBeforeActions(params, true)
@@ -121,14 +123,14 @@ export class UpdateQuery extends Query {
 	}
 
 	toJson() {
-		let res = {
+		const res = {
 			id: this.id,
 			type: 'update',
 			opts: {
 				values: this.values,
 				conditions: this.conditions.toJson()
 			} as IUpdateQueryOpts
-		}
-		return res
+		};
+		return res;
 	}
 }

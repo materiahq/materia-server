@@ -8,9 +8,9 @@ chai.config.truncateThreshold = 500;
 chai.use(chaiAsPromised);
 const should = chai.should();
 
-describe('[Entities without primary field]', () => {
+describe('[Fields with default value]', () => {
 	let app: App;
-	let tmpl = new TemplateApp('empty-app');
+	const tmpl = new TemplateApp('empty-app');
 
 	before(() => {
 		tmpl.beforeCreate(new_app => {
@@ -107,7 +107,7 @@ describe('[Entities without primary field]', () => {
 				default: true,
 				defaultValue: 'now()',
 				component: 'datePicker'
-			}).should.fulfilled
+			}).should.fulfilled;
 		});
 
 		it('should run default "create" query', () => {

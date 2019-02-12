@@ -1,38 +1,38 @@
-import { Query } from '../query'
-import { Conditions } from './utils/conditions'
-import chalk from 'chalk'
+import { Query } from '../query';
+import { Conditions } from './utils/conditions';
+import chalk from 'chalk';
 
 export class DeleteQuery extends Query {
-	type: string
-	conditions: Conditions
+	type: string;
+	conditions: Conditions;
 
 	constructor(entity, id, opts) {
-		super(entity, id)
-		this.type = 'delete'
+		super(entity, id);
+		this.type = 'delete';
 		if ( ! opts ) {
-			opts = {}
+			opts = {};
 		}
-		this.conditions = new Conditions(opts.conditions, this)
-		this.discoverParams()
+		this.conditions = new Conditions(opts.conditions, this);
+		this.discoverParams();
 	}
 
 	refresh() {}
 	discoverParams() {
-		this.params = []
-		this.params = this.params.concat(this.conditions.discoverParams())
+		this.params = [];
+		this.params = this.params.concat(this.conditions.discoverParams());
 	}
 
-	run(params):Promise<any> {
-		this.entity.app.logger.log(`${chalk.bold('(Query)')} Delete - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`)
-		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`)
+	run(params): Promise<any> {
+		this.entity.app.logger.log(`${chalk.bold('(Query)')} Delete - Run ${chalk.bold(this.entity.name)}.${chalk.bold(this.id)}`);
+		this.entity.app.logger.log(` └── Parameters: ${JSON.stringify(params)}\n`);
 
-		let sequelizeCond
+		let sequelizeCond;
 		try {
-			sequelizeCond = this.conditions.toSequelize(params, this.entity.name)
+			sequelizeCond = this.conditions.toSequelize(params, this.entity.name);
 		} catch (e) {
 			return this.handleBeforeActions(params, false)
 				.then(() => Promise.reject(e))
-				.catch(() => Promise.reject(e))
+				.catch(() => Promise.reject(e));
 		}
 
 		return this.handleBeforeActions(params, true)
@@ -46,17 +46,17 @@ export class DeleteQuery extends Query {
 				this.handleAfterActions(params, null, false)
 					.then(() => Promise.reject(e))
 					.catch(() => Promise.reject(e))
-			)
+			);
 	}
 
 	toJson() {
-		let res = {
+		const res = {
 			id: this.id,
 			type: 'delete',
 			opts: {
 				conditions: this.conditions.toJson()
 			}
-		}
-		return res
+		};
+		return res;
 	}
 }

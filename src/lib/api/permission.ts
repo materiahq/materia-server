@@ -7,7 +7,7 @@ export class Permission {
 	app: App;
 	name: string;
 	description: string;
-	readOnly: boolean = false;
+	readOnly = false;
 	middleware: any;
 	file: string;
 	invalid: boolean;
@@ -47,7 +47,7 @@ export class Permission {
 				);
 			}
 			try {
-				let rp = require.resolve(file);
+				const rp = require.resolve(file);
 				if (require.cache[rp]) {
 					delete require.cache[rp];
 				}

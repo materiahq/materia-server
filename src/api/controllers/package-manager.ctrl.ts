@@ -1,6 +1,6 @@
-import { App } from "../../lib";
-import { Npm } from "../lib/npm";
-import { WebsocketInstance } from "../../lib/websocket";
+import { App } from '../../lib';
+import { Npm } from '../lib/npm';
+import { WebsocketInstance } from '../../lib/websocket';
 
 export class PackageManagerController {
 	npm: Npm;
@@ -18,14 +18,14 @@ export class PackageManagerController {
 			this.npm.exec('install', [name, '--save'], null, (data, error) => {
 				this.app.logger.log(data);
 			}).then(data => {
-				this.app.watcher.enable()
+				this.app.watcher.enable();
 				return res.status(200).send({data});
 			}).catch(err => {
-				this.app.watcher.enable()
+				this.app.watcher.enable();
 				return res.status(501).send(err);
-			})
-		} catch(e) {
-			this.app.watcher.enable()
+			});
+		} catch (e) {
+			this.app.watcher.enable();
 			return res.status(502).send(e);
 		}
 	}
@@ -44,7 +44,7 @@ export class PackageManagerController {
 				this.app.watcher.enable();
 				return res.status(500).send(e);
 			});
-		} catch(e) {
+		} catch (e) {
 			this.app.watcher.enable();
 			return res.status(502).send(e);
 		}
@@ -62,7 +62,7 @@ export class PackageManagerController {
 				this.app.watcher.enable();
 				return res.status(500).send(e);
 			});
-		} catch(e) {
+		} catch (e) {
 			this.app.watcher.enable();
 			return res.status(502).send(e);
 		}
@@ -82,7 +82,7 @@ export class PackageManagerController {
 				this.app.watcher.enable();
 				return res.status(501).send(err);
 			});
-		} catch(e) {
+		} catch (e) {
 			this.app.watcher.enable();
 			return res.status(502).send(e);
 		}

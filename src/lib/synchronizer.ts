@@ -11,53 +11,53 @@ export class Synchronizer {
 
 	diff(): Promise<IDatabaseDiffs> {
 		return this.app.database.interface.showTables().then((dbTables) => {
-			let entities = this.app.entities.findAll().filter((entity: Entity): entity is DBEntity => entity instanceof DBEntity);
-			let diffs = this._diffMap(entities, dbTables);
+			const entities = this.app.entities.findAll().filter((entity: Entity): entity is DBEntity => entity instanceof DBEntity);
+			const diffs = this._diffMap(entities, dbTables);
 			return Promise.resolve(diffs);
-		})
+		});
 	}
 
 	entitiesToDatabase(diffs: IDatabaseDiffs, options?: IApplyOptions): Promise<IActionData[]> {
-		options = Object.assign({}, options || {})
-		options.history = false
-		options.apply = false
-		options.save = false
+		options = Object.assign({}, options || {});
+		options.history = false;
+		options.apply = false;
+		options.save = false;
 
-		let actions = []
-		for (let type of ['relations', 'fields', 'entities']) {
-			for (let action of diffs[type]) {
-				actions.push(action)
+		const actions = [];
+		for (const type of ['relations', 'fields', 'entities']) {
+			for (const action of diffs[type]) {
+				actions.push(action);
 			}
 		}
-		return this.app.history.revert(actions, options)
+		return this.app.history.revert(actions, options);
 	}
 
 	databaseToEntities(diffs: IDatabaseDiffs, options?: IApplyOptions): Promise<IActionData[]> {
-		options = Object.assign({}, options || {})
-		options.history = false
-		options.db = false
+		options = Object.assign({}, options || {});
+		options.history = false;
+		options.db = false;
 
-		let actions = []
+		let actions = [];
 		actions = this._constructEntitiesDiffs(diffs['entities']);
-		for (let type of ['fields', 'relations']) {
-			for (let action of diffs[type]) {
-				actions.push(action)
+		for (const type of ['fields', 'relations']) {
+			for (const action of diffs[type]) {
+				actions.push(action);
 			}
 		}
 		return this.app.history.apply(actions, options)
 			.then(() => this.app.entities.sync())
-			.then(() => actions)
+			.then(() => actions);
 	}
 
-	private _compareField(dbfield, field, entity):any {
-		let props = ['name', 'type', 'primary', 'required', 'autoIncrement', 'default', 'defaultValue', 'onUpdate', 'onDelete'];
-		let diff = [{},{}] as any;
+	private _compareField(dbfield, field, entity): any {
+		const props = ['name', 'type', 'primary', 'required', 'autoIncrement', 'default', 'defaultValue', 'onUpdate', 'onDelete'];
+		const diff = [{}, {}] as any;
 		let found = false;
 
 		if (field.defaultValue === Sequelize.NOW) {
 			field.defaultValue = 'now()';
 		}
-		for (let k of props) {
+		for (const k of props) {
 			if (Array.isArray(dbfield[k])) {
 				if (dbfield[k].indexOf(field[k]) == -1) {
 					diff[0][k] = dbfield[k][0];
@@ -82,9 +82,9 @@ export class Synchronizer {
 			(typeof field.unique == 'string') &&
 			entity.getUniqueFields(field.unique).length == 1)
 		) {
-			diff[0].unique = dbfield.unique
-			diff[1].unique = field.unique
-			found = true
+			diff[0].unique = dbfield.unique;
+			diff[1].unique = field.unique;
+			found = true;
 		} else if (dbfield.primary && dbfield.number && dbfield.autoIncrement) {
 			diff[0].unique = true;
 		}
@@ -95,7 +95,7 @@ export class Synchronizer {
 		return diff;
 	}
 
-	private _constructEntitiesDiffs(entitiesDiffs: IDatabaseDiffs["entities"]) {
+	private _constructEntitiesDiffs(entitiesDiffs: IDatabaseDiffs['entities']) {
 		let result = [];
 		if (entitiesDiffs && entitiesDiffs.length) {
 			const entitiesWithoutRelationsDiffs = entitiesDiffs.filter(diff =>
@@ -119,16 +119,19 @@ export class Synchronizer {
 				diff.redo.type !== MigrationType.CREATE_ENTITY
 				)
 			);
-			result = [...result, ...otherEntitiesDiffs]
+			result = [...result, ...otherEntitiesDiffs];
 		}
 		return result;
 	}
 
-	private _sortCreateEntitiesDiffsWithRelations(entitiesWithRelationsDiffs: IDatabaseDiffs["entities"], loadedDiffs: IDatabaseDiffs["entities"]) {
+	private _sortCreateEntitiesDiffsWithRelations(
+		entitiesWithRelationsDiffs: IDatabaseDiffs['entities'],
+		loadedDiffs: IDatabaseDiffs['entities']
+	) {
 		let finish = true;
 		entitiesWithRelationsDiffs.forEach(diff => {
 			const relatedEntities = diff.redo.value.relations.map((relation: IRelation) => relation.reference.entity);
-			const alreadyLoadedEntitiesInDiffs = loadedDiffs.map(diff => diff.redo.value.name);
+			const alreadyLoadedEntitiesInDiffs = loadedDiffs.map(d => d.redo.value.name);
 			const alreadyLoadedEntities = [...this.app.entities.findAll().map(e => e.name), ...alreadyLoadedEntitiesInDiffs];
 			let missing = false;
 			relatedEntities.forEach(entityName => {
@@ -149,7 +152,7 @@ export class Synchronizer {
 	}
 
 	private _compareRelation(rel1, rel2) {
-		return rel1.entity != rel2.entity || rel2.field != rel2.field
+		return rel1.entity != rel2.entity || rel2.field != rel2.field;
 	}
 
 	private _diffRelation(entity, dbField, field, diffs) {
@@ -157,9 +160,9 @@ export class Synchronizer {
 			if (dbField.unique && entity.isRelation) {
 				return true;
 			}
-			let relations = entity.getRelations()
-			let found = false
-			for (let relation of relations) {
+			const relations = entity.getRelations();
+			let found = false;
+			for (const relation of relations) {
 				if (relation.field != dbField.name) {
 					continue;
 				}
@@ -177,7 +180,7 @@ export class Synchronizer {
 							table: entity.name,
 							value: relation
 						}
-					})
+					});
 					diffs.relations.push({
 						redo: {
 							type: MigrationType.ADD_RELATION,
@@ -195,13 +198,13 @@ export class Synchronizer {
 								reference: dbField.fk
 							}
 						}
-					})
+					});
 				} else if (field) {
-					let fieldDiff = this._compareField(dbField, field, entity)
+					const fieldDiff = this._compareField(dbField, field, entity);
 					if ( fieldDiff ) {
 						// the field has custom properties so add to fields or revert on db.
-						dbField.read = field.read
-						dbField.write = field.write
+						dbField.read = field.read;
+						dbField.write = field.write;
 						diffs.fields.push({
 							redo: {
 								type: MigrationType.CHANGE_FIELD,
@@ -215,7 +218,7 @@ export class Synchronizer {
 								name: field.name,
 								value: fieldDiff[1]
 							}
-						})
+						});
 					}
 				}
 			}
@@ -237,9 +240,9 @@ export class Synchronizer {
 							reference: dbField.fk
 						}
 					}
-				})
+				});
 			}
-			return true
+			return true;
 		} else if (field) {
 			// if a field is a relation and a simple field in db
 			if (field.isRelation) {
@@ -254,7 +257,7 @@ export class Synchronizer {
 						table: entity.name,
 						value: field.isRelation
 					}
-				})
+				});
 				diffs.fields.push({
 					redo: {
 						type: MigrationType.ADD_FIELD,
@@ -266,22 +269,22 @@ export class Synchronizer {
 						table: entity.name,
 						value: field.name
 					}
-				})
-				return true
+				});
+				return true;
 			}
 		}
-		return false
+		return false;
 	}
 
 	private _diffEntity(entity, dbTable, diffs) {
-		let dbFields = {}
-		let isRelationTable = []
-		for (let _dbField of dbTable) {
+		const dbFields = {};
+		const isRelationTable = [];
+		for (const _dbField of dbTable) {
 			if ( _dbField.fk && _dbField.unique) {
 				isRelationTable.push({
 					as: _dbField.name,
 					entity: _dbField.fk.entity
-				})
+				});
 			}
 		}
 
@@ -308,7 +311,7 @@ export class Synchronizer {
 						reference: isRelationTable[1]
 					}
 				}
-			})
+			});
 			diffs.relations.push({
 				redo: {
 					type: MigrationType.ADD_RELATION,
@@ -330,25 +333,25 @@ export class Synchronizer {
 						reference: isRelationTable[0]
 					}
 				}
-			})
+			});
 		}
 
-		for (let _dbField of dbTable) {
-			let dbField = this.app.database.interface.columnToField(_dbField)
-			dbField.fk = _dbField.fk
-			dbFields[dbField.name] = dbField
-			let field = entity.getField(dbField.name)
+		for (const _dbField of dbTable) {
+			const dbField = this.app.database.interface.columnToField(_dbField);
+			dbField.fk = _dbField.fk;
+			dbFields[dbField.name] = dbField;
+			const field = entity.getField(dbField.name);
 
 			if (isRelationTable.length != 2 && this._diffRelation(entity, dbField, field, diffs)) {
-				continue
+				continue;
 			}
 
 			if (field) {
-				let fieldDiff = this._compareField(dbField, field, entity)
+				const fieldDiff = this._compareField(dbField, field, entity);
 				if (fieldDiff[0] && ! fieldDiff[0].fk) {
 					// update field to db properties
-					dbField.read = field.read
-					dbField.write = field.write
+					dbField.read = field.read;
+					dbField.write = field.write;
 					diffs.fields.push({
 						redo: {
 							type: MigrationType.CHANGE_FIELD,
@@ -362,7 +365,7 @@ export class Synchronizer {
 							name: field.name,
 							value: fieldDiff[1]
 						}
-					})
+					});
 				}
 			} else if ( ! dbField.fk) {
 				// add field that are in db
@@ -377,12 +380,12 @@ export class Synchronizer {
 						table: entity.name,
 						value: dbField.name
 					}
-				})
+				});
 			}
 		}
 
 		// delete fields that are not in db
-		for (let field of entity.getFields()) {
+		for (const field of entity.getFields()) {
 			if ( ! dbFields[field.name] && ! field.isRelation) {
 				diffs.fields.push({
 					redo: {
@@ -395,12 +398,12 @@ export class Synchronizer {
 						table: entity.name,
 						value: field.toJson()
 					}
-				})
+				});
 			}
 		}
 
 		// delete relations that are not in db
-		for (let relation of entity.getRelations()) {
+		for (const relation of entity.getRelations()) {
 			if ( ! dbFields[relation.field] && relation.type == 'belongsTo' && ! relation.implicit) {
 				// delete relation
 				diffs.relations.push({
@@ -414,30 +417,29 @@ export class Synchronizer {
 						table: entity.name,
 						value: relation
 					}
-				})
+				});
 			}
 		}
 	}
 
 
 	private _diffEntities(entities, dbTables, diffs) {
-		let tableCompared = []
-		for (let entity of entities) {
+		const tableCompared = [];
+		for (const entity of entities) {
 			tableCompared[entity.name] = entity;
 			if (dbTables[entity.name]) {
-				//compare fields
-				this._diffEntity(entity, dbTables[entity.name], diffs)
-			}
-			else if (entity.isRelation) {
+				// compare fields
+				this._diffEntity(entity, dbTables[entity.name], diffs);
+			} else if (entity.isRelation) {
 				let relation = {
-					type: "belongsToMany",
+					type: 'belongsToMany',
 					through: entity.name,
 					as: entity.isRelation[0].as,
 					reference: {
 						entity: entity.isRelation[1].entity,
 						as: entity.isRelation[1].as
 					}
-				}
+				};
 				diffs.relations.push({
 					redo: {
 						type: MigrationType.DELETE_RELATION,
@@ -449,17 +451,17 @@ export class Synchronizer {
 						table: entity.isRelation[0].entity,
 						value: relation
 					}
-				})
+				});
 
 				relation = {
-					type: "belongsToMany",
+					type: 'belongsToMany',
 					through: entity.name,
 					as: entity.isRelation[1].as,
 					reference: {
 						entity: entity.isRelation[0].entity,
 						as: entity.isRelation[0].as
 					}
-				}
+				};
 				diffs.relations.push({
 					redo: {
 						type: MigrationType.DELETE_RELATION,
@@ -471,7 +473,7 @@ export class Synchronizer {
 						table: entity.isRelation[1].entity,
 						value: relation
 					}
-				})
+				});
 			} else {
 				diffs.entities.push({
 					redo: {
@@ -483,22 +485,22 @@ export class Synchronizer {
 						table: entity.name,
 						value: entity.toJson()
 					}
-				})
+				});
 			}
 		}
 
-		for (let table in dbTables) {
+		for (const table in dbTables) {
 			// if table exists in db but not in entities
 			if ( ! tableCompared[table]) {
-				let fields = []
-				let relations = []
-				let isRelation = []
-				for (let field of dbTables[table]) {
+				const fields = [];
+				let relations = [];
+				let isRelation = [];
+				for (const field of dbTables[table]) {
 					if ( field.fk ) {
 						const relation: IRelation = {
 							field: field.name,
 							reference: field.fk
-						}
+						};
 						if (field.unique) {
 							if (field.unique === true) {
 								relation.unique = true;
@@ -506,36 +508,36 @@ export class Synchronizer {
 							isRelation.push({
 								field: field.name,
 								entity: field.fk.entity
-							})
+							});
 						}
-						relations.push(relation)
-						if((field.onDelete !== 'CASCADE') || (field.onUpdate !== 'CASCADE')) {
+						relations.push(relation);
+						if ((field.onDelete !== 'CASCADE') || (field.onUpdate !== 'CASCADE')) {
 							if ( ! field.onDelete) {
 								field.onDelete = 'NO ACTION';
 							}
 							if ( ! field.onUpdate) {
 								field.onUpdate = 'NO ACTION';
 							}
-							fields.push(this.app.database.interface.flattenField(this.app.database.interface.columnToField(field)))
+							fields.push(this.app.database.interface.flattenField(this.app.database.interface.columnToField(field)));
 						}
 					} else {
-						fields.push(this.app.database.interface.flattenField(this.app.database.interface.columnToField(field)))
+						fields.push(this.app.database.interface.flattenField(this.app.database.interface.columnToField(field)));
 					}
 				}
 
 				if (isRelation.length != 2) {
-					isRelation = undefined
+					isRelation = undefined;
 				} else {
-					relations = undefined
+					relations = undefined;
 					let relation = {
-						type: "belongsToMany",
+						type: 'belongsToMany',
 						through: table,
 						as: isRelation[0].field,
 						reference: {
 							entity: isRelation[1].entity,
 							as: isRelation[1].field
 						}
-					}
+					};
 					diffs.relations.push({
 						redo: {
 							type: MigrationType.ADD_RELATION,
@@ -546,17 +548,17 @@ export class Synchronizer {
 							table: isRelation[0].entity,
 							value: relation
 						}
-					})
+					});
 
 					relation = {
-						type: "belongsToMany",
+						type: 'belongsToMany',
 						through: table,
 						as: isRelation[1].field,
 						reference: {
 							entity: isRelation[0].entity,
 							as: isRelation[0].field
 						}
-					}
+					};
 					diffs.relations.push({
 						redo: {
 							type: MigrationType.ADD_RELATION,
@@ -567,16 +569,16 @@ export class Synchronizer {
 							table: isRelation[1].entity,
 							value: relation
 						}
-					})
+					});
 				}
 
-				let tableDesc = {
+				const tableDesc = {
 					name: table,
 					fields: fields,
 					queries: [],
 					isRelation: isRelation,
 					relations: relations
-				}
+				};
 
 				diffs.entities.push({
 					redo: {
@@ -588,22 +590,22 @@ export class Synchronizer {
 						type: MigrationType.DELETE_ENTITY,
 						table: table
 					}
-				})
+				});
 			}
 		}
 	}
 
 	private _diffMap(entities, dbTables) {
-		let diffs = {
+		const diffs = {
 			entities: [],
 			fields: [],
 			relations: [],
 			length: 0
-		}
+		};
 
-		this._diffEntities(entities, dbTables, diffs)
+		this._diffEntities(entities, dbTables, diffs);
 
-		diffs.length = diffs.entities.length + diffs.fields.length + diffs.relations.length
-		return diffs
+		diffs.length = diffs.entities.length + diffs.fields.length + diffs.relations.length;
+		return diffs;
 	}
 }
