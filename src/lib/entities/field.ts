@@ -2,6 +2,7 @@ import { Entity } from './entity'
 import { MateriaError } from '../error'
 
 import { Validator } from './validator'
+import sequelize = require('sequelize');
 
 export interface IField {
 	name?: string
@@ -93,7 +94,10 @@ export class Field implements IFieldUpdate {
 			this.onUpdate = field.onUpdate
 			this.onDelete = field.onDelete
 			if (field.default && field.defaultValue != undefined) {
-				this.defaultValue = field.defaultValue
+				this.defaultValue = field.defaultValue;
+				if (field.type === 'date' && field.defaultValue === 'now()') {
+					this.defaultValue = sequelize.NOW;
+				}
 			}
 			this.type = field.type || FieldType.TEXT
 			if (this.type == 'string') {
@@ -167,6 +171,9 @@ export class Field implements IFieldUpdate {
 
 		if (this.default && this.defaultValue != undefined) {
 			res.defaultValue = this.defaultValue
+			if (this.defaultValue === sequelize.NOW) {
+				res.defaultValue = 'now()';
+			}
 		}
 
 		if (res.default && res.defaultValue != undefined) {
