@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { IAddon } from '@materia/interfaces';
+import { IEndpoint } from '@materia/interfaces';
 
 import { App } from '../app';
 import { MateriaError } from '../error';
@@ -39,29 +39,12 @@ export interface IParam {
 		}
 	}
 */
-export interface IEndpoint {
-	name?: string,
-	method: string,
-	url: string,
-	controller?: string,
-	action?: string,
-	query?: {
-		entity: any,
-		id: any
-	},
-	params?: Array<any>,
-	parent?: string,
-	// data?: any[],
-	permissions?: Array<string>,
-	fromAddon?: IAddon
-}
 
 export class Endpoint {
 	name: string;
 	method: string;
 	url: string;
-	fromAddon?: IAddon;
-	parent?: string;
+	fromAddon?: IEndpoint['fromAddon'];
 
 	entity: Entity;
 	params: Array<IParam>;
@@ -86,7 +69,6 @@ export class Endpoint {
 		// this.name = endpointConfig.name
 		// this.desc = endpointConfig.desc
 		this.url = endpointConfig.url;
-		this.parent = endpointConfig.parent;
 		this.fromAddon = endpointConfig.fromAddon;
 
 		this.params = [];
@@ -115,8 +97,6 @@ export class Endpoint {
 			let entity_name;
 			if (typeof endpointConfig.query.entity == 'string') {
 				entity_name = endpointConfig.query.entity;
-			} else {
-				entity_name = endpointConfig.query.entity.name;
 			}
 
 			this.entity = this.app.entities.get(entity_name);

@@ -142,7 +142,7 @@ export class PermissionsController {
 					const index = endpoint.permissions.indexOf(oldPermission.name);
 					endpoint.permissions[index] = permission.name;
 					const endpointIndex = this.app.api.endpoints.findIndex(e => e.method + e.url === endpoint.method + endpoint.url);
-					this.app.api.put(endpoint, endpointIndex, {save: true});
+					this.app.api.put(endpoint.toJson(), endpointIndex, {save: true});
 				});
 				this.app.api.updateEndpoints();
 			}

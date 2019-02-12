@@ -3,10 +3,10 @@ import chalk from 'chalk';
 import { join, sep, resolve, dirname } from 'path';
 import * as fse from 'fs-extra';
 import {
-	IAddon,
 	IAppConfig,
 	IDatabaseConfig,
-	IServerConfig
+	IServerConfig,
+	IEndpoint
 } from '@materia/interfaces';
 
 import { Logger } from './logger';
@@ -59,7 +59,7 @@ export interface IApplyOptions extends ISaveOptions {
 	save?: boolean
 	db?: boolean
 	wait_relations?: boolean
-	fromAddon?: IAddon
+	fromAddon?: IEndpoint['fromAddon']
 }
 
 export enum AppMode {
@@ -168,15 +168,6 @@ export class App extends events.EventEmitter {
 		this.status = false;
 
 		this.selfMigration = new SelfMigration(this);
-	}
-
-	private doSelfMigrations() {
-		if ( this.selfMigration ) {
-			return this.selfMigration.check().then(() => {
-				delete this.selfMigration;
-			});
-		}
-		return Promise.resolve();
 	}
 
 
@@ -469,29 +460,6 @@ manual_scaling:
 			.then(() => { this.status = false; });
 	}
 
-	private _getFile(file, p) {
-		return new Promise((accept, reject) => {
-			fse.lstat(join(p, file), (err, stats) => {
-				if ( err ) {
-					return reject( err );
-				}
-				if (stats.isDirectory()) {
-					this.getAllFiles(file, join(p, file)).then((res) => {
-						accept(res);
-					}).catch((e) => {
-						reject(e);
-					});
-				} else {
-					accept({
-						filename: file,
-						path: p,
-						fullpath: join(p, file)
-					});
-				}
-			});
-		});
-	}
-
 	getAllFiles(name, p) {
 		name = name || this.name;
 		p = p || this.path;
@@ -586,22 +554,6 @@ manual_scaling:
 		return p;
 	}
 
-	private _getWatchableFiles(files) {
-		const res = [];
-		for (const file of files) {
-			if ( ! Array.isArray(file.children)) {
-				const filenameSplit = file.filename.split('.');
-				if (['json', 'js', 'coffee', 'sql'].indexOf(filenameSplit[filenameSplit.length - 1]) != -1) {
-					res.push(file);
-				}
-			} else {
-				const t = this._getWatchableFiles(file.children);
-				t.forEach((a) => { res.push(a); });
-			}
-		}
-		return res;
-	}
-
 	getWatchableFiles() {
 		const files = this.getFiles(5);
 		return this._getWatchableFiles(files.children);
@@ -640,5 +592,53 @@ manual_scaling:
 	getMateriaVersion() {
 		const pkg = require('../package.json');
 		return pkg.version;
+	}
+
+	private doSelfMigrations() {
+		if ( this.selfMigration ) {
+			return this.selfMigration.check().then(() => {
+				delete this.selfMigration;
+			});
+		}
+		return Promise.resolve();
+	}
+
+	private _getFile(file, p) {
+		return new Promise((accept, reject) => {
+			fse.lstat(join(p, file), (err, stats) => {
+				if ( err ) {
+					return reject( err );
+				}
+				if (stats.isDirectory()) {
+					this.getAllFiles(file, join(p, file)).then((res) => {
+						accept(res);
+					}).catch((e) => {
+						reject(e);
+					});
+				} else {
+					accept({
+						filename: file,
+						path: p,
+						fullpath: join(p, file)
+					});
+				}
+			});
+		});
+	}
+
+	private _getWatchableFiles(files) {
+		const res = [];
+		for (const file of files) {
+			if ( ! Array.isArray(file.children)) {
+				const filenameSplit = file.filename.split('.');
+				if (['json', 'js', 'coffee', 'sql'].indexOf(filenameSplit[filenameSplit.length - 1]) != -1) {
+					res.push(file);
+				}
+			} else {
+				const t = this._getWatchableFiles(file.children);
+				t.forEach((a) => { res.push(a); });
+			}
+		}
+		return res;
 	}
 }
