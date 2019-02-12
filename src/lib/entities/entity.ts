@@ -156,8 +156,17 @@ export abstract class Entity {
 
 		this.name = entityobj.name
 		this.id = entityobj.id || uuid()
-		this.x = entityobj.x
-		this.y = entityobj.y
+		if (entityobj.x && entityobj.y) {
+			this.x = entityobj.x;
+			this.y = entityobj.y;
+		} else {
+			this.app.config.reloadConfig();
+			const entityPosition = this.app.config.entitiesPosition[entityobj.name];
+			if (entityPosition) {
+				this.x = entityPosition.x;
+				this.y = entityPosition.y;
+			}
+		}
 		this.fields = []
 		this.relations = []
 		this.queries = []
@@ -174,10 +183,11 @@ export abstract class Entity {
 
 		if (entityobj.relations) {
 			entityobj.relations.forEach((relation) => {
-				if (options.wait_relations)
+				if (options.wait_relations) {
 					this.relations_queue.push({relation:relation, options:{history:false, save:false, db:false}})
-				else
+				} else {
 					promises.push(this.addRelation(relation, {history:false, save:false, db:false}))
+				}
 			})
 		}
 
@@ -225,7 +235,7 @@ export abstract class Entity {
 		})
 	}
 
-	save(opts?): Promise<void> {
+	save(): Promise<void> {
 		if (this.fromAddon) {
 			return Promise.resolve();
 		}
@@ -259,7 +269,7 @@ export abstract class Entity {
 			}
 		})
 		this.app.config.set(newEntitiesPositionConfig, null, ConfigType.ENTITIES_POSITION);
-		return this.app.config.save().then(() => this.save());
+		return this.app.config.save();
 	}
 
 	/**
@@ -272,7 +282,7 @@ export abstract class Entity {
 	 Returns all asociated entities
 	 @returns {Array<Relation>}
 	 */
-	getRelatedEntities():Array<IRelation> {
+	getRelatedEntities():Entity[] {
 		let associatedEntity = {}
 		let entities = this.app.entities.entities
 		for (let name in entities) {
@@ -559,7 +569,7 @@ export abstract class Entity {
 						}
 						p = p.then(() => {
 							if (options.save) {
-								return throughEntity.save(options)
+								return throughEntity.save()
 							}
 						})
 					}
@@ -601,7 +611,8 @@ export abstract class Entity {
 		if ( ! p) {
 			p = Promise.resolve()
 		}
-		return p.then(() => {
+		return p.then((result) => {
+
 			if (options.history != false) {
 				this.app.history.push({
 					type: MigrationType.ADD_RELATION,
@@ -693,7 +704,7 @@ export abstract class Entity {
 			}
 
 			if (options.save != false) {
-				return this.save(options)
+				return this.save()
 			}
 		})
 	}
@@ -756,31 +767,31 @@ export abstract class Entity {
 	*/
 	updateField(name:string, newfield:IFieldUpdate, options?):Promise<Field> {
 		return new Promise((accept, reject) => {
-			options = options || {}
+			options = options || {};
 
 			if (! name) {
-				return reject()
+				return reject();
 			}
 
-			let fieldobj
+			let fieldobj;
 			try {
-				fieldobj = new Field(this, newfield)
+				fieldobj = new Field(this, newfield);
 			} catch(e) {
-				return reject(e)
+				return reject(e);
 			}
 
 			let done = () => {
 				if (options.apply != false && fieldobj.name != name) {
 					for (let relation of this.relations) {
 						if (relation.field == name) {
-							relation.field = fieldobj.name
+							relation.field = fieldobj.name;
 						}
 					}
 				}
 				this.fields.forEach((field, k) => {
 					if (field.name == name) {
 						if (options.apply != false) {
-							this.fields.splice(k, 1, fieldobj)
+							this.fields.splice(k, 1, fieldobj);
 						}
 						if (options.history != false) {
 							this.app.history.push({
@@ -793,24 +804,27 @@ export abstract class Entity {
 								table: this.name,
 								name: fieldobj.name,
 								value: field.toJson()
-							})
+							});
 						}
 					}
-				})
+				});
 
-				if (options.save != false)
-					this.save(options)
+				let p = Promise.resolve();
 
-				this.generateDefaultQueries()
+				if (options.save != false) {
+					p = p.then(() => this.save());
+				}
+
+				this.generateDefaultQueries();
+				return p;
 			}
 
 			if (options.differ) {
-				options.differ(done)
+				options.differ(done);
+				accept(fieldobj);
 			} else {
-				done()
+				done().then(() => accept(fieldobj));
 			}
-
-			accept(fieldobj)
 		})
 	}
 
@@ -864,15 +878,17 @@ export abstract class Entity {
 			})
 		}
 
+		let p = Promise.resolve();
+
 		if (options.save != false) {
-			this.save(options);
+			p = p.then(() => this.save());
 		}
 
 		if (options.generateQueries !== false) {
 			this.generateDefaultQueries()
 		}
 
-		return Promise.resolve(fieldobj)
+		return p.then(() => fieldobj);
 	}
 
 	/**
@@ -931,7 +947,7 @@ export abstract class Entity {
 
 		this.generateDefaultQueries()
 		if (options.save != false) {
-			return this.save(options)
+			return this.save()
 		}
 
 		return Promise.resolve()
@@ -1019,11 +1035,11 @@ export abstract class Entity {
 	@param {object} - Query's data
 	@param {object} - Action's options
 	*/
-	addQuery(query:IQuery, options?:IApplyOptions) {
+	addQuery(query:IQuery, options?:IApplyOptions): Promise<Query> {
 		options = options || {}
 
 		if ( ! this.queryObjects[query.type]) {
-			throw new MateriaError('Query type `' + query.type + '` not defined')
+			return Promise.reject(new MateriaError('Query type `' + query.type + '` not defined'));
 		}
 
 		//To migrate from to November release (remove params OR moved to opts if SQL / Custom queries)
@@ -1035,7 +1051,7 @@ export abstract class Entity {
 		let queryobj: Query = new QueryClass(this, query.id, query.opts)
 
 		if (options.apply != false) {
-			//check that query with `id` = id does not exist. if it exists, remove the query
+			// check that query with `id` = id does not exist. if it exists, remove the query
 			let index = this.queries.indexOf(this.queries.find(q => q.id == query.id))
 			if (index != -1) {
 				this.queries.splice(index, 1)
@@ -1058,7 +1074,9 @@ export abstract class Entity {
 		}
 
 		if (options.save != false) {
-			return this.save(options)
+			return this.save().then(() => queryobj);
+		} else {
+			return Promise.resolve(queryobj);
 		}
 	}
 
@@ -1078,13 +1096,13 @@ export abstract class Entity {
 	@param {string} - Query's name
 	@param {object} - Action's options
 	*/
-	removeQuery(id:string, options?:IApplyOptions) {
+	removeQuery(id:string, options?:IApplyOptions): Promise<void> {
 		options = options || {}
 
 		let queryobj = this.getQuery(id)
 
 		if ( ! queryobj) {
-			throw new MateriaError('Could not find query `' + id + '`')
+			return Promise.reject(new MateriaError('Could not find query `' + id + '`'));
 		}
 
 		if (options.apply != false) {
@@ -1108,7 +1126,9 @@ export abstract class Entity {
 		}
 
 		if (options.save != false) {
-			return this.save(options)
+			return this.save();
+		} else {
+			return Promise.resolve();
 		}
 	}
 
