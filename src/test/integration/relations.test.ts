@@ -2,7 +2,6 @@ import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 
 import { App } from '../../lib/app'
-// import { MateriaError } from '../../lib/error'
 import { TemplateApp } from '../mock/template-app'
 
 chai.config.truncateThreshold = 500
@@ -211,24 +210,5 @@ describe('[Relations]', () => {
 				})
 			})
 		})
-		it('should add a relation test belongsTo test', () => {
-			return app.entities.get('test').getQuery('delete').run({
-				id_test: 1
-			}).then(() => {
-				return app.entities.get('test')
-					.addRelation({
-						type: 'belongsTo',
-						field: 'id_test_2',
-						reference: {
-							entity: 'test',
-							field: 'id_test'
-						}
-				}).then(() => {
-					return app.entities.get('test').getField('id_test_2');
-				}).then((data) => {
-					data.should.exist
-				})
-			});
-		});
-	});
-});
+	})
+})

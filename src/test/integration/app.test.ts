@@ -1,7 +1,6 @@
 import * as chai from 'chai'
 import * as chaiAsPromised from 'chai-as-promised'
 
-// import { App } from '../../lib/app'
 import { TemplateApp } from '../mock/template-app'
 
 chai.config.truncateThreshold = 500
