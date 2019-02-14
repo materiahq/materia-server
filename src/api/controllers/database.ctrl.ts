@@ -13,8 +13,8 @@ export class DatabaseController {
 		this.app.database.tryDatabase(conf)
 			.then((data) => {
 				res.status(200).json(data);
-			}).catch(e => {
-				res.status(500).json(e);
+			}).catch(err => {
+				res.status(500).send({error: true, message: err.message });
 			});
 	}
 
@@ -62,7 +62,7 @@ export class DatabaseController {
 				res.status(201).json(ent.toJson());
 			}).catch(err => {
 				this.app.watcher.enable();
-				res.status(500).json(err);
+				res.status(500).send({error: true, message: err.message });
 			});
 	}
 
@@ -76,9 +76,9 @@ export class DatabaseController {
 		}).then(() => {
 			this.app.watcher.enable();
 			res.status(200).json({ entities: DatabaseLib.loadEntitiesJson(this.app), endpoints: this.app.api.findAll().map(e => e.toJson()) });
-		}).catch(e => {
+		}).catch(err => {
 			this.app.watcher.enable();
-			res.status(500).json(e);
+			res.status(500).json({ error: true, message: err.message });
 		});
 	}
 
@@ -86,7 +86,7 @@ export class DatabaseController {
 		const {x, y} = req.body;
 		const entity = this.app.entities.get(req.params.entity);
 		if ( ! entity ) {
-			return res.status(400).json(new Error(`Entity ${req.params.entity} does not exist`));
+			return res.status(400).json(new Error(`Entity "${req.params.entity}" does not exist`));
 		}
 		this.app.watcher.disable();
 		entity.move(x, y).then(() => {
@@ -94,7 +94,7 @@ export class DatabaseController {
 			res.status(200).json(entity.toJson());
 		}).catch(err => {
 			this.app.watcher.enable();
-			res.status(500).send(err);
+			res.status(500).send({ error: true, message: err.message });
 		});
 	}
 
@@ -113,9 +113,9 @@ export class DatabaseController {
 				Object.assign({}, this.app.entities.get(new_name).toJson(), {
 					name: new_name
 				}));
-			}).catch(e => {
+			}).catch(err => {
 				this.app.watcher.enable();
-				res.status(500).json(e);
+				res.status(500).send({ error: true, message: err.message });
 			});
 	}
 
@@ -125,7 +125,7 @@ export class DatabaseController {
 		const entity = this.app.entities.get(entityName);
 
 		if ( ! entity) {
-			return res.status(400).send(new MateriaError(`Entity ${req.params.entity} does not exists`));
+			return res.status(400).send({error: true, message: `Entity "${entityName}" does not exists`});
 		}
 
 		if (field.primary) {
@@ -184,7 +184,7 @@ export class DatabaseController {
 			return res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
 		}).catch(err => {
 			this.app.watcher.enable();
-			return res.status(500).send(err);
+			return res.status(500).send({ error: true, message: err.message });
 		});
 	}
 
@@ -201,7 +201,7 @@ export class DatabaseController {
 			'utf-8',
 			(err, data) => {
 				if (err) {
-					return res.status(500).json(err);
+					return res.status(500).send({ error: true, message: err.message });
 				}
 				if (data) {
 					const code = data.toString();
@@ -214,13 +214,13 @@ export class DatabaseController {
 	}
 
 	removeField(req, res) {
-		const { entityName, field } = req.params;
-		const entity = this.app.entities.get(entityName);
-		if ( ! entity) {
-			return res.status(400).send(new MateriaError(`Entity ${entityName} does not exists`));
+		const { entity, field } = req.params;
+		const entityInstance = this.app.entities.get(entity);
+		if ( ! entityInstance) {
+			return res.status(400).send({error: true, message: `Entity "${entity}" does not exists`});
 		}
 		this.app.watcher.disable();
-		entity.removeField(field, {
+		entityInstance.removeField(field, {
 			save: true,
 			apply: true,
 			history: true
@@ -229,9 +229,9 @@ export class DatabaseController {
 			this.app.watcher.enable();
 			res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
 		})
-		.catch(e => {
+		.catch(err => {
 			this.app.watcher.enable();
-			res.status(500).json(e);
+			res.status(500).send({ error: true, message: err.message });
 		});
 	}
 
@@ -239,7 +239,7 @@ export class DatabaseController {
 		const entity = this.app.entities.get(req.params.entity);
 		const query = req.body;
 		if ( ! entity) {
-			return res.status(400).send(new MateriaError(`Entity ${req.params.entity} does not exists`));
+			return res.status(400).send(new MateriaError(`Entity "${req.params.entity}" does not exists`));
 		}
 		this.app.watcher.disable();
 		let p = Promise.resolve();
@@ -267,14 +267,14 @@ export class DatabaseController {
 			res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
 		}).catch(err => {
 			this.app.watcher.enable();
-			res.status(500).send(err);
+			res.status(500).send({ error: true, message: err.message });
 		});
 	}
 
 	removeQuery(req, res) {
 		const entity = this.app.entities.get(req.params.entity);
 		if ( ! entity) {
-			return res.status(400).send(new MateriaError(`Entity ${req.params.entity} does not exists`));
+			return res.status(400).send(new MateriaError(`Entity "${req.params.entity}" does not exists`));
 		}
 		this.app.watcher.disable();
 		entity.removeQuery(req.params.queryId).then(() => {
@@ -282,21 +282,21 @@ export class DatabaseController {
 			res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
 		}).catch(err => {
 			this.app.watcher.enable();
-			res.status(500).send(err);
+			res.status(500).send({ error: true, message: err.message });
 		});
 	}
 
 	runQuery(req, res) {
-		const {entityName, queryId} = req.params;
+		const {entity, queryId} = req.params;
 
-		const entity = this.app.entities.get(entityName);
+		const entityInstance = this.app.entities.get(entity);
 		if ( ! entity ) {
-			return res.status(400).json(new Error(`Entity ${entityName} does not exists`));
+			return res.status(400).send({error: true, message: `Entity "${entity}" does not exists`});
 		}
-		const query: any = entity.getQuery(queryId);
+		const query: any = entityInstance.getQuery(queryId);
 
 		if ( ! query ) {
-			return res.status(400).json(new Error(`Query ${queryId} does not exists (${entityName})`));
+			return res.status(400).send({error: true, message: `Query "${queryId}" does not exists (${entity})`});
 		}
 		query.run(req.body, { raw: true })
 			.then((response: any) => {
@@ -316,7 +316,7 @@ export class DatabaseController {
 			}).then(data => {
 				res.status(200).json(data);
 			}).catch(error => {
-				res.status(400).send(error.message);
+				res.status(500).send({ error: true, message: error.message });
 			});
 	}
 
@@ -345,7 +345,10 @@ export class DatabaseController {
 				});
 			}
 		}).catch(err => {
-			res.status(500).send(err);
+			res.status(500).send({
+				error: true,
+				message: err.message
+			});
 		});
 	}
 
@@ -367,7 +370,8 @@ export class DatabaseController {
 		} catch (e) {
 			this.app.watcher.enable();
 			res.status(400).json({
-				error: e.message
+				error: true,
+				message: e.message
 			});
 		}
 	}
@@ -385,7 +389,7 @@ export class DatabaseController {
 			);
 		} else {
 			this.app.watcher.enable();
-			res.status(400).json({ error: `Action id '${req.params.id}' not found.`});
+			res.status(400).json({ error: true, message: `Action id "${req.params.id}" not found.`});
 		}
 	}
 
@@ -418,14 +422,19 @@ export class DatabaseController {
 				});
 			}).catch(err => {
 				this.app.watcher.enable();
-				res.status(500).send(err.message);
+				res.status(500).send({ error: true, message: err.message });
 			});
 	}
 
 	removeRelation(req, res) {
 		let relation = null;
 		const type = req.params.type;
+
 		let entity = this.app.entities.get(req.params.entity);
+		if ( ! entity) {
+			return res.status(400).send({error: true, message: `Entity "${req.params.entity}" does not exists`});
+		}
+
 		if (type === 'belongsToMany') {
 			const entityRelation = req.params.relationFieldOrEntity;
 			relation = entity.getBelongsToManyRelation(entityRelation);
@@ -433,16 +442,15 @@ export class DatabaseController {
 			const field = req.params.relationFieldOrEntity;
 			relation = entity.getRelationByField(field);
 		}
-		if (! relation) {
-			return res.status(400).send('Relation not found');
-		}
 		if (relation.type === 'hasMany' || relation.type === 'hasOne') {
 			entity = this.app.entities.get(relation.reference.entity);
 			relation = entity.getRelationByField(relation.reference.field);
 		}
-		if ( ! entity) {
-			return res.status(400).send(new MateriaError(`Entity ${req.params.entity} does not exists`));
+
+		if ( ! relation) {
+			return res.status(400).send({error: true, message: 'Relation not found'});
 		}
+
 		this.app.watcher.disable();
 		entity.removeRelation(relation, {
 			save: true,
@@ -460,7 +468,7 @@ export class DatabaseController {
 			});
 		}).catch(err => {
 			this.app.watcher.enable();
-			res.status(500).send(err.message);
+			res.status(500).send({error: true, message: err.message});
 		});
 	}
 
@@ -470,20 +478,23 @@ export class DatabaseController {
 				type: 'sql'
 			})
 			.then(data => {
-				res.status(200).json({
+				const result: any = {
 					data: data,
-					count: data.length,
-					from: 'playground'
-				});
+					count: data.length
+				}
+				if (req.body.from) {
+					result.from = req.body.from;
+				}
+				res.status(200).json(result);
 			})
-			.catch(err => res.status(500).send(err.message));
+			.catch(err => res.status(500).send({error: true, message: err.message}));
 	}
 
 	getDiffs(req, res) {
 		return this.app.synchronizer.diff().then((diffs) => {
 			res.status(200).send(diffs);
 		}).catch(err => {
-			res.status(500).send(err.message);
+			res.status(500).send({ error: true, message: err.message });
 		});
 
 	}
@@ -511,10 +522,10 @@ export class DatabaseController {
 					res.status(200).send(result);
 				}).catch(err => {
 					this.app.watcher.enable();
-					res.status(500).send(err.message);
+					res.status(500).send({ error: true, message: err.message });
 				});
 		} else {
-			return res.status(500).send(new Error(`Sync type '${type}' not found`));
+			return res.status(500).send({ error: true, message: `Sync type "${type}" not found` });
 		}
 	}
 }
