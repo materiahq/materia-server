@@ -1,7 +1,7 @@
 import * as chokidar from 'chokidar';
-// import { cs_watcher } from './watcher_win32/cs_watcher';
-import { App, AppMode } from './app';
 import chalk from 'chalk';
+
+import { App, AppMode } from './app';
 
 export enum WatcherEventType {
 	INIT,
@@ -12,39 +12,26 @@ export enum WatcherEventType {
 	UNLINK
 }
 
-export interface IWatcherEvent {
-	type: WatcherEventType;
-	path: string;
-}
-
-// paths:
-// [ 'server/**/*.json', 'server/]
-
 export class Watcher {
-	win32Watcher: any;
 	chokidarWatcher: any;
-	// watchersTable: any;
 	watchCallback: any;
 	watcherListeners: any;
-	// watchersLocks: number;
 	watcherState: any;
-
 	disabled = false;
 
-	constructor(private app: App) {
-	}
+	constructor(private app: App) { }
 
-	enable() {
+	enable(): void {
 		setTimeout(() => {
 			this.disabled = false;
 		}, 200);
 	}
 
-	disable() {
+	disable(): void {
 		this.disabled = true;
 	}
 
-	load() {
+	load(): void {
 		if (this.app.mode === AppMode.DEVELOPMENT) {
 			this.watch(['*.json', 'server/**/*.json'], (p, type) => {
 				if ( ! this.disabled) {
@@ -55,38 +42,16 @@ export class Watcher {
 		}
 	}
 
-	watch(path, callback) {
+	watch(path, callback): void {
 		this.dispose();
 
-		// this.watchersLocks = 0;
 		this.watcherListeners = {};
 		this.watchCallback = callback;
 
-		// this.watchersTable = {};
-		// this.actions = {
-		// 	beforeSave: p => {
-		// 		this.watchersLocks++;
-		// 		if (p) {
-		// 			this.watchersTable[path] = setTimeout(() => {
-		// 				// lock timeout
-		// 				delete this.watchersTable[path];
-		// 			}, 10000);
-		// 		}
-		// 	},
-		// 	afterSave: () => {
-		// 		setTimeout(() => {
-		// 			this.watchersLocks--;
-		// 		}, 1000);
-		// 	}
-		// };
-
-		// if (process.platform == 'win32') {
-		// 	this._watchWin32(path);
-		// } else {
-			this._watchChokidar(path);
-		// }
+		this._watchChokidar(path);
 	}
-	dispose() {
+
+	dispose(): Promise<void> {
 		if (this.chokidarWatcher) {
 			this.chokidarWatcher.removeListener('add', this._addEvent);
 			this.chokidarWatcher.removeListener('change', this._changeEvent);
@@ -94,20 +59,10 @@ export class Watcher {
 			this.chokidarWatcher.close();
 			this.chokidarWatcher = null;
 		}
-
-		if (this.win32Watcher) {
-			this.win32Watcher.dispose();
-			this.win32Watcher = null;
-		}
 		return Promise.resolve();
-		// if (this.actions) {
-		// 	this.actions.beforeSave = () => {};
-		// 	this.actions.afterSave = () => {};
-		// 	this.actions = null;
-		// }
 	}
 
-	private _watchChokidar(watchPath) {
+	private _watchChokidar(watchPath): void {
 		const watcher = chokidar.watch(watchPath, {
 			ignoreInitial: true,
 			ignorePermissionErrors: true,
@@ -135,52 +90,28 @@ export class Watcher {
 		watcher.on('unlinkDir', this._unlinkEvent.bind(this));
 	}
 
-	// private _watchWin32(watchPath) {
-	// 	const self = this;
-	// 	this.win32Watcher = cs_watcher({
-	// 		path: watchPath,
-	// 		ignored: [],
-	// 		eventCallback: function() {
-	// 			self._eventCallback.apply(self, arguments);
-	// 		},
-	// 		errorCallback: function() {
-	// 			self._errorCallback.apply(self, arguments);
-	// 		}
-	// 	});
-	// 	this.app.logger.log(` └── Watchers: ${chalk.bold.green('OK')}`)
-	// }
-
-	// private _errorCallback(err) {
-	// 	console.error(err);
-	// }
-
-	private _eventCallback(filePath, type) {
+	private _eventCallback(filePath, type): void {
 		if (filePath == '') {
 			return;
 		}
 		this.watchCallback(
 			filePath,
 			type
-			// this.watchersLocks != 0 || !!this.watchersTable[filePath]
 		);
-		// if (this.watchersTable[filePath]) {
-		// 	clearTimeout(this.watchersTable[filePath]);
-		// 	delete this.watchersTable[filePath];
-		// }
 	}
 
-	private _addEvent(filePath) {
+	private _addEvent(filePath): void {
 		this._eventCallback(filePath, 'add');
 	}
 
-	private _changeEvent(filePath) {
+	private _changeEvent(filePath): void {
 		if (/.*\.sqlite/.test(filePath)) {
 			return;
 		}
 		this._eventCallback(filePath, 'change');
 	}
 
-	private _unlinkEvent(filePath) {
+	private _unlinkEvent(filePath): void {
 		this._eventCallback(filePath, 'unlink');
 	}
 }
