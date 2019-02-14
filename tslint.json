@@ -1,4 +1,9 @@
 {
+	"linterOptions": {
+		"exclude": [
+			"node_modules/"
+		]
+	},
 	"rules": {
 		"callable-types": true,
 		"class-name": true,
