@@ -1,9 +1,10 @@
+import chalk from 'chalk';
+import { join } from 'path';
+import { IClientConfig } from '@materia/interfaces';
+
 import { App, ConfigType } from '../../lib';
 import { Npm } from '../lib/npm';
 import { WebsocketInstance } from '../../lib/websocket';
-import { IClientConfig } from '@materia/interfaces';
-import * as stripAnsi from 'strip-ansi';
-import { join } from 'path';
 
 export class ClientController {
 	npm: Npm;
@@ -38,9 +39,9 @@ export class ClientController {
 			}
 
 			if (progress) {
-				if (progress.progress > last) {
+				if (parseFloat(progress.progress) > last) {
 					this.app.logger.log(`npm run ${script}: ${data}`);
-					last = progress.progress;
+					last = parseFloat(progress.progress);
 				}
 				this.websocket.broadcast({
 					type: 'client:watch:progress',
@@ -148,7 +149,7 @@ export class ClientController {
 
 
 	private _parseProgress(data) {
-		const match = stripAnsi(data).match(/([0-9]{1,2})% ([^%]+)$/);
+		const match = chalk.bold.yellow(data).match(/([0-9]{1,2})% ([^%]+)$/);
 		if (match) {
 			return {
 				progress: match[1],
@@ -159,7 +160,7 @@ export class ClientController {
 	}
 
 	private _parseEnd(data) {
-		const matchEnd = stripAnsi(data).match(/Date: (.*)(\n| - )Hash: (.*)(\n| - )Time: (.*)/);
+		const matchEnd = chalk.bold.yellow(data).match(/Date: (.*)(\n| - )Hash: (.*)(\n| - )Time: (.*)/);
 		if (matchEnd) {
 			return {
 				date: matchEnd[1],
@@ -170,7 +171,7 @@ export class ClientController {
 	}
 
 	private _parseErrors(data) {
-		const dataStripped = stripAnsi(data);
+		const dataStripped = chalk.bold.yellow(data);
 		const matchError = data.match(/Error in /);
 		if (matchError) {
 
