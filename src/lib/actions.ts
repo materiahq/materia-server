@@ -1,18 +1,16 @@
-import { App, IApplyOptions } from './app';
-import { IAddon } from '@materia/interfaces';
-import { IAction, IActionFilter } from '@materia/interfaces';
-
 import * as path from 'path';
 import * as fs from 'fs';
 import chalk from 'chalk';
+import { IAction, IActionFilter, IApplyOptions, IAddon } from '@materia/interfaces';
+
+import { App } from './app';
 
 export class Actions {
-	actions: IAction[];
-	constructor(private app: App) {
-		this.actions = [];
-	}
+	actions: IAction[] = [];
 
-	load(addon?: IAddon) {
+	constructor(private app: App) { }
+
+	load(addon?: IAddon): Promise<void> {
 		const basePath = addon ? addon.path : this.app.path;
 		const opts: IApplyOptions = {
 			save: false
@@ -79,7 +77,7 @@ export class Actions {
 		return Promise.resolve();
 	}
 
-	findAll(filter?: IActionFilter) {
+	findAll(filter?: IActionFilter): IAction[] {
 		return this.actions
 			.filter(action => action.id && action.type)
 			.filter(action => {
@@ -98,11 +96,11 @@ export class Actions {
 			});
 	}
 
-	get(id) {
+	get(id): IAction {
 		return this.actions.find(action => action.id == id);
 	}
 
-	register(action: IAction, opts?: IApplyOptions) {
+	register(action: IAction, opts?: IApplyOptions): void {
 		this.remove(action.id);
 		this.actions.push(action);
 		if (opts && opts.save && ! action.fromAddon) {
@@ -110,7 +108,7 @@ export class Actions {
 		}
 	}
 
-	remove(id, opts?: IApplyOptions) {
+	remove(id, opts?: IApplyOptions): boolean {
 		const index = this.actions.findIndex(a => a.id == id);
 		if (index > -1 && ! this.actions[index].fromAddon) {
 			this.actions.splice(index, 1);
@@ -122,18 +120,18 @@ export class Actions {
 		return false;
 	}
 
-	save() {
+	save(): void {
 		fs.writeFileSync(
 			path.join(this.app.path, 'server', 'actions.json'),
 			JSON.stringify(this.toJson(), null, '\t')
 		);
 	}
 
-	toJson() {
-		return this.actions.filter(action => !action.fromAddon && action.id && action.type && action.action);
+	toJson(): IAction[] {
+		return this.actions.filter(action => ! action.fromAddon && action.id && action.type && action.action);
 	}
 
-	handle(type: string, filter: IActionFilter, context: any, success: boolean) {
+	handle(type: string, filter: IActionFilter, context: any, success: boolean): Promise<any> {
 		const promises = [];
 		this.actions
 			.filter(
@@ -152,7 +150,7 @@ export class Actions {
 			)
 			.forEach(action => {
 				const e = this.app.entities.get(action.action.entity);
-				if (!e) {
+				if ( ! e) {
 					this.app.logger.warn(
 						new Error(
 							`Entity ${

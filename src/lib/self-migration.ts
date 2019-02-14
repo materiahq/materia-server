@@ -1,6 +1,6 @@
 
 import * as fs from 'fs';
-import * as path from 'path';
+import { join } from 'path';
 
 import { App } from './app';
 
@@ -10,7 +10,7 @@ export class SelfMigration {
 
 	private fileExists(p: string): Promise<void> {
 		return new Promise((resolve, reject) => {
-			fs.exists(path.join(this.app.path, p), exists => {
+			fs.exists(join(this.app.path, p), exists => {
 				if (exists) {
 					return resolve();
 				} else {
@@ -23,7 +23,7 @@ export class SelfMigration {
 	private readJsonFile(p: string): Promise<any> {
 		return this.fileExists(p).then(() => {
 			return new Promise((resolve, reject) => {
-				fs.readFile(path.join(this.app.path, p), {
+				fs.readFile(join(this.app.path, p), {
 					encoding: 'utf-8'
 				}, (err, data) => {
 					if (err) {
@@ -35,10 +35,6 @@ export class SelfMigration {
 			});
 		});
 	}
-
-	// private migration0_8Callback() {
-
-	// }
 
 	private checkMigrate_0_8() {
 		const config: any = {};
@@ -54,7 +50,7 @@ export class SelfMigration {
 						}
 					})
 					.catch(() => {})
-					.then(() => this.readJsonFile(path.join('.materia', 'server.json')))
+					.then(() => this.readJsonFile(join('.materia', 'server.json')))
 					.then(serverContent => {
 						let serverConfig;
 						let serverConfigProd;
@@ -92,7 +88,7 @@ export class SelfMigration {
 						}
 					})
 					.catch(() => {})
-					.then(() => this.readJsonFile(path.join('.materia', 'client.json')))
+					.then(() => this.readJsonFile(join('.materia', 'client.json')))
 					.then(clientContent => {
 						config.client = {
 							www: clientContent.src
@@ -107,12 +103,12 @@ export class SelfMigration {
 						}
 					})
 					.catch(() => {})
-					.then(() => this.readJsonFile(path.join('.materia', 'addons.json')))
+					.then(() => this.readJsonFile(join('.materia', 'addons.json')))
 					.then(addonsContent => {
 						config.addons = addonsContent;
 					})
 					.catch(() => {})
-					.then(() => this.readJsonFile(path.join('.materia', 'gcloud.json')))
+					.then(() => this.readJsonFile(join('.materia', 'gcloud.json')))
 					.then(deploymentContent => {
 						config.deployment = deploymentContent;
 					})
@@ -122,9 +118,9 @@ export class SelfMigration {
 							const finalConfig = JSON.stringify(config, null, 4).replace('    ', '\t');
 							const finalConfigProd = JSON.stringify(configProd, null, 4).replace('    ', '\t');
 							this.app.logger.log('migration to do: ', finalConfig);
-							fs.writeFile(path.join(this.app.path, 'materia.json'), finalConfig, err => {
+							fs.writeFile(join(this.app.path, 'materia.json'), finalConfig, err => {
 								if (finalConfigProd) {
-									fs.writeFile(path.join(this.app.path, 'materia.prod.json'), finalConfigProd, (error) => {
+									fs.writeFile(join(this.app.path, 'materia.prod.json'), finalConfigProd, (error) => {
 										this.app.logger.log(`Migration done for ${this.app.path} !`);
 										this.app.config.reloadConfig();
 										resolve();

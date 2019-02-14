@@ -1,22 +1,18 @@
-import * as fs from 'fs';
-import { join } from 'path';
 import chalk from 'chalk';
-
-import { App, AppMode } from './app';
-import { IServerConfig, IClientConfig, IAppConfig } from '@materia/interfaces';
-import { ConfigType, IConfigOptions } from './config';
-
 import * as express from 'express';
-import { createServer, Server as HttpServer } from 'http';
-// import * as session from 'express-session'
-
 import * as passport from 'passport';
 import * as morgan from 'morgan';
 import * as methodOverride from 'method-override';
 import * as bodyParser from 'body-parser';
 import * as errorHandler from 'errorhandler';
 import * as compression from 'compression';
+import { join } from 'path';
+import { existsSync } from 'fs-extra';
+import { createServer, Server as HttpServer } from 'http';
+import { IServerConfig, IClientConfig, IAppConfig, IConfigOptions } from '@materia/interfaces';
 
+import { App, AppMode } from './app';
+import { ConfigType } from './config';
 import { Session } from './session';
 import { WebsocketServers } from './websocket';
 
@@ -28,17 +24,17 @@ import { WebsocketServers } from './websocket';
 export class Server {
 	dynamicStatic: any;
 	started = false;
+	disabled = false;
 
 	expressApp: express.Application;
 	passport: any = passport;
 	websocket: WebsocketServers;
 	server: HttpServer;
+	session: Session;
+
+	private config: IServerConfig;
 	private sockets = new Map();
 	private stopped = false;
-	session: Session;
-	private config: any = {};
-
-	disabled = false;
 
 	constructor(private app: App) {
 		this.session = new Session(app);
@@ -71,30 +67,7 @@ export class Server {
 
 		this.sockets = new Map();
 		this.stopped = false;
-		this.listenConnections();
-	}
-
-	private onConnection(socket) {
-		this.sockets.set(socket, 0);
-		socket.once('close', () => this.sockets.delete(socket));
-	}
-
-	private onRequest(req, res) {
-		this.sockets.set(req.socket, this.sockets.get(req.socket) + 1);
-		res.once('finish', () => {
-			const pending = this.sockets.get(req.socket) - 1;
-			this.sockets.set(req.socket, pending);
-			if (this.stopped && pending === 0) {
-				req.socket.end();
-				req.socket.destroy();
-			}
-		});
-	}
-
-	private listenConnections() {
-		this.server.on('connection', socket => this.onConnection(socket));
-		this.server.on('secureConnection', socket => this.onConnection(socket));
-		this.server.on('request', (req, res) => this.onRequest(req, res));
+		this._listenConnections();
 	}
 
 	createDynamicStatic(path) {
@@ -160,7 +133,7 @@ export class Server {
 		} else {
 			p = 'client';
 		}
-		return fs.existsSync(join(this.app.path, p, 'index.html'));
+		return existsSync(join(this.app.path, p, 'index.html'));
 	}
 
 	/**
@@ -193,7 +166,7 @@ export class Server {
 					});
 
 					this.expressApp.all('/*', (req, res) => {
-						if (clientConfig && fs.existsSync(join(this.app.path, clientConfig.www, '404.html'))) {
+						if (clientConfig && existsSync(join(this.app.path, clientConfig.www, '404.html'))) {
 							res.sendFile(join(this.app.path, clientConfig.www, '404.html'));
 						} else if (this.hasStatic()) {
 							res.sendFile(join(this.app.path, clientConfig.www, 'index.html'));
@@ -297,5 +270,28 @@ export class Server {
 				});
 			});
 		});
+	}
+
+	private _onConnection(socket) {
+		this.sockets.set(socket, 0);
+		socket.once('close', () => this.sockets.delete(socket));
+	}
+
+	private _onRequest(req, res) {
+		this.sockets.set(req.socket, this.sockets.get(req.socket) + 1);
+		res.once('finish', () => {
+			const pending = this.sockets.get(req.socket) - 1;
+			this.sockets.set(req.socket, pending);
+			if (this.stopped && pending === 0) {
+				req.socket.end();
+				req.socket.destroy();
+			}
+		});
+	}
+
+	private _listenConnections() {
+		this.server.on('connection', socket => this._onConnection(socket));
+		this.server.on('secureConnection', socket => this._onConnection(socket));
+		this.server.on('request', (req, res) => this._onRequest(req, res));
 	}
 }

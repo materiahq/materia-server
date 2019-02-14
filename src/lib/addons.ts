@@ -1,15 +1,10 @@
 import * as path from 'path';
 import chalk from 'chalk';
+import { IAddonsConfig } from '@materia/interfaces';
 
 import { App } from './app';
 import { Addon } from './addons/addon';
 import { ConfigType } from './config';
-
-export interface IAddonConfig {
-	[name: string]: {
-		[param_name: string]: any
-	}
-}
 
 /**
  * @class Addons
@@ -19,7 +14,7 @@ export interface IAddonConfig {
 export class Addons {
 	addons: Addon[];
 	addonsObj: any;
-	addonsConfig: IAddonConfig;
+	addonsConfig: IAddonsConfig;
 
 	constructor(private app: App) {
 		this.addons = [];
@@ -126,7 +121,7 @@ export class Addons {
 		});
 	}
 
-	loadConfig(): IAddonConfig {
+	loadConfig(): IAddonsConfig {
 		this.addonsConfig = this.app.config.get(this.app.mode, ConfigType.ADDONS);
 		return this.addonsConfig;
 	}

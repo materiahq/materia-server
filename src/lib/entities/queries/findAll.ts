@@ -1,30 +1,13 @@
+import * as Sequelize from 'sequelize';
+import chalk from 'chalk';
+import * as Bluebird from 'bluebird';
+import { IFindAllOptions } from '@materia/interfaces';
+
 import { Query, QueryParamResolver } from '../query';
 import { Conditions } from './utils/conditions';
-import chalk from 'chalk';
-
-export interface IFindAllOpts {
-	select?: Array<any>
-	include?: Array<any>
-	conditions?: Array<any>
-	limit?: number
-	offset?: number
-	page?: number
-	orderBy?: Array<string>
-}
-
-export interface ISequelizeOpts {
-	attributes: string[]
-	where: Object
-	include?: any
-	raw?: boolean
-	offset?: number
-	page?: number
-	limit?: number
-	order?: any
-}
 
 export class FindAllQuery extends Query {
-	opts: any;
+	opts: IFindAllOptions;
 	type: string;
 	conditions: Conditions;
 	include: any;
@@ -34,10 +17,11 @@ export class FindAllQuery extends Query {
 	orderBy: any;
 	select: string[];
 
-	constructor(entity, id, opts: IFindAllOpts) {
+	constructor(entity, id, opts?: IFindAllOptions) {
 		super(entity, id);
-		if (!opts) {
-			opts = {} as IFindAllOpts;
+
+		if ( ! opts) {
+			opts = {};
 		}
 
 		this.opts = opts;
@@ -47,7 +31,7 @@ export class FindAllQuery extends Query {
 
 		this.limit = opts.limit || 30;
 
-		if (!opts.offset && opts.page) {
+		if ( ! opts.offset && opts.page) {
 			this.page = opts.page;
 			this.offset = null;
 		} else {
@@ -99,25 +83,26 @@ export class FindAllQuery extends Query {
 		}
 	}
 
-	constructSequelizeOpts(params, options) {
+	constructSequelizeOpts(params, options?): Sequelize.FindOptions<any> {
 		const pagination = this.getPagination(params);
-		// let principalConditions = []
+
+		options = options || {};
 
 		let raw = false;
-		if (options && options.raw) {
+		if (options.raw) {
 			raw = true;
 		}
 		const sequelizeOpts = {
 			attributes: this.select,
 			where: this.conditions.toSequelize(params, this.entity.name),
 			raw: raw
-		} as ISequelizeOpts;
+		} as Sequelize.FindOptions<any>;
 
 		if (this.entity.getPK().length) {
 			const include = [];
 			const includeNames = this.include;
 
-			this._constructInclude(include, includeNames);
+			this.constructInclude(include, includeNames);
 			sequelizeOpts.include = include;
 			// Add conditions to opts recursively for included obj
 			this.conditions.constructConditions(sequelizeOpts.include, params);
@@ -139,12 +124,12 @@ export class FindAllQuery extends Query {
 			if (order.desc) {
 				ascTxt = 'DESC';
 			}
-			sequelizeOpts.order.push([order.field, ascTxt]);
+			(sequelizeOpts.order as Array<[string, string]>).push([order.field, ascTxt]);
 		});
 		return sequelizeOpts;
 	}
 
-	private _run(sequelizeOpts, options) {
+	private _run(sequelizeOpts, options): Bluebird<any> {
 		return this.entity.model.findAndCountAll(sequelizeOpts).then(res => {
 			if ( ! options || ! options.silent ) {
 				this.entity.app.logger.log(` └── ${chalk.green.bold('OK')}\n`);
@@ -199,19 +184,6 @@ export class FindAllQuery extends Query {
 
 	}
 
-	_paramResolver(name, value, params, defaultValue) {
-		let tmp;
-		try {
-			tmp = QueryParamResolver.resolve({ name: name, value: value }, params);
-			if ( ! tmp ) {
-				throw new Error('error');
-			}
-		} catch (e) {
-			tmp = defaultValue;
-		}
-		return tmp;
-	}
-
 	getPagination(params) {
 		let limit, offset;
 
@@ -234,7 +206,7 @@ export class FindAllQuery extends Query {
 		const res = {
 			id: this.id,
 			type: 'findAll',
-			opts: {} as IFindAllOpts
+			opts: {} as IFindAllOptions
 		};
 
 		if (this.opts.select) {
@@ -261,7 +233,19 @@ export class FindAllQuery extends Query {
 		if (Object.keys(res.opts).length == 0) {
 			delete res.opts;
 		}
-
 		return res;
+	}
+
+	private _paramResolver(name, value, params, defaultValue) {
+		let tmp;
+		try {
+			tmp = QueryParamResolver.resolve({ name: name, value: value }, params);
+			if ( ! tmp ) {
+				throw new Error('error');
+			}
+		} catch (e) {
+			tmp = defaultValue;
+		}
+		return tmp;
 	}
 }

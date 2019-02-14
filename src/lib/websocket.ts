@@ -5,10 +5,6 @@ import * as url from 'url';
 
 export type IWebsocketVerifyClient = (info: {origin: any, secure: any, req: any}, cb: (done: boolean) => any) => any;
 
-export interface IWebsocketMessage {
-	channel: string,
-	data: any
-}
 export class WebsocketInstance {
 	instance: WS.Server;
 

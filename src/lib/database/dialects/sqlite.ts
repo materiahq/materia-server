@@ -1,4 +1,5 @@
 import * as Sequelize from 'sequelize';
+import * as Bluebird from 'bluebird';
 
 import { AbstractDialect } from './abstract';
 import { MateriaError } from '../../error';
@@ -20,7 +21,7 @@ export class SqliteDialect extends AbstractDialect {
 		return super.define(entityName, cols, defOptions);
 	}
 
-	showTables() {
+	showTables(): Bluebird<any> {
 		const promises = [];
 		return this.sequelize.getQueryInterface().showAllTables().then((tables: Array<string>) => {
 			tables.forEach(table => {
@@ -29,7 +30,7 @@ export class SqliteDialect extends AbstractDialect {
 				const infoQuery = queryInterface.describeTable(table);
 				const indexQuery = queryInterface.showIndex(table);
 				const fkQuery = qg.getForeignKeysQuery(table, 'public');
-				// let fkQuery = queryInterface.getForeignKeysForTables([table] )
+				// const fkQuery = queryInterface.getForeignKeysForTables([table]);
 				// getForeignKeysForTables not working:
 				// https://github.com/sequelize/sequelize/issues/5748
 
@@ -40,7 +41,7 @@ export class SqliteDialect extends AbstractDialect {
 					});
 				promises.push(infoQuery);
 				promises.push(indexQuery);
-				// promises.push(fkQuery)
+				// promises.push(fkQuery);
 				promises.push(this.sequelize.query(fkQuery));
 				promises.push(aiQuery);
 			});

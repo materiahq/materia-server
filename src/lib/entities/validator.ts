@@ -1,9 +1,6 @@
-import { Field } from './field';
+import { IValidator } from '@materia/interfaces';
 
-export interface IValidator {
-	name: string,
-	value: any
-}
+import { Field } from './field';
 
 export class Validator {
 	constructor(private field: Field, public name: string, public value: any) {

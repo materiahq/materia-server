@@ -1,6 +1,6 @@
-import { App, AppMode } from './app';
-
 import chalk from 'chalk';
+
+import { App, AppMode } from './app';
 
 export class Logger {
 	console: any;

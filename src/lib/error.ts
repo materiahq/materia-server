@@ -1,9 +1,4 @@
-export interface IErrorOptions {
-	slug?: string
-	issue?: number
-	debug?: string
-	originalError?: Error
-}
+import { IErrorOptions } from '@materia/interfaces';
 
 export class MateriaError extends Error {
 	slug: string;

@@ -1,18 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
+import { ICustomQueryOptions } from '@materia/interfaces';
 
-// import { App } from '../../app'
 import { MateriaError } from '../../error';
-
 import { Entity } from '../entity';
-import { Query, IQueryParam, QueryParamResolver } from '../query';
-
-export interface ICustomQueryOpts {
-	action: string;
-	model?: string;
-	params: IQueryParam[];
-}
+import { Query, QueryParamResolver } from '../query';
 
 export class Model {
 	modelClass: any;
@@ -168,7 +161,7 @@ export class CustomQuery extends Query {
 	}
 
 	toJson() {
-		const opts: ICustomQueryOpts = {
+		const opts: ICustomQueryOptions = {
 			params: this.paramsToJson(),
 			action: this.action
 		};

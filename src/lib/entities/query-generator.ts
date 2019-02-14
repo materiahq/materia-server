@@ -1,12 +1,7 @@
+import { IQueryParam } from '@materia/interfaces';
+
 import { Entity } from './entity';
 import { Field } from './field';
-
-export interface IQueryParam {
-	name: string,
-	type: string,
-	required: boolean,
-	component: string
-}
 
 export class QueryGenerator {
 	pk: Array<Field>;

@@ -1,7 +1,8 @@
-import { Condition, ICondition } from './condition';
-import { DBEntity } from '../../db-entity';
+import { IQueryParam, ICondition } from '@materia/interfaces';
 
-import { Query, QueryParamResolver, IQueryParam } from '../../query';
+import { Condition } from './condition';
+import { DBEntity } from '../../db-entity';
+import { Query, QueryParamResolver } from '../../query';
 import { MateriaError } from '../../../error';
 
 /*
@@ -43,7 +44,6 @@ export class Conditions {
 	constructor(conditions: Array<ICondition>, query: Query) {
 		this.conditions = [];
 		this.entity = query.entity;
-
 
 		if (conditions) {
 			for (const condition of conditions) {

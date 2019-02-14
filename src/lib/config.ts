@@ -2,8 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { App, AppMode } from './app';
-// import { ScriptMode } from "./client";
-// import { MateriaError } from "./error";
 
 import {
 	IAppConfig,
@@ -11,45 +9,15 @@ import {
 	IServerConfig,
 	IClientConfig,
 	IPackageJson,
-	IServer,
 	ISessionConfig,
 	IMateriaJson,
 	IDatabaseConfig,
-	IDatabase,
-	ISession,
-	IDependencyMap,
-	IScriptsMap
+	IScriptsMap,
+	IFullConfig,
+	IEntitiesPositionConfig,
+	IDependenciesConfig,
+	IConfigOptions
 } from '@materia/interfaces';
-
-export interface IAddonsConfig {
-	[addon: string]: any;
-}
-export interface IEntitiesPositionConfig {
-	[entityName: string]: {
-		x: number,
-		y: number
-	}
-}
-export interface IDependenciesConfig {
-	dev?: IDependencyMap;
-	prod?: IDependencyMap;
-}
-export interface IFullConfig {
-	app: IAppConfig;
-	git?: IGitConfig;
-	server: IServer;
-	session?: ISession;
-	dependencies?: IDependenciesConfig;
-	links?: {
-		dev: string[];
-		prod: string[];
-	};
-	scripts?: IScriptsMap;
-	database?: IDatabase;
-	addons?: IAddonsConfig;
-	client?: IClientConfig;
-	entitiesPosition?: IEntitiesPositionConfig;
-}
 
 export enum ConfigType {
 	APP = <any>'app',
@@ -67,10 +35,6 @@ export enum ConfigType {
 	ENTITIES_POSITION = <any>'entitiesPosition'
 }
 
-export interface IConfigOptions {
-	live?: boolean;
-}
-
 export class Config {
 	config: IFullConfig;
 
@@ -82,87 +46,6 @@ export class Config {
 	entitiesPosition: IEntitiesPositionConfig;
 
 	constructor(private app: App) { }
-
-	private loadConfigurationFiles() {
-		this.config = null;
-		try {
-			this.packageJson = JSON.parse(
-				fs.readFileSync(
-					path.join(this.app.path, 'package.json'),
-					'utf-8'
-				)
-			);
-		} catch (e) {
-			this.packageJson = {
-				name: 'untitled',
-				version: '0.0.1',
-				scripts: {},
-				dependencies: {
-					'@materia/server': '1.0.0'
-				}
-			};
-		}
-
-		try {
-			this.materiaJson = JSON.parse(
-				fs.readFileSync(
-					path.join(this.app.path, 'materia.json'),
-					'utf-8'
-				)
-			);
-		} catch (e) {
-			this.app.logger.error(new Error('Impossible to read materia.json configuration. Fallback on default configuration file...'));
-			this.materiaJson = {
-				name: 'Untitled App',
-				server: {
-					host: 'localhost',
-					port: 8080
-				}
-			};
-		}
-
-		try {
-			this.materiaProdJson = JSON.parse(
-				fs.readFileSync(
-					path.join(this.app.path, 'materia.prod.json'),
-					'utf-8'
-				)
-			);
-		} catch (e) {
-			this.materiaProdJson = {};
-		}
-
-		try {
-			this.entitiesPosition = JSON.parse(
-				fs.readFileSync(
-					path.join(this.app.path, '.materia', 'entities-position.json'),
-					'utf8'
-				)
-			);
-		} catch (e) {
-			this.entitiesPosition = {};
-		}
-
-		try {
-			const packageJsonPath = this.materiaJson.client && this.materiaJson.client.packageJsonPath ?
-			path.join(this.app.path, this.materiaJson.client.packageJsonPath, 'package.json') :
-			path.join(this.app.path, 'package.json');
-			this.clientPackageJson = JSON.parse(
-				fs.readFileSync(
-					packageJsonPath,
-					'utf-8'
-				)
-			);
-		} catch (e) {
-			this.clientPackageJson = this.packageJson;
-		}
-	}
-
-	private generateUrlFromConf(server: IServerConfig) {
-		if (server) {
-			return `http${server.ssl ? 's' : ''}://${server.host}${server.port != 80 ? ':' + server.port.toString() : ''}/`;
-		} else { return `http://localhost:8080/`; }
-	}
 
 	reloadConfig(): void {
 		this.loadConfigurationFiles();
@@ -235,15 +118,15 @@ export class Config {
 	): T {
 		type = type || ConfigType.SERVER;
 		options = options || { live: this.app.live };
-		if (!this.config) {
+		if ( ! this.config ) {
 			this.reloadConfig();
 		}
 
-		if (!mode) {
+		if ( ! mode ) {
 			mode = this.app.mode;
 		}
 
-		if (!this.config[type]) {
+		if ( ! this.config[type] ) {
 			return null;
 		}
 		let result;
@@ -253,7 +136,7 @@ export class Config {
 			ConfigType.ADDONS,
 			ConfigType.LINKS,
 			ConfigType.SESSION].find(t => t == type)) {
-			result = this.config[type][mode];
+				result = this.config[type][mode];
 		} else {
 			result = this.config[type];
 		}
@@ -351,7 +234,7 @@ export class Config {
 	Return the server's configuration
 	@returns {object}
 	*/
-	toJson() {
+	toJson(): {materia: any, materiaProd: any, package: any} {
 		return {
 			materia: Object.assign({}, this.materiaJson, {
 				name: this.app.name,
@@ -382,5 +265,86 @@ export class Config {
 				devDependencies: this.config.dependencies.dev
 			})
 		};
+	}
+
+	private loadConfigurationFiles() {
+		this.config = null;
+		try {
+			this.packageJson = JSON.parse(
+				fs.readFileSync(
+					path.join(this.app.path, 'package.json'),
+					'utf-8'
+				)
+			);
+		} catch (e) {
+			this.packageJson = {
+				name: 'untitled',
+				version: '0.0.1',
+				scripts: {},
+				dependencies: {
+					'@materia/server': '1.0.0'
+				}
+			};
+		}
+
+		try {
+			this.materiaJson = JSON.parse(
+				fs.readFileSync(
+					path.join(this.app.path, 'materia.json'),
+					'utf-8'
+				)
+			);
+		} catch (e) {
+			this.app.logger.error(new Error('Impossible to read materia.json configuration. Fallback on default configuration file...'));
+			this.materiaJson = {
+				name: 'Untitled App',
+				server: {
+					host: 'localhost',
+					port: 8080
+				}
+			};
+		}
+
+		try {
+			this.materiaProdJson = JSON.parse(
+				fs.readFileSync(
+					path.join(this.app.path, 'materia.prod.json'),
+					'utf-8'
+				)
+			);
+		} catch (e) {
+			this.materiaProdJson = {};
+		}
+
+		try {
+			this.entitiesPosition = JSON.parse(
+				fs.readFileSync(
+					path.join(this.app.path, '.materia', 'entities-position.json'),
+					'utf8'
+				)
+			);
+		} catch (e) {
+			this.entitiesPosition = {};
+		}
+
+		try {
+			const packageJsonPath = this.materiaJson.client && this.materiaJson.client.packageJsonPath ?
+			path.join(this.app.path, this.materiaJson.client.packageJsonPath, 'package.json') :
+			path.join(this.app.path, 'package.json');
+			this.clientPackageJson = JSON.parse(
+				fs.readFileSync(
+					packageJsonPath,
+					'utf-8'
+				)
+			);
+		} catch (e) {
+			this.clientPackageJson = this.packageJson;
+		}
+	}
+
+	private generateUrlFromConf(server: IServerConfig) {
+		if (server) {
+			return `http${server.ssl ? 's' : ''}://${server.host}${server.port != 80 ? ':' + server.port.toString() : ''}/`;
+		} else { return `http://localhost:8080/`; }
 	}
 }

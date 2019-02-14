@@ -1,11 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { IPermission } from '@materia/interfaces';
 
 import { App } from '../app';
 import { MateriaError } from '../error';
 import { Permission } from './permission';
-
-import { IPermission } from '@materia/interfaces';
 
 /**
  * @class Permissions
@@ -38,7 +37,7 @@ export class Permissions {
 					p => p.name == permissionName
 				);
 
-				if (!permission) {
+				if ( ! permission ) {
 					const err: any = new MateriaError(
 						'Could not find permission "' + permissionName + '"'
 					);
@@ -158,48 +157,31 @@ export class Permissions {
 		if ( ! perm) {
 			return Promise.reject(new MateriaError(`The information of the permission to be added not found`));
 		}
-		if ( ! opts) {
-			opts = {};
-		}
-		if (
-			this.permissions.find(permission => {
-				return permission.name == perm.name;
-			})
-		) {
-			return Promise.reject(
-				new MateriaError(`The permission ${perm.name} already exists`)
-			);
+		if (this.permissions.find(permission => permission.name == perm.name)) {
+			return Promise.reject(new MateriaError(`The permission ${perm.name} already exists`));
 		}
 
 		try {
 			this.permissions.push(new Permission(this.app, perm));
-
-			if (opts.save && perm.file) {
-				return this.app
-					.saveFile(
-						path.join(
-							this.app.path,
-							'server',
-							'permissions',
-							perm.file + '.js'
-						),
-						`module.exports = ${perm.middleware.toString()}`,
-						{
-							mkdir: true
-						}
-					)
-					.then(() => {
-						return this.save();
-					})
-					.then(() => {
-						return Promise.resolve(this.get(perm.name));
-					});
-			} else {
-				return Promise.resolve(this.get(perm.name));
-			}
 		} catch (e) {
 			return Promise.reject(e);
 		}
+
+		let p = Promise.resolve();
+
+		if ( ! opts) {
+			opts = {};
+		}
+
+		if (opts.save && perm.file) {
+			p = p.then(() => this.app.saveFile(
+					path.join(this.app.path, 'server', 'permissions', perm.file, '.js'),
+					`module.exports = ${perm.middleware.toString()}`,
+					{ mkdir: true }
+				).then(() => this.save())
+			);
+		}
+		return p.then(() => this.get(perm.name));
 	}
 
 	/**

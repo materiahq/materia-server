@@ -1,13 +1,6 @@
-import { MateriaError } from '../../../error';
+import { ICondition } from '@materia/interfaces';
 
-export interface ICondition {
-	entity?: string
-	name: string
-	operator: string
-	value: any
-	operand?: string
-	operandPriority?: number
-}
+import { MateriaError } from '../../../error';
 
 export class Condition {
 	entity: string;

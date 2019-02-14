@@ -29,7 +29,8 @@ export class FileException {
 			permalink: `file-exception-open?path=${path}&message=${message}`
 		});
 	}
-	writeFail(path: string, message: string) {
+
+	writeFail(path: string, message: string): ExceptionData {
 		return materiaException({
 			code: 102,
 			message: `Impossible to write in file ${path}`,

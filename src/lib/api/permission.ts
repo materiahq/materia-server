@@ -1,7 +1,8 @@
-import { App } from '../app';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
 import { IPermission } from '@materia/interfaces';
+
+import { App } from '../app';
 
 export class Permission {
 	app: App;

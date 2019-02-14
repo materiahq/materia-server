@@ -1,6 +1,8 @@
+import chalk from 'chalk';
+import * as Sequelize from 'sequelize';
+
 import { Query } from '../query';
 import { Conditions } from './utils/conditions';
-import chalk from 'chalk';
 
 export class FindOneQuery extends Query {
 	opts: any;
@@ -48,7 +50,7 @@ export class FindOneQuery extends Query {
 		const include = [];
 		const includeNames = this.include;
 
-		this._constructInclude(include, includeNames);
+		this.constructInclude(include, includeNames);
 
 		let raw = false;
 		if (options && options.raw) {
@@ -60,7 +62,7 @@ export class FindOneQuery extends Query {
 			where: this.conditions.toSequelize(params, this.entity.name),
 			include: include,
 			raw: raw
-		} as any;
+		} as Sequelize.FindOptions<any>;
 
 		// Add conditions to opts recursively for included obj
 		this.conditions.constructConditions(opts.include, params);
@@ -71,7 +73,7 @@ export class FindOneQuery extends Query {
 			if (order.desc) {
 				ascTxt = 'DESC';
 			}
-			opts.order.push([order.field, ascTxt]);
+			(opts.order as Array<[string, string]>).push([order.field, ascTxt]);
 		});
 		return opts;
 	}

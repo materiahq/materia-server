@@ -2,9 +2,9 @@ import * as fse from 'fs-extra';
 import chalk from 'chalk';
 import * as Sequelize from 'sequelize';
 import { join } from 'path';
-import { IEndpoint } from '@materia/interfaces';
+import { IEndpoint, IApplyOptions, IField } from '@materia/interfaces';
 
-import { App, IApplyOptions } from './app';
+import { App } from './app';
 import { MateriaError } from './error';
 
 import { Addon } from './addons/addon';
@@ -15,7 +15,6 @@ import { CustomQuery } from './entities/queries/custom';
 
 import { DBEntity } from './entities/db-entity';
 import { Entity } from './entities/entity';
-import { IField } from './entities/field';
 import { ConfigType } from './config';
 import { VirtualEntity } from './entities/virtual-entity';
 
@@ -489,15 +488,9 @@ export class Entities {
 
 			const relativePath = join('server', 'models', name + '.json');
 			if (options.save != false && entity && fse.existsSync(join(this.app.path, relativePath))) {
-				if (options && options.beforeSave) {
-					options.beforeSave(relativePath);
-				}
 
 				// TODO: this.app.path replaced by basepath computed with fromAddon
 				fse.unlinkSync(join(this.app.path, relativePath));
-				if (options && options.afterSave) {
-					options.afterSave();
-				}
 			}
 
 			if (options.db == false) {
@@ -580,14 +573,8 @@ export class Entities {
 		if (options.save != false) {
 			const relativePath = join('server', 'models', name + '.json');
 			if (fse.existsSync(join(this.app.path, relativePath))) {
-				if (options && options.beforeSave) {
-					options.beforeSave(relativePath);
-				}
 				fse.unlinkSync(join(this.app.path, relativePath));
 				p = p.then(() => this._save_id_map(options));
-				if (options && options.afterSave) {
-					options.afterSave();
-				}
 			}
 			p = p.then(() => this.save());
 		}

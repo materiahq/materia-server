@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { IEndpoint } from '@materia/interfaces';
+import { IEndpoint, IParam } from '@materia/interfaces';
 
 import { App } from '../app';
 import { MateriaError } from '../error';
@@ -14,12 +14,6 @@ export enum Method {
 	PUT,
 	DELETE,
 	PATCH
-}
-
-export interface IParam {
-	name: string
-	required: boolean
-	type: string
 }
 /*
 	data format:
@@ -232,9 +226,8 @@ export class Endpoint {
 	}
 
 	private _handleHttp(req, res, next): Promise<any> {
-		this.app.logger.log(`
-			${chalk.bold('(Endpoint)')} Handle ${this.app.api.getMethodColor(this.method.toUpperCase())} ${chalk.bold(req.url)}
-		`);
+		// tslint:disable-next-line:max-line-length
+		this.app.logger.log(`${chalk.bold('(Endpoint)')} Handle ${this.app.api.getMethodColor(this.method.toUpperCase())} ${chalk.bold(req.url)}`);
 
 		const params = this._handleParams(req, this.params);
 

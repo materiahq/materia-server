@@ -1,41 +1,9 @@
+import * as Sequelize from 'sequelize';
+import { IField, IFieldReference } from '@materia/interfaces';
+
 import { Entity } from './entity';
 import { MateriaError } from '../error';
-
 import { Validator } from './validator';
-import sequelize = require('sequelize');
-
-export interface IField {
-	name?: string
-	type?: string
-	primary?: boolean
-	unique?: boolean | string
-	required?: boolean
-	default?: boolean
-	defaultValue?: any
-	autoIncrement?: boolean
-	onUpdate?: string
-	onDelete?: string
-
-	title?: boolean
-	component?: string
-
-	read?: boolean
-	write?: boolean
-
-	isRelation?: any
-	generateFrom?: string
-
-	validators?: Array<Validator>
-}
-
-export interface IFieldUpdate extends IField {
-	references?: IFieldReference
-}
-
-export interface IFieldReference {
-	entity: string
-	field: string
-}
 
 export const DefaultComponent = Object.freeze({
 	text: 'input',
@@ -49,16 +17,16 @@ export const FieldType = Object.freeze({
 	TEXT: 'text',
 	NUMBER: 'number',
 	DATE: 'date',
+	FLOAT: 'float',
+	BOOL: 'boolean'
+	// URL: 'url'
 	// COUNTER: 'counter',
 	// IMAGE: 'image',
 	// FILE: 'file',
 	// STRING: 'string',
-	FLOAT: 'float',
-	BOOL: 'boolean'
-	// URL: 'url'
 });
 
-export class Field implements IFieldUpdate {
+export class Field {
 	name: string;
 	type: string;
 	primary: boolean;
@@ -95,7 +63,7 @@ export class Field implements IFieldUpdate {
 			if (field.default && field.defaultValue != undefined) {
 				this.defaultValue = field.defaultValue;
 				if (field.type === 'date' && field.defaultValue === 'now()') {
-					this.defaultValue = sequelize.NOW;
+					this.defaultValue = Sequelize.NOW;
 				}
 			}
 			this.type = field.type || FieldType.TEXT;
@@ -170,7 +138,7 @@ export class Field implements IFieldUpdate {
 
 		if (this.default && this.defaultValue != undefined) {
 			res.defaultValue = this.defaultValue;
-			if (this.defaultValue === sequelize.NOW) {
+			if (this.defaultValue === Sequelize.NOW) {
 				res.defaultValue = 'now()';
 			}
 		}

@@ -1,12 +1,12 @@
 import * as events from 'events';
 import chalk from 'chalk';
-import { join, sep, resolve, dirname } from 'path';
+import { join, sep, dirname } from 'path';
 import * as fse from 'fs-extra';
 import {
 	IAppConfig,
 	IDatabaseConfig,
 	IServerConfig,
-	IEndpoint
+	IAppOptions
 } from '@materia/interfaces';
 
 import { Logger } from './logger';
@@ -28,39 +28,6 @@ import { Watcher } from './watcher';
 import { Actions } from './actions';
 
 export * from './addons/helpers';
-
-export interface IAppOptions {
-	mode?: string,
-	runtimes?: string,
-	nocolors?: boolean,
-	level?: number,
-	silent?: boolean,
-	logSql?: boolean,
-	logRequests?: boolean,
-	prod?: boolean,
-	port?: number,
-
-	'database-host'?: string
-	'database-port'?: number
-	'database-db'?: string
-	'database-username'?: string
-	'database-password'?: string
-	storage?: string // sqlite.database
-}
-
-export interface ISaveOptions {
-	beforeSave?: (path?: string) => Object,
-	afterSave?: (lock?: Object) => void
-}
-
-export interface IApplyOptions extends ISaveOptions {
-	apply?: boolean
-	history?: boolean
-	save?: boolean
-	db?: boolean
-	wait_relations?: boolean
-	fromAddon?: IEndpoint['fromAddon']
-}
 
 export enum AppMode {
 	DEVELOPMENT = <any>'dev',
@@ -227,9 +194,9 @@ export class App extends events.EventEmitter {
 		.then(() => this.entities.loadEntities())
 		.then(() => this.entities.loadRelations())
 		.then(() =>
-			this.logger.log(`
-				 │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeEntities).toString() + 'ms')}`)
-			)
+			// tslint:disable-next-line:max-line-length
+			this.logger.log(` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeEntities).toString() + 'ms')}`)
+		)
 		.then(() => this.entities.resetModels())
 		.then(() => this.logger.log(' └─┬ Queries'))
 		.then(() => elapsedTimeQueries = new Date().getTime())
@@ -240,24 +207,23 @@ export class App extends events.EventEmitter {
 		.then(() => this.addons.loadActions())
 		.then(() => this.actions.load())
 		.then(() =>
-			this.logger.log(
-				` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeQueries).toString() + 'ms')}`)
-			)
+			// tslint:disable-next-line:max-line-length
+			this.logger.log(` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeQueries).toString() + 'ms')}`)
+		)
 		.then(() => this.api.resetControllers())
 		.then(() => this.logger.log(` └─┬ API`))
 		.then(() => elapsedTimeAPI = new Date().getTime())
 		.then(() => this.addons.loadAPI())
 		.then(() => this.api.load())
 		.then(() =>
-			this.logger.log(
-				` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeAPI).toString() + 'ms')}`)
-			)
+			// tslint:disable-next-line:max-line-length
+			this.logger.log(` │ └── ${chalk.green.bold('OK') + ' - Completed in ' + chalk.bold(((new Date().getTime()) - elapsedTimeAPI).toString() + 'ms')}`)
+		)
 		.then(() => this.watcher.load())
 		.then(() => this.history.load())
 		.then(() =>
-			this.logger.log(
-				` └── ${chalk.green.bold('Successfully loaded in ' + ((new Date().getTime()) - elapsedTimeGlobal).toString() + 'ms')}\n`)
-			)
+			this.logger.log(` └── ${chalk.green.bold('Successfully loaded in ' + ((new Date().getTime()) - elapsedTimeGlobal).toString() + 'ms')}\n`)
+		)
 		.then(() => null);
 	}
 
@@ -362,11 +328,7 @@ manual_scaling:
 		}
 	}
 
-	saveMateria(opts?: ISaveOptions) {
-		if (opts && opts.beforeSave) {
-			opts.beforeSave('package.json');
-		}
-
+	saveMateria() {
 		let pkg;
 		try {
 			const content = fse.readFileSync(join(this.path, 'package.json')).toString();
@@ -379,9 +341,6 @@ manual_scaling:
 		pkg.name = this.package;
 
 		fse.writeFileSync(join(this.path, 'package.json'), JSON.stringify(pkg, null, 2));
-		if (opts && opts.afterSave) {
-			opts.afterSave();
-		}
 	}
 
 	/**
@@ -428,9 +387,8 @@ manual_scaling:
 					}
 					this.logger.log(` └─┬ Synchronize: ${chalk.yellow.bold('The database structure differs from entities.')}`);
 					return this.synchronizer.entitiesToDatabase(diffs, {}).then((actions) => {
-						this.logger.log(
-							` │ └── Database: ${chalk.green.bold('Updated successfully')}. (Applied ${chalk.bold(actions.length.toString())} actions)`
-						);
+						// tslint:disable-next-line:max-line-length
+						this.logger.log(` │ └── Database: ${chalk.green.bold('Updated successfully')}. (Applied ${chalk.bold(actions.length.toString())} actions)`);
 					});
 				}).catch((e) => {
 					this.logger.log(` │ └── Database: ${chalk.red.bold('Fail - An action could not be applied: ' + e)}`);
@@ -565,9 +523,6 @@ manual_scaling:
 
 	saveFile(fullpath: string, content: string, opts?): Promise<any> {
 		let p = Promise.resolve();
-		if (opts && opts.beforeSave) {
-			opts.beforeSave(resolve(this.path, fullpath));
-		}
 		if (opts && opts.mkdir) {
 			try {
 				fse.mkdirpSync(dirname(fullpath));
@@ -578,18 +533,12 @@ manual_scaling:
 
 		return p.then(() => {
 			fse.writeFileSync(fullpath, content);
-			if (opts && opts.afterSave) {
-				opts.afterSave();
-			}
 		}).catch((e) => {
-			if (opts && opts.afterSave) {
-				opts.afterSave();
-			}
 			throw e;
 		});
 	}
 
-	getMateriaVersion() {
+	getMateriaVersion(): string {
 		const pkg = require('../package.json');
 		return pkg.version;
 	}

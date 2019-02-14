@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { existsSync, readFileSync } from 'fs-extra';
+import { join, resolve } from 'path';
 import chalk from 'chalk';
 import * as Sequelize from 'sequelize';
 const Op = require('sequelize').Op;
@@ -15,16 +15,6 @@ export enum Dialect {
 	POSTGRES,
 	SQLITE,
 	MYSQL
-}
-
-export interface ISequelizeConfig {
-	dialect: string,
-	host: string,
-	port: number,
-	logging: any,
-	storage?: string
-	dialectOptions?: any
-	operatorsAliases?: {[alias: string]: any}
 }
 
 const dialect = {
@@ -53,7 +43,7 @@ export class Database {
 	type: string;
 	started: boolean;
 
-	opts: ISequelizeConfig;
+	opts: Sequelize.Options;
 	sequelize: Sequelize.Sequelize;
 
 	constructor(private app: App) {
@@ -134,14 +124,14 @@ export class Database {
 		};
 
 		if (Database.isSQLite(settings)) {
-			this.opts.storage = path.resolve(this.app.path, this.storage || 'database.sqlite');
+			this.opts.storage = resolve(this.app.path, this.storage || 'database.sqlite');
 		}
 
 		if (this.app.mode == AppMode.PRODUCTION && process.env.GCLOUD_PROJECT && this.type == 'mysql') {
 			try {
-				const gcloudJsonPath = path.join(this.app.path, '.materia', 'gcloud.json');
-				if (fs.existsSync(gcloudJsonPath)) {
-					const gcloudSettings = JSON.parse(fs.readFileSync(gcloudJsonPath, 'utf-8'));
+				const gcloudJsonPath = join(this.app.path, '.materia', 'gcloud.json');
+				if (existsSync(gcloudJsonPath)) {
+					const gcloudSettings = JSON.parse(readFileSync(gcloudJsonPath, 'utf-8'));
 					this.opts.dialectOptions = { socketPath: `/cloudsql/${gcloudSettings.project}:${gcloudSettings.region}:${gcloudSettings.instance}` };
 					delete this.opts.host;
 					delete this.opts.port;
@@ -165,27 +155,6 @@ export class Database {
 		return true;
 	}
 
-	_confToJson(conf: IDatabaseConfig): IDatabaseConfig {
-		if ( ! conf ) {
-			return null;
-		}
-		if (Database.isSQL(conf)) {
-			return {
-				type: conf.type,
-				host: conf.host,
-				port: conf.port,
-				database: conf.database,
-				username: conf.username,
-				password: conf.password
-			};
-		} else if (Database.isSQLite(conf)) {
-			return {
-				type: conf.type,
-				storage: conf.storage
-			};
-		}
-	}
-
 	/**
 	Try to connect with a custom configuration
 	@param {object} - The configuration object
@@ -202,14 +171,14 @@ export class Database {
 			dialect: settings.type,
 			logging: false
 		};
-		let opts: ISequelizeConfig;
+		let opts: Sequelize.Options;
 		if (Database.isSQL(settings)) {
 			opts = Object.assign({}, optsDialect, {
 				host: settings.host,
 				port: settings.port
 			});
 		} else if (Database.isSQLite(settings) && app) {
-			opts.storage = path.resolve(app.path, settings.storage || 'database.sqlite');
+			opts.storage = resolve(app.path, settings.storage || 'database.sqlite');
 		}
 		let tmp;
 		return new Promise((accept, reject) => {
@@ -246,7 +215,7 @@ export class Database {
 
 	static tryServer(settings: IDatabaseConfig, app?: App) {
 		if (Database.isSQL(settings)) {
-			const opts: ISequelizeConfig = {
+			const opts: Sequelize.Options = {
 				dialect: settings.type,
 				host: settings.host,
 				port: settings.port,
@@ -292,7 +261,7 @@ export class Database {
 	 */
 	static listDatabases(settings: IDatabaseConfig) {
 		if (Database.isSQL(settings)) {
-			const opts: ISequelizeConfig = {
+			const opts: Sequelize.Options = {
 				dialect: settings.type,
 				host: settings.host,
 				port: settings.port,
@@ -347,7 +316,7 @@ export class Database {
 	 @param name - Name for the new database
 	 */
 	static createDatabase(settings, name) {
-		const opts: ISequelizeConfig = {
+		const opts: Sequelize.Options = {
 			dialect: settings.type,
 			host: settings.host,
 			port: settings.port,

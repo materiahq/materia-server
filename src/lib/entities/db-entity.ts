@@ -1,13 +1,13 @@
 import * as Sequelize from 'sequelize';
+import { IEntityConfig, IField, IFieldUpdate } from '@materia/interfaces';
 
-import { Entity, IEntityConfig } from './entity';
+import { Entity } from './entity';
 import { MateriaError } from '../error';
 
 import { App } from '../app';
-import { Field, IField, IFieldUpdate } from './field';
+import { Field } from './field';
 
 import { QueryGenerator } from './query-generator';
-
 import { FindAllQuery } from './queries/findAll';
 import { FindOneQuery } from './queries/findOne';
 import { CreateQuery } from './queries/create';

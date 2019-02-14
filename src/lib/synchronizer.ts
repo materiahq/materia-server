@@ -1,8 +1,9 @@
 import * as Sequelize from 'sequelize';
-import { App, IApplyOptions } from './app';
-import { MigrationType, IActionData } from './history';
+import { IDatabaseDiffs, IRelation, IApplyOptions, IActionData } from '@materia/interfaces';
+
+import { App } from './app';
+import { MigrationType } from './history';
 import { DBEntity } from './entities/db-entity';
-import { IDatabaseDiffs, IRelation } from '@materia/interfaces';
 import { Entity } from './entities/entity';
 
 export class Synchronizer {

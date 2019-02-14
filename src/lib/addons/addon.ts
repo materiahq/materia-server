@@ -1,30 +1,8 @@
-import {join, dirname } from 'path';
+import { join, dirname } from 'path';
+import { IAddonTag, IAddonInfo } from '@materia/interfaces';
 
 import { App } from '../app';
 import { MateriaAddon } from './helpers';
-export interface IAddonInfo {
-	package: string;
-	name: string;
-	description: string;
-	logo: string;
-	author: string;
-	version: string;
-	tags: IAddonTag[];
-	enabled: boolean;
-	color: string;
-}
-
-export interface IAddonTag {
-	id: string;
-}
-
-export interface IAddonSetup {
-	name: string;
-	description: string;
-	default: any;
-	type: string;
-	component?: string;
-}
 
 export class Addon {
 	package: string;
@@ -156,39 +134,28 @@ export class Addon {
 		return Promise.resolve();
 	}
 
-	private hook(name: string): Promise<any> {
-		if (typeof this.obj[name] == 'function') {
-			const result = this.obj[name]();
-			if (this._isPromise(result)) {
-				return result;
-			}
-			return Promise.resolve(result);
-		}
-		return Promise.resolve();
-	}
-
 	beforeLoadEntities(): Promise<any> {
-		return this.hook('beforeLoadEntities');
+		return this._hook('beforeLoadEntities');
 	}
 
 	afterLoadEntities(): Promise<any> {
-		return this.hook('afterLoadEntities');
+		return this._hook('afterLoadEntities');
 	}
 
 	beforeLoadQueries(): Promise<any> {
-		return this.hook('beforeLoadQueries');
+		return this._hook('beforeLoadQueries');
 	}
 
 	afterLoadQueries(): Promise<any> {
-		return this.hook('afterLoadQueries');
+		return this._hook('afterLoadQueries');
 	}
 
 	beforeLoadAPI(): Promise<any> {
-		return this.hook('beforeLoadAPI');
+		return this._hook('beforeLoadAPI');
 	}
 
 	afterLoadAPI(): Promise<any> {
-		return this.hook('afterLoadAPI');
+		return this._hook('afterLoadAPI');
 	}
 
 	setup(config: any): Promise<void> {
@@ -228,6 +195,18 @@ export class Addon {
 			enabled: this.enabled
 		};
 	}
+
+	private _hook(name: string): Promise<any> {
+		if (typeof this.obj[name] == 'function') {
+			const result = this.obj[name]();
+			if (this._isPromise(result)) {
+				return result;
+			}
+			return Promise.resolve(result);
+		}
+		return Promise.resolve();
+	}
+
 	private _isPromise(obj: any): boolean {
 		return (
 			obj &&

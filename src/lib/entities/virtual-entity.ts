@@ -1,18 +1,8 @@
+import { IVirtualEntityConfig } from '@materia/interfaces';
+
 import { App } from '../app';
 import { Entity } from './entity';
 import { CustomQuery } from './queries/custom';
-import { Field } from './field';
-
-export interface IVirtualEntityConfig {
-	id: string
-	x: number
-	y: number
-	fields?: Array<Field>
-	relations?: Array<any>
-	queries?: Array<any>
-	isRelation?: any
-	virtual: boolean
-}
 
 export class VirtualEntity extends Entity {
 	reservedQueries = [

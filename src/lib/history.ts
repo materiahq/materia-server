@@ -1,7 +1,8 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from 'fs-extra';
 import { join } from 'path';
+import { IMigration, IHistoryActions, IActionData } from '@materia/interfaces';
 
-import { App, ISaveOptions } from './app';
+import { App } from './app';
 
 /**
  * Default action types
@@ -16,17 +17,17 @@ export const MigrationType = {
 	ADD_FIELD: 'create_field',
 	CHANGE_FIELD: 'change_field',
 	DELETE_FIELD: 'delete_field',
-
 	ADD_RELATION: 'add_relation',
 	DELETE_RELATION: 'delete_relation',
 
 	// queries
 	ADD_QUERY: 'add_query',
 	DELETE_QUERY: 'delete_query',
+	UPDATE_QUERY: 'update_query',
 	// ADD_QUERY_PARAM: 'add_query_param',
 	// DELETE_QUERY_PARAM: 'delete_query_param',
 	// UPDATE_QUERY_VALUE: 'update_query_value',
-	UPDATE_QUERY: 'update_query',
+
 	// api
 	ADD_ENDPOINT: 'add_endpoint',
 	DELETE_ENDPOINT: 'delete_endpoint',
@@ -36,31 +37,6 @@ export const MigrationType = {
 	// ADD_API_DATA: 'add_api_data',
 	// DELETE_API_DATA: 'delete_api_data',
 };
-
-export interface IActionData {
-	id?: string,
-	table: string,
-	type: any,
-	value?: any,
-	name?: string,
-	position?: number,
-	values?: any
-}
-
-export interface IMigration {
-	undo: IActionData,
-	redo: IActionData
-}
-
-export interface IHistoryActions {
-	[index: number]: (data: any, opts: any) => Promise<any>
-}
-
-export interface IActionOptions {
-	full_rename?: boolean,
-	apply?: boolean,
-	save?: boolean
-}
 
 /**
  * @class History
@@ -101,17 +77,17 @@ export class History {
 		}
 	}
 
-	save(opts?: ISaveOptions) {
-		// unused still undo / redo truely implemented
-		/*if (opts && opts.beforeSave) {
+	/*save(opts?: ISaveOptions) {
+		unused still undo / redo truely implemented
+		if (opts && opts.beforeSave) {
 			opts.beforeSave('changes.json')
 		}
 		this.cleanStacks()
 		fs.writeFileSync(path.join(this.app.path, 'changes.json'), JSON.stringify(this.diff, null,  '\t'))
 		if (opts && opts.afterSave) {
 			opts.afterSave()
-		}*/
-	}
+		}
+	}*/
 
 	/**
 	Push an action in the history
@@ -121,7 +97,7 @@ export class History {
 	push(redo, undo) {
 		this.diff.push({undo: undo, redo: redo});
 		this.diffRedo = [];
-		this.save();
+		// this.save();
 	}
 
 	/**
@@ -192,12 +168,12 @@ export class History {
 		}
 		return p.then(() => {
 			if (opts.save) {
-				this.save(opts);
+				// this.save(opts);
 			}
 			return Promise.resolve(actionobj.undo);
 		}).catch((err) => {
 			if (opts.save) {
-				this.save(opts);
+				// this.save(opts);
 			}
 			throw err;
 		});
@@ -229,12 +205,12 @@ export class History {
 		}
 		return p.then(() => {
 			if (opts.save) {
-				this.save(opts);
+				// this.save(opts);
 			}
 			return Promise.resolve(actionobj.redo);
 		}).catch((err) => {
 			if (opts.save) {
-				this.save(opts);
+				// this.save(opts);
 			}
 			throw err;
 		});

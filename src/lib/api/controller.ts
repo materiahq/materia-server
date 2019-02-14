@@ -1,5 +1,6 @@
 import { join } from 'path';
 import { readFileSync } from 'fs-extra';
+
 import { MateriaError } from '../error';
 import { App } from '../app';
 

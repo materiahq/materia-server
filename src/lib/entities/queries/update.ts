@@ -1,12 +1,9 @@
-import { Query, QueryParamResolver } from '../query';
-import { Conditions, IConditions } from './utils/conditions';
-import { DBEntity } from '../db-entity';
 import chalk from 'chalk';
+import { IQuery, IUpdateQueryOptions } from '@materia/interfaces';
 
-export interface IUpdateQueryOpts {
-	values: any,
-	conditions: IConditions
-}
+import { Query, QueryParamResolver } from '../query';
+import { Conditions } from './utils/conditions';
+import { DBEntity } from '../db-entity';
 
 export class UpdateQuery extends Query {
 	type: string;
@@ -14,14 +11,14 @@ export class UpdateQuery extends Query {
 	conditions: Conditions;
 	valuesType: any;
 
-	constructor(entity: DBEntity, id: string, opts: IUpdateQueryOpts) {
+	constructor(entity: DBEntity, id: string, opts: IUpdateQueryOptions) {
 		super(entity, id);
 
 		this.type = 'update';
 
 		this.values = [];
 		if ( ! opts ) {
-			opts = {} as IUpdateQueryOpts;
+			opts = {} as IUpdateQueryOptions;
 		}
 		if (opts.values) {
 			this.values = opts.values;
@@ -122,14 +119,14 @@ export class UpdateQuery extends Query {
 			);
 	}
 
-	toJson() {
+	toJson(): IQuery {
 		const res = {
 			id: this.id,
 			type: 'update',
 			opts: {
 				values: this.values,
 				conditions: this.conditions.toJson()
-			} as IUpdateQueryOpts
+			} as IUpdateQueryOptions
 		};
 		return res;
 	}

@@ -2,44 +2,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as uuid from 'uuid/v4';
 import chalk from 'chalk';
+import { IEntityConfig, IRelation, IQuery, IField, IApplyOptions, IFieldUpdate } from '@materia/interfaces';
 
-import { App, IApplyOptions } from '../app';
+import { App } from '../app';
 import { MateriaError } from '../error';
 import { MigrationType } from '../history';
 import { Addon } from '../addons/addon';
 
-import { Field, IField, IFieldUpdate } from './field';
-import { Query, IQuery, IQueryConstructor } from './query';
+import { Field } from './field';
+import { Query, IQueryConstructor } from './query';
 import { ConfigType } from '../config';
-
-export interface IRelation {
-	type?: string,
-	field?: string,
-	as?: string,
-	through?: string,
-	reference: {
-		entity: string,
-		field?: string,
-		as?: string
-	}
-
-	unique?: boolean,
-
-	// internal use
-	implicit?: boolean,
-	entity?: string,
-	paired?: boolean
-}
-
-export interface IEntityConfig {
-	id: string
-	x: number
-	y: number
-	fields?: Array<Field>
-	relations?: Array<any>
-	queries?: Array<any>
-	isRelation?: any
-}
 
 /**
  * @class Entity

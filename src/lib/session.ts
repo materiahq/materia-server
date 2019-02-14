@@ -1,8 +1,9 @@
+import * as session from 'express-session';
+import { ISessionConfig } from '@materia/interfaces';
+
 import { App, AppMode } from './app';
 import { ConfigType } from './config';
-import { ISessionConfig } from '@materia/interfaces';
 import { DBEntity } from './entities/db-entity';
-import * as session from 'express-session';
 
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 
@@ -106,7 +107,5 @@ export class Session {
 		}
 
 		this.app.server.expressApp.use(session(config));
-
-
 	}
 }

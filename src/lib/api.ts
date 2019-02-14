@@ -2,11 +2,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as express from 'express';
 import chalk from 'chalk';
-import { IAddon, IEndpoint } from '@materia/interfaces';
+import { IAddon, IEndpoint, IApplyOptions } from '@materia/interfaces';
 
 import { Endpoint } from './api/endpoint';
 import { Permissions } from './api/permissions';
-import { App, AppMode, IApplyOptions } from './app';
+import { App, AppMode } from './app';
 import { MateriaError } from './error';
 
 /**
@@ -261,14 +261,8 @@ export class Api {
 	}
 
 	save(opts?: IApplyOptions) {
-		if (opts && opts.beforeSave) {
-			opts.beforeSave(path.join('server', 'api.json'));
-		}
 		if ( ! opts || ! opts.fromAddon) {
 			fs.writeFileSync(path.join(this.app.path, 'server', 'api.json'), JSON.stringify(this.toJson(opts), null, '\t'));
-		}
-		if (opts && opts.afterSave) {
-			opts.afterSave();
 		}
 	}
 

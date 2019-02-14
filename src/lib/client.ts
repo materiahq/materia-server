@@ -1,10 +1,9 @@
-import { App } from './app';
-
 import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
-
 import { IClientBuild } from '@materia/interfaces';
+
+import { App } from './app';
 import { ConfigType } from './config';
 
 export enum ScriptMode {
@@ -23,7 +22,7 @@ export class Client {
 		this.watching = false;
 	}
 
-	load() {
+	load(): Promise<void> {
 		this.app.logger.log(` └─┬ Client `);
 		this.config = this.app.config.get<IClientBuild>(this.app.mode, ConfigType.CLIENT);
 		if ( ! this.config ) {
@@ -62,7 +61,7 @@ export class Client {
 		return Promise.resolve();
 	}
 
-	hasOneScript() {
+	hasOneScript(): boolean {
 		return !!(
 			(this.hasBuildScript(ScriptMode.BUILD) ||
 			this.hasBuildScript(ScriptMode.WATCH) ||
@@ -71,7 +70,7 @@ export class Client {
 		);
 	}
 
-	hasBuildScript(mode?: ScriptMode, script?: string) {
+	hasBuildScript(mode?: ScriptMode, script?: string): boolean {
 		if ( ! this.config || ! this.config.www || (this.config.www && ! this.config.build && ! this.config.packageJsonPath)) {
 			return false;
 		}

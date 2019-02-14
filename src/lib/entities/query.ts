@@ -1,7 +1,10 @@
+import { IQueryParam } from '@materia/interfaces';
+
 import { DBEntity } from './db-entity';
 import { MateriaError } from '../error';
 
 export class QueryParamResolver {
+
 	static resolve(field: any, params: any) {
 		if (typeof field.value == 'string' && field.value.substr(0, 1) == '=') {
 
@@ -35,51 +38,14 @@ export class QueryParamResolver {
 			throw new MateriaError('header not found ' + paramName);
 		}
 
-		// if field.substr(0, 1) == '$'
-		// TODO: need to handle computation with $now
-		// 	if field == '$now'
-		// 		return new Date()
 		return field.value;
 	}
-}
-
-export interface IQueryParamReference {
-	entity: string
-	field: string
-}
-
-export interface IQueryParam {
-	name: string
-	type: string
-	required: boolean
-	component: string
-	reference?: IQueryParamReference
 }
 
 export interface IQueryConstructor {
 	new (entity: DBEntity, id: string, opts: any);
 	toJson();
 }
-
-export interface IQueryInclude {
-	entity: string
-	fields?: Array<string>
-	include?: Array<IQueryInclude>
-}
-
-export interface IQuery {
-	id: string
-	type: string
-	params?: Array<IQueryParam> // migrated in november 2016, to delete for major release.
-	opts?: {
-		params?: Array<IQueryParam>
-		select?: Array<string>
-		conditions?: Array<any>
-		include?: Array<IQueryInclude>,
-		action?: string
-	}
-}
-
 
 export abstract class Query {
 	params: IQueryParam[];
@@ -142,7 +108,7 @@ export abstract class Query {
 		return false;
 	}
 
-	_constructInclude(includeArray, includedName) {
+	constructInclude(includeArray, includedName) {
 		for (const entity of includedName) {
 			const includeEntity = this.entity.app.entities.get(entity.entity) as DBEntity;
 			if ( ! includeEntity) {
@@ -156,7 +122,7 @@ export abstract class Query {
 			if (entity.include) {
 				includePart.include = [];
 				const includeNames = entity.include;
-				this._constructInclude(includePart.include, includeNames);
+				this.constructInclude(includePart.include, includeNames);
 			}
 			includeArray.push(includePart);
 		}

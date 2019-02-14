@@ -1,4 +1,5 @@
 import * as Sequelize from 'sequelize';
+import * as Bluebird from 'bluebird';
 
 import { AbstractDialect } from './abstract';
 import { MateriaError } from '../../error';
@@ -34,7 +35,7 @@ export class PostgresDialect extends AbstractDialect {
 		return super.changeColumn(table, column_name, attributes);
 	}
 
-	showTables() {
+	showTables(): Bluebird<any> {
 		const promises = [];
 		return this.sequelize.getQueryInterface().showAllTables().then((tables: Array<string>) => {
 			for (const table of tables) {
