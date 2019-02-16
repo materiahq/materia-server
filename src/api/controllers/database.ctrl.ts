@@ -305,6 +305,8 @@ export class DatabaseController {
 					return result;
 				} else if (typeof response === 'string' || typeof response === 'number') {
 					return { data: [{ response: response }], count: 1 };
+				} else if (response == null) {
+					return {data: [], count: 0};
 				} else if (typeof response === 'object') {
 					const keys = Object.keys(response);
 					if (response && keys.indexOf('count') != -1 && keys.indexOf('data') != -1) {
@@ -314,7 +316,7 @@ export class DatabaseController {
 					}
 				}
 			}).then(data => {
-				res.status(200).json(data);
+				res.status(200).send(data);
 			}).catch(error => {
 				res.status(500).send({ error: true, message: error.message });
 			});
@@ -481,7 +483,7 @@ export class DatabaseController {
 				const result: any = {
 					data: data,
 					count: data.length
-				}
+				};
 				if (req.body.from) {
 					result.from = req.body.from;
 				}
