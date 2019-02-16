@@ -41,6 +41,7 @@ export class Addon {
 				this.path = dirname(
 					require.resolve(join(this.package, 'package.json'))
 				);
+				// tslint:disable-next-line:no-unused-expression
 				new App(this.path, {});
 			} catch (e) {
 				this.enabled = false;

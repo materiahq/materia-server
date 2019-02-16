@@ -25,7 +25,7 @@ export class Permissions {
 	 * @returns {function} - A middleware function
 	 */
 	check(permissionsName: Array<string>) {
-		return (req, res, next) => {
+		return (reqOrig, resOrig, nextOrig) => {
 			let chain = (req, res, next) => {
 				next();
 			};
@@ -41,8 +41,8 @@ export class Permissions {
 					const err: any = new MateriaError(
 						'Could not find permission "' + permissionName + '"'
 					);
-					res.status(500).json(err.message);
-					next(err.message);
+					resOrig.status(500).json(err.message);
+					nextOrig(err.message);
 					return false;
 				}
 
@@ -74,7 +74,7 @@ export class Permissions {
 				};
 				return true;
 			});
-			chain(req, res, next);
+			chain(reqOrig, resOrig, nextOrig);
 		};
 	}
 
