@@ -65,7 +65,7 @@ export class PermissionsController {
 			})
 			.catch(err => {
 				this.app.watcher.enable();
-				res.status(500).send(err.message)
+				res.status(500).send(err.message);
 			});
 		});
 	}
@@ -175,7 +175,7 @@ export class PermissionsController {
 			});
 		}).catch(err => {
 			this.app.watcher.enable();
-			res.status(500).send(err.message)
+			res.status(500).send(err.message);
 		});
 	}
 
@@ -185,7 +185,7 @@ export class PermissionsController {
 				this.app.path,
 				'server',
 				'permissions',
-				perm.file + '.js'
+				`${perm.file}.js`
 			);
 			fs.stat(filepath, (err, stats) => {
 				// Check if error defined and the error code is "not exists"

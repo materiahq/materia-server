@@ -175,7 +175,7 @@ export class Permissions {
 
 		if (opts.save && perm.file) {
 			p = p.then(() => this.app.saveFile(
-					path.join(this.app.path, 'server', 'permissions', perm.file, '.js'),
+					path.join(this.app.path, 'server', 'permissions', `${perm.file}.js`),
 					`module.exports = ${perm.middleware.toString()}`,
 					{ mkdir: true }
 				).then(() => this.save())
