@@ -18,64 +18,66 @@ export class PermissionsController {
 	add(req, res) {
 		const newPermission: IPermission = req.body;
 		const exists: boolean = this.app.api.permissions.findAll().findIndex(p => p.name === newPermission.name) !== -1;
-		if ( ! exists) {
-			let middleware = this._getDefaultMiddleware();
-			this._checkNewPermission(newPermission).then((permissionCode) => {
-				if (permissionCode !== '') {
-					try {
-						const file = join(
-							this.app.path,
-							'server',
-							'permissions',
-							newPermission.file
-						);
-						const rp = require.resolve(file);
-						if (require.cache[rp]) {
-							delete require.cache[rp];
-						}
-						middleware = require(file);
-					} catch (err) {}
-				}
-
-				this.app.api.permissions.add(
-					{
-						name: newPermission.name,
-						description: newPermission.description,
-						// tslint:disable-next-line:no-eval
-						middleware: newPermission.code ? eval(newPermission.code) : middleware,
-						file: newPermission.file
-					},
-					{ save: true }
-				)
-				.then((result) => {
-					const reloadPerm = this.app.api.permissions
-						.get(newPermission.name);
-
-					if (reloadPerm) {
-						reloadPerm.reload();
-					}
-
-					res.status(200).json({
-						permissions: PermissionsLib.list(this.app),
-						selected: newPermission.name
-					});
-				})
-				.catch(err => res.status(500).send(err.message));
-			});
-		} else {
-			res.status(500).send(`The permission "${newPermission.name}" already exists`);
+		if (exists) {
+			return res.status(500).send({ error: true, message: `The permission "${newPermission.name}" already exists` });
 		}
+		let middleware = this._getDefaultMiddleware();
+		this.app.watcher.disable();
+		this._checkNewPermission(newPermission).then((permissionCode) => {
+			if (permissionCode !== '') {
+				try {
+					const file = join(
+						this.app.path,
+						'server',
+						'permissions',
+						newPermission.file
+					);
+					const rp = require.resolve(file);
+					if (require.cache[rp]) {
+						delete require.cache[rp];
+					}
+					middleware = require(file);
+				} catch (err) {}
+			}
+
+			this.app.api.permissions.add(
+				{
+					name: newPermission.name,
+					description: newPermission.description,
+					// tslint:disable-next-line:no-eval
+					middleware: newPermission.code ? eval(newPermission.code) : middleware,
+					file: newPermission.file
+				},
+				{ save: true }
+			)
+			.then((result) => {
+				const reloadPerm = this.app.api.permissions
+					.get(newPermission.name);
+
+				if (reloadPerm) {
+					reloadPerm.reload();
+				}
+				this.app.watcher.enable();
+				res.status(200).json({
+					permissions: PermissionsLib.list(this.app),
+					selected: newPermission.name
+				});
+			})
+			.catch(err => {
+				this.app.watcher.enable();
+				res.status(500).send(err.message)
+			});
+		});
 	}
 
 	get(req, res) {
 		const name = req.params.permission;
 		const permissions = PermissionsLib.list(this.app);
 		const permission = permissions.find(p => p.name === name);
-		if (permission) {
-			res.status(200).send(permission);
-		} else {
-			res.status(500).send(`Permission with name '${name}' not found`);
+		if ( ! permission) {
+			return res.status(404).send({ error: true, message: `Permission "${name}" not found` });
 		}
+		res.status(200).send(permission);
 	}
 
 	list(req, res) {
@@ -83,24 +85,33 @@ export class PermissionsController {
 	}
 
 	remove(req, res) {
-		const perm = req.params.permission;
+		const permissionName = req.params.permission;
 		const action = req.query.action ? req.query.action : 'confirm and keep';
-		const reloadPerm = this.app.api.permissions.get(perm);
-		if (reloadPerm) {
-			reloadPerm.reload();
+		const permission = this.app.api.permissions.get(permissionName);
+		if ( ! permission) {
+			return res.status(404).send({ error: true, message: `Permission "${permissionName}" not found` });
 		}
+		permission.reload();
+		let removeOptions;
 		if (action == 'confirm and keep') {
-			this.app.api.permissions.remove(perm, {
+			removeOptions = {
 				save: true,
 				removeSource: false
-			});
+			};
 		} else if (action == 'confirm and delete') {
-			this.app.api.permissions.remove(perm, {
+			removeOptions = {
 				save: true,
 				removeSource: true
-			});
+			};
 		}
-		res.status(200).json(PermissionsLib.list(this.app));
+		this.app.watcher.disable();
+		this.app.api.permissions.remove(permissionName, removeOptions).then(() => {
+			this.app.watcher.enable();
+			res.status(200).send(PermissionsLib.list(this.app));
+		}).catch((err) => {
+			this.app.watcher.enable();
+			res.status(500).send({ error: true, message: err.message });
+		});
 	}
 
 	update(req, res) {
@@ -108,11 +119,12 @@ export class PermissionsController {
 		const oldName = req.params.permission;
 		const oldPermission = this.app.api.permissions.get(oldName);
 		if ( ! oldPermission) {
-			return res.status(500).send('Impossible to update: no permission selected');
+			return res.status(404).send({ error: true, message: `Permission "${oldName}" not found` });
 		}
 		if (oldPermission.readOnly) {
-			return res.status(500).send('Impossible to update: permission is in readonly');
+			return res.status(400).send({ error: true, message: `Unauthorized: permission "${oldName}" is in readonly` });
 		}
+		this.app.watcher.disable();
 		let promise: Promise<any> = Promise.resolve();
 		if (
 			oldPermission.name !== permission.name ||
@@ -156,11 +168,15 @@ export class PermissionsController {
 		return promise.then(() => {
 			const updatedPermission = this.app.api.permissions.get(permission.name);
 			updatedPermission.reload();
+			this.app.watcher.enable();
 			res.status(200).json({
 				permissions: PermissionsLib.list(this.app),
 				selected: updatedPermission.name
 			});
-		}).catch(err => res.status(500).send(err.message));
+		}).catch(err => {
+			this.app.watcher.enable();
+			res.status(500).send(err.message)
+		});
 	}
 
 	private _checkNewPermission(perm): Promise<string> {
