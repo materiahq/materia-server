@@ -17,6 +17,7 @@ export class DeleteQuery extends Query {
 	}
 
 	refresh() {}
+
 	discoverParams() {
 		this.params = [];
 		this.params = this.params.concat(this.conditions.discoverParams());
@@ -50,13 +51,13 @@ export class DeleteQuery extends Query {
 	}
 
 	toJson() {
-		const res = {
+		const json = {
 			id: this.id,
 			type: 'delete',
 			opts: {
 				conditions: this.conditions.toJson()
 			}
 		};
-		return res;
+		return json;
 	}
 }

@@ -1,4 +1,4 @@
-import { IQueryParam, ICondition } from '@materia/interfaces';
+import { IQueryParam, IQueryCondition } from '@materia/interfaces';
 
 import { Condition } from './condition';
 import { DBEntity } from '../../db-entity';
@@ -35,13 +35,13 @@ const SequelizeOperatorsKeys = {
 	'NOT ILIKE': '$notILike'
 };
 
-export type IConditions = ICondition[];
+export type IQueryConditions = IQueryCondition[];
 
 export class Conditions {
 	conditions: Array<Condition>;
 	entity: DBEntity;
 
-	constructor(conditions: Array<ICondition>, query: Query) {
+	constructor(conditions: Array<IQueryCondition>, query: Query) {
 		this.conditions = [];
 		this.entity = query.entity;
 

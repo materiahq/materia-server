@@ -163,7 +163,8 @@ export class CustomQuery extends Query {
 	toJson() {
 		const opts: ICustomQueryOptions = {
 			params: this.paramsToJson(),
-			action: this.action
+			action: this.action,
+			model: this.entity.name.toLowerCase()
 		};
 		if (this.model != this.entity.name.toLowerCase()) {
 			opts.model = this.model;

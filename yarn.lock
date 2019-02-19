@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@materia/interfaces@^1.0.0-beta.5":
-  version "1.0.0-beta.5"
-  resolved "https://registry.yarnpkg.com/@materia/interfaces/-/interfaces-1.0.0-beta.5.tgz#8c4ad3f2b5421e9733ea79245d78f7cac74503e4"
-  integrity sha512-CigXEadKr2CdHg1VvP4M9rdq9MIVO9WUx56B0cv/TRuBADiGwqHjUUYWrFp5z2qkRDMdO5bpOAXRjoE2gpOZ1A==
+"@materia/interfaces@^1.0.0-beta.7":
+  version "1.0.0-beta.7"
+  resolved "https://registry.yarnpkg.com/@materia/interfaces/-/interfaces-1.0.0-beta.7.tgz#7a868f029f0efe21f02a6dce519fc1daa14d189e"
+  integrity sha512-/En6ZvGamUhQv4cX+gXgzcG7GZ42IPtl2hubQ3V4aIYW8jC/Z9y1ArZvUbxWPkxlEeXH7TQmTfarv9zcReUEiA==
 
 "@types/bluebird@*":
   version "3.5.20"

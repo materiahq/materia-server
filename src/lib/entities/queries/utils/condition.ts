@@ -1,4 +1,4 @@
-import { ICondition } from '@materia/interfaces';
+import { IQueryCondition } from '@materia/interfaces';
 
 import { MateriaError } from '../../../error';
 
@@ -11,7 +11,7 @@ export class Condition {
 	operand: string;
 	operandPriority: number;
 
-	constructor(condition: ICondition, parentEntity) {
+	constructor(condition: IQueryCondition, parentEntity) {
 		if ( ! condition.name || ! condition.operator ) {
 			throw new MateriaError('Missing required parameter to build a condition');
 		}
@@ -27,11 +27,11 @@ export class Condition {
 		return (typeof this.value == 'string' && this.value.length > 0 && this.value[0] == '=');
 	}
 
-	toJson(): ICondition {
+	toJson(): IQueryCondition {
 		const res = {
 			name: this.name,
 			operator: this.operator
-		} as ICondition;
+		} as IQueryCondition;
 
 		if (this.operator.toUpperCase() != 'IS NULL' && this.operator.toUpperCase() != 'IS NOT NULL') {
 			res.value = this.value;

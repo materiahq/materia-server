@@ -1,5 +1,6 @@
 import chalk from 'chalk';
-import { IQuery, IUpdateQueryOptions } from '@materia/interfaces';
+import * as Sequelize from 'sequelize';
+import { IQuery, IUpdateQueryOptions, IQueryValues } from '@materia/interfaces';
 
 import { Query, QueryParamResolver } from '../query';
 import { Conditions } from './utils/conditions';
@@ -7,7 +8,7 @@ import { DBEntity } from '../db-entity';
 
 export class UpdateQuery extends Query {
 	type: string;
-	values: any;
+	values: IQueryValues;
 	conditions: Conditions;
 	valuesType: any;
 
@@ -16,7 +17,7 @@ export class UpdateQuery extends Query {
 
 		this.type = 'update';
 
-		this.values = [];
+		this.values = {};
 		if ( ! opts ) {
 			opts = {} as IUpdateQueryOptions;
 		}
@@ -105,9 +106,13 @@ export class UpdateQuery extends Query {
 		}
 
 		return this.handleBeforeActions(params, true)
-			.then(() =>
-				this.entity.model.update(updates, { where: where })
-			).then(res =>
+			.then(() => {
+				const opts: Sequelize.UpdateOptions = { where: {}};
+				if (where) {
+					opts.where = where;
+				}
+				return this.entity.model.update(updates, opts);
+			}).then(res =>
 				this.handleAfterActions(params, res, true)
 					.then(() => res)
 					.catch(e => res)

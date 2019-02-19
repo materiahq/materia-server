@@ -990,7 +990,6 @@ export abstract class Entity {
 		return this.addQuery({
 			id: id,
 			type: type,
-			params: params,
 			opts: opts
 		}, {history: false, save: false});
 	}
@@ -1006,11 +1005,6 @@ export abstract class Entity {
 
 		if ( ! this.queryObjects[query.type]) {
 			return Promise.reject(new MateriaError('Query type `' + query.type + '` not defined'));
-		}
-
-		// To migrate from to November release (remove params OR moved to opts if SQL / Custom queries)
-		if (query.params && (query.type == 'sql' || query.type == 'custom')) {
-			query.opts.params = query.params;
 		}
 
 		const QueryClass = this.queryObjects[query.type];
