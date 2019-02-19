@@ -1,7 +1,7 @@
 import * as Sequelize from 'sequelize';
 import chalk from 'chalk';
 import * as Bluebird from 'bluebird';
-import { IFindAllOptions } from '@materia/interfaces';
+import { IFindAllOptions, IQueryOrdering } from '@materia/interfaces';
 
 import { Query, QueryParamResolver } from '../query';
 import { Conditions } from './utils/conditions';
@@ -14,7 +14,7 @@ export class FindAllQuery extends Query {
 	limit: number|string;
 	page: number|string;
 	offset: number|string;
-	orderBy: any;
+	orderBy: IQueryOrdering[];
 	select: string[];
 
 	constructor(entity, id, opts?: IFindAllOptions) {
@@ -29,14 +29,14 @@ export class FindAllQuery extends Query {
 		this.conditions = new Conditions(opts.conditions, this);
 		this.include = opts.include || [];
 
-		this.limit = opts.limit || 30;
+		this.limit = opts.limit || '=';
 
 		if ( ! opts.offset && opts.page) {
 			this.page = opts.page;
 			this.offset = null;
 		} else {
 			this.offset = opts.offset || 0;
-			this.page = null;
+			this.page = '=';
 		}
 
 		this.orderBy = opts.orderBy || [];
@@ -110,45 +110,37 @@ export class FindAllQuery extends Query {
 
 
 		if (pagination) {
-			if (pagination.offset) {
-				sequelizeOpts.offset = pagination.offset;
-			}
-			if (pagination.limit) {
-				sequelizeOpts.limit = pagination.limit;
-			}
+			sequelizeOpts.offset = pagination.offset;
+			sequelizeOpts.limit = pagination.limit;
 		}
 
-		sequelizeOpts.order = [];
-		this.orderBy.forEach((order) => {
-			let ascTxt = 'ASC';
-			if (order.desc) {
-				ascTxt = 'DESC';
+		const orderBy = [];
+		this.orderBy.forEach(queryOrdering => {
+			let ascText = 'ASC';
+			if (queryOrdering.desc) {
+				ascText = 'DESC';
 			}
-			(sequelizeOpts.order as Array<[string, string]>).push([order.field, ascTxt]);
+			orderBy.push([queryOrdering.field, ascText]);
 		});
+		if (params.orderBy) {
+			params.orderBy.forEach((order) => {
+				let ascTxt = 'ASC';
+				if (order.desc) {
+					ascTxt = 'DESC';
+				}
+				const sequelizeCondition = [order.field, ascTxt];
+				const orderIndex = orderBy.indexOf(sequelizeCondition);
+				if (orderIndex !== -1) {
+					orderBy[orderIndex] = sequelizeCondition;
+				} else {
+					orderBy.push(sequelizeCondition);
+				}
+			});
+		}
+		if (orderBy.length) {
+			sequelizeOpts.order = orderBy;
+		}
 		return sequelizeOpts;
-	}
-
-	private _run(sequelizeOpts, options): Bluebird<any> {
-		return this.entity.model.findAndCountAll(sequelizeOpts).then(res => {
-			if ( ! options || ! options.silent ) {
-				this.entity.app.logger.log(` └── ${chalk.green.bold('OK')}\n`);
-			}
-			const result: any = {
-				data: res.rows,
-				count: res.count
-			};
-			if ( ! options || ! options.raw) {
-				result.toJSON = () => {
-					const data = result.data.map(elt => elt.toJSON());
-					return {
-						count: res.count && typeof res.count === 'number' ? res.count : data.length,
-						data: data
-					};
-				};
-			}
-			return result;
-		});
 	}
 
 	run(params, options): Promise<any> {
@@ -187,7 +179,7 @@ export class FindAllQuery extends Query {
 	getPagination(params) {
 		let limit, offset;
 
-		limit = this._paramResolver('limit', this.limit, params, null);
+		limit = this._paramResolver('limit', this.limit, params, 30);
 
 		if (this.page) {
 			const page = this._paramResolver('page', this.page, params, 1);
@@ -247,5 +239,51 @@ export class FindAllQuery extends Query {
 			tmp = defaultValue;
 		}
 		return tmp;
+	}
+
+	private _run(sequelizeOpts: Sequelize.FindOptions<any>, options): Bluebird<any> {
+		return this.entity.model.findAndCountAll(sequelizeOpts).then(res => {
+			if ( ! options || ! options.silent ) {
+				this.entity.app.logger.log(` └── ${chalk.green.bold('OK')}\n`);
+			}
+			let result: any = {
+				data: res.rows,
+				count: res.count
+			};
+			if (sequelizeOpts.limit && sequelizeOpts.offset != null) {
+				result = {
+					count: result.count,
+					pagination: {
+						offset: sequelizeOpts.offset,
+						page: (sequelizeOpts.offset / sequelizeOpts.limit) + 1,
+						limit: sequelizeOpts.limit
+					},
+					data: res.rows
+				};
+			}
+			if ( ! options || ! options.raw) {
+				result.toJSON = () => {
+					const data = result.data.map(elt => elt.toJSON());
+					let jsonResult: any = {
+						count: res.count && typeof res.count === 'number' ? res.count : data.length,
+						data: data
+					};
+					if (sequelizeOpts.limit && sequelizeOpts.offset != null) {
+						jsonResult = {
+							count: jsonResult.count,
+							pagination: {
+								offset: sequelizeOpts.offset,
+								page: (sequelizeOpts.offset / sequelizeOpts.limit) + 1,
+								limit: sequelizeOpts.limit
+							},
+							data: data
+						};
+					}
+					return jsonResult;
+				};
+			}
+
+			return result;
+		});
 	}
 }
