@@ -59,6 +59,11 @@ describe('[Controller Endpoints]', () => {
 			it('should run endpoint for default "list"', () => {
 				return tpl.get('/api/tests').should.become({
 					count: 3,
+					pagination: {
+						limit: 30,
+						offset: 0,
+						page: 1
+					},
 					data: [
 						{ id_test: 1 },
 						{ id_test: 4 },

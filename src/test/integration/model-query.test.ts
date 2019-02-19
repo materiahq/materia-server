@@ -69,6 +69,11 @@ describe('[Model Queries]', () => {
 			it('should run default "list"', () => {
 				return app.entities.get('test').getQuery('list').run().then(data => data.toJSON()).should.become({
 					count: 3,
+					pagination: {
+						limit: 30,
+						offset: 0,
+						page: 1
+					},
 					data: [
 						{ id_test: 1 },
 						{ id_test: 4 },

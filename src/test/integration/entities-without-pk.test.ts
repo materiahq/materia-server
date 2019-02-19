@@ -80,6 +80,11 @@ describe('[Entities without primary field]', () => {
 			return testEntity.getQuery('list').run(null, {raw: true})
 				.should.become({
 				count: 2,
+				pagination: {
+					limit: 30,
+					offset: 0,
+					page: 1
+				},
 				data: [{test: 'Hello world !'}, {test: null}]
 			});
 		});

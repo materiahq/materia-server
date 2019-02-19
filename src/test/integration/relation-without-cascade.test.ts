@@ -101,7 +101,13 @@ describe('[Relations without "onDelete: CASCADE"]', () => {
 		it('data in test2 should have null value for fk id_test', () => {
 			return app.entities.get('test2').getQuery('list').run(null, {raw: true})
 			.should.become(
-				{count: 1,
+				{
+				count: 1,
+				pagination: {
+					limit: 30,
+					offset: 0,
+					page: 1
+				},
 				data: [
 					{
 						id_test2: 1,
@@ -129,6 +135,11 @@ describe('[Relations without "onDelete: CASCADE"]', () => {
 			.then(data => data.toJSON())
 			.should.become({
 				count: 0,
+				pagination: {
+					limit: 30,
+					offset: 0,
+					page: 1
+				},
 				data: []
 			});
 		});

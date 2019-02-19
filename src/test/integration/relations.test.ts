@@ -96,6 +96,11 @@ describe('[Relations]', () => {
 			.then(data => data.toJSON())
 			.should.become({
 				count: 1,
+				pagination: {
+					limit: 30,
+					offset: 0,
+					page: 1
+				},
 				data: [
 					{
 						id_test: 1,

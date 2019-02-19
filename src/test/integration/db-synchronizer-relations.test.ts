@@ -382,6 +382,11 @@ describe('[Database synchronizer with relations]', () => {
 			return app.entities.get('subpower').getQuery('list').run({}, {raw: true})
 				.should.become({
 					count: 0,
+					pagination: {
+						limit: 30,
+						offset: 0,
+						page: 1
+					},
 					data: []
 				});
 		});
