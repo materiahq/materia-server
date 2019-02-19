@@ -114,27 +114,24 @@ export class FindAllQuery extends Query {
 			sequelizeOpts.limit = pagination.limit;
 		}
 
-		const orderBy = [];
-		this.orderBy.forEach(queryOrdering => {
-			let ascText = 'ASC';
-			if (queryOrdering.desc) {
-				ascText = 'DESC';
-			}
-			orderBy.push([queryOrdering.field, ascText]);
-		});
+		let orderBy = [];
+		if (this.orderBy.length) {
+			this.orderBy.forEach(queryOrdering => {
+				let ascText = 'ASC';
+				if (queryOrdering.desc) {
+					ascText = 'DESC';
+				}
+				orderBy.push([queryOrdering.field, ascText]);
+			});
+		}
 		if (params.orderBy) {
+			orderBy = [];
 			params.orderBy.forEach((order) => {
 				let ascTxt = 'ASC';
 				if (order.desc) {
 					ascTxt = 'DESC';
 				}
-				const sequelizeCondition = [order.field, ascTxt];
-				const orderIndex = orderBy.indexOf(sequelizeCondition);
-				if (orderIndex !== -1) {
-					orderBy[orderIndex] = sequelizeCondition;
-				} else {
-					orderBy.push(sequelizeCondition);
-				}
+				orderBy.push([order.field, ascTxt]);
 			});
 		}
 		if (orderBy.length) {
