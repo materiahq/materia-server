@@ -124,7 +124,7 @@ export class FindAllQuery extends Query {
 				orderBy.push([queryOrdering.field, ascText]);
 			});
 		}
-		if (params.orderBy) {
+		if (params && params.orderBy) {
 			orderBy = [];
 			params.orderBy.forEach((order) => {
 				let ascTxt = 'ASC';
