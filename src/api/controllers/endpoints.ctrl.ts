@@ -86,6 +86,7 @@ export class EndpointsController {
 	createCode(req, res) {
 		const endpoint = req.body.endpoint;
 		const options = req.body.options;
+		this.app.watcher.disable();
 		if (endpoint.fromAddon && endpoint.fromAddon.package) {
 			endpoint.fromAddon = this.app.addons.get(endpoint.fromAddon.package);
 		}
@@ -123,12 +124,16 @@ export class EndpointsController {
 				newEndpoint.fromAddon = endpoint.fromAddon;
 			}
 			this.app.api.add(newEndpoint, options);
+			this.app.watcher.enable();
 			res.status(201).json({
 				endpoints: EndpointsLib.list(this.app),
 				newSelectedId: endpoint.method + endpoint.url,
 				controllers: this.app.api.getControllers()
 			});
-		}).catch(err => res.status(500).send(err.message));
+		}).catch(err => {
+			this.app.watcher.enable();
+			res.status(500).send(err.message)
+		});
 	}
 
 	createQuery(req, res) {
