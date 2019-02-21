@@ -3,7 +3,7 @@ import { join, resolve } from 'path';
 import chalk from 'chalk';
 import * as Sequelize from 'sequelize';
 const Op = require('sequelize').Op;
-const domain = require('domain');
+import * as domain from 'domain';
 import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfaces';
 
 import { App, AppMode } from './app';
@@ -275,7 +275,6 @@ export class Database {
 				defaultDatabase = 'postgres';
 			}
 			return new Promise((accept, reject) => {
-				domain.create();
 				try {
 					tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts);
 					if (settings.type == 'mysql') {
@@ -330,16 +329,15 @@ export class Database {
 			defaultDatabase = 'postgres';
 		}
 		return new Promise((accept, reject) => {
-			domain.create();
+			const dbName = defaultDatabase === 'sys' ? '`' + `${name}` + '`' : `"${name}"`;
 			try {
 				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts);
-				const dbName = defaultDatabase === 'sys' ? '`' + `${name}` + '`' : `"${name}"`;
-				tmp.query(`CREATE DATABASE ${dbName}`).spread((results, metadata) => {
-					return accept();
-				});
 			} catch (e) {
 				return reject(e);
 			}
+			return tmp.query(`CREATE DATABASE ${dbName}`).spread((results, metadata) => {
+				return accept();
+			}).catch(err => reject(err.message));
 		});
 	}
 
