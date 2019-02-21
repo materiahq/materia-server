@@ -1,7 +1,7 @@
-import { App } from '../../lib';
-
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { App } from '../../lib';
 
 export function getPackageJson(app: App, mod: string) {
 	const cwd = app.path;

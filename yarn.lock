@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@materia/interfaces@^1.0.0-beta.7":
-  version "1.0.0-beta.7"
-  resolved "https://registry.yarnpkg.com/@materia/interfaces/-/interfaces-1.0.0-beta.7.tgz#7a868f029f0efe21f02a6dce519fc1daa14d189e"
-  integrity sha512-/En6ZvGamUhQv4cX+gXgzcG7GZ42IPtl2hubQ3V4aIYW8jC/Z9y1ArZvUbxWPkxlEeXH7TQmTfarv9zcReUEiA==
+"@materia/interfaces@^1.0.0-beta.8":
+  version "1.0.0-beta.8"
+  resolved "https://registry.yarnpkg.com/@materia/interfaces/-/interfaces-1.0.0-beta.8.tgz#87499783e9ad5fd4d7f0cdf0eccf3155d44787cd"
+  integrity sha512-Am0YNbDWJ+Ej2Joe6EJVXmL/CFh4fCTSNx1WNzXqAg6AqZ6Tjjw7zl7YCE6a526t2/i1zD1Z830iKqnD7b6eWA==
 
 "@types/bluebird@*":
   version "3.5.20"
@@ -450,7 +450,7 @@ check-error@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/check-error/-/check-error-1.0.2.tgz#574d312edd88bb5dd8912e9286dd6c0aed4aac82"
 
-chokidar@^2.0.4:
+chokidar@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-2.1.2.tgz#9c23ea40b01638439e0513864d362aeacc5ad058"
   integrity sha512-IwXUx0FXc5ibYmPC2XeEj5mpXoV66sR+t3jqu2NS2GYwCktt3KF1/Qqjws/NkegajBA4RbZ5+DDwlOiJsxDHEg==
