@@ -296,10 +296,10 @@ export class Permissions {
 	 * Save all current permissions as JSON in APP_PATH/server/permissions.json
 	*/
 	save(): Promise<void> {
-		const permissionsToSave: IPermission[] = this.toJson().filter((perm: IPermission) => ! perm.readOnly).map(perm => ({
+		const permissionsToSave: IPermission[] = this.toJson().filter((perm: IPermission) => ! perm.readOnly || ! perm.fromAddon).map(perm => ({
 			name: perm.name,
-			description: perm.description,
-			file: perm.file
+			file: perm.file,
+			description: perm.description
 		}));
 		return this.app.saveFile(
 			path.join(this.app.path, 'server', 'permissions.json'),

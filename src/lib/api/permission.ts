@@ -12,6 +12,7 @@ export class Permission {
 	middleware: any;
 	file: string;
 	invalid: boolean;
+	fromAddon: IPermission['fromAddon'];
 
 	constructor(app, data: IPermission) {
 		this.app = app;
@@ -28,6 +29,9 @@ export class Permission {
 		}
 		if (data.invalid) {
 			this.invalid = data.invalid;
+		}
+		if (data.fromAddon) {
+			this.fromAddon = data.fromAddon;
 		}
 		this.reload();
 	}
@@ -85,7 +89,8 @@ export class Permission {
 			file: file,
 			readOnly: this.readOnly,
 			invalid: this.invalid,
-			code: this.invalid ? this.middleware : this.middleware ? `module.exports = ${this.middleware.toString()}` : null
+			code: this.invalid ? this.middleware : this.middleware ? `module.exports = ${this.middleware.toString()}` : null,
+			fromAddon: this.fromAddon
 		};
 	}
 }
