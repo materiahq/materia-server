@@ -69,19 +69,20 @@ export class Watcher {
 			followSymlinks: true,
 			interval: 1000,
 			binaryInterval: 1000,
-			cwd: this.app.path
+			cwd: this.app.path,
+			useFsEvents: true
 		});
 
 		this.chokidarWatcher = watcher;
 
-		if (process.platform === 'darwin' && !watcher.options.useFsEvents) {
-			this.app.logger.log(` └── Watchers: ${chalk.bold.red('WARNING')}`);
-			this.app.logger.error(
-				new Error('Watcher is not using native fsevents library and is falling back to unefficient polling.')
-			);
-		} else {
-			this.app.logger.log(` └── Watchers: ${chalk.bold.green('OK')}`);
-		}
+		// if (process.platform === 'darwin' && ! watcher.options.useFsEvents) {
+		// this.app.logger.log(` └── Watchers: ${chalk.bold.red('WARNING')}`);
+		// this.app.logger.error(
+		// new Error('Watcher is not using native fsevents library and is falling back to unefficient polling.')
+		// );
+		// } else {
+		this.app.logger.log(` └── Watchers: ${chalk.bold.green('OK')}`);
+		// }
 
 		watcher.on('add', this._addEvent.bind(this));
 		watcher.on('addDir', this._addEvent.bind(this));
