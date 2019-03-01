@@ -24,7 +24,7 @@ import { VirtualEntity } from './entities/virtual-entity';
  * Entity manager. This class is relative to all the entities of an app.
  */
 export class Entities {
-	entities: {[name: string]: Entity};
+	entities: {[name: string]: Entity | VirtualEntity};
 	entitiesJson: {[path: string]: Array<any>};
 
 	constructor(public app: App) {
@@ -446,7 +446,13 @@ export class Entities {
 		options = options || {};
 
 		if ( ! name) {
-			return Promise.reject(new MateriaError('You must specify a entity name'));
+			return Promise.reject(new MateriaError('You must specify an entity name to delete.'));
+		}
+
+		const entity = this.entities[name];
+
+		if ( ! entity) {
+			return Promise.reject(new MateriaError(`Entity "${name}" does not exist.`));
 		}
 
 		const endpoints: IEndpoint[] = this.app.api.findAll().map(e => e.toJson());
@@ -469,7 +475,6 @@ export class Entities {
 		}
 
 		return p.then(() => {
-			const entity = this.entities[name];
 
 			if (options.history != false) {
 				this.app.history.push({
@@ -493,6 +498,9 @@ export class Entities {
 				fse.unlinkSync(join(this.app.path, relativePath));
 			}
 
+			if (entity instanceof VirtualEntity) {
+				return Promise.resolve();
+			}
 			if (options.db == false) {
 				return Promise.reject(new MateriaError('Cannot delete entity (database is disabled)'));
 			}
@@ -514,11 +522,11 @@ export class Entities {
 		const entity = this.get(name);
 
 		if ( ! entity && options.full_rename != false) {
-			return Promise.reject(new MateriaError('Entity ' + name + ' does not exist.'));
+			return Promise.reject(new MateriaError(`Entity "${name}" does not exist.`));
 		}
 
 		if ( entity && this.get(new_name)) {
-			return Promise.reject(new MateriaError('Entity ' + new_name + ' already exists.'));
+			return Promise.reject(new MateriaError(`Entity "${new_name}" already exists.`));
 		}
 
 		let p = Promise.resolve();
@@ -579,8 +587,7 @@ export class Entities {
 			p = p.then(() => this.save());
 		}
 
-
-		if (options.db == false) {
+		if (entity instanceof VirtualEntity || options.db == false) {
 			return Promise.resolve();
 		}
 
