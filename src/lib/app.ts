@@ -1,12 +1,13 @@
 import * as events from 'events';
 import chalk from 'chalk';
-import { join, sep, dirname } from 'path';
+import { join, sep, dirname, relative, normalize, extname, basename } from 'path';
 import * as fse from 'fs-extra';
 import {
 	IAppConfig,
 	IDatabaseConfig,
 	IServerConfig,
-	IAppOptions
+	IAppOptions,
+	ITreeFile
 } from '@materia/interfaces';
 
 import { Logger } from './logger';
@@ -454,38 +455,67 @@ manual_scaling:
 		});
 	}
 
-	getFiles(depth: number, name?: string, p?: string) {
+	getFile(filepath: string): ITreeFile {
+		if ( ! filepath) {
+			throw new Error('You must provide a file path to retieve');
+		}
+		if ( ! fse.existsSync(filepath)) {
+			throw new Error('File with provided path not found');
+		}
+		const filename = basename(filepath);
+		const basePath = dirname(filepath);
+		const relativePath = normalize(relative(this.path, filepath));
+		return {
+			filename: filename,
+			fullpath: filepath,
+			path: basePath,
+			relativepath: relativePath,
+			isDir: false,
+			extension: extname(filepath).replace('.', '')
+		};
+	}
+
+	getFiles(depth: number, name?: string, p?: string): ITreeFile {
 		const splittedName = this.path.split(sep);
 		const length = splittedName.length;
 		const appFolder = splittedName[length - 1];
 		name = name || appFolder;
 		p = p || this.path;
-		const results = [];
+
+		const files = [];
+		const folders = [];
 
 		if (depth) {
-			const files = fse.readdirSync(p);
-			files.forEach((file) => {
-				if (file != '.DS_Store' && file != '.git' && file != 'history.json' && file != 'history') {
+			const children = fse.readdirSync(p);
+			children.forEach((file) => {
+				if (file != '.DS_Store' && file != '.git') {
 					const stats = fse.lstatSync(join(p, file));
 					if (stats.isDirectory()) {
-						results.push(this.getFiles(depth - 1, file, join(p, file)));
+						folders.push(this.getFiles(depth - 1, file, join(p, file)));
 					} else {
-						results.push({
+						const fullpath = join(p, file);
+						const fileRelativepath = normalize(relative(this.path, fullpath));
+						files.push({
 							filename: file,
 							path: p,
-							fullpath: join(p, file)
+							isDir: false,
+							fullpath: fullpath,
+							relativepath: fileRelativepath,
+							extension: extname(file).replace('.', '')
 						});
 					}
 				}
 			});
 		}
-
+		const folderRelativepath = normalize(relative(this.path, p));
 		return {
 			filename: name,
-			path: p,
+			path: dirname(p),
+			isDir: true,
 			fullpath: p,
-			children: results,
-			incomplete: ! depth
+			relativepath: folderRelativepath,
+			incomplete: ! depth,
+			children: [...folders, ...files]
 		};
 	}
 
@@ -517,7 +547,7 @@ manual_scaling:
 		return this._getWatchableFiles(files.children);
 	}
 
-	readFile(fullpath) {
+	readFile(fullpath): string {
 		return fse.readFileSync(fullpath, 'utf-8');
 	}
 
