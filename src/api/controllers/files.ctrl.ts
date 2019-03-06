@@ -1,8 +1,8 @@
 import { Application as ExpressApplication } from 'express';
-import { App } from '../../lib';
-
-import * as path from 'path';
+import { join, basename } from 'path';
 import * as fse from 'fs-extra';
+
+import { App } from '../../lib';
 import { WebsocketInstance } from '../../lib/websocket';
 
 export class FilesController {
@@ -17,7 +17,7 @@ export class FilesController {
 			if (relativePath.includes(this.app.path)) {
 				p = relativePath;
 			} else {
-				p = path.join(this.app.path, relativePath);
+				p = join(this.app.path, relativePath);
 			}
 		}
 		return process.platform !== 'win32' ? p.replace(/\\/g, '/') : p;
@@ -28,12 +28,9 @@ export class FilesController {
 			const p = this.getFullPath(req.query.path);
 			if (fse.existsSync(p)) {
 				if (fse.lstatSync(p).isDirectory()) {
-					const splittedName = p.split(path.sep);
-					const length = splittedName.length;
-					const filename = splittedName[length - 1];
 					const files = this.app.getFiles(
 						req.query.depth || 1,
-						filename,
+						basename(p),
 						p
 					);
 					res.status(200).send(files);
@@ -53,17 +50,28 @@ export class FilesController {
 	}
 
 	write(req, res) {
-		const p = this.getFullPath(req.query.path);
-
+		const path = this.getFullPath(req.query.path);
+		let p = Promise.resolve();
 		if (req.body.isDir) {
-			fse.mkdirSync(p);
-			res.status(201).json({ saved: true });
+			p = p.then(() => fse.mkdir(path));
 		} else {
-			this.app.saveFile(p, req.body.content, {
-				mkdir: true
-			});
-			res.status(201).json({ saved: true });
+			p = p.then(() =>
+				this.app.saveFile(path, req.body.content, {
+					mkdir: true
+				})
+			);
 		}
+		p.then(() => {
+			const isDir = fse.lstatSync(path).isDirectory();
+			const result = isDir ? this.app.getFiles(
+				1,
+				basename(path),
+				path
+			) : this.app.getFile(path);
+			res.status(201).send(result);
+		}).catch(err => {
+			res.status(500).send({error: true, message: err.message});
+		});
 	}
 
 	move(req, res) {
@@ -74,7 +82,13 @@ export class FilesController {
 			if (err) {
 				return res.status(500).json(err);
 			}
-			res.status(200).json({ moved: true });
+			const isDir = fse.lstatSync(newPath).isDirectory();
+			const result = isDir ? this.app.getFiles(
+				1,
+				basename(newPath),
+				newPath
+			) : this.app.getFile(newPath);
+			res.status(200).send(result);
 		});
 	}
 
