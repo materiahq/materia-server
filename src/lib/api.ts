@@ -8,6 +8,7 @@ import { Endpoint } from './api/endpoint';
 import { Permissions } from './api/permissions';
 import { App, AppMode } from './app';
 import { MateriaError } from './error';
+import { VirtualEntity } from './entities/virtual-entity';
 
 /**
  * @class Api
@@ -42,7 +43,8 @@ export class Api {
 	add(endpoint: IEndpoint, options?: IApplyOptions) {
 		options = options || {};
 
-		if (!endpoint.controller && endpoint.query && endpoint.query.entity && this.app.database.disabled) {
+		if ( ! endpoint.controller && endpoint.query && endpoint.query.entity &&
+			! (this.app.entities.get(endpoint.query.entity) instanceof VirtualEntity) && this.app.database.disabled) {
 			throw new MateriaError('The database is disabled and this endpoint rely on it');
 		}
 		if (endpoint) {
