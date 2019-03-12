@@ -260,7 +260,13 @@ export class FindAllQuery extends Query {
 			}
 			if ( ! options || ! options.raw) {
 				result.toJSON = () => {
-					const data = result.data.map(elt => elt.toJSON());
+					const data = result.data.map(elt => {
+						if (elt.toJSON) {
+							return elt.toJSON();
+						} else {
+							return elt;
+						}
+					});
 					let jsonResult: any = {
 						count: res.count && typeof res.count === 'number' ? res.count : data.length,
 						data: data
