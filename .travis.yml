@@ -26,7 +26,7 @@ env:
    - DIALECT=postgres
 
 before_install:
- - "npm install -g typescript@2.3.4"
+ - "npm install -g typescript@2.9.2"
 install:
  - "npm install && tsc -p ."
 script:
