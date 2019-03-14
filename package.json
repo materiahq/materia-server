@@ -50,7 +50,7 @@
     "chai-as-promised": "^6.0.0",
     "chai-http": "^4.2.0",
     "crlf": "^1.1.1",
-    "mocha": "^5.2.0",
+    "mocha": "^6.0.2",
     "ncp": "^2.0.0",
     "tslint": "^5.12.1",
     "typescript": "^2.9.2"
@@ -59,7 +59,7 @@
     "build": "tsc -p . && ncp package.json dist/package.json && ncp src/cli dist/cli && ncp scripts dist/scripts",
     "prepublishOnly": "node scripts/prepublish.js",
     "postpublish": "node scripts/postpublish.js",
-    "test": "mocha -R spec dist/test/**/*.js",
+    "test": "mocha -R spec dist/test/**/*.js --exit",
     "test-watch": "mocha -R spec 'dist/test/**/*.js' --watch",
     "test-postgres": "DIALECT=postgres npm test",
     "test-sqlite": "npm test",
