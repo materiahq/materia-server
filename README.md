@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/webshell/materia-server.svg?branch=master)](https://travis-ci.org/webshell/materia-server) [![npm version](https://badge.fury.io/js/materia-server.svg)](https://badge.fury.io/js/materia-server) [![dependencies Status](https://david-dm.org/webshell/materia-server/status.svg)](https://david-dm.org/webshell/materia-server)
+[![Build Status](https://travis-ci.org/materiahq/materia-server.svg?branch=master)](https://travis-ci.org/materiahq/materia-server) [![npm version](https://badge.fury.io/js/materia-server.svg)](https://badge.fury.io/js/materia-server) [![dependencies Status](https://david-dm.org/materiahq/materia-server/status.svg)](https://david-dm.org/materiahq/materia-server)
 
 # Materia Server
 
