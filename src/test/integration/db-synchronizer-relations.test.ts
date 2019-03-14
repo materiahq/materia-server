@@ -186,9 +186,8 @@ describe('[Database synchronizer with relations]', () => {
 				})
 				.then(() => {
 					return app.synchronizer.diff();
-				}).should.become({
-					entities:
-					[
+				}).then(diffs => {
+					diffs.entities.should.have.deep.members([
 						{
 							redo: {
 								table: 'sayan',
@@ -354,11 +353,9 @@ describe('[Database synchronizer with relations]', () => {
 								type: 'delete_entity'
 							}
 						}
-					],
-					fields: [],
-					relations: [],
-					length: 4
-				});
+					]);
+					return diffs.length;
+			}).should.become(4);
 		});
 
 

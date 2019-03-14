@@ -72,7 +72,15 @@ describe('[Entities without primary field]', () => {
 		it('should run default "create" query without value', () => {
 			const testEntity = app.entities.get('test');
 			return testEntity.getQuery('create').run(null, {raw: true})
-			.should.become({});
+			.then(() =>
+				testEntity.getQuery('list').run(null, {raw: true})
+			).should.become({
+					count: 2,
+					data: [{test: 'Hello world !'}, {test: null}],
+					pagination: {
+						offset: 0, page: 1, limit: 30
+					}
+			});
 		});
 
 		it('should run default "list" query', () => {
