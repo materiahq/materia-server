@@ -30,7 +30,7 @@ export class TemplateApp {
 	}
 
 	createInstance(mode?: string): Promise<App> {
-		const app_path = fse.mkdtempSync(path.join(os.tmpdir() + 'materia-test-'));
+		const app_path = fse.mkdtempSync(path.join(os.tmpdir(), 'materia-test-'));
 		fse.copySync(path.join(__dirname, '..', '..', '..', 'src', 'test', 'apps', this.name), app_path, { overwrite: true, recursive: true });
 
 		return this.createApp(app_path, mode);
