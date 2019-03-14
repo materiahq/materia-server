@@ -26,11 +26,11 @@ env:
    - DIALECT=postgres
 
 before_install:
- - "npm install -g typescript@2.9.2"
+ - "yarn global add typescript@2.9.2"
 install:
- - "npm install && tsc -p ."
+ - "yarn && tsc -p ."
 script:
- - "npm test"
+ - "yarn test"
 
 branches:
   only:
