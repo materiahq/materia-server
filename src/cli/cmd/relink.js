@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { Npm } = require('../../api/lib/npm');
+const { Npm } = require('../../lib/package-manager/npm');
 const cwd = process.cwd();
 const chalk = require('chalk');
 
