@@ -1,13 +1,12 @@
 import { App } from '../../lib';
-import { Npm } from '../lib/npm';
 import { WebsocketInstance } from '../../lib/websocket';
+import { PackageManager } from '../../lib/package-manager';
 
 export class PackageManagerController {
-	npm: Npm;
+	packageManager: PackageManager;
 
 	constructor(private app: App, websocket: WebsocketInstance) {
-		this.npm = new Npm(app.path);
-		this.npm.enableLogger(this.app);
+		this.packageManager = new PackageManager(this.app.path);
 	}
 
 	install(req, res) {
@@ -15,7 +14,7 @@ export class PackageManagerController {
 		const name = this.getPkgFromRequest(req);
 
 		try {
-			this.npm.exec('install', [name, '--save'], null, (data, error) => {
+			this.packageManager.install(name, (data, error) => {
 				this.app.logger.log(data);
 			}).then(data => {
 				this.app.watcher.enable();
@@ -35,7 +34,7 @@ export class PackageManagerController {
 		const name = this.getPkgFromRequest(req);
 
 		try {
-			this.npm.exec('upgrade', [name, '--save'], null, (data, error) => {
+			this.packageManager.upgrade(name, (data, error) => {
 				this.app.logger.log(data);
 			}).then(data => {
 				this.app.watcher.enable();
@@ -53,7 +52,7 @@ export class PackageManagerController {
 	installAll(req, res) {
 		this.app.watcher.disable();
 		try {
-			this.npm.exec('install', [], null, (data, error) => {
+			this.packageManager.installAll((data, error) => {
 				this.app.logger.log(data);
 			}).then(data => {
 				this.app.watcher.enable();
@@ -73,7 +72,7 @@ export class PackageManagerController {
 		const name = this.getPkgFromRequest(req);
 
 		try {
-			this.npm.exec('uninstall', [name, '--save'], null, (data, error) => {
+			this.packageManager.uninstall(name, (data, error) => {
 				this.app.logger.log(data);
 			}).then(data => {
 				this.app.watcher.enable();

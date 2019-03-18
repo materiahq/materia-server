@@ -3,25 +3,29 @@ import { join } from 'path';
 import { IClientConfig } from '@materia/interfaces';
 
 import { App, ConfigType } from '../../lib';
-import { Npm } from '../lib/npm';
 import { WebsocketInstance } from '../../lib/websocket';
+import { PackageManager } from '../../lib/package-manager';
 
 export class ClientController {
-	npm: Npm;
+	packageManager: PackageManager;
+	proc: any;
 
-	npmProc: any;
 
 	constructor(private app: App, private websocket: WebsocketInstance) {
-		this.npm = new Npm(this.app.path);
+		this.packageManager = new PackageManager(this.app.path);
 	}
 
 	async startWatching(req, res) {
-		res.status(200).send({});
 		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
 		const script = conf.scripts && conf.scripts.watch ? conf.scripts.watch : 'watch';
-		await this._kill(this.npmProc);
-		const result = await this.npm.execInBackground('run-script', [script], join(this.app.path, conf.packageJsonPath));
-		this.npmProc = result.proc;
+		await this._kill(this.proc);
+		try {
+			const result = await this.packageManager.runScriptInBackground(script, join(this.app.path, conf.packageJsonPath));
+			this.proc = result.proc;
+			res.status(200).send();
+		} catch (err) {
+			res.status(500).send(err);
+		}
 		let last = -1;
 		const errors = [];
 		let building = false;
@@ -80,14 +84,14 @@ export class ClientController {
 			}
 		};
 
-		this.npmProc.stdout.on('data', d => {
+		this.proc.stdout.on('data', d => {
 			sendProgress(d.toString());
 		});
-		this.npmProc.stderr.on('data', d => {
+		this.proc.stderr.on('data', d => {
 			sendProgress(d.toString());
 		});
 
-		this.npmProc.on('close', code => {
+		this.proc.on('close', code => {
 			this.websocket.broadcast({
 				type: 'client:watch:terminate',
 				hasStatic: this.app.server.hasStatic()
@@ -96,7 +100,7 @@ export class ClientController {
 	}
 
 	stopWatching(req, res) {
-		this._kill(this.npmProc).then(() => {
+		this._kill(this.proc).then(() => {
 			res.status(200).send();
 		}).catch(e => {
 			res.status(500).send(e);
@@ -119,7 +123,7 @@ export class ClientController {
 		}
 		if (script) {
 			const packageJsonPath = conf && conf.packageJsonPath ? join(this.app.path, conf.packageJsonPath) : this.app.path;
-			this.npm.exec('run-script', [script], packageJsonPath, (data, error) => {
+			this.packageManager.runScript(script, packageJsonPath, (data, error) => {
 				const progress = this._parseProgress(data);
 				if (progress) {
 					this.websocket.broadcast({
