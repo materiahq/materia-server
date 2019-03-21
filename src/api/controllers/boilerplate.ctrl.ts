@@ -454,16 +454,8 @@ outputDir: './client/dist'
 		});
 	}
 
-	private _moveItem(oldPath, newPath) {
-		return new Promise((resolve, reject) => {
-			return fse.move(oldPath, newPath, (err) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve();
-				}
-			});
-		});
+	private _moveItem(oldPath, newPath): Promise<void> {
+		return fse.move(oldPath, newPath);
 	}
 
 	private _newAngularProject(params: string[], projectName?: string) {
