@@ -15,6 +15,23 @@ export class ClientController {
 		this.packageManager = new PackageManager(this.app.path);
 	}
 
+	install(req, res) {
+		const name = this.getPkgFromRequest(req);
+		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
+		const clientManager = new PackageManager(join(this.app.path, conf.packageJsonPath));
+		return clientManager.install(name)
+			.then(() => res.status(200).send())
+			.catch(err => res.status(500).send(err));
+	}
+
+	installAll(req, res) {
+		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
+		const clientManager = new PackageManager(join(this.app.path, conf.packageJsonPath));
+		return clientManager.installAll()
+			.then(() => res.status(200).send())
+			.catch(err => res.status(500).send(err));
+	}
+
 	async startWatching(req, res) {
 		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
 		const script = conf.scripts && conf.scripts.watch ? conf.scripts.watch : 'watch';
@@ -252,6 +269,14 @@ export class ClientController {
 				cp.exec('taskkill /PID ' + stream.pid + ' /T /F', (error, stdout, stderr) => { return resolve(); });
 			}
 		});
+	}
+
+	private getPkgFromRequest(req) {
+		let pkg = req.params.dependency;
+		if (req.params[0]) {
+			pkg += req.params[0];
+		}
+		return pkg;
 	}
 
 }
