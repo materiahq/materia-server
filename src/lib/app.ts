@@ -380,7 +380,7 @@ manual_scaling:
 			}
 		}).then(() => {
 			this.logger.log(` └── Addons: ${chalk.bold.green('OK')}`);
-			if (Object.keys(errors).length == 0 && this.mode == AppMode.PRODUCTION && ! this.live) {
+			if (Object.keys(errors).length == 0 && this.mode == AppMode.PRODUCTION && ! this.live && ! this.database.disabled) {
 				return this.synchronizer.diff().then((diffs) => {
 					if (diffs && diffs.length == 0) {
 						this.logger.log(` └── Synchronize: ${chalk.bold('DB already up to date')}`);
