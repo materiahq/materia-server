@@ -1,17 +1,11 @@
 import * as execa from 'execa';
-import { App } from '../../lib';
 import * as which from 'which';
 
 export class Npm {
-	app: App;
+
 	constructor(private cwd: string) {}
 
-	enableLogger(app: App) { this.app = app; }
-
 	execInBackground(command: string, params?: string[], cwd?: string) {
-		if (this.app) {
-			this.app.logger.log(`NPM -> ${command} ${params.join(' ')}`);
-		}
 		return this.getNpmPath().then(npmPath => {
 			const npmProc = execa(npmPath, [command, ...params], {
 				cwd: cwd ? cwd : this.cwd
@@ -24,27 +18,20 @@ export class Npm {
 		return new Promise((resolve, reject) => {
 			let data = '';
 			return this.getNpmPath().then(npmPath => {
-				if (this.app) {
-					this.app.logger.log(`NPM -> ${command} ${params.join(' ')}`);
-					this.app.logger.log(`NPM binary used: ${npmPath}`);
+				if (stream) {
+					stream(`$ npm ${command} ${params.join(' ')}`);
 				}
 				const proc = execa(npmPath, [command, ...params], {
 					cwd: cwd ? cwd : this.cwd
 				});
 				let working = true;
 				proc.stdout.on('data', d => {
-					if (this.app) {
-						this.app.logger.log(`npm stdout: ${d.toString()}`);
-					}
 					if (stream && working) {
 						stream(d.toString());
 					}
 					data += d;
 				});
 				proc.stderr.on('data', (d) => {
-					if (this.app) {
-						this.app.logger.log(`npm stderr: ${d.toString()}`);
-					}
 					if (stream && working) {
 						stream(d.toString(), true);
 					}
@@ -68,17 +55,11 @@ export class Npm {
 
 	private getNpmPath() {
 		return new Promise((resolve, reject) => {
-			which('npm', (err, npmPath) => {
-				if (err && ! npmPath) {
-					if (this.app) {
-						this.app.logger.error(`npm -> path error: ${err}`);
-					}
+			which('npm', { all: true }, (err, npmPaths) => {
+				if (err) {
 					reject(err);
 				} else {
-					if (this.app) {
-						this.app.logger.log(`npm -> path: ${npmPath}`);
-					}
-					resolve(npmPath);
+					resolve(npmPaths.find(p => ! p.includes('materia-designer')));
 				}
 			});
 		});

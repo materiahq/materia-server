@@ -202,6 +202,8 @@ export class MateriaApi {
 		 * Client Endpoints
 		 */
 		this.api.post('/materia/client/build', this.oauth.isAuth, this.clientCtrl.build.bind(this.clientCtrl));
+		this.api.post('/materia/client/dependencies', this.oauth.isAuth, this.clientCtrl.installAll.bind(this.clientCtrl));
+		this.api.post('/materia/client/dependencies/:dependency*', this.oauth.isAuth, this.clientCtrl.installAll.bind(this.clientCtrl));
 		this.api.post('/materia/client/watch/start', this.oauth.isAuth, this.clientCtrl.startWatching.bind(this.clientCtrl));
 		this.api.post('/materia/client/watch/stop', this.oauth.isAuth, this.clientCtrl.stopWatching.bind(this.clientCtrl));
 		this.api.post('/materia/client/boilerplate/init', this.oauth.isAuth, this.boilerplateCtrl.initMinimal.bind(this.boilerplateCtrl));
