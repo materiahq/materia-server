@@ -24,12 +24,50 @@ export class ClientController {
 			.catch(err => res.status(500).send(err));
 	}
 
-	installAll(req, res) {
+	async installAll(req, res) {
 		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
 		const clientManager = new PackageManager(join(this.app.path, conf.packageJsonPath));
-		return clientManager.installAll()
-			.then(() => res.status(200).send())
-			.catch(err => res.status(500).send(err));
+		await this._kill(this.proc);
+		try {
+			const result = await clientManager.installAllInBackground();
+			this.proc = result.proc;
+			res.status(200).send();
+		} catch (err) {
+			res.status(500).send(err);
+		}
+		this.websocket.broadcast({
+			type: 'client:install-all:progress',
+			data: join(this.app.path, conf.packageJsonPath)
+		});
+		this.websocket.broadcast({
+			type: 'client:install-all:progress',
+			data: `${clientManager.managerName === 'yarn' ? '$ yarn install' : '$ npm install'}`
+		});
+		this.proc.stdout.on('data', d => {
+			this.websocket.broadcast({
+				type: 'client:install-all:progress',
+				data: d.toString()
+			});
+		});
+		this.proc.stderr.on('data', d => {
+			this.websocket.broadcast({
+				type: 'client:install-all:progress',
+				data: d.toString()
+			});
+		});
+
+		this.proc.on('close', (code, signal) => {
+			if (code) {
+				this.websocket.broadcast({
+					type: 'client:install-all:fail',
+					data: code + signal
+				});
+			} else {
+				this.websocket.broadcast({
+					type: 'client:install-all:success'
+				});
+			}
+		});
 	}
 
 	async startWatching(req, res) {
@@ -255,7 +293,7 @@ export class ClientController {
 	}
 
 	private _kill(stream): Promise<void> {
-		if (!stream) {
+		if ( ! stream) {
 			return Promise.resolve();
 		}
 
