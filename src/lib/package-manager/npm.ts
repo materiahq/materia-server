@@ -55,11 +55,11 @@ export class Npm {
 
 	private getNpmPath() {
 		return new Promise((resolve, reject) => {
-			which('npm', (err, npmPath) => {
-				if (err && ! npmPath) {
+			which('npm', { all: true }, (err, npmPaths) => {
+				if (err) {
 					reject(err);
 				} else {
-					resolve(npmPath);
+					resolve(npmPaths.find(p => ! p.includes('materia-designer')));
 				}
 			});
 		});
