@@ -54,11 +54,11 @@ export class PackageManager {
 	}
 
 	installAll(stream?: (data: any, error?: boolean) => void) {
-		if (this.managerName === 'yarn') {
-			return this.nodeModuleManager.exec('install', [], this.basepath, stream);
-		} else {
-			return this.nodeModuleManager.exec('install', [], this.basepath, stream);
-		}
+		return this.nodeModuleManager.exec('install', [], this.basepath, stream);
+	}
+
+	installAllInBackground(cwd?: string) {
+		return this.nodeModuleManager.execInBackground('install', [], cwd ? cwd : this.basepath);
 	}
 
 	getPackageManagerName(): string {
