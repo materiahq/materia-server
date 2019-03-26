@@ -34,7 +34,6 @@ export class PackageManagerController {
 		} catch (err) {
 			return res.status(500).send(err);
 		}
-		console.log('root deps Install all launched');
 		this.websocket.broadcast({
 			type: 'root:install-all:progress',
 			data: this.app.path
@@ -43,7 +42,6 @@ export class PackageManagerController {
 			type: 'root:install-all:progress',
 			data: `${this.packageManager.managerName === 'yarn' ? '$ yarn install' : '$ npm install'}`
 		});
-		console.log('After general infos');
 		this.proc.stdout.on('data', d => {
 			this.websocket.broadcast({
 				type: 'root:install-all:progress',
