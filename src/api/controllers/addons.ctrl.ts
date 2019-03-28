@@ -10,7 +10,8 @@ export class AddonsController {
 		if (! pkg || ! this.app.addons.get(pkg)) {
 			res.status(404).send();
 		} else {
-			res.status(200).send(this.app.addons.addonsConfig[pkg]);
+			const config = this.app.addons.addonsConfig && this.app.addons.addonsConfig[pkg] ? this.app.addons.addonsConfig[pkg] : null;
+			res.status(200).send(config);
 		}
 	}
 

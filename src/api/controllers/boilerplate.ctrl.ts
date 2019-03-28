@@ -3,7 +3,6 @@ import * as path from 'path';
 import { IClientConfig } from '@materia/interfaces';
 
 import { App, AppMode, ConfigType } from '../../lib';
-import { Npm } from '../lib/npm';
 import { Npx } from '../lib/npx';
 import { getPackageJson } from '../lib/getPackageJson';
 import { WebsocketInstance } from '../../lib/websocket';
@@ -11,16 +10,17 @@ import { WebsocketInstance } from '../../lib/websocket';
 import { AngularCli } from '../lib/angular-cli';
 import { VueCli } from '../lib/vue-cli';
 import { ReactScripts } from '../lib/react-scripts';
+import { PackageManager } from '../../lib/package-manager';
 
 export class BoilerplateController {
-	npm: Npm;
 	npx: Npx;
 	angularCli: AngularCli;
 	vueCli: VueCli;
 	reactScripts: ReactScripts;
+	packageManager: PackageManager;
 
 	constructor(private app: App, websocket: WebsocketInstance) {
-		this.npm = new Npm(this.app.path);
+		this.packageManager = new PackageManager(this.app.path);
 		this.npx = new Npx(this.app);
 		this.angularCli = new AngularCli(this.app);
 		this.vueCli = new VueCli(this.app);
@@ -156,7 +156,7 @@ export class BoilerplateController {
 			return this.angularCli.saveConfig();
 		}).then(() => {
 			this._emitMessage('Install dependencies');
-			return this.npm.exec('install', []);
+			return this.packageManager.installAll();
 		}).then(() => {
 			this._emitMessage('Build angular application');
 			return this.angularCli.exec('build', []);
@@ -203,8 +203,7 @@ export class BoilerplateController {
 					build: true,
 					scripts: {
 						build: 'build',
-						watch: 'watch',
-						prod: 'prod'
+						prod: 'build'
 					},
 					autoWatch: false
 				};
@@ -212,7 +211,7 @@ export class BoilerplateController {
 				return this.app.config.save();
 			}).then(() => {
 				this._emitMessage('Build React application');
-				return this.npm.exec('run-script', ['build'], path.join(this.app.path, params.output));
+				return this.packageManager.runScript('build', path.join(this.app.path, params.output));
 			}).then(() => {
 				this.app.server.dynamicStatic.setPath(path.join(this.app.path, `${params.output}/build`));
 				const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
@@ -308,7 +307,7 @@ outputDir: './client/dist'
 			this._moveItem(path.join(this.app.path, '.gitignore2'), path.join(this.app.path, '.gitignore'))
 		).then(() => {
 			this._emitMessage('Install dependencies');
-			return this.npm.exec('install', []);
+			return this.packageManager.installAll();
 		}).then(() => {
 			this._emitMessage('Build vue application');
 			return this.vueCli.execVueCliService('build', []);
@@ -363,16 +362,16 @@ outputDir: './client/dist'
 	}
 
 	private async _installBoilerplateCli(name) {
-		await this.npm.exec('install', [name, '--save']);
+		await this.packageManager.install(name);
 		const tmp = await getPackageJson(this.app, name);
 		const pkg = this.app.config.packageJson;
-		if (!pkg['scripts']) {
+		if ( ! pkg['scripts']) {
 			pkg['scripts'] = {};
 		}
-		if (!pkg['dependencies']) {
+		if ( ! pkg['dependencies']) {
 			pkg['dependencies'] = {};
 		}
-		if (!pkg['devDependencies']) {
+		if ( ! pkg['devDependencies']) {
 			pkg['devDependencies'] = {};
 		}
 		pkg['devDependencies'][name] = `~${tmp['version']}`;
@@ -454,16 +453,8 @@ outputDir: './client/dist'
 		});
 	}
 
-	private _moveItem(oldPath, newPath) {
-		return new Promise((resolve, reject) => {
-			return fse.move(oldPath, newPath, (err) => {
-				if (err) {
-					reject(err);
-				} else {
-					resolve();
-				}
-			});
-		});
+	private _moveItem(oldPath, newPath): Promise<void> {
+		return fse.move(oldPath, newPath);
 	}
 
 	private _newAngularProject(params: string[], projectName?: string) {

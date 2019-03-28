@@ -3,25 +3,84 @@ import { join } from 'path';
 import { IClientConfig } from '@materia/interfaces';
 
 import { App, ConfigType } from '../../lib';
-import { Npm } from '../lib/npm';
 import { WebsocketInstance } from '../../lib/websocket';
+import { PackageManager } from '../../lib/package-manager';
 
 export class ClientController {
-	npm: Npm;
+	packageManager: PackageManager;
+	proc: any;
 
-	npmProc: any;
 
 	constructor(private app: App, private websocket: WebsocketInstance) {
-		this.npm = new Npm(this.app.path);
+		this.packageManager = new PackageManager(this.app.path);
+	}
+
+	install(req, res) {
+		const name = this.getPkgFromRequest(req);
+		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
+		const clientManager = new PackageManager(join(this.app.path, conf.packageJsonPath));
+		return clientManager.install(name)
+			.then(() => res.status(200).send())
+			.catch(err => res.status(500).send(err));
+	}
+
+	async installAll(req, res) {
+		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
+		const clientManager = new PackageManager(join(this.app.path, conf.packageJsonPath));
+		await this._kill(this.proc);
+		try {
+			const result = await clientManager.installAllInBackground();
+			this.proc = result.proc;
+			res.status(200).send();
+		} catch (err) {
+			res.status(500).send(err);
+		}
+		this.websocket.broadcast({
+			type: 'client:install-all:progress',
+			data: join(this.app.path, conf.packageJsonPath)
+		});
+		this.websocket.broadcast({
+			type: 'client:install-all:progress',
+			data: `${clientManager.managerName === 'yarn' ? '$ yarn install' : '$ npm install'}`
+		});
+		this.proc.stdout.on('data', d => {
+			this.websocket.broadcast({
+				type: 'client:install-all:progress',
+				data: d.toString()
+			});
+		});
+		this.proc.stderr.on('data', d => {
+			this.websocket.broadcast({
+				type: 'client:install-all:progress',
+				data: d.toString()
+			});
+		});
+
+		this.proc.on('close', (code, signal) => {
+			if (code) {
+				this.websocket.broadcast({
+					type: 'client:install-all:fail',
+					data: code + signal
+				});
+			} else {
+				this.websocket.broadcast({
+					type: 'client:install-all:success'
+				});
+			}
+		});
 	}
 
 	async startWatching(req, res) {
-		res.status(200).send({});
 		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
 		const script = conf.scripts && conf.scripts.watch ? conf.scripts.watch : 'watch';
-		await this._kill(this.npmProc);
-		const result = await this.npm.execInBackground('run-script', [script], join(this.app.path, conf.packageJsonPath));
-		this.npmProc = result.proc;
+		await this._kill(this.proc);
+		try {
+			const result = await this.packageManager.runScriptInBackground(script, join(this.app.path, conf.packageJsonPath));
+			this.proc = result.proc;
+			res.status(200).send();
+		} catch (err) {
+			res.status(500).send(err);
+		}
 		let last = -1;
 		const errors = [];
 		let building = false;
@@ -80,14 +139,14 @@ export class ClientController {
 			}
 		};
 
-		this.npmProc.stdout.on('data', d => {
+		this.proc.stdout.on('data', d => {
 			sendProgress(d.toString());
 		});
-		this.npmProc.stderr.on('data', d => {
+		this.proc.stderr.on('data', d => {
 			sendProgress(d.toString());
 		});
 
-		this.npmProc.on('close', code => {
+		this.proc.on('close', code => {
 			this.websocket.broadcast({
 				type: 'client:watch:terminate',
 				hasStatic: this.app.server.hasStatic()
@@ -96,7 +155,7 @@ export class ClientController {
 	}
 
 	stopWatching(req, res) {
-		this._kill(this.npmProc).then(() => {
+		this._kill(this.proc).then(() => {
 			res.status(200).send();
 		}).catch(e => {
 			res.status(500).send(e);
@@ -119,7 +178,7 @@ export class ClientController {
 		}
 		if (script) {
 			const packageJsonPath = conf && conf.packageJsonPath ? join(this.app.path, conf.packageJsonPath) : this.app.path;
-			this.npm.exec('run-script', [script], packageJsonPath, (data, error) => {
+			this.packageManager.runScript(script, packageJsonPath, (data, error) => {
 				const progress = this._parseProgress(data);
 				if (progress) {
 					this.websocket.broadcast({
@@ -234,7 +293,7 @@ export class ClientController {
 	}
 
 	private _kill(stream): Promise<void> {
-		if (!stream) {
+		if ( ! stream) {
 			return Promise.resolve();
 		}
 
@@ -248,6 +307,14 @@ export class ClientController {
 				cp.exec('taskkill /PID ' + stream.pid + ' /T /F', (error, stdout, stderr) => { return resolve(); });
 			}
 		});
+	}
+
+	private getPkgFromRequest(req) {
+		let pkg = req.params.dependency;
+		if (req.params[0]) {
+			pkg += req.params[0];
+		}
+		return pkg;
 	}
 
 }
