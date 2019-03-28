@@ -18,7 +18,7 @@ import { Database } from './database';
 import { Synchronizer } from './synchronizer';
 import { SelfMigration } from './self-migration';
 import { History } from './history';
-import { Client } from './client';
+import { Client, ScriptMode } from './client';
 
 import { Addons } from './addons';
 import { Api } from './api';
@@ -232,8 +232,18 @@ export class App extends events.EventEmitter {
 		const dockerfile = join(this.path, 'Dockerfile');
 		const dbProd = this.config.get<IDatabaseConfig>(AppMode.PRODUCTION, ConfigType.DATABASE);
 		const webProd = this.config.get<IServerConfig>(AppMode.PRODUCTION, ConfigType.SERVER);
-		fse.writeFileSync(dockerfile, `FROM node:7.10-alpine
-MAINTAINER ${options && options.author ? options.author : 'me@company.com'}
+
+		let setupScript = 'npm install';
+		if (this.server.hasStatic() && this.client.config.packageJsonPath != '') {
+			setupScript += ` && cd ${this.client.config.packageJsonPath} && npm install`;
+			if (this.client.hasBuildScript(ScriptMode.BUILD)) {
+				setupScript += ` && npm run ${this.client.config.build}`;
+			}
+		} else if (this.client.hasBuildScript(ScriptMode.BUILD)) {
+			setupScript += ` && npm run ${this.client.config.build}`;
+		}
+
+		fse.writeFileSync(dockerfile, `FROM node:10-alpine
 
 RUN mkdir -p /app
 
@@ -244,7 +254,7 @@ COPY . /app
 
 WORKDIR /app
 
-RUN npm install
+RUN ${setupScript}
 
 ENV MATERIA_MODE production
 
