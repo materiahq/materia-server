@@ -5,6 +5,7 @@ import { IClientConfig } from '@materia/interfaces';
 import { App, ConfigType } from '../../lib';
 import { WebsocketInstance } from '../../lib/websocket';
 import { PackageManager } from '../../lib/package-manager';
+import { cpus } from 'os';
 
 export class ClientController {
 	packageManager: PackageManager;
@@ -25,9 +26,12 @@ export class ClientController {
 	}
 
 	async installAll(req, res) {
-		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
-		const clientManager = new PackageManager(join(this.app.path, conf.packageJsonPath));
 		await this._kill(this.proc);
+		const conf = this.app.config.get<IClientConfig>(this.app.mode, ConfigType.CLIENT);
+		if (! conf || ! conf.www) {
+			return res.status(401).send({ error: true, message: 'No client config found' });
+		}
+		const clientManager = new PackageManager(join(this.app.path, conf.packageJsonPath));
 		try {
 			const result = await clientManager.installAllInBackground();
 			this.proc = result.proc;
