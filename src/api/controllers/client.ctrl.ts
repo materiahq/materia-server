@@ -5,7 +5,6 @@ import { IClientConfig } from '@materia/interfaces';
 import { App, ConfigType } from '../../lib';
 import { WebsocketInstance } from '../../lib/websocket';
 import { PackageManager } from '../../lib/package-manager';
-import { cpus } from 'os';
 
 export class ClientController {
 	packageManager: PackageManager;
