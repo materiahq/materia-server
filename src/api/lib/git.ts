@@ -27,6 +27,15 @@ export class Git {
 		} catch (e) { }
 	}
 
+	clone(params: {repoPath: string, destinationFolder?: string, localPath?: string, options?: any}) {
+		const args = [];
+		if (params.options) {
+			args.push(params.options);
+		}
+		return git(params.destinationFolder ? params.destinationFolder : this.app.path)
+			.clone(params.repoPath, params.localPath, params.options);
+	}
+
 	init() {
 		return this.client.init();
 	}
