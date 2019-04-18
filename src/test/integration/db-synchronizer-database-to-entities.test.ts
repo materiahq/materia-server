@@ -10,7 +10,7 @@ chai.config.truncateThreshold = 500;
 chai.use(chaiAsPromised);
 chai.should();
 
-describe('[Database synchronizer]', () => {
+describe('[Database synchronizer: from database to entities]', () => {
 	let app: App;
 	const tmpl = new TemplateApp('empty-app');
 	const primaryFieldDefault = {
@@ -73,7 +73,7 @@ describe('[Database synchronizer]', () => {
 				});
 		});
 
-		it('Database should have diffs', () => {
+		it('Database should have diffs after deleting "test.json" model file', () => {
 			return fse
 				.remove(
 					path.join(app.path, 'server', 'models', 'test.json')
@@ -122,7 +122,7 @@ describe('[Database synchronizer]', () => {
 				});
 		});
 
-		it('Synchronizing should re-add test model file with same intial property', () => {
+		it('Synchronizing "from database to entities" should re-add test model file with same intial property', () => {
 			return app.synchronizer.diff()
 			.then((diffs) => {
 				return app.synchronizer.databaseToEntities(diffs, null);
