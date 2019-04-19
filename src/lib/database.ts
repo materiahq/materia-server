@@ -1,8 +1,7 @@
 import { existsSync, readFileSync } from 'fs-extra';
 import { join, resolve } from 'path';
 import chalk from 'chalk';
-import * as Sequelize from 'sequelize';
-const Op = require('sequelize').Op;
+import { Sequelize, Options, Dialect, Op } from 'sequelize';
 import * as domain from 'domain';
 import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfaces';
 
@@ -10,12 +9,6 @@ import { App, AppMode } from './app';
 import { ConfigType } from './config';
 import { DatabaseInterface } from './database/interface';
 import { MateriaError } from './error';
-
-export enum Dialect {
-	POSTGRES,
-	SQLITE,
-	MYSQL
-}
 
 const dialect = {
 	postgres: 'PostgreSQL',
@@ -40,11 +33,11 @@ export class Database {
 	password: string;
 	database: string;
 	storage: string;
-	type: string;
+	type: Dialect;
 	started: boolean;
 
-	opts: Sequelize.Options;
-	sequelize: Sequelize.Sequelize;
+	opts: Options;
+	sequelize: Sequelize;
 
 	constructor(private app: App) {
 		this.interface = new DatabaseInterface(this);
@@ -87,7 +80,7 @@ export class Database {
 			this.storage = this.app.options['storage'] || settings.storage;
 		}
 
-		this.type = settings.type;
+		this.type = (settings.type as Dialect);
 		this.started = false;
 
 		let logging: any;
@@ -171,7 +164,7 @@ export class Database {
 			dialect: settings.type,
 			logging: false
 		};
-		let opts: Sequelize.Options;
+		let opts: Options;
 		if (Database.isSQL(settings)) {
 			opts = Object.assign({}, optsDialect, {
 				host: settings.host,
@@ -215,8 +208,8 @@ export class Database {
 
 	static tryServer(settings: IDatabaseConfig, app?: App) {
 		if (Database.isSQL(settings)) {
-			const opts: Sequelize.Options = {
-				dialect: settings.type,
+			const opts: Options = {
+				dialect: (settings.type as Dialect),
 				host: settings.host,
 				port: settings.port,
 				logging: false
@@ -261,8 +254,8 @@ export class Database {
 	 */
 	static listDatabases(settings: IDatabaseConfig) {
 		if (Database.isSQL(settings)) {
-			const opts: Sequelize.Options = {
-				dialect: settings.type,
+			const opts: Options = {
+				dialect: (settings.type as Dialect),
 				host: settings.host,
 				port: settings.port,
 				logging: false
@@ -315,7 +308,7 @@ export class Database {
 	 @param name - Name for the new database
 	 */
 	static createDatabase(settings, name) {
-		const opts: Sequelize.Options = {
+		const opts: Options = {
 			dialect: settings.type,
 			host: settings.host,
 			port: settings.port,

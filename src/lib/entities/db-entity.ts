@@ -1,4 +1,3 @@
-import * as Sequelize from 'sequelize';
 import { IEntityConfig, IField, IFieldUpdate } from '@materia/interfaces';
 
 import { Entity } from './entity';
@@ -7,6 +6,7 @@ import { MateriaError } from '../error';
 import { App } from '../app';
 import { Field } from './field';
 
+import { ModelStatic } from '../database/interface';
 import { QueryGenerator } from './query-generator';
 import { FindAllQuery } from './queries/findAll';
 import { FindOneQuery } from './queries/findOne';
@@ -15,12 +15,13 @@ import { UpdateQuery } from './queries/update';
 import { DeleteQuery } from './queries/delete';
 import { SQLQuery } from './queries/sql';
 import { CustomQuery } from './queries/custom';
+import { BelongsToManyOptions } from 'sequelize/types';
 
 export class DBEntity extends Entity {
 	type: string;
 	currentDiff: Array<any>;
 	currentDiffUndo: Array<any>;
-	public model: Sequelize.Model<{}, {}>;
+	public model: ModelStatic;
 
 	reservedQueries = [
 		'create', 'list', 'get', 'update', 'delete'
@@ -492,7 +493,7 @@ export class DBEntity extends Entity {
 		if (idPKforce) {
 			idField.primary = false;
 		}
-		if ( ! idField && this.model['rawAttributes'].id) {
+		if ( ! idField && this.model.rawAttributes.id) {
 			this.model.removeAttribute('id');
 		}
 		return Promise.resolve();
@@ -534,7 +535,7 @@ export class DBEntity extends Entity {
 					if ( ! entityThrough) {
 						console.error('Through table not found');
 					} else {
-						const relationModel: Sequelize.AssociationOptionsBelongsToMany = {
+						const relationModel: BelongsToManyOptions = {
 							through: {
 								model: entityThrough.model
 							},

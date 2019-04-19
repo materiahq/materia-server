@@ -1,8 +1,8 @@
 import chalk from 'chalk';
-import * as Sequelize from 'sequelize';
 
 import { Query } from '../query';
 import { Conditions } from './utils/conditions';
+import { FindOptions } from 'sequelize/types';
 
 export class FindOneQuery extends Query {
 	opts: any;
@@ -62,7 +62,7 @@ export class FindOneQuery extends Query {
 			where: this.conditions.toSequelize(params, this.entity.name),
 			include: include,
 			raw: raw
-		} as Sequelize.FindOptions<any>;
+		} as FindOptions;
 
 		// Add conditions to opts recursively for included obj
 		this.conditions.constructConditions(opts.include, params);

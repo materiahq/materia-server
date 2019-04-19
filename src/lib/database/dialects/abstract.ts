@@ -1,16 +1,12 @@
-import * as Sequelize from 'sequelize';
+import { Sequelize } from 'sequelize';
 import * as Bluebird from 'bluebird';
 
 import { MateriaError } from '../../error';
 
-export interface SequelizeFix extends Sequelize.Sequelize {
-	normalizeDataType: any
-}
-
 export class AbstractDialect {
-	sequelize: SequelizeFix;
+	sequelize: Sequelize;
 
-	constructor(sequelize: SequelizeFix) {
+	constructor(sequelize: Sequelize) {
 		this.sequelize = sequelize;
 	}
 
@@ -32,8 +28,9 @@ export class AbstractDialect {
 	}
 
 	_getFKs(table): Bluebird<any> {
-		const query = this.sequelize.getQueryInterface().QueryGenerator.getForeignKeysQuery(table, 'public');
-		return this.sequelize.query(query, {raw: true}).then((fks) => {
+		const qg: any = this.sequelize.getQueryInterface().QueryGenerator;
+		const query = qg.getForeignKeysQuery(table, 'public');
+		return this.sequelize.query(query, {raw: true}).then((fks: any[]) => {
 			for (const fk of fks) {
 				for (const k of ['constraint_name', 'name', 'table', 'from', 'to']) {
 					if (fk[k] && (fk[k][0] == '"' || fk[k][0] == "'")) {

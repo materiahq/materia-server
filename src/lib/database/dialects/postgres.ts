@@ -1,11 +1,11 @@
-import * as Sequelize from 'sequelize';
+import { Sequelize, NOW } from 'sequelize';
 import * as Bluebird from 'bluebird';
 
 import { AbstractDialect } from './abstract';
 import { MateriaError } from '../../error';
 
 export class PostgresDialect extends AbstractDialect {
-	constructor(sequelize) {
+	constructor(sequelize: Sequelize) {
 		super(sequelize);
 	}
 
@@ -13,7 +13,7 @@ export class PostgresDialect extends AbstractDialect {
 		for (const colName in cols) {
 			if (cols[colName]) {
 				const col = cols[colName];
-				if (col.defaultValue === Sequelize.NOW && col.type === 'date') {
+				if (col.defaultValue === NOW && col.type === 'date') {
 					col.defaultValue = Sequelize.literal('NOW');
 				}
 			}
@@ -22,14 +22,14 @@ export class PostgresDialect extends AbstractDialect {
 	}
 
 	addColumn(table, column_name, attributes): any {
-		if (attributes.defaultValue === Sequelize.NOW) {
+		if (attributes.defaultValue === NOW) {
 			attributes.defaultValue = Sequelize.fn('NOW');
 		}
 		return super.addColumn(table, column_name, attributes);
 	}
 
 	changeColumn(table, column_name, attributes): any {
-		if (attributes.defaultValue === Sequelize.NOW) {
+		if (attributes.defaultValue === NOW) {
 			attributes.defaultValue = Sequelize.fn('NOW');
 		}
 		return super.changeColumn(table, column_name, attributes);
