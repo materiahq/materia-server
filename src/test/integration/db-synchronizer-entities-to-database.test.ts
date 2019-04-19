@@ -10,7 +10,7 @@ chai.config.truncateThreshold = 500;
 chai.use(chaiAsPromised);
 chai.should();
 
-describe('[Database synchronizer]', () => {
+describe('[Database synchronizer: from entities to database]', () => {
 	let app: App;
 	const tmpl = new TemplateApp('empty-app');
 	const primaryFieldDefault = {
@@ -62,18 +62,12 @@ describe('[Database synchronizer]', () => {
 				});
 		});
 
-		it('Database should have empty diffs', () => {
-			return app.synchronizer
-				.diff()
-				.should.become({
-					entities: [],
-					fields: [],
-					relations: [],
-					length: 0
-				});
+		it('Database should have only one table test', () => {
+			return app.database.sequelize.getQueryInterface().showAllTables()
+				.should.become(['test']);
 		});
 
-		it('Database should have diffs', () => {
+		it('Database should have diffs after deleting "test.json" model file', () => {
 			return fse
 				.remove(
 					path.join(app.path, 'server', 'models', 'test.json')
@@ -122,19 +116,13 @@ describe('[Database synchronizer]', () => {
 				});
 		});
 
-		it('Synchronizing should re-add test model file with same intial property', () => {
+		it('Synchronizing "from database to entities" should delete table test from database', () => {
 			return app.synchronizer.diff()
 			.then((diffs) => {
-				return app.synchronizer.databaseToEntities(diffs, null);
+				return app.synchronizer.entitiesToDatabase(diffs, null);
 			}).then(() => {
-				return app.entities.findAll();
-			}).then(() => {
-				return app.entities.get('test').getField('id_test').toJson();
-			}).should.become({
-				name: 'id_test',
-				component: 'input',
-				...primaryFieldDefault
-			});
+				return app.database.sequelize.getQueryInterface().showAllTables()
+			}).should.become([])
 		});
 	});
 });
