@@ -86,7 +86,7 @@ export class TemplateApp {
 		const off = Promise.resolve(this.before_creation(app));
 		return off.then(() => app.load()).then(() => {
 			if (process.env.DIALECT == 'postgres') {
-				let p = Promise.resolve();
+				let p: Promise<any> = Promise.resolve();
 				[
 					'DROP SCHEMA public CASCADE',
 					'CREATE SCHEMA public',
