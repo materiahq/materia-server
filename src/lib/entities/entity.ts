@@ -235,8 +235,8 @@ export abstract class Entity {
 		const oldEntitiesPositionConfig = this.app.config.get(null, ConfigType.ENTITIES_POSITION);
 		const newEntitiesPositionConfig = Object.assign({}, oldEntitiesPositionConfig, {
 			[this.name]: {
-				x: this.x,
-				y: this.y
+				x: Math.round(this.x * 100) / 100,
+				y: Math.round(this.y * 100) / 100
 			}
 		});
 		this.app.config.set(newEntitiesPositionConfig, null, ConfigType.ENTITIES_POSITION);

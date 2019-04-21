@@ -105,6 +105,7 @@ export class MateriaApi {
 		 * GIT Endpoints
 		 */
 		this.api.get('/materia/git', this.oauth.isAuth, this.gitCtrl.load.bind(this.gitCtrl));
+		this.api.post('/materia/git/clone', this.oauth.isAuth, this.gitCtrl.clone.bind(this.gitCtrl));
 		this.api.post('/materia/git/init', this.oauth.isAuth, this.gitCtrl.init.bind(this.gitCtrl));
 		this.api.post('/materia/git/fetch', this.oauth.isAuth, this.gitCtrl.fetch.bind(this.gitCtrl));
 		this.api.get('/materia/git/statuses', this.oauth.isAuth, this.gitCtrl.getStatus.bind(this.gitCtrl));

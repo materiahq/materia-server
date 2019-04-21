@@ -9,6 +9,14 @@ export class GitController {
 		this.client = new Git(this.app);
 	}
 
+	clone(req, res) {
+		this.client.clone(req.body).then((data) => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err.message);
+		});
+	}
+
 	load(req, res) {
 		this.client.load().then(data => {
 			res.status(200).send(data);

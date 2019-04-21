@@ -451,10 +451,6 @@ export class Entities {
 
 		const entity = this.entities[name];
 
-		if ( ! entity) {
-			return Promise.reject(new MateriaError(`Entity "${name}" does not exist.`));
-		}
-
 		const endpoints: IEndpoint[] = this.app.api.findAll().map(e => e.toJson());
 		const relatedEndpoints: IEndpoint[] = endpoints.filter((e: IEndpoint) => e.query && e.query.entity === name);
 		for (const endpoint of relatedEndpoints) {
