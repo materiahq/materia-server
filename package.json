@@ -15,7 +15,7 @@
     "@types/ws": "^4.0.2",
     "body-parser": "^1.17.2",
     "chalk": "^2.3.1",
-    "chokidar": "^2.1.2",
+    "chokidar": "^2.1.5",
     "compression": "^1.6.2",
     "connect-session-sequelize": "4.1.0",
     "errorhandler": "^1.5.0",
@@ -51,9 +51,9 @@
     "chai-as-promised": "^6.0.0",
     "chai-http": "^4.2.0",
     "crlf": "^1.1.1",
-    "mocha": "^6.0.2",
+    "mocha": "^6.1.4",
     "ncp": "^2.0.0",
-    "tslint": "^5.12.1",
+    "tslint": "^5.16.0",
     "typescript": "^3.2.4"
   },
   "scripts": {
