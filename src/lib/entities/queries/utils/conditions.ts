@@ -4,6 +4,7 @@ import { Condition } from './condition';
 import { DBEntity } from '../../db-entity';
 import { Query, QueryParamResolver } from '../../query';
 import { MateriaError } from '../../../error';
+import { Op } from 'sequelize';
 
 /*
 Conditions manage a list of condition (associated with `operand`)
@@ -23,16 +24,16 @@ Conditions structure:
 */
 
 const SequelizeOperatorsKeys = {
-	'=': '$eq',
-	'!=': '$ne',
-	'>': '$gt',
-	'>=': '$gte',
-	'<': '$lt',
-	'<=': '$lte',
-	'LIKE': '$like',
-	'NOT LIKE': '$notLike',
-	'ILIKE': '$iLike',
-	'NOT ILIKE': '$notILike'
+	'=': Op.eq,
+	'!=': Op.ne,
+	'>': Op.gt,
+	'>=': Op.gte,
+	'<': Op.lt,
+	'<=': Op.lte,
+	'LIKE': Op.like,
+	'NOT LIKE': Op.notLike,
+	'ILIKE': Op.iLike,
+	'NOT ILIKE': Op.notILike
 };
 
 export type IQueryConditions = IQueryCondition[];
@@ -63,9 +64,9 @@ export class Conditions {
 			if (condition.name && condition.operator && condition.entity == entityName) {
 				let cond;
 				if (condition.operator == 'IS NULL') {
-					cond = { $eq: null };
+					cond = { [Op.eq]: null };
 				} else if (condition.operator == 'IS NOT NULL') {
-					cond = { $not: null };
+					cond = { [Op.ne]: null };
 				} else {
 					let resolvedParam = QueryParamResolver.resolve(condition, params);
 					const opkey = SequelizeOperatorsKeys[condition.operator.toUpperCase()];
@@ -102,13 +103,13 @@ export class Conditions {
 			if ($or.length == 1) {
 				return $or[0];
 			} else {
-				return { $or: $or };
+				return { [Op.or]: $or };
 			}
 		} else if ($and.length) {
 			if ($and.length == 1) {
 				return $and[0];
 			} else {
-				return { $and: $and };
+				return { [Op.and]: $and };
 			}
 		}
 	}

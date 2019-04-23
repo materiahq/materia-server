@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'fs-extra';
 import { join, resolve } from 'path';
 import chalk from 'chalk';
-import { Sequelize, Options, Dialect, Op } from 'sequelize';
+import { Sequelize, Options, Dialect } from 'sequelize';
 import * as domain from 'domain';
 import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfaces';
 
@@ -92,28 +92,11 @@ export class Database {
 			logging = false;
 		}
 
-		const operatorsAliases = {
-			$eq: Op.eq,
-			$ne: Op.ne,
-			$gte: Op.gte,
-			$gt: Op.gt,
-			$lte: Op.lte,
-			$lt: Op.lt,
-			$like: Op.like,
-			$notLike: Op.notLike,
-			$iLike: Op.iLike,
-			$notILike: Op.notILike,
-			$and: Op.and,
-			$or: Op.or,
-			$not: Op.not
-		};
-
 		this.opts = {
  			dialect: this.type,
 			host: this.host,
 			port: this.port,
-			logging: logging,
-			operatorsAliases
+			logging: logging
 		};
 
 		if (Database.isSQLite(settings)) {
