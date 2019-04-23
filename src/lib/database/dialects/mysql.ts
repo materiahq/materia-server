@@ -1,11 +1,11 @@
-import * as Sequelize from 'sequelize';
+import { Sequelize, NOW } from 'sequelize';
 import * as Bluebird from 'bluebird';
 
 import { AbstractDialect } from './abstract';
 import { MateriaError } from '../../error';
 
 export class MysqlDialect extends AbstractDialect {
-	constructor(sequelize) {
+	constructor(sequelize: Sequelize) {
 		super(sequelize);
 	}
 
@@ -13,7 +13,7 @@ export class MysqlDialect extends AbstractDialect {
 		for (const colName in cols) {
 			if (cols[colName]) {
 				const col = cols[colName];
-				if (col && col.defaultValue && col.defaultValue === Sequelize.NOW && col.type === 'date') {
+				if (col && col.defaultValue && col.defaultValue === NOW && col.type === 'date') {
 					col.defaultValue = Sequelize.fn('NOW');
 				}
 			}
@@ -22,23 +22,23 @@ export class MysqlDialect extends AbstractDialect {
 	}
 
 	addColumn(table, column_name, attributes): any {
-		if (attributes.defaultValue === Sequelize.NOW) {
+		if (attributes.defaultValue === NOW) {
 			attributes.defaultValue = Sequelize.fn('NOW');
 		}
 		return super.addColumn(table, column_name, attributes);
 	}
 
 	changeColumn(table, column_name, attributes): any {
-		if (attributes.defaultValue === Sequelize.NOW) {
+		if (attributes.defaultValue === NOW) {
 			attributes.defaultValue = Sequelize.fn('NOW');
 		}
 		return super.changeColumn(table, column_name, attributes);
 	}
 
 	private _describeTable(table) {
-		const qg = this.sequelize.getQueryInterface().QueryGenerator;
+		const qg: any = this.sequelize.getQueryInterface().QueryGenerator;
 		const sql = qg.describeTableQuery(table);
-		return this.sequelize.query(sql, {raw: true}).then((desc) => {
+		return this.sequelize.query(sql, {raw: true}).then((desc: any) => {
 			const data = desc[0];
 			const result = {};
 
@@ -208,7 +208,7 @@ export class MysqlDialect extends AbstractDialect {
 				if ( ! fields[constraint.field]) {
 					return Promise.resolve();
 				}
-				let p = Promise.resolve();
+				let p: Promise<any> = Promise.resolve();
 				for (const index of fields[constraint.field]) {
 					if (index.unique) {
 						 ((i) => {

@@ -26,7 +26,7 @@ export class SqliteDialect extends AbstractDialect {
 		return this.sequelize.getQueryInterface().showAllTables().then((tables: Array<string>) => {
 			tables.forEach(table => {
 				const queryInterface = this.sequelize.getQueryInterface();
-				const qg = this.sequelize.getQueryInterface().QueryGenerator;
+				const qg: any = this.sequelize.getQueryInterface().QueryGenerator;
 				const infoQuery = queryInterface.describeTable(table);
 				const indexQuery = queryInterface.showIndex(table);
 				const fkQuery = qg.getForeignKeysQuery(table, 'public');
@@ -52,7 +52,7 @@ export class SqliteDialect extends AbstractDialect {
 					const info = result[i * 4];
 					const indexes = result[i * 4 + 1];
 					const fks = result[i * 4 + 2];
-					const hasAi = result[i * 4 + 3][0];
+					const hasAi = result[i * 4 + 3];
 
 					const fields = [];
 					for (const name in info) {
@@ -122,9 +122,9 @@ export class SqliteDialect extends AbstractDialect {
 		});
 	}
 
-	_backupTmpTable(table) {
+	private _backupTmpTable(table) {
 		const queryInterface = this.sequelize.getQueryInterface();
-		const qg = this.sequelize.getQueryInterface().QueryGenerator;
+		const qg: any = this.sequelize.getQueryInterface().QueryGenerator;
 		const infoQuery = queryInterface.describeTable(table);
 		const indexQuery = queryInterface.showIndex(table);
 		const fkQuery = this.sequelize.query(qg.getForeignKeysQuery(table, 'public'));
@@ -136,9 +136,9 @@ export class SqliteDialect extends AbstractDialect {
 		const promises = [infoQuery, indexQuery, fkQuery, aiQuery];
 		return Promise.all(promises).then((results) => {
 			const fields = results[0];
-			const indexes = results[1];
-			const fks = results[2];
-			const hasAi = results[3][0];
+			const indexes: any = results[1];
+			const fks: any = results[2];
+			const hasAi = results[3];
 
 			const uniqueKeys = [];
 
@@ -200,8 +200,8 @@ export class SqliteDialect extends AbstractDialect {
 				rename: null
 			};
 
-			const quotedTableName = qg.quoteTable(table);
-			const quotedBackupTableName = qg.quoteTable(table + '_materia_backup');
+			const quotedTableName = queryInterface.quoteTable(table);
+			const quotedBackupTableName = queryInterface.quoteTable(table + '_materia_backup');
 
 			tableData.done = () => {
 				const attributeNames = Object.keys(tableData.attributes).map(attr => qg.quoteIdentifier(attr)).join(', ');
@@ -210,9 +210,9 @@ export class SqliteDialect extends AbstractDialect {
 				if (tableData.rename) {
 					attributesNameImport = Object.keys(tableData.attributes).map((attr) => {
 						if (attr == tableData.rename.after) {
-							return qg.quoteIdentifier(tableData.rename.before) + ' AS ' + qg.quoteIdentifier(attr);
+							return queryInterface.quoteIdentifier(tableData.rename.before, false) + ' AS ' + queryInterface.quoteIdentifier(attr, false);
 						} else {
-							return qg.quoteIdentifier(attr);
+							return queryInterface.quoteIdentifier(attr, false);
 						}
 					}).join(', ');
 				} else {
@@ -235,7 +235,7 @@ export class SqliteDialect extends AbstractDialect {
 						].map(query => {
 							return () => this.sequelize.query(query, {raw: true, transaction: t});
 						});
-						let promise = Promise.resolve();
+						let promise: Promise<any> = Promise.resolve();
 						for (const query of transactionQueries) {
 							promise = promise.then(() => {
 								return query();
@@ -289,7 +289,7 @@ export class SqliteDialect extends AbstractDialect {
 				}
 			}
 
-			tableData.attributes[column_name].type = this.sequelize.normalizeDataType(tableData.attributes[column_name].type);
+			tableData.attributes[column_name].type = (this.sequelize as any).normalizeDataType(tableData.attributes[column_name].type);
 			if (tableData.attributes[column_name].default === false) {
 				delete tableData.attributes[column_name].defaultValue;
 			}

@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { QueryTypes } from 'sequelize';
 
 import { Query, QueryParamResolver } from '../query';
 import { MateriaError } from '../../error';
@@ -102,7 +103,7 @@ export class SQLQuery extends Query {
 			.then(() =>
 				this.entity.app.database.sequelize.query(this.query, {
 					replacements: resolvedParams,
-					type: this.entity.app.database.sequelize.QueryTypes.SELECT
+					type: QueryTypes.SELECT
 				})
 			).then(res =>
 				this.handleAfterActions(params, res, true)
