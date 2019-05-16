@@ -1,4 +1,145 @@
-# [1.0.0-beta.10](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.8) (2019-01-28)
+# [1.0.0-rc.0](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-rc.0) (2019-04-23)
+
+### Bug fixes
+
+* **dependencies**: fix security warning by upgrading mocha + tslint + chokidar ([2ad2dcf](https://github.com/materiahq/materia-server/commit/2ad2dcf))
+* **lib/entities**: fix delete_entity operation not working when syncing entities to database ([e569b6a](https://github.com/materiahq/materia-server/commit/e569b6a))
+
+### Features
+
+* **tests/synchronize**: new integration tests for testing syncing database to entities ([e569b6a](https://github.com/materiahq/materia-server/commit/e569b6a)) ([15860cc](https://github.com/materiahq/materia-server/commit/15860cc))
+
+### Breaking changes
+
+* **sequelize**: upgrade from v4 to latest v5.7.0 ([f6cf13f](https://github.com/materiahq/materia-server/commit/f6cf13f)) ([d6dfced](https://github.com/materiahq/materia-server/commit/d6dfced))
+* **sequelize**: turn off operatorAliases ([67537e1](https://github.com/materiahq/materia-server/commit/67537e1))
+* **typescript**: upgrade to v3.2.4 ([f6cf13f](https://github.com/materiahq/materia-server/commit/f6cf13f))
+* **CI/travis**: update typescript version to v3.2.4 ([470ff1e](https://github.com/materiahq/materia-server/commit/470ff1e))
+
+# [1.0.0-beta.16](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.16) (2019-04-09)
+
+### Bug fixes
+
+* **adminAPI/packageManager**: clean logs ([3ebedfd](https://github.com/materiahq/materia-server/commit/3ebedfd))
+* **adminAPI/client**: fix installAll when no client config exists ([6f8be08](https://github.com/materiahq/materia-server/commit/6f8be08)) ([1736894](https://github.com/materiahq/materia-server/commit/1736894))
+* **lib/entity**: round x/y position with 2 decimals ([d49914c](https://github.com/materiahq/materia-server/commit/d49914c))
+
+### Features
+
+* **adminAPI/git**: new git clone endpoint ([de2c355](https://github.com/materiahq/materia-server/commit/de2c355))
+
+# [1.0.0-beta.15](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.15) (2019-03-25)
+
+### Bug fixes
+
+* **adminAPI/addons**: Fix getConfig() endpoint error when no config exists ([1dcc51f](https://github.com/materiahq/materia-server/commit/1dcc51f))
+* **cli**: Fix displaying error when starting an app ([d90a438](https://github.com/materiahq/materia-server/commit/d90a438))
+* **lib/app**: don't synchronize database if disabled ([8cb9e8e](https://github.com/materiahq/materia-server/commit/8cb9e8e))
+* **lib/api**: allow adding 'query' endpoints to virtual entity even if database is disabled ([dcec5c6](https://github.com/materiahq/materia-server/commit/dcec5c6))
+* **lib/npm**: avoid using npm from 'materia-designer' in dev ([972d17f](https://github.com/materiahq/materia-server/commit/972d17f))
+* **lib/files**: simplify private _moveItem() method ([5a7d353](https://github.com/materiahq/materia-server/commit/5a7d353))
+* **lib/queries/findAll**: Fix error when raw option is not set ([9a1c288](https://github.com/materiahq/materia-server/commit/9a1c288))
+* **readme**: Update test badge ([348db5d](https://github.com/materiahq/materia-server/commit/348db5d))
+* **tests**: Modify some assertions to pass tests on PostgresSQL ([08cbcea](https://github.com/materiahq/materia-server/commit/08cbcea))
+* **CI/travis**: Fix tests template app temp directory ([8c6c836](https://github.com/materiahq/materia-server/commit/8c6c836))
+* **CI/travis**: Update node_js version to 10.15 ([e1b0b07](https://github.com/materiahq/materia-server/commit/e1b0b07))
+* **CI/travis**: Update typescript version to 2.9.2 ([bb56f8f](https://github.com/materiahq/materia-server/commit/bb56f8f))
+* **CI/travis**: Update before_install/install/script to use yarn ([2466fdb](https://github.com/materiahq/materia-server/commit/2466fdb))
+
+### Features
+
+* **adminAPI/client**: new installAll dependencies and install single dependency endpoints ([1d4ffb0](https://github.com/materiahq/materia-server/commit/1d4ffb0)) ([36902bd](https://github.com/materiahq/materia-server/commit/36902bd))
+* **lib/packageManager**: new package manager file which uses npm or yarn to manage dependencies ([28efeff](https://github.com/materiahq/materia-server/commit/28efeff)) ([d0e939c](https://github.com/materiahq/materia-server/commit/d0e939c)) ([bb32720](https://github.com/materiahq/materia-server/commit/bb32720)) ([dc899c2](https://github.com/materiahq/materia-server/commit/dc899c2))
+
+### Breaking changes
+
+* **dependencies**: Upgrade mocha to v6.0.2 ([c936c07](https://github.com/materiahq/materia-server/commit/c936c07))
+
+# [1.0.0-beta.14](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.14) (2019-03-07)
+
+### Bug fixes
+
+* **lib/entities**: Fix renaming/deleting virtual entities fails ([32ba096](https://github.com/materiahq/materia-server/commit/32ba096))
+* **tslint**: Fix node_modules not correctly excluded in linterOptions ([2d1ce32](https://github.com/materiahq/materia-server/commit/2d1ce32))
+
+### Features
+
+* **lib/app**: Add isDir/relativepath properties to tree file response ([b66f1dc](https://github.com/materiahq/materia-server/commit/b66f1dc))
+
+### Breaking changes
+
+* **adminAPI/files**: Return file or folder as move/add item success response ([d1cf690](https://github.com/materiahq/materia-server/commit/d1cf690))
+* **dependencies**: Upgrade @materia/interfaces to v1.0.0-beta.9 ([c9f602f](https://github.com/materiahq/materia-server/commit/c9f602f))
+
+# [1.0.0-beta.13](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.13) (2019-02-22)
+
+### Bug fixes
+
+* **adminAPI/endpoints.ctrl**: Fix watcher not disable when adding custom query ([c93294c](https://github.com/materiahq/materia-server/commit/c93294c))
+* **lib/database**: Fix createDatabase() unhandled promise rejection ([f0cd255](https://github.com/materiahq/materia-server/commit/f0cd255))
+* **lib/api/permissions**: Fix incorrect permission file path on save ([e32ccd9](https://github.com/materiahq/materia-server/commit/e32ccd9))
+
+### Features
+
+* **lib/api/permissions**: add fromAddon property ([c2fac08](https://github.com/materiahq/materia-server/commit/c2fac08))
+
+### Breaking changes
+
+* **dependencies**: remove unused deps: handlebars, sequelize-cli and ts-node ([4cfcf06](https://github.com/materiahq/materia-server/commit/4cfcf06))
+* **dependencies**: upgrade typescript to v2.9.2 ([4cfcf06](https://github.com/materiahq/materia-server/commit/4cfcf06))
+* **dependencies**: Upgrade chokidar and @materia/interfaces ([2bc5f1e](https://github.com/materiahq/materia-server/commit/2bc5f1e))
+* **lib/watcher**: set explicitly useFsEvents option for macOs + comment unsuported if statement ([6b705ca](https://github.com/materiahq/materia-server/commit/6b705ca))
+
+# [1.0.0-beta.12](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.12) (2019-02-19)
+
+### Bug fixes
+
+* **adminAPI/api/permissions**: Fix watcher not disable on delete/update/create + improve request errors reponses ([81e3694](https://github.com/materiahq/materia-server/commit/81e3694))
+* **lib/queries/findAll**: Fix orderBy param checks when request params doesn't exists ([6afaaf7](https://github.com/materiahq/materia-server/commit/6afaaf7))
+* **tests**: fix tests with latest changes ([006b3f0](https://github.com/materiahq/materia-server/commit/006b3f0))
+
+# [1.0.0-beta.11](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.11) (2019-02-19)
+
+### Bug fixes
+
+* **adminAPI/client**: Use `chalk` instead of `strip-ansi` for coloring outputs ([bfe55d0](https://github.com/materiahq/materia-server/commit/bfe55d0))
+* **adminAPI/database**: fix getRelatedEntities() method + disable watcher on all methods ([448af30](https://github.com/materiahq/materia-server/commit/448af30))
+* **adminAPI/database**: send error messages instead of full errors ([e59b13d](https://github.com/materiahq/materia-server/commit/e59b13d))
+* **adminAPI/database**: fix runQuery() method after changing url param name + harmonize error responses ([6fcfc60](https://github.com/materiahq/materia-server/commit/6fcfc60))
+* **adminAPI/database**: fix runQuery() null response ([bc56e09](https://github.com/materiahq/materia-server/commit/bc56e09))
+* **cli**: Fix version color using `chalk` ([5215b4e](https://github.com/materiahq/materia-server/commit/5215b4e))
+* **lib/entities**: Load virtual entities even if database is disabled ([aad5a9c](https://github.com/materiahq/materia-server/commit/aad5a9c))
+* **lib/entities**: retrieve correct x/y position on creation if already exists in entities-position json file ([2b0d573](https://github.com/materiahq/materia-server/commit/2b0d573))
+* **lib/entities**: allow adding belongsTo/hasMany and belongsToMany relationships on table to itself ([548cb93](https://github.com/materiahq/materia-server/commit/548cb93))
+* **lib/DBEntity**: Remove hard fix when listing related tables data before adding belongsTo/hasMany relationship ([33a390c](https://github.com/materiahq/materia-server/commit/33a390c))
+* **lib/queries/findAll**: Fix incorrect count for findAll query with join + related test ([aee39df](https://github.com/materiahq/materia-server/commit/aee39df))
+* **lib/queries/findAll**: Allow running query with join when no PK on joined table ([12b600a](https://github.com/materiahq/materia-server/commit/12b600a))
+* **lib/watcher**: Remove unused win32 watcher folder ([0cb1c40](https://github.com/materiahq/materia-server/commit/0cb1c40))
+* **tests**: add `materia.json` files in test apps templates to clean warnings ([0be22f1](https://github.com/materiahq/materia-server/commit/0be22f1))
+* **tests/relation**: re-add (uncomment) belongsTo failing test ([51c8afc](https://github.com/materiahq/materia-server/commit/51c8afc))
+* **typescript/interfaces**: use interface from `@materia/interfaces` + remove duplicated ones ([4c01a3b](https://github.com/materiahq/materia-server/commit/4c01a3b)) ([18f9909](https://github.com/materiahq/materia-server/commit/18f9909)) ([dd56d66](https://github.com/materiahq/materia-server/commit/dd56d66)) ([309933b](https://github.com/materiahq/materia-server/commit/309933b))
+
+### Features
+
+* **global**: add `ts-lint` devDependency + lint all files ([7539028](https://github.com/materiahq/materia-server/commit/7539028)) ([e28fada](https://github.com/materiahq/materia-server/commit/e28fada)) ([1e6d279](https://github.com/materiahq/materia-server/commit/1e6d279)) ([3a06a6d](https://github.com/materiahq/materia-server/commit/3a06a6d))
+* **adminAPI/entities**: allow adding virtual entity ([462eab7](https://github.com/materiahq/materia-server/commit/462eab7))
+* **lib/entities**: save virtual entity default queries in related model json file ([f697676](https://github.com/materiahq/materia-server/commit/f697676))
+* **lib/queries/findAll**: allow passing/overriding orderBy params, even if not set ([190709b](https://github.com/materiahq/materia-server/commit/190709b)) ([55e6cab](https://github.com/materiahq/materia-server/commit/55e6cab))
+* **lib/queries/findAll**: set default limit/page/offset if not set ([190709b](https://github.com/materiahq/materia-server/commit/190709b))
+* **lib/synchronize**: support 'now()' value for datetime defaultValue ([e53275d](https://github.com/materiahq/materia-server/commit/e53275d))
+* **lib/field**: support 'now()' value for datetime defaultValue ([fd6d3d2](https://github.com/materiahq/materia-server/commit/fd6d3d2))
+* **lib/addons**: new isInstalled() method returning a boolean value based on a package name ([a689c7](https://github.com/materiahq/materia-server/commit/a689c7))
+* **typescript/typings**: remove old types folder in favor of definetly type package `@types/*` ([1a4b210](https://github.com/materiahq/materia-server/commit/1a4b210))
+* **tests**: new integrations tests for: database and entities sync, entities without PK, now() default value and relation from table to itself ([998743d](https://github.com/materiahq/materia-server/commit/998743d))
+
+### Breaking changes
+
+* **dependencies**: remove unused packages: request, @types/request, colors, cookie-parser, express-ws, lodash, pretty-error, strip-ansi and winston ([ca12dec](https://github.com/materiahq/materia-server/commit/ca12dec))
+* **dependencies**: move @types/express @types/ws and @types/sequelize from devDependencies to dependencies ([ca12dec](https://github.com/materiahq/materia-server/commit/ca12dec))
+
+
+
+# [1.0.0-beta.10](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-beta.10) (2019-01-28)
 
 ### Bug fixes
 

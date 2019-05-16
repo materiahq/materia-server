@@ -1,4 +1,15 @@
-import * as Sequelize from 'sequelize';
+import {
+	Sequelize,
+	Model,
+	BuildOptions,
+	DATE,
+	INTEGER,
+	BOOLEAN,
+	FLOAT,
+	NOW,
+	STRING,
+	TEXT
+} from 'sequelize';
 
 import { Database } from '../database';
 import { MateriaError } from '../error';
@@ -6,6 +17,15 @@ import { MateriaError } from '../error';
 import { PostgresDialect } from './dialects/postgres';
 import { MysqlDialect } from './dialects/mysql';
 import { SqliteDialect } from './dialects/sqlite';
+
+// needed for typescript
+// cf http://docs.sequelizejs.com/manual/typescript.html#usage-of--code-sequelize-define--code-
+interface SequelizeModel extends Model {
+	readonly id: number;
+}
+export type ModelStatic = typeof Model & {
+	new (values?: object, options?: BuildOptions): SequelizeModel;
+}
 
 const dialectClasses = {
 	postgres: PostgresDialect,
@@ -63,10 +83,10 @@ const typemap = {
 };
 
 const sequelize_typemap = {
-	'date': Sequelize.DATE,
-	'number': Sequelize.INTEGER,
-	'boolean': Sequelize.BOOLEAN,
-	'float': Sequelize.FLOAT,
+	'date': DATE,
+	'number': INTEGER,
+	'boolean': BOOLEAN,
+	'float': FLOAT,
 	// others are Sequelize.TEXT
 };
 
@@ -88,7 +108,7 @@ export class DatabaseInterface {
 		this.dialectTools = new dialectClasses[dialect](this.database.sequelize);
 	}
 
-	define(entity) {
+	define(entity): ModelStatic {
 		const defOptions = {
 			freezeTableName: true,
 			timestamps: false
@@ -99,7 +119,7 @@ export class DatabaseInterface {
 			cols[field.name] = this.fieldToColumn(field);
 		});
 
-		return this.database.sequelize.define(entity.name, cols, defOptions);
+		return <ModelStatic>this.database.sequelize.define(entity.name, cols, defOptions);
 	}
 
 	/**
@@ -127,7 +147,7 @@ export class DatabaseInterface {
 	*/
 	addColumn(table, column_name, field) {
 		if (field.type === 'date' && field.defaultValue === 'now()') {
-			field.defaultValue = Sequelize.NOW;
+			field.defaultValue = NOW;
 			field.required = false;
 		}
 		const dbfield = this.fieldToColumn(field);
@@ -143,7 +163,7 @@ export class DatabaseInterface {
 	*/
 	changeColumn(table, column_name, field) {
 		if (field.type === 'date' && field.defaultValue === 'now()') {
-			field.defaultValue = Sequelize.NOW;
+			field.defaultValue = NOW;
 		}
 		const dbfield = this.fieldToColumn(field);
 		return this.dialectTools.changeColumn(table, column_name, dbfield);
@@ -209,11 +229,11 @@ export class DatabaseInterface {
 	}
 
 	quoteIdentifier(identifier) {
-		return this.database.sequelize.getQueryInterface().QueryGenerator.quoteIdentifier(identifier);
+		return this.database.sequelize.getQueryInterface().quoteIdentifier(identifier, false);
 	}
 
 	escape(val) {
-		return this.database.sequelize.getQueryInterface().QueryGenerator.escape(val);
+		return this.database.sequelize.getQueryInterface().escape(val);
 	}
 
 
@@ -290,9 +310,9 @@ export class DatabaseInterface {
 		const res: any = {};
 		if (field.type != undefined) {
 			if (this.database.type == 'mysql' && ( ! type || type == 'text')) {
-				res.type = Sequelize.STRING;
+				res.type = STRING;
 			} else {
-				res.type = (type && sequelize_typemap[type]) || Sequelize.TEXT;
+				res.type = (type && sequelize_typemap[type]) || TEXT;
 			}
 		}
 		if (field.primary != undefined) {

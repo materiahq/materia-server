@@ -1,7 +1,7 @@
-import * as Sequelize from 'sequelize';
 import chalk from 'chalk';
 import * as Bluebird from 'bluebird';
 import { IFindAllOptions, IQueryOrdering } from '@materia/interfaces';
+import { FindOptions } from 'sequelize';
 
 import { Query, QueryParamResolver } from '../query';
 import { Conditions } from './utils/conditions';
@@ -83,7 +83,7 @@ export class FindAllQuery extends Query {
 		}
 	}
 
-	constructSequelizeOpts(params, options?): Sequelize.FindOptions<any> {
+	constructSequelizeOpts(params, options?): FindOptions {
 		const pagination = this.getPagination(params);
 
 		options = options || {};
@@ -96,7 +96,7 @@ export class FindAllQuery extends Query {
 			attributes: this.select,
 			where: this.conditions.toSequelize(params, this.entity.name),
 			raw: raw
-		} as Sequelize.FindOptions<any>;
+		} as FindOptions;
 
 		if (this.entity.getPK().length) {
 			const include = [];
@@ -238,7 +238,7 @@ export class FindAllQuery extends Query {
 		return tmp;
 	}
 
-	private _run(sequelizeOpts: Sequelize.FindOptions<any>, options): Bluebird<any> {
+	private _run(sequelizeOpts: FindOptions, options): Bluebird<any> {
 		return this.entity.model.findAndCountAll(sequelizeOpts).then(res => {
 			if ( ! options || ! options.silent ) {
 				this.entity.app.logger.log(` └── ${chalk.green.bold('OK')}\n`);
