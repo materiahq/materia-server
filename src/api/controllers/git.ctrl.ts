@@ -172,6 +172,12 @@ export class GitController {
 		});
 	}
 
+	setupRemote(req, res) {
+		this.client.setupRemote(req.body)
+			.then((result) => res.status(200).send(result))
+			.catch(err => res.status(500).send(err.message));
+	}
+
 	// getCommitDiff(req, res) {
 	// 	this.client.get().then(data => {
 	// 		res.status(200).send(data);
