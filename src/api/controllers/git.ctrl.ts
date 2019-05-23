@@ -96,7 +96,15 @@ export class GitController {
 		this.client.push().then(data => {
 			res.status(200).send(data);
 		}).catch(err => {
-			res.status(500).send(err);
+			res.status(500).send(err.message);
+		});
+	}
+
+	publish(req, res) {
+		this.client.publish(req.body.remote, req.body.branch).then(data => {
+			res.status(200).send(data);
+		}).catch(err => {
+			res.status(500).send(err.message);
 		});
 	}
 
