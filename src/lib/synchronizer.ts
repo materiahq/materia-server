@@ -5,6 +5,7 @@ import { App } from './app';
 import { MigrationType } from './history';
 import { DBEntity } from './entities/db-entity';
 import { Entity } from './entities/entity';
+import { Database } from './database';
 
 export class Synchronizer {
 
@@ -59,7 +60,7 @@ export class Synchronizer {
 			field.defaultValue = 'now()';
 		}
 
-		if (field.isRelation && field.isRelation.type === 'belongsTo') {
+		if (Database.isSQLite && field.isRelation && field.isRelation.type === 'belongsTo') {
 			if ( ! field.onDelete || field.onDelete && field.onDelete.toUpperCase() === 'CASCADE') {
 				field.default = true;
 				field.defaultValue = 0;
