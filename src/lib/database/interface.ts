@@ -23,9 +23,7 @@ import { SqliteDialect } from './dialects/sqlite';
 interface SequelizeModel extends Model {
 	readonly id: number;
 }
-export type ModelStatic = typeof Model & {
-	new (values?: object, options?: BuildOptions): SequelizeModel;
-}
+export type ModelStatic = typeof Model & (new (values?: object, options?: BuildOptions) => SequelizeModel);
 
 const dialectClasses = {
 	postgres: PostgresDialect,
