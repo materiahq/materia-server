@@ -146,28 +146,45 @@ describe('[Database synchronizer with relations]', () => {
 			field.name.should.equal('id_sayan');
 		});
 
-		it('sayan should have power as related entity', () => {
+		it('sayan entity should have power as related entity', () => {
 			const relatedEntities = app.entities.get('sayan').getRelatedEntities().map(entity => entity.name);
 			relatedEntities.should.be.deep.equal(['power']);
 		});
 
-
-		it('power should have subpower and sayan as related entity', () => {
+		it('power entity should have subpower and sayan as related entity', () => {
 			const relatedEntities = app.entities.get('power').getRelatedEntities().map(entity => entity.name);
 			relatedEntities.should.be.deep.equal(['subpower', 'sayan']);
 		});
 
-		it('subpower should have power as related entity', () => {
+		it('subpower entity should have power as related entity', () => {
 			const relatedEntities = app.entities.get('subpower').getRelatedEntities().map(entity => entity.name);
 			relatedEntities.should.be.deep.equal(['power']);
 		});
 
-		it('subpower should have 2 fields', () => {
+		it('subpower entity should have 2 fields', () => {
 			const fields = app.entities.get('subpower').getFields().map(field => field.name);
 			fields.should.be.deep.equal(['id_subpower', 'name', 'id_power']);
 		});
 
-		it('App should have diffs after deleting models.json', () => {
+		it('database and entity should be sync and not have diffs', () => {
+			return app.stop()
+				.then(() => {
+					return app.load();
+				})
+				.then(() => {
+					return app.start();
+				})
+				.then(() => {
+					return app.synchronizer.diff();
+				}).should.become({
+					entities: [],
+					fields: [],
+					relations: [],
+					length: 0
+				});
+		});
+
+		it('app should have diffs after deleting models.json', () => {
 			return fse.remove(path.join(app.path, 'server', 'models', 'sayan.json'))
 				.then(() =>
 					fse.remove(path.join(app.path, 'server', 'models', 'power.json'))
@@ -358,13 +375,12 @@ describe('[Database synchronizer with relations]', () => {
 			}).should.become(4);
 		});
 
-
-		it('Entities should not exists', () => {
+		it('entities should not exists', () => {
 			const entityIndex = app.entities.findAll().findIndex(entity => entity.name === 'subpower');
 			entityIndex.should.equal(-1);
 		});
 
-		it('Synchronizing should re-add entities and relations', () => {
+		it('synchronizing should re-add entities and relations', () => {
 			return app.synchronizer.diff()
 				.then((diffs) =>
 					app.synchronizer.databaseToEntities(diffs, null)
@@ -375,7 +391,7 @@ describe('[Database synchronizer with relations]', () => {
 				).should.become(['id_subpower', 'name', 'id_power']);
 		});
 
-		it('Running default findAll query should work after sync', () => {
+		it('running default findAll query should work after sync', () => {
 			return app.entities.get('subpower').getQuery('list').run({}, {raw: true})
 				.should.become({
 					count: 0,

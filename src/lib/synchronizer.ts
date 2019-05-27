@@ -58,6 +58,14 @@ export class Synchronizer {
 		if (field.defaultValue === Sequelize.NOW) {
 			field.defaultValue = 'now()';
 		}
+
+		if (field.isRelation && field.isRelation.type === 'belongsTo') {
+			if ( ! field.onDelete || field.onDelete && field.onDelete.toUpperCase() === 'CASCADE') {
+				field.default = true;
+				field.defaultValue = 0;
+			}
+		}
+
 		for (const k of props) {
 			if (Array.isArray(dbfield[k])) {
 				if (dbfield[k].indexOf(field[k]) == -1) {
