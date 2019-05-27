@@ -1,6 +1,6 @@
 {
   "name": "@materia/server",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0-rc.1",
   "description": "Build scalable and secure SAAS applications effortlessly - https://getmateria.com",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
