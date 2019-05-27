@@ -98,6 +98,11 @@ export class Database {
 			port: this.port,
 			logging: logging
 		};
+		if (this.type !== 'sqlite' && (settings as ISQLDatabase).ssl) {
+			this.opts.dialectOptions = {
+				ssl: true
+			};
+		}
 
 		if (Database.isSQLite(settings)) {
 			this.opts.storage = resolve(this.app.path, this.storage || 'database.sqlite');

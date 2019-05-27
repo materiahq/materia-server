@@ -121,8 +121,8 @@ describe('[Database synchronizer: from entities to database]', () => {
 			.then((diffs) => {
 				return app.synchronizer.entitiesToDatabase(diffs, null);
 			}).then(() => {
-				return app.database.sequelize.getQueryInterface().showAllTables()
-			}).should.become([])
+				return app.database.sequelize.getQueryInterface().showAllTables();
+			}).should.become([]);
 		});
 	});
 });
