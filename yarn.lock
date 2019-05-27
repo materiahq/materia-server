@@ -18,10 +18,10 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@materia/interfaces@^1.0.0-beta.9":
-  version "1.0.0-beta.9"
-  resolved "https://registry.yarnpkg.com/@materia/interfaces/-/interfaces-1.0.0-beta.9.tgz#7a8284e9cc5ec6cb581d60f398f19c6b983a9c1f"
-  integrity sha512-25GL49kd/+mlaZpTVV/fNHQb+th7vA8LanTxeBFmftIJgRvc6jMXv/mPpMTB+qYeVGjdpEEYm3Or6s29iUJmIw==
+"@materia/interfaces@^1.0.0-rc.0":
+  version "1.0.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@materia/interfaces/-/interfaces-1.0.0-rc.0.tgz#26f436ca59891204a1a948b2025aa0d423c97834"
+  integrity sha512-ZairFicgpTo7nlvpS0o2gWWps/gOd2G3h7FIhz9lki8WngO5Fxw4qHExBU9FLsjOnP/oYbf834BIhl/JbYs9QQ==
 
 "@types/bluebird@^3.5.26":
   version "3.5.26"
