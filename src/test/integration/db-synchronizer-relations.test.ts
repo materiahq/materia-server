@@ -21,11 +21,11 @@ describe('[Database synchronizer with relations]', () => {
 		return tmpl.runApp().then(_app => (app = _app))
 		.then(() =>
 			app.entities.add({
-				name: 'sayan',
-				id: 'sayan-id',
+				name: 'country',
+				id: 'country-id',
 				fields: [
 					{
-						name: 'id_sayan',
+						name: 'id_country',
 						type: 'number',
 						read: true,
 						write: false,
@@ -48,11 +48,11 @@ describe('[Database synchronizer with relations]', () => {
 			})
 		).then(() =>
 			app.entities.add({
-				name: 'power',
-				id: 'power-id',
+				name: 'region',
+				id: 'region-id',
 				fields: [
 					{
-						name: 'id_power',
+						name: 'id_region',
 						type: 'number',
 						read: true,
 						write: false,
@@ -75,11 +75,11 @@ describe('[Database synchronizer with relations]', () => {
 			})
 		).then(() =>
 			app.entities.add({
-				name: 'subpower',
-				id: 'subpower-id',
+				name: 'city',
+				id: 'city-id',
 				fields: [
 					{
-						name: 'id_subpower',
+						name: 'id_city',
 						type: 'number',
 						read: true,
 						write: false,
@@ -102,11 +102,11 @@ describe('[Database synchronizer with relations]', () => {
 			})
 		).then(() =>
 			app.entities.add({
-				name: 'gorille',
-				id: 'gorille-id',
+				name: 'test',
+				id: 'test-id',
 				fields: [
 					{
-						name: 'id_gorille',
+						name: 'id_test',
 						type: 'number',
 						read: true,
 						write: false,
@@ -119,21 +119,21 @@ describe('[Database synchronizer with relations]', () => {
 				]
 			})
 		).then(() =>
-			app.entities.get('subpower').addRelation({
+			app.entities.get('city').addRelation({
 				type: 'belongsTo',
-				field: 'id_power',
+				field: 'id_region',
 				reference: {
-					entity: 'power',
-					field: 'id_power'
+					entity: 'region',
+					field: 'id_region'
 				}
 			})
 		).then(() =>
-			app.entities.get('power').addRelation({
+			app.entities.get('region').addRelation({
 				type: 'belongsTo',
-				field: 'id_sayan',
+				field: 'id_country',
 				reference: {
-					entity: 'sayan',
-					field: 'id_sayan'
+					entity: 'country',
+					field: 'id_country'
 				}
 			})
 		);
@@ -141,29 +141,29 @@ describe('[Database synchronizer with relations]', () => {
 
 	describe('App', () => {
 
-		it('should have entity sayan', () => {
-			const field = app.entities.get('sayan').getField('id_sayan').toJson();
-			field.name.should.equal('id_sayan');
+		it('should have entity country', () => {
+			const field = app.entities.get('country').getField('id_country').toJson();
+			field.name.should.equal('id_country');
 		});
 
-		it('sayan entity should have power as related entity', () => {
-			const relatedEntities = app.entities.get('sayan').getRelatedEntities().map(entity => entity.name);
-			relatedEntities.should.be.deep.equal(['power']);
+		it('country entity should have region as related entity', () => {
+			const relatedEntities = app.entities.get('country').getRelatedEntities().map(entity => entity.name);
+			relatedEntities.should.be.deep.equal(['region']);
 		});
 
-		it('power entity should have subpower and sayan as related entity', () => {
-			const relatedEntities = app.entities.get('power').getRelatedEntities().map(entity => entity.name);
-			relatedEntities.should.be.deep.equal(['subpower', 'sayan']);
+		it('region entity should have city and country as related entity', () => {
+			const relatedEntities = app.entities.get('region').getRelatedEntities().map(entity => entity.name);
+			relatedEntities.should.be.deep.equal(['city', 'country']);
 		});
 
-		it('subpower entity should have power as related entity', () => {
-			const relatedEntities = app.entities.get('subpower').getRelatedEntities().map(entity => entity.name);
-			relatedEntities.should.be.deep.equal(['power']);
+		it('city entity should have region as related entity', () => {
+			const relatedEntities = app.entities.get('city').getRelatedEntities().map(entity => entity.name);
+			relatedEntities.should.be.deep.equal(['region']);
 		});
 
-		it('subpower entity should have 2 fields', () => {
-			const fields = app.entities.get('subpower').getFields().map(field => field.name);
-			fields.should.be.deep.equal(['id_subpower', 'name', 'id_power']);
+		it('city entity should have 2 fields', () => {
+			const fields = app.entities.get('city').getFields().map(field => field.name);
+			fields.should.be.deep.equal(['id_city', 'name', 'id_region']);
 		});
 
 		it('database and entity should be sync and not have diffs', () => {
@@ -185,13 +185,13 @@ describe('[Database synchronizer with relations]', () => {
 		});
 
 		it('app should have diffs after deleting models.json', () => {
-			return fse.remove(path.join(app.path, 'server', 'models', 'sayan.json'))
+			return fse.remove(path.join(app.path, 'server', 'models', 'country.json'))
 				.then(() =>
-					fse.remove(path.join(app.path, 'server', 'models', 'power.json'))
+					fse.remove(path.join(app.path, 'server', 'models', 'region.json'))
 				).then(() =>
-					fse.remove(path.join(app.path, 'server', 'models', 'subpower.json'))
+					fse.remove(path.join(app.path, 'server', 'models', 'city.json'))
 				).then(() =>
-					fse.remove(path.join(app.path, 'server', 'models', 'gorille.json'))
+					fse.remove(path.join(app.path, 'server', 'models', 'test.json'))
 				).then(() => {
 					return app.stop();
 				})
@@ -207,14 +207,14 @@ describe('[Database synchronizer with relations]', () => {
 					diffs.entities.should.have.deep.members([
 						{
 							redo: {
-								table: 'sayan',
+								table: 'country',
 								type: 'create_entity',
 								value: {
 									fields: [
 									{
 										autoIncrement: true,
 										default: false,
-										name: 'id_sayan',
+										name: 'id_country',
 										primary: true,
 										read: true,
 										required: true,
@@ -235,26 +235,26 @@ describe('[Database synchronizer with relations]', () => {
 									}
 									],
 									isRelation: undefined,
-									name: 'sayan',
+									name: 'country',
 									queries: [],
 									relations: []
 								}
 							},
 							undo: {
-								table: 'sayan',
+								table: 'country',
 								type: 'delete_entity'
 							}
 						},
 						{
 							redo: {
-								table: 'gorille',
+								table: 'test',
 								type: 'create_entity',
 								value: {
 									fields: [
 									{
 										autoIncrement: true,
 										default: false,
-										name: 'id_gorille',
+										name: 'id_test',
 										primary: true,
 										read: true,
 										required: true,
@@ -264,26 +264,26 @@ describe('[Database synchronizer with relations]', () => {
 									},
 									],
 									isRelation: undefined,
-									name: 'gorille',
+									name: 'test',
 									queries: [],
 									relations: []
 								}
 							},
 							undo: {
-								table: 'gorille',
+								table: 'test',
 								type: 'delete_entity'
 							}
 						},
 						{
 							redo: {
-								table: 'subpower',
+								table: 'city',
 								type: 'create_entity',
 								value: {
 									fields: [
 									{
 										autoIncrement: true,
 										default: false,
-										name: 'id_subpower',
+										name: 'id_city',
 										primary: true,
 										read: true,
 										required: true,
@@ -304,34 +304,34 @@ describe('[Database synchronizer with relations]', () => {
 									}
 									],
 									isRelation: undefined,
-									name: 'subpower',
+									name: 'city',
 									queries: [],
 									relations: [
 										{
-											field: 'id_power',
+											field: 'id_region',
 											reference: {
-												entity: 'power',
-												field: 'id_power'
+												entity: 'region',
+												field: 'id_region'
 											}
 										}
 									]
 								}
 							},
 							undo: {
-								table: 'subpower',
+								table: 'city',
 								type: 'delete_entity'
 							}
 						},
 						{
 							redo: {
-								table: 'power',
+								table: 'region',
 								type: 'create_entity',
 								value: {
 									fields: [
 									{
 										autoIncrement: true,
 										default: false,
-										name: 'id_power',
+										name: 'id_region',
 										primary: true,
 										read: true,
 										required: true,
@@ -352,21 +352,21 @@ describe('[Database synchronizer with relations]', () => {
 									}
 									],
 									isRelation: undefined,
-									name: 'power',
+									name: 'region',
 									queries: [],
 									relations: [
 										{
-											field: 'id_sayan',
+											field: 'id_country',
 											reference: {
-												entity: 'sayan',
-												field: 'id_sayan'
+												entity: 'country',
+												field: 'id_country'
 											}
 										}
 									]
 								}
 							},
 							undo: {
-								table: 'power',
+								table: 'region',
 								type: 'delete_entity'
 							}
 						}
@@ -376,7 +376,7 @@ describe('[Database synchronizer with relations]', () => {
 		});
 
 		it('entities should not exists', () => {
-			const entityIndex = app.entities.findAll().findIndex(entity => entity.name === 'subpower');
+			const entityIndex = app.entities.findAll().findIndex(entity => entity.name === 'city');
 			entityIndex.should.equal(-1);
 		});
 
@@ -385,14 +385,14 @@ describe('[Database synchronizer with relations]', () => {
 				.then((diffs) =>
 					app.synchronizer.databaseToEntities(diffs, null)
 				).then(() => {
-					return app.entities.get('subpower');
+					return app.entities.get('city');
 				}).then((entity) =>
 					entity.fields.map(field => field.name)
-				).should.become(['id_subpower', 'name', 'id_power']);
+				).should.become(['id_city', 'name', 'id_region']);
 		});
 
 		it('running default findAll query should work after sync', () => {
-			return app.entities.get('subpower').getQuery('list').run({}, {raw: true})
+			return app.entities.get('city').getQuery('list').run({}, {raw: true})
 				.should.become({
 					count: 0,
 					pagination: {
