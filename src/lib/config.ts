@@ -227,7 +227,7 @@ export class Config {
 					JSON.stringify(this.entitiesPosition, null, '\t'),
 					{ mkdir: true }
 				)
-			);
+			).then(() => this.app.createDockerfile());
 	}
 
 	/**
