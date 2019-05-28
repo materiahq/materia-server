@@ -59,10 +59,13 @@ export class Synchronizer {
 			field.defaultValue = 'now()';
 		}
 
-		if (this.app.database && this.app.database.type === 'sqlite' && field.isRelation && field.isRelation.type === 'belongsTo') {
+		if (
+			this.app.database && this.app.database.type === 'sqlite' &&
+			field.isRelation && field.isRelation.type === 'belongsTo' && dbfield.default
+		) {
 			if ( ! field.onDelete || field.onDelete && field.onDelete.toUpperCase() === 'CASCADE') {
 				field.default = true;
-				field.defaultValue = 0;
+				field.defaultValue = dbfield.number ? parseInt(dbfield.defaultValue, 10) : dbfield.defaultValue;
 			}
 		}
 
