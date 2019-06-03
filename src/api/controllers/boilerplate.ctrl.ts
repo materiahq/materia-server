@@ -28,6 +28,7 @@ export class BoilerplateController {
 	}
 
 	initMinimal(req, res) {
+		this.app.watcher.disable();
 		this.app.initializeStaticDirectory()
 			.then(() => {
 				const clientConfig: IClientConfig = {
@@ -36,8 +37,14 @@ export class BoilerplateController {
 				this.app.config.set(clientConfig, AppMode.DEVELOPMENT, ConfigType.CLIENT);
 				return this.app.config.save();
 			})
-			.then(() => res.status(200).json({ init: true }))
-			.catch((err) => res.status(500).send(err.message));
+			.then(() => {
+				this.app.watcher.enable();
+				res.status(200).json({ init: true });
+			})
+			.catch((err) => {
+				this.app.watcher.enable();
+				res.status(500).send(err.message);
+			});
 	}
 
 	initBoilerplate(req, res) {
@@ -265,6 +272,7 @@ export class BoilerplateController {
 			}).then(() => {
 				const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
 				const type = 'boilerplate:success';
+				this.app.watcher.enable();
 				this.app.materiaApi.websocket.broadcast({ type, client: client });
 			}).catch(err => this._emitError(err));
 	}
@@ -327,6 +335,7 @@ outputDir: './client/dist'
 		}).then(() => {
 			const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
 			const type = 'boilerplate:success';
+			this.app.watcher.enable();
 			this.app.materiaApi.websocket.broadcast({ type, client: client });
 		}).catch(err => this._emitError(err));
 	}
@@ -337,6 +346,7 @@ outputDir: './client/dist'
 	}
 
 	private _emitError(err) {
+		this.app.watcher.enable();
 		const type = 'boilerplate:error';
 		this.app.materiaApi.websocket.broadcast({ type, message: err });
 	}

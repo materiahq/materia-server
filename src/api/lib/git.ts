@@ -124,8 +124,8 @@ export class Git {
 			};
 		});
 	}
-	_parseBranch(raw) {
-		if (!raw) {
+	private _parseBranch(raw) {
+		if ( ! raw) {
 			return [];
 		}
 		const lines = raw.split('\n');
