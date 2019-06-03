@@ -1058,6 +1058,64 @@
 				}
 			}
 		},
+		"/git/publish": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Add all files to be under source control",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"remote": {
+										"type": "string",
+										"example": "origin"
+									},
+									"branch": {
+										"type": "string",
+										"example": "master"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/git/remotes": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Add all files to be under source control",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"name": {
+										"type": "string",
+										"example": "origin"
+									},
+									"url": {
+										"type": "string",
+										"example": "https://github.com/materiahq/materia-server.git"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/git/stage": {
 			"post": {
 				"tags": ["Git"],
