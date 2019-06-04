@@ -1,3 +1,26 @@
+# [1.0.0-rc.2](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-rc.2) (2019-05-28)
+
+### Bug fixes
+
+* **lib/synchronize**: fix compareField() method for FK with sqlite dialect ([ae7e63b](https://github.com/materiahq/materia-server/commit/ae7e63b)) ([a02bd9e](https://github.com/materiahq/materia-server/commit/a02bd9e)) ([01188db](https://github.com/materiahq/materia-server/commit/01188db)) ([1d43e8b](https://github.com/materiahq/materia-server/commit/1d43e8b))
+* **tests/relations**: rename test entities with more accurate names ([19dc309](https://github.com/materiahq/materia-server/commit/19dc309))
+
+### Features
+
+* **lib/app**: generate dockerfiles every time settings are saved ([f1b4993](https://github.com/materiahq/materia-server/commit/f1b4993))
+
+# [1.0.0-rc.1](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-rc.1) (2019-05-27)
+
+### Features
+
+* **adminAPI/git**: new endpoint to set remote ([98b0563](https://github.com/materiahq/materia-server/commit/98b0563))
+* **adminAPI/git**: new publish endpoint ([5f88c75](https://github.com/materiahq/materia-server/commit/5f88c75))
+* **lib/database**: add ssl in dialectOptions based on materia config file ([e609bcd](https://github.com/materiahq/materia-server/commit/e609bcd))
+
+### Breaking changes
+
+* **dependencies**: upgrade to latest @materia/interfaces v1.0.0-rc.0 ([b0085f2](https://github.com/materiahq/materia-server/commit/b0085f2))
+
 # [1.0.0-rc.0](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-rc.0) (2019-04-23)
 
 ### Bug fixes
