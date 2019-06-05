@@ -546,13 +546,7 @@
 					"404": {
 						"description": "File not found"
 					}
-				},
-				"security": [{
-					"petstore_auth": [
-						"write:pets",
-						"read:pets"
-					]
-				}]
+				}
 			},
 			"put": {
 				"tags": [
@@ -575,12 +569,6 @@
 						"description": "Internal server error"
 					}
 				},
-				"security": [{
-					"petstore_auth": [
-						"write:pets",
-						"read:pets"
-					]
-				}],
 				"requestBody": {
 					"content": {
 						"application/json": {
@@ -606,7 +594,7 @@
 				"parameters": [{
 					"name": "path",
 					"in": "query",
-					"description": "Relative or absolute path where the item will be created",
+					"description": "Relative or absolute path of the tree item to be delete",
 					"required": true,
 					"schema": {
 						"type": "string"
