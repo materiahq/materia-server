@@ -937,6 +937,47 @@
 				}
 			}
 		},
+		"/git/clone": {
+			"post": {
+				"tags": ["Git"],
+				"summary": "Clone a repo",
+				"responses": {
+					"200": {
+						"description": "Success"
+					}
+				},
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"required": ["repoPath"],
+								"properties": {
+									"repoPath": {
+										"type": "string",
+										"example": "https://github.com/materiahq/materia-server.git",
+										"description": "Git repo url"
+									},
+									"destinationFolder": {
+										"type": "string",
+										"description": "Absolute path on your file system"
+									},
+									"localPath": {
+										"type": "string",
+										"example": "materia-server",
+										"description": "Local path of the cloned folder"
+									},
+									"options": {
+										"type": "object",
+										"description": "Optional git clone options"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/git/commit": {
 			"post": {
 				"tags": ["Git"],
@@ -1061,16 +1102,18 @@
 		"/git/publish": {
 			"post": {
 				"tags": ["Git"],
-				"summary": "Add all files to be under source control",
+				"summary": "Publish to a named remote/branch",
 				"responses": {
 					"200": {
 						"description": "Success"
 					}
 				},
 				"requestBody": {
+					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
+								"required": ["remote", "branch"],
 								"properties": {
 									"remote": {
 										"type": "string",
@@ -1090,16 +1133,18 @@
 		"/git/remotes": {
 			"post": {
 				"tags": ["Git"],
-				"summary": "Add all files to be under source control",
+				"summary": "Adds a new named remote to be tracked as name at the path repo",
 				"responses": {
 					"200": {
 						"description": "Success"
 					}
 				},
 				"requestBody": {
+					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
+								"required": ["name", "url"],
 								"properties": {
 									"name": {
 										"type": "string",
