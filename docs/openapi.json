@@ -17,7 +17,7 @@
 			"description": "Manage actions/hooks on queries/endpoints events",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		},
 		{
@@ -25,7 +25,7 @@
 			"description": "Manage addons in your Materia application",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		},
 		{
@@ -33,7 +33,7 @@
 			"description": "Manage the API REST exposed by your Materia application",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		},
 		{
@@ -41,7 +41,7 @@
 			"description": "Manage your Materia application",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		},
 		{
@@ -49,7 +49,7 @@
 			"description": "Manage the client/frontend of your Materia application",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		},
 		{
@@ -57,7 +57,7 @@
 			"description": "Check database connection and synchronize with app state",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		},
 		{
@@ -65,7 +65,7 @@
 			"description": "Manage dependencies in your Materia application",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		},
 		{
@@ -73,7 +73,7 @@
 			"description": "Manage entities in your Materia application",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		},
 		{
@@ -81,7 +81,7 @@
 			"description": "Manage folders and files in your Materia application tree",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		},
 		{
@@ -89,7 +89,7 @@
 			"description": "Manage your git repository",
 			"externalDocs": {
 				"description": "Find out more",
-				"url": "http://getmateria.com"
+				"url": "https://getmateria.com"
 			}
 		}
 	],
@@ -2519,7 +2519,7 @@
 	},
 	"externalDocs": {
 		"description": "Find out more about Materia",
-		"url": "http://getmateria.com"
+		"url": "https://getmateria.com"
 	},
 	"servers": [{
 		"url": "http://localhost:8080/materia"
