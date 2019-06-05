@@ -1398,9 +1398,11 @@
 					}
 				},
 				"requestBody": {
+					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
+								"required": ["name", "fields"],
 								"properties": {
 									"name": {
 										"type": "string",
@@ -1450,6 +1452,11 @@
 												"url": "/todos/:id_todos"
 											}
 										}
+									},
+									"virtual": {
+										"type": "boolean",
+										"example": true,
+										"description": "Whether or not the entity is virtual. Default to false."
 									}
 								}
 							}
