@@ -154,6 +154,10 @@ export class BoilerplateController {
 		}).then(() => {
 			return this._moveItem(path.join(this.app.path, 'tsconfig.json'), path.join(this.app.path, 'client', 'tsconfig.json'));
 		}).then(() => {
+			return this._moveItem(path.join(this.app.path, 'tsconfig.app.json'), path.join(this.app.path, 'client', 'tsconfig.app.json'));
+		}).then(() => {
+			return this._moveItem(path.join(this.app.path, 'tsconfig.spec.json'), path.join(this.app.path, 'client', 'tsconfig.spec.json'));
+		}).then(() => {
 			return this._moveItem(path.join(this.app.path, '.gitignore'), path.join(this.app.path, 'client', '.gitignore'));
 		}).then(() => {
 			return this._moveItem(path.join(this.app.path, '.gitignore2'), path.join(this.app.path, '.gitignore'));

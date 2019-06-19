@@ -59,86 +59,84 @@ export class AngularCli {
 	initNewMonopackageConfig(projectName: string) {
 		return new Promise((resolve, reject) => {
 			this.getConfig().then(() => {
-				this.config.projects[projectName].root = 'client';
-				this.config.projects[projectName].sourceRoot = 'client/src';
-				this.config.projects[projectName].architect.build.options = Object.assign({},
-					this.config.projects[projectName].architect.build.options,
-					{
-						'outputPath': 'client/dist',
-						'index': 'client/src/index.html',
-						'main': 'client/src/main.ts',
-						'polyfills': 'client/src/polyfills.ts',
-						'tsConfig': 'client/src/tsconfig.app.json',
-						'assets': [
-							'client/src/favicon.ico',
-							'client/src/assets'
-						],
-						'styles': [
-							'client/src/styles.scss'
-						],
-						'scripts': []
-					});
-
-				this.config.projects[projectName].architect.build.configurations = Object.assign({},
-					this.config.projects[projectName].architect.build.configurations,
-					{
-						'production': {
-							'fileReplacements': [
-								{
-									'replace': 'client/src/environments/environment.ts',
-									'with': 'client/src/environments/environment.prod.ts'
-								}
+				try {
+					this.config.projects[projectName].root = 'client';
+					this.config.projects[projectName].sourceRoot = 'client/src';
+					this.config.projects[projectName].architect.build.options = Object.assign({},
+						this.config.projects[projectName].architect.build.options,
+						{
+							'outputPath': 'client/dist',
+							'index': 'client/src/index.html',
+							'main': 'client/src/main.ts',
+							'polyfills': 'client/src/polyfills.ts',
+							'tsConfig': 'client/tsconfig.app.json',
+							'assets': [
+								'client/src/favicon.ico',
+								'client/src/assets'
 							],
-							'optimization': true,
-							'outputHashing': 'all',
-							'sourceMap': false,
-							'extractCss': true,
-							'namedChunks': false,
-							'aot': true,
-							'extractLicenses': true,
-							'vendorChunk': false,
-							'buildOptimizer': true
-						}
-					});
+							'styles': [
+								'client/src/styles.scss'
+							],
+							'scripts': []
+						});
 
-				this.config.projects[projectName].architect.test = {
-					'builder': '@angular-devkit/build-angular:karma',
-					'options': {
-						'main': 'client/src/test.ts',
-						'polyfills': 'client/src/polyfills.ts',
-						'tsConfig': 'client/src/tsconfig.spec.json',
-						'karmaConfig': 'client/src/karma.conf.js',
-						'styles': [
-							'client/src/styles.scss'
-						],
-						'scripts': [],
-						'assets': [
-							'client/src/favicon.ico',
-							'client/src/assets'
-						]
-					}
-				};
-				this.config.projects[projectName].architect.lint = {
-					'builder': '@angular-devkit/build-angular:tslint',
-					'options': {
-						'tsConfig': [
-							'client/src/tsconfig.app.json',
-							'client/src/tsconfig.spec.json'
-						],
-						'exclude': [
-							'**/node_modules/**'
-						]
-					}
-				};
-				const e2eConfig = this.config.projects[`${projectName}-e2e`];
-				e2eConfig.root = 'client/e2e';
-				e2eConfig.architect.e2e.options = Object.assign({}, e2eConfig.architect.e2e.options, {
-					'protractorConfig': 'client/e2e/protractor.conf.js'
-				});
-				e2eConfig.architect.lint.options = Object.assign({}, e2eConfig.architect.lint.options, {
-					'tsConfig': 'client/e2e/tsconfig.e2e.json'
-				});
-				resolve();
+					this.config.projects[projectName].architect.build.configurations = Object.assign({},
+						this.config.projects[projectName].architect.build.configurations,
+						{
+							'production': {
+								'fileReplacements': [
+									{
+										'replace': 'client/src/environments/environment.ts',
+										'with': 'client/src/environments/environment.prod.ts'
+									}
+								],
+								'optimization': true,
+								'outputHashing': 'all',
+								'sourceMap': false,
+								'extractCss': true,
+								'namedChunks': false,
+								'aot': true,
+								'extractLicenses': true,
+								'vendorChunk': false,
+								'buildOptimizer': true
+							}
+						});
+
+					this.config.projects[projectName].architect.test = {
+						'builder': '@angular-devkit/build-angular:karma',
+						'options': {
+							'main': 'client/src/test.ts',
+							'polyfills': 'client/src/polyfills.ts',
+							'tsConfig': 'client/tsconfig.spec.json',
+							'karmaConfig': 'client/src/karma.conf.js',
+							'styles': [
+								'client/src/styles.scss'
+							],
+							'scripts': [],
+							'assets': [
+								'client/src/favicon.ico',
+								'client/src/assets'
+							]
+						}
+					};
+					this.config.projects[projectName].architect.lint = {
+						'builder': '@angular-devkit/build-angular:tslint',
+						'options': {
+							'tsConfig': [
+								'client/tsconfig.app.json',
+								'client/tsconfig.spec.json'
+							],
+							'exclude': [
+								'**/node_modules/**'
+							]
+						}
+					};
+					const e2eConfig = this.config.projects[projectName].architect.e2e;
+					e2eConfig.options.protactorConfig = 'client/e2e/protractor.conf.js';
+					resolve();
+				} catch (err) {
+					reject(err);
+				}
 			});
 		});
 	}
