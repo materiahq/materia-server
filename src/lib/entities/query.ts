@@ -25,7 +25,7 @@ export class QueryParamResolver {
 			throw new MateriaError('Missing required parameter: ' + paramName);
 		}
 
-		if (typeof field.value == 'string' && field.value.substr(0, 1) == '%') {
+		if (typeof field.value == 'string' && field.value.substr(0, 1) == '$') {
 			let paramName = field.name;
 			if (field.value.length > 1) {
 				paramName = field.value.substr(1);
