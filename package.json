@@ -7,6 +7,15 @@
   "bin": {
     "materia": "./cli/index.js"
   },
+  "keywords": [
+    "express",
+    "node",
+    "materia",
+    "backend",
+    "backend builder",
+    "database",
+    "sql"
+  ],
   "dependencies": {
     "@materia/interfaces": "^1.0.0",
     "@types/bluebird": "^3.5.26",
@@ -76,5 +85,5 @@
   "bugs": {
     "url": "https://github.com/materiahq/materia-server/issues"
   },
-  "homepage": "https://github.com/materiahq/materia-server"
+  "homepage": "https://github.com/materiahq/materia-server#readme"
 }
