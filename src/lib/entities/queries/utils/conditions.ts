@@ -76,7 +76,7 @@ export class Conditions {
 						|| condition.operator === 'ILIKE'
 						|| condition.operator === 'NOT LIKE'
 						|| condition.operator === 'NOT ILIKE')
-						&& resolvedParam.indexOf('%') === -1
+						&& (! resolvedParam.includes('%') && ! resolvedParam.includes('_'))
 					) {
 						resolvedParam = `%${resolvedParam}%`;
 					}
