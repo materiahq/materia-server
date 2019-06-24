@@ -33,7 +33,7 @@
     "passport-oauth2-client-password": "^0.1.2",
     "pg": "^6.1.2",
     "pg-hstore": "^2.3.2",
-    "sequelize": "^5.7.0",
+    "sequelize": "^5.8.11",
     "simple-git": "^1.107.0",
     "sqlite3": "^4.0.9",
     "uuid": "^3.1.0",
