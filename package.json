@@ -66,7 +66,7 @@
     "typescript": "^3.2.4"
   },
   "scripts": {
-    "build": "tsc -p . && ncp package.json dist/package.json && ncp src/cli dist/cli && ncp scripts dist/scripts",
+    "build": "tsc -p . && ncp package.json dist/package.json && ncp src/cli dist/cli && ncp scripts dist/scripts && ncp README.md dist/README.MD && ncp LICENSE.md dist/LICENSE.md",
     "prepublishOnly": "node scripts/prepublish.js",
     "postpublish": "node scripts/postpublish.js",
     "test": "mocha -R spec dist/test/**/*.js --exit",
