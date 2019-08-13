@@ -41,17 +41,17 @@ export class Server {
 	}
 
 	load() {
+		const conf = this.app.config.get<IServerConfig>(this.app.mode, ConfigType.SERVER);
+
 		this.expressApp = express();
-		this.expressApp.use(bodyParser.urlencoded({ extended: false }));
-		this.expressApp.use(bodyParser.json());
+		this.expressApp.use(bodyParser.urlencoded(Object.assign({}, { extended: false }, conf.bodyParser && conf.bodyPaser.urlencoded || {})));
+		this.expressApp.use(bodyParser.json(conf.bodyParser && conf.bodyParser.json));
 		this.expressApp.use(methodOverride());
 		this.expressApp.use(compression());
 
 		if ((this.app.mode == AppMode.DEVELOPMENT || this.app.options.logRequests) && this.app.options.logRequests != false) {
 			this.expressApp.use(morgan('dev'));
 		}
-
-		const conf = this.app.config.get<IServerConfig>(this.app.mode, ConfigType.SERVER);
 		if (conf.cors == null || conf.cors) {
 			this.expressApp.use(function (req, res, next) {
 				res.header('Access-Control-Allow-Origin', '*');
