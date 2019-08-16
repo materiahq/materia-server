@@ -63,7 +63,7 @@
     "mocha": "^6.2.0",
     "ncp": "^2.0.0",
     "tslint": "^5.16.0",
-    "typescript": "^3.2.4"
+    "typescript": "3.5.3"
   },
   "scripts": {
     "build": "tsc -p . && ncp package.json dist/package.json && ncp src/cli dist/cli && ncp scripts dist/scripts && ncp README.md dist/README.MD && ncp LICENSE.md dist/LICENSE.md",
