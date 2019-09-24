@@ -212,8 +212,9 @@ export class Server {
 						this.app.logger.error(new Error(`Impossible to start the server - The port ${port} is already used by another server.`));
 						if (this.app.mode == AppMode.DEVELOPMENT) {
 							if ( ! opts ) { opts = {}; }
-							if ( ! opts.port ) { opts.port = port + 1; }
-							error = port;
+							if ( ! opts.port) { opts.port = port; }
+							error = opts.port;
+							opts.port = opts.port + 1;
 							return this.start(opts).then(resolve).catch(reject);
 						}
 					} else {
