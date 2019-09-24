@@ -208,7 +208,7 @@ export class Server {
 
 				let error = 0;
 				const errListener = (e) => {
-					if (e.code == 'EADDRINUSE') {
+					if (e.code == 'EADDRINUSE' || (e.code === 'EACCES' && e.syscall === 'listen' && e.port === port)) {
 						this.app.logger.error(new Error(`Impossible to start the server - The port ${port} is already used by another server.`));
 						if (this.app.mode == AppMode.DEVELOPMENT) {
 							if ( ! opts ) { opts = {}; }
