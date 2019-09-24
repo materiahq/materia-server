@@ -245,6 +245,9 @@ export class Server {
 					// remove the host from args
 					args[1] = args.pop();
 				}
+				if (this.server.listeners('error').length) {
+					this.server.removeAllListeners('error');
+				}
 				this.server.listen.apply(this.server, args).on('error', errListener);
 			});
 		});
