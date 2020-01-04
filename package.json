@@ -42,7 +42,7 @@
     "passport-oauth2-client-password": "^0.1.2",
     "pg": "^7.11.0",
     "pg-hstore": "^2.3.2",
-    "sequelize": "^5.14.0",
+    "sequelize": "^5.21.3",
     "simple-git": "^1.121.0",
     "sqlite3": "^4.0.9",
     "uuid": "^3.1.0",
@@ -60,10 +60,10 @@
     "chai-as-promised": "^7.1.1",
     "chai-http": "^4.3.0",
     "crlf": "^1.1.1",
-    "mocha": "^6.2.0",
+    "mocha": "^6.2.2",
     "ncp": "^2.0.0",
     "tslint": "^5.16.0",
-    "typescript": "3.5.3"
+    "typescript": "^3.6.3"
   },
   "scripts": {
     "build": "tsc -p . && ncp package.json dist/package.json && ncp src/cli dist/cli && ncp scripts dist/scripts && ncp README.md dist/README.MD && ncp LICENSE.md dist/LICENSE.md",
