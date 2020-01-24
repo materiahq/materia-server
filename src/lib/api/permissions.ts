@@ -30,7 +30,7 @@ export class Permissions {
 				next();
 			};
 
-			const rev_permissions = permissionsName.reverse();
+			const rev_permissions = [...permissionsName].reverse();
 
 			rev_permissions.every(permissionName => {
 				const permission = this.permissions.find(
