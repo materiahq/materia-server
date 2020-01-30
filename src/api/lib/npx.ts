@@ -35,7 +35,7 @@ export class Npx {
 		});
 	}
 
-	private _getNpxPath() {
+	private _getNpxPath(): Promise<string> {
 		return new Promise((resolve, reject) => {
 			which('npx', (err, npxPath) => {
 				if (err && ! npxPath) {

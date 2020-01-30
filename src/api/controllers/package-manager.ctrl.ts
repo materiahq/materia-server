@@ -10,19 +10,23 @@ export class PackageManagerController {
 		this.packageManager = new PackageManager(this.app.path);
 	}
 
-	install(req, res) {
+	async install(req, res) {
 		this.app.watcher.disable();
 		const name = this.getPkgFromRequest(req);
+		const version = req.body && req.body.version ? req.body.version : 'latest';
 
-		this.packageManager.install(name, (data, error) => {
-			this.app.logger.log(data);
-		}).then(data => {
+		try {
+			await this.packageManager.install(`${name}@${version}`, (data, error) => {
+				this.app.logger.log(data);
+			});
+			const deps = await this.packageManager.getDependencies();
+			const resolved = await this.packageManager.getVersion(name);
 			this.app.watcher.enable();
-			return res.status(200).send({data});
-		}).catch(err => {
+			res.status(200).send({name: name, version: deps[name], type: 'prod', resolved });
+		} catch (e) {
 			this.app.watcher.enable();
-			return res.status(501).send(err);
-		});
+			return res.status(500).send(e);
+		}
 	}
 
 	async installAll(req, res) {
@@ -89,23 +93,22 @@ export class PackageManagerController {
 		}
 	}
 
-	upgrade(req, res) {
+	async upgrade(req, res) {
 		this.app.watcher.disable();
 		const name = this.getPkgFromRequest(req);
+		const version = req.body && req.body.version ? req.body.version : 'latest';
 
 		try {
-			this.packageManager.upgrade(name, (data, error) => {
+			await this.packageManager.upgrade(`${name}@${version}`, (data, error) => {
 				this.app.logger.log(data);
-			}).then(data => {
-				this.app.watcher.enable();
-				return res.status(200).send({data});
-			}).catch(e => {
-				this.app.watcher.enable();
-				return res.status(500).send(e);
 			});
+			const deps = await this.packageManager.getDependencies();
+			const resolved = await this.packageManager.getVersion(name);
+			this.app.watcher.enable();
+			res.status(200).send({name: name, version: deps[name], type: 'prod', resolved });
 		} catch (e) {
 			this.app.watcher.enable();
-			return res.status(502).send(e);
+			return res.status(500).send(e);
 		}
 	}
 

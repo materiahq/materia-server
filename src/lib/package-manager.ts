@@ -39,7 +39,7 @@ export class PackageManager {
 
 	upgrade(packageName: string, stream?: (data: any, error?: boolean) => void) {
 		if (this.managerName === 'yarn') {
-			return this.nodeModuleManager.exec('upgrade', [packageName], this.basepath, stream);
+			return this.nodeModuleManager.exec('upgrade', [packageName, '--latest'], this.basepath, stream);
 		} else {
 			return this.nodeModuleManager.exec('upgrade', [packageName, '--save'], this.basepath, stream);
 		}
@@ -68,9 +68,9 @@ export class PackageManager {
 		return 'npm';
 	}
 
-	getPackageJson(): Promise<any> {
+	getPackageJson(packageName?: string): Promise<any> {
 		return new Promise((resolve, reject) => {
-			const path = join(this.basepath, 'package.json');
+			const path = packageName ? join(this.basepath, 'node_modules', packageName, 'package.json') :  join(this.basepath, 'package.json');
 			readFile(path, 'utf-8', (err, data) => {
 				if (err) {
 					return reject(err);
@@ -80,16 +80,20 @@ export class PackageManager {
 		});
 	}
 
-	getDependencies(): Promise<any> {
-		return this.getPackageJson().then(packageJson => packageJson.dependencies);
+	getDependencies(packageName?: string): Promise<any> {
+		return this.getPackageJson(packageName).then(packageJson => packageJson.dependencies);
 	}
 
-	getDevdependencies(): Promise<any> {
-		return this.getPackageJson().then(packageJson => packageJson.devDependencies);
+	getDevdependencies(packageName?: string): Promise<any> {
+		return this.getPackageJson(packageName).then(packageJson => packageJson.devDependencies);
 	}
 
-	getScripts(): Promise<any> {
-		return this.getPackageJson().then(packageJson => packageJson.scripts);
+	getScripts(packageName?: string): Promise<any> {
+		return this.getPackageJson(packageName).then(packageJson => packageJson.scripts);
+	}
+
+	getVersion(packageName?: string): Promise<any> {
+		return this.getPackageJson(packageName).then(packageJson => packageJson.version);
 	}
 
 	hasNodeModules(): boolean {

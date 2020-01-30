@@ -14,46 +14,32 @@ export class Yarn {
 		});
 	}
 
-	exec(command: string, params?: string[], cwd?: string, stream?: (data: any, error?: boolean) => void): Promise<any> {
-		return new Promise((resolve, reject) => {
-			let data = '';
-			return this.getYarnPath().then(yarnPath => {
-				if (stream) {
-					stream(`$ yarn ${command} ${params.join(' ')}`);
-				}
-				const proc = execa(yarnPath, [command, ...params], {
-					cwd: cwd ? cwd : this.cwd
-				});
-				let working = true;
-				proc.stdout.on('data', d => {
-					if (stream && working) {
-						stream(d.toString());
-					}
-					data += d;
-				});
-				proc.stderr.on('data', (d) => {
-					if (stream && working) {
-						stream(d.toString(), true);
-					}
-					data += d;
-				});
-
-				proc.on('close', (code) => {
-					working = false;
-					if (code == 0) {
-						return resolve(data);
-					} else {
-						return reject({
-							code,
-							data
-						});
-					}
-				});
+	async exec(command: string, params?: string[], cwd?: string, stream?: (data: any, error?: boolean) => void): Promise<any> {
+		try {
+			const yarnPath = await this.getYarnPath();
+			if (stream) {
+				stream(`$ yarn ${command} ${params.join(' ')}`);
+			}
+			const proc = execa(yarnPath, [command, ...params], {
+				cwd: cwd ? cwd : this.cwd
 			});
-		});
+			proc.stdout.on('data', d => {
+				if (stream) {
+					stream(d.toString());
+				}
+			});
+			proc.stderr.on('data', (d) => {
+				if (stream) {
+					stream(d.toString(), true);
+				}
+			});
+			return proc;
+		} catch (err) {
+			return Promise.reject(err);
+		}
 	}
 
-	private getYarnPath() {
+	private getYarnPath(): Promise<string> {
 		return new Promise((resolve, reject) => {
 			which('yarn', (err, yarnPath) => {
 				if (err && ! yarnPath) {

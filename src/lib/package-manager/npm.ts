@@ -53,7 +53,7 @@ export class Npm {
 		});
 	}
 
-	private getNpmPath() {
+	private getNpmPath(): Promise<string> {
 		return new Promise((resolve, reject) => {
 			which('npm', { all: true }, (err, npmPaths) => {
 				if (err) {
