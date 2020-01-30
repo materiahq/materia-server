@@ -1,5 +1,6 @@
 import * as execa from 'execa';
 import * as which from 'which';
+import chalk from 'chalk';
 
 export class Npm {
 
@@ -33,7 +34,8 @@ export class Npm {
 				});
 				proc.stderr.on('data', (d) => {
 					if (stream && working) {
-						stream(d.toString(), true);
+						const colorized = d.toString().includes('ERR') ? chalk.red(d.toString()) : chalk.yellow(d.toString());
+						stream(colorized, true);
 					}
 					data += d;
 				});
