@@ -9,56 +9,40 @@ export class PackageManager {
 	managerName: string;
 
 	constructor(private basepath: string) {
+		this._init();
+	}
+
+	private _init() {
 		this.managerName = this.getPackageManagerName();
 		this.nodeModuleManager = this.managerName === 'yarn' ? new Yarn(this.basepath) : new Npm(this.basepath);
 	}
 
-	runScriptInBackground(scriptName, cwd?: string) {
-		if (this.managerName === 'yarn') {
-			return this.nodeModuleManager.execInBackground('run', [scriptName], cwd ? cwd : this.basepath);
-		} else {
-			return this.nodeModuleManager.execInBackground('run-script', [scriptName], cwd ? cwd : this.basepath);
-		}
+	runScriptInBackground(scriptName) {
+		return this.nodeModuleManager.runScriptInBackground(scriptName);
 	}
 
-	runScript(scriptName: string, cwd?: string, stream?: (data: any, error?: boolean) => void) {
-		if (this.managerName === 'yarn') {
-			return this.nodeModuleManager.exec('run', [scriptName], cwd ? cwd : this.basepath, stream);
-		} else {
-			return this.nodeModuleManager.exec('run-script', [scriptName], cwd ? cwd : this.basepath, stream);
-		}
+	runScript(scriptName: string, stream?: (data: any, error?: boolean) => void) {
+		return this.nodeModuleManager.runScript(scriptName, this.basepath, stream);
 	}
 
 	uninstall(packageName: string, stream?: (data: any, error?: boolean) => void) {
-		if (this.managerName === 'yarn') {
-			return this.nodeModuleManager.exec('remove', [packageName], this.basepath, stream);
-		} else {
-			return this.nodeModuleManager.exec('uninstall', [packageName, '--save'], this.basepath, stream);
-		}
+		return this.nodeModuleManager.uninstall(packageName, this.basepath, stream);
 	}
 
 	upgrade(packageName: string, stream?: (data: any, error?: boolean) => void) {
-		if (this.managerName === 'yarn') {
-			return this.nodeModuleManager.exec('upgrade', [packageName, '--latest'], this.basepath, stream);
-		} else {
-			return this.nodeModuleManager.exec('upgrade', [packageName, '--save'], this.basepath, stream);
-		}
+		return this.nodeModuleManager.upgrade(packageName, this.basepath, stream);
 	}
 
 	install(packageName: string, stream?: (data: any, error?: boolean) => void) {
-		if (this.managerName === 'yarn') {
-			return this.nodeModuleManager.exec('add', [packageName], this.basepath, stream);
-		} else {
-			return this.nodeModuleManager.exec('install', [packageName, '--save'], this.basepath, stream);
-		}
+		return this.nodeModuleManager.install(packageName, this.basepath, stream);
 	}
 
 	installAll(stream?: (data: any, error?: boolean) => void) {
-		return this.nodeModuleManager.exec('install', [], this.basepath, stream);
+		return this.nodeModuleManager.installAll(this.basepath, stream);
 	}
 
-	installAllInBackground(cwd?: string) {
-		return this.nodeModuleManager.execInBackground('install', [], cwd ? cwd : this.basepath);
+	installAllInBackground() {
+		return this.nodeModuleManager.installAllInBackground(this.basepath);
 	}
 
 	getPackageManagerName(): string {
@@ -80,23 +64,28 @@ export class PackageManager {
 		});
 	}
 
-	getDependencies(packageName?: string): Promise<any> {
+	getDependencies(packageName?: string): Promise<{[name: string]: string}> {
 		return this.getPackageJson(packageName).then(packageJson => packageJson.dependencies);
 	}
 
-	getDevdependencies(packageName?: string): Promise<any> {
+	getDevdependencies(packageName?: string): Promise<{[name: string]: string}> {
 		return this.getPackageJson(packageName).then(packageJson => packageJson.devDependencies);
 	}
 
-	getScripts(packageName?: string): Promise<any> {
+	getScripts(packageName?: string): Promise<{[name: string]: string}> {
 		return this.getPackageJson(packageName).then(packageJson => packageJson.scripts);
 	}
 
-	getVersion(packageName?: string): Promise<any> {
+	getVersion(packageName?: string): Promise<string> {
 		return this.getPackageJson(packageName).then(packageJson => packageJson.version);
 	}
 
 	hasNodeModules(): boolean {
 		return existsSync(join(this.basepath, 'node_modules'));
+	}
+
+	setBasepath(basepath: string): void {
+		this.basepath = basepath;
+		this._init();
 	}
 }

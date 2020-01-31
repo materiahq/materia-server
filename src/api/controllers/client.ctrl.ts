@@ -78,7 +78,8 @@ export class ClientController {
 		const script = conf.scripts && conf.scripts.watch ? conf.scripts.watch : 'watch';
 		await this._kill(this.proc);
 		try {
-			const result = await this.packageManager.runScriptInBackground(script, join(this.app.path, conf.packageJsonPath));
+			this.packageManager.setBasepath(join(this.app.path, conf.packageJsonPath));
+			const result = await this.packageManager.runScriptInBackground(script);
 			this.proc = result.proc;
 			res.status(200).send();
 		} catch (err) {
@@ -181,7 +182,8 @@ export class ClientController {
 		}
 		if (script) {
 			const packageJsonPath = conf && conf.packageJsonPath ? join(this.app.path, conf.packageJsonPath) : this.app.path;
-			this.packageManager.runScript(script, packageJsonPath, (data, error) => {
+			this.packageManager.setBasepath(packageJsonPath);
+			this.packageManager.runScript(script, (data, error) => {
 				const progress = this._parseProgress(data);
 				if (progress) {
 					this.websocket.broadcast({

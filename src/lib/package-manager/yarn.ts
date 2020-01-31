@@ -1,55 +1,33 @@
-import * as execa from 'execa';
-import * as which from 'which';
-import chalk from 'chalk';
+import { NodeManager } from './node-manager';
 
-export class Yarn {
+export class Yarn extends NodeManager {
 
-	constructor(private cwd: string) {}
-
-	execInBackground(command: string, params?: string[], cwd?: string) {
-		return this.getYarnPath().then(yarnPath => {
-			const yarnProc = execa(yarnPath, [command, ...params], {
-				cwd: cwd ? cwd : this.cwd
-			});
-			return { proc: yarnProc };
-		});
+	constructor(cwd: string) {
+		super(cwd, 'yarn');
 	}
 
-	async exec(command: string, params?: string[], cwd?: string, stream?: (data: any, error?: boolean) => void): Promise<any> {
-		try {
-			const yarnPath = await this.getYarnPath();
-			if (stream) {
-				stream(`$ yarn ${command} ${params.join(' ')}`);
-			}
-			const proc = execa(yarnPath, [command, ...params], {
-				cwd: cwd ? cwd : this.cwd
-			});
-			proc.stdout.on('data', d => {
-				if (stream) {
-					stream(d.toString());
-				}
-			});
-			proc.stderr.on('data', (d) => {
-				if (stream) {
-					const colorized = d.toString().includes('err') ? chalk.red(d.toString()) : chalk.yellow(d.toString());
-					stream(colorized, true);
-				}
-			});
-			return proc;
-		} catch (err) {
-			return Promise.reject(err);
-		}
+	install(packageName: string, cwd: string, stream?: (data: any, error?: boolean) => void) {
+		return this._exec('add', [packageName], cwd, stream);
 	}
 
-	private getYarnPath(): Promise<string> {
-		return new Promise((resolve, reject) => {
-			which('yarn', (err, yarnPath) => {
-				if (err && ! yarnPath) {
-					reject(err);
-				} else {
-					resolve(yarnPath);
-				}
-			});
-		});
+	uninstall(packageName: string, cwd: string, stream?: (data: any, error?: boolean) => void) {
+		return this._exec('remove', [packageName], cwd, stream);
 	}
+
+	upgrade(packageName: string, cwd: string, stream?: (data: any, error?: boolean) => void) {
+		return this._exec('upgrade', [packageName, '--latest'], cwd, stream);
+	}
+
+	runScript(scriptName: string, cwd: string, stream?: (data: any, error?: boolean) => void) {
+		return this._exec('run', [scriptName], cwd, stream);
+	}
+
+	runScriptInBackground(scriptName: string, cwd?: string) {
+		return this._execInBackground('run', [scriptName], cwd);
+	}
+
+	getExecutable(): Promise<string> {
+		return this._getManagerExecutable('yarn');
+	}
+
 }

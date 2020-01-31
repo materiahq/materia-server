@@ -222,7 +222,8 @@ export class BoilerplateController {
 				return this.app.config.save();
 			}).then(() => {
 				this._emitMessage('Build React application');
-				return this.packageManager.runScript('build', path.join(this.app.path, params.output));
+				this.packageManager.setBasepath(path.join(this.app.path, params.output));
+				return this.packageManager.runScript('build');
 			}).then(() => {
 				this.app.server.dynamicStatic.setPath(path.join(this.app.path, `${params.output}/build`));
 				const client = this.app.config.get(AppMode.DEVELOPMENT, ConfigType.CLIENT);
