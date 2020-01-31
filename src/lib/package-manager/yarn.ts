@@ -10,6 +10,10 @@ export class Yarn extends NodeManager {
 		return this._exec('add', [packageName], cwd, stream);
 	}
 
+	installDev(packageName: string, cwd: string, stream?: (data: any, error?: boolean) => void) {
+		return this._exec('add', [packageName, '-D'], cwd, stream);
+	}
+
 	uninstall(packageName: string, cwd: string, stream?: (data: any, error?: boolean) => void) {
 		return this._exec('remove', [packageName], cwd, stream);
 	}

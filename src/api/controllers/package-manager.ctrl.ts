@@ -14,15 +14,18 @@ export class PackageManagerController {
 		this.app.watcher.disable();
 		const name = this.getPkgFromRequest(req);
 		const version = req.body && req.body.version ? req.body.version : 'latest';
+		const type = req.body && req.body.type ? req.body.type : 'prod';
 
 		try {
-			await this.packageManager.install(`${name}@${version}`, (data, error) => {
-				this.app.logger.log(data);
-			});
-			const deps = await this.packageManager.getDependencies();
+			const packageWithVersion = `${name}@${version}`;
+			const stream = (data, error) => { this.app.logger.log(data); };
+			const installMethod = type === 'dev' ?
+				this.packageManager.installDev : this.packageManager.install;
+			await installMethod.apply(this.packageManager, [packageWithVersion, stream]);
+			const deps = type === 'dev' ? await this.packageManager.getDevdependencies() : await this.packageManager.getDependencies();
 			const resolved = await this.packageManager.getVersion(name);
 			this.app.watcher.enable();
-			res.status(200).send({name: name, version: deps[name], type: 'prod', resolved });
+			res.status(200).send({name: name, version: deps[name], type, resolved });
 		} catch (e) {
 			this.app.watcher.enable();
 			return res.status(500).send(e);
@@ -97,15 +100,16 @@ export class PackageManagerController {
 		this.app.watcher.disable();
 		const name = this.getPkgFromRequest(req);
 		const version = req.body && req.body.version ? req.body.version : 'latest';
+		const type = req.body && req.body.type ? req.body.type : 'prod';
 
 		try {
 			await this.packageManager.upgrade(`${name}@${version}`, (data, error) => {
 				this.app.logger.log(data);
 			});
-			const deps = await this.packageManager.getDependencies();
+			const deps = type === 'dev' ? await this.packageManager.getDevdependencies() : await this.packageManager.getDependencies();
 			const resolved = await this.packageManager.getVersion(name);
 			this.app.watcher.enable();
-			res.status(200).send({name: name, version: deps[name], type: 'prod', resolved });
+			res.status(200).send({name: name, version: deps[name], type, resolved });
 		} catch (e) {
 			this.app.watcher.enable();
 			return res.status(500).send(e);

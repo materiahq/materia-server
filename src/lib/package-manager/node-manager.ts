@@ -63,6 +63,7 @@ export abstract class NodeManager {
 	}
 
 	abstract getExecutable();
+	abstract installDev(packageName: string, cwd: string, stream?: (data: any, error?: boolean) => void);
 	abstract install(packageName: string, cwd: string, stream?: (data: any, error?: boolean) => void);
 	abstract uninstall(packageName: string, cwd: string, stream?: (data: any, error?: boolean) => void);
 	abstract upgrade(packageName: string, cwd: string, stream?: (data: any, error?: boolean) => void);

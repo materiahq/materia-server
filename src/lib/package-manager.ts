@@ -37,6 +37,10 @@ export class PackageManager {
 		return this.nodeModuleManager.install(packageName, this.basepath, stream);
 	}
 
+	installDev(packageName: string, stream?: (data: any, error?: boolean) => void) {
+		return this.nodeModuleManager.installDev(packageName, this.basepath, stream);
+	}
+
 	installAll(stream?: (data: any, error?: boolean) => void) {
 		return this.nodeModuleManager.installAll(this.basepath, stream);
 	}
@@ -54,7 +58,7 @@ export class PackageManager {
 
 	getPackageJson(packageName?: string): Promise<any> {
 		return new Promise((resolve, reject) => {
-			const path = packageName ? join(this.basepath, 'node_modules', packageName, 'package.json') :  join(this.basepath, 'package.json');
+			const path = packageName ? join(this.basepath, 'node_modules', packageName, 'package.json') : join(this.basepath, 'package.json');
 			readFile(path, 'utf-8', (err, data) => {
 				if (err) {
 					return reject(err);

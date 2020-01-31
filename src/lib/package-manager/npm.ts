@@ -10,6 +10,10 @@ export class Npm extends NodeManager {
 		return this._exec('install', [packageName, '--save'], cwd, stream);
 	}
 
+	installDev(packageName: string, cwd?: string, stream?: (data: any, error?: boolean) => void) {
+		return this._exec('install', [packageName, '--save-dev'], cwd, stream);
+	}
+
 	uninstall(packageName: string, cwd?: string, stream?: (data: any, error?: boolean) => void) {
 		return this._exec('uninstall', [packageName, '--save'], cwd, stream);
 	}
