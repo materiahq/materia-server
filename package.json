@@ -24,7 +24,7 @@
     "@types/ws": "^4.0.2",
     "body-parser": "^1.19.0",
     "chalk": "^2.3.1",
-    "chokidar": "2.1.6",
+    "chokidar": "^3.3.1",
     "compression": "^1.7.4",
     "connect-session-sequelize": "^6.0.0",
     "errorhandler": "^1.5.0",
