@@ -84,7 +84,7 @@ export class Endpoint {
 			const ctrl = this._getController();
 			ctrl.load(basePath, this.controller);
 			if ( ! ctrl.ctrlClass.prototype[this.action]) {
-				throw new MateriaError(`cannot find method ${this.action} in controller ${this.controller}.ctrl.js`);
+				throw new MateriaError(`Could not find method ${this.action} in controller ${this.controller}.ctrl.js`);
 			}
 			this._buildParams(endpointConfig.params);
 		} else {
