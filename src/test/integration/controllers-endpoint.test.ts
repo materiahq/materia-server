@@ -119,6 +119,15 @@ describe('[Controller Endpoints]', () => {
 					message: 'Missing required parameter: param_date'
 				});
 			});
+			it('should run endpoint for controller action "testParam" with two missing params', () => {
+				return tpl.post('/api/ctrl/params', {
+					param_number: 42
+				}).should.become({
+					error: true,
+					messages: ['Missing required parameter: param_text', 'Missing required parameter: param_date'],
+					multi: true
+				});
+			});
 			// This does NOT pass - I don't know why...
 			it('should run endpoint using session', (done) => {
 				tpl.get('/api/session/init').then(res => {

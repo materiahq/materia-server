@@ -244,7 +244,7 @@ export class Endpoint {
 				}
 				return res.status(500).send({
 					error: true,
-					messages: params.errors,
+					messages: params.errors.map((err) => err.message),
 					multi: true
 				});
 			});
