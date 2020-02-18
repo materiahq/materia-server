@@ -1,0 +1,17 @@
+[
+	{
+		"method": "get",
+		"url": "/tests",
+		"query": {
+			"entity": "test",
+			"id": "list"
+		}
+	},
+	{
+		"method": "post",
+		"url": "/ctrl/permissions",
+		"controller": "mytest",
+		"action": "testPermissions",
+		"permissions": ["Permission1", "Permission2"]
+	}
+]

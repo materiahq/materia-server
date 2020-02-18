@@ -1,0 +1,12 @@
+[
+	{
+		"name": "Permission1",
+		"file": "permission1",
+		"description": "This is permission 1"
+	},
+	{
+		"name": "Permission2",
+		"file": "permission2",
+		"description": "This is permission 2"
+	}
+]
