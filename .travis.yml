@@ -26,7 +26,7 @@ env:
    - DIALECT=postgres
 
 before_install:
- - "yarn global add typescript@3.2.4"
+ - "yarn global add typescript@3.7.5"
 install:
  - "yarn && tsc -p ."
 script:
