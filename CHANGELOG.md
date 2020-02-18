@@ -1,3 +1,29 @@
+# [1.1.0](https://github.com/materiahq/materia-server/releases/tag/v1.1.0) (2020-02-17)
+
+### Bug fixes
+
+**lib/permissions**: ensure multiple middleware/permission to be always invoked in same order ([d62b84](https://github.com/materiahq/materia-server/commit/d62b84cc840f10950988d5803c15c3b6003be363)),
+	**lib/server**: extend port already used check ([fcd961d](https://github.com/materiahq/materia-server/commit/fcd961d667e9825078843ca31af571d4a57acb12)),
+**lib/server**: correctly increment port on many fallbacks ([3638206](https://github.com/materiahq/materia-server/commit/3638206cc7a8b1c927f84fd870a78a9ae7d12885)),
+**lib/server**: ensure there is only one error listener on many fallbacks ([4b5f3b4](https://github.com/materiahq/materia-server/commit/4b5f3b4e0812b482754134a1978688beab48d0d8)),
+**lib/api**: align error msg style for missing method ([c0556a3](https://github.com/materiahq/materia-server/commit/c0556a34f30f4b5322f9a3d06a2b9f158ab4592d)),
+**lib/api**: return properly multiple missing params error msg ([3937f53](https://github.com/materiahq/materia-server/commit/3937f533e2aa51c6c94bd35d9048635cfb36c22d)).
+
+### Features
+
+**lib/package-manager**: use an abstract class for Yarn/Npm ([ce7077e](https://github.com/materiahq/materia-server/commit/ce7077e7a571976fedb273893d0355ffcba07c69)),
+**lib/package-manager**: allow passing version on install/upgrade ([d95ecc8](https://github.com/materiahq/materia-server/commit/d95ecc8f8225b4ea9345b153e3f7e06655eb719b)),
+**lib/package-manager**: allow installing devDependencies ([edd9a0d](https://github.com/materiahq/materia-server/commit/edd9a0d88a9f4a1f589f1ce0acb44be5ba084c78)),
+**admin-api/dependencies**: allow passing version on install/upgrade ([d95ecc8](https://github.com/materiahq/materia-server/commit/d95ecc8f8225b4ea9345b153e3f7e06655eb719b)),
+**admin-api/dependencies**: allow installing devDependencies ([edd9a0d](https://github.com/materiahq/materia-server/commit/edd9a0d88a9f4a1f589f1ce0acb44be5ba084c78)).
+
+### Other changes
+
+**typescript**: upgrade to fixed version 3.7.5 (version alignment with Materia Designer),
+**chodikar**: upgrade to v3.3.1,
+**execa**: upgrade to v4,
+**sqlite3**: upgrade to 4.4.1
+
 # [1.0.0-rc.2](https://github.com/materiahq/materia-server/releases/tag/v1.0.0-rc.2) (2019-05-28)
 
 ### Bug fixes
