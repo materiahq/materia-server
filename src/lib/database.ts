@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'fs-extra';
 import { join, resolve } from 'path';
 import chalk from 'chalk';
-import { Sequelize, Options, Dialect } from 'sequelize';
+import { Sequelize, Options, Dialect, QueryTypes } from 'sequelize';
 import * as domain from 'domain';
 import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfaces';
 
@@ -336,6 +336,15 @@ export class Database {
 
 	createDatabase(settings, name) {
 		return Database.createDatabase(settings, name);
+	}
+
+	runSql(query: string): Promise<any> {
+		return this.sequelize.query(
+			query,
+			{
+				type: QueryTypes[query.split(' ')[0]] ?? 'sql'
+			}
+		);
 	}
 
 	/**

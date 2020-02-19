@@ -475,14 +475,11 @@ export class DatabaseController {
 	}
 
 	runSql(req, res) {
-		this.app.database.sequelize
-			.query(req.body.opts.query, {
-				type: 'sql'
-			})
+		this.app.database.runSql(req.body.opts.query)
 			.then(data => {
 				const result: any = {
-					data: data,
-					count: data.length
+					data: data ?? [],
+					count: data?.length ?? 0
 				};
 				if (req.body.from) {
 					result.from = req.body.from;
