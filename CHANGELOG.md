@@ -1,3 +1,13 @@
+# [1.1.1](https://github.com/materiahq/materia-server/releases/tag/v1.1.1) (2020-02-19)
+
+### Features
+
+**lib/database**: new runSql method ([bdf3369](https://github.com/materiahq/materia-server/commit/bdf33699371bfa8527c467d73e3363d03799c505)).
+
+### Bug fixes
+
+**admin-api/sql**: sql queries should work on sqlite ([bdf3369](https://github.com/materiahq/materia-server/commit/bdf33699371bfa8527c467d73e3363d03799c505)).
+
 # [1.1.0](https://github.com/materiahq/materia-server/releases/tag/v1.1.0) (2020-02-17)
 
 ### Bug fixes
