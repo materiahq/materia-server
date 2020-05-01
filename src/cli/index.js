@@ -9,7 +9,8 @@ let cmds = [
 	require('./cmd/version'),
 	help,
 	require('./cmd/start'),
-	require('./cmd/relink')
+	require('./cmd/relink'),
+	require('./cmd/generate')
 ]
 
 let args = argv._
