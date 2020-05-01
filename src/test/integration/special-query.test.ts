@@ -19,45 +19,39 @@ describe('[Special Queries]', () => {
 		return tmpl.runApp().then(_app => app = _app);
 	});
 
+	it('should run default "create" to fill entity "test"', () => {
+		return Promise.all([
+			app.entities.get('test').getQuery('create').run({ name: 'foo', filtered: false }),
+			app.entities.get('test').getQuery('create').run({ name: 'bar', filtered: true })
+		]);
+	});
 
-	describe('App', () => {
-		describe('Queries', () => {
+	it('should run default "get" to check types', () => {
+		return Promise.all([
+			app.entities.get('test').getQuery('get').run({
+				name: 'foo'
+			}, {raw: true}),
+			app.entities.get('test').getQuery('get').run({
+				name: 'bar'
+			}, {raw: true})
+		]).should.become([{
+			name: 'foo',
+			filtered: tmpl.dbBoolean(false)
+		}, {
+			name: 'bar',
+			filtered: tmpl.dbBoolean(true)
+		}]);
+	});
 
-			it('should run default "create" to fill entity "test"', () => {
-				return Promise.all([
-					app.entities.get('test').getQuery('create').run({ name: 'foo', filtered: false }),
-					app.entities.get('test').getQuery('create').run({ name: 'bar', filtered: true })
-				]);
-			});
-
-			it('should run default "get" to check types', () => {
-				return Promise.all([
-					app.entities.get('test').getQuery('get').run({
-						name: 'foo'
-					}, {raw: true}),
-					app.entities.get('test').getQuery('get').run({
-						name: 'bar'
-					}, {raw: true})
-				]).should.become([{
-					name: 'foo',
-					filtered: tmpl.dbBoolean(false)
-				}, {
+	it('should check query "listFilteredBoolValue"', () => {
+		return app.entities.get('test').getQuery('listFilteredBoolValue').run(null, { raw: true }).then(res => {
+			res.count.should.equal(1);
+			res.data.should.deep.equal([{
 					name: 'bar',
 					filtered: tmpl.dbBoolean(true)
-				}]);
-			});
-
-			it('should check query "listFilteredBoolValue"', () => {
-				return app.entities.get('test').getQuery('listFilteredBoolValue').run(null, { raw: true }).then(res => {
-					res.count.should.equal(1);
-					res.data.should.deep.equal([{
-							name: 'bar',
-							filtered: tmpl.dbBoolean(true)
-						}
-					]);
-				});
-			});
-
+				}
+			]);
 		});
 	});
+
 });

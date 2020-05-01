@@ -10,12 +10,10 @@ chai.should();
 describe('[App]', () => {
 	const tpl = new TemplateApp('controller-endpoints');
 
-	describe('App', () => {
-		it('should load & start the application in dev mode', (done) => {
-			tpl.runApp('dev')
-				.then(app => app.stop())
-				.then(done)
-				.catch(done);
-		});
+	it('should load & start the application in dev mode', (done) => {
+		tpl.runApp('dev')
+			.then(app => app.stop())
+			.then(done)
+			.catch(done);
 	});
 });
