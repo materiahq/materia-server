@@ -17,9 +17,9 @@
     "sql"
   ],
   "dependencies": {
-    "@angular-devkit/schematics-cli": "^0.900.3",
+    "@angular-devkit/schematics-cli": "^0.901.4",
     "@materia/interfaces": "^1.0.2",
-    "@materia/schematics-addons": "^1.1.0",
+    "@materia/schematics-addons": "~1.1.1",
     "@types/bluebird": "^3.5.26",
     "@types/express": "^4.0.34",
     "@types/validator": "^10.11.0",
