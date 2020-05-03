@@ -1,3 +1,21 @@
+# [1.1.2](https://github.com/materiahq/materia-server/releases/tag/v1.1.2) (2020-05-20)
+
+### Features
+
+* **cli**: new command `materia generate addon` taking following arguments: name/packageName && prefix. User is prompted if not provided ([01022bf](https://github.com/materiahq/materia-server/commit/01022bfc795e2604427814b3fa12895bdd7163d4)) ([f0500ad](https://github.com/materiahq/materia-server/commit/f0500ad4187aa6ebc36604dce4f1b464d8fbc211)).
+
+### Bug fixes
+
+* **lib/package-manager**: fix executable path on linux (env PATH) ([4911f89](https://github.com/materiahq/materia-server/commit/4911f899d8d267d5057c9e9a5ad2f837d512605e)).
+
+### Other changes
+
+* **deps/chokidar**: upgrade to latest v3.4.0 ([ead27ae](https://github.com/materiahq/materia-server/commit/ead27ae3545898e795db8d83ee6c79de55dc82c1)),
+* **deps/sequelize**: upgrade to latest v5.21.7 ([7ac67a6](https://github.com/materiahq/materia-server/commit/7ac67a60a141fbc6e90dce190578cd6df61524ba)),
+* **deps/minimist**: upgrade to v1.2.3 ([220bb5](https://github.com/materiahq/materia-server/commit/220bb55bf00801c961f4e61e691ec09b181d5b93)),
+* **deps/sqlite3**: upgrade to latest v4.2.0 ([e2413e9](https://github.com/materiahq/materia-server/commit/e2413e9f2c68c5a234d776b62b6f7e38f93bbdf9)),
+* **tests**: remove extra describe blocks for better readability ([eadcd47](https://github.com/materiahq/materia-server/commit/eadcd470d0f5ee77ab5e9761d2f0743beb760800)).
+
 # [1.1.1](https://github.com/materiahq/materia-server/releases/tag/v1.1.1) (2020-02-19)
 
 ### Features
