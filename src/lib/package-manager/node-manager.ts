@@ -52,9 +52,6 @@ export abstract class NodeManager {
 	}
 
 	protected _getManagerExecutable(manager: 'yarn'|'npm'): Promise<string> {
-		if (os.platform() == 'linux') {
-			return execa('which', [manager], {shell: true}).then(({stdout}) => stdout);
-		}
 		return new Promise((resolve, reject) => {
 			which(manager, (err, yarnPath) => {
 				if (err && ! yarnPath) {
