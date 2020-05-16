@@ -52,6 +52,7 @@ const typemap = {
 	'varying character': 'text',
 	'character varying(255)[]': 'text',
 	'nchar': 'text',
+	'char': 'text',
 	'native character': 'text',
 	'nvarchar': 'text',
 	'text': 'text',
@@ -60,7 +61,9 @@ const typemap = {
 	'user-defined': 'text',
 	'bytea': 'text',
 	'tsvector': 'text',
-
+	'point': 'text',
+	"longtext": "text",
+	"enum": "text",
 	// 'blob': 'blob'
 
 	'real': 'float',
