@@ -16,6 +16,8 @@ import { ConfigType } from './config';
 import { Session } from './session';
 import { WebsocketServers } from './websocket';
 
+import * as cors from 'cors';
+
 /**
  * @class Server
  * @classdesc
@@ -53,19 +55,14 @@ export class Server {
 			this.expressApp.use(morgan('dev'));
 		}
 		if (conf.cors == null || conf.cors) {
-			this.expressApp.use(function (req, res, next) {
-				res.header('Access-Control-Allow-Origin', '*');
-				res.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT,DELETE');
-				res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-				next();
-			});
+			this.expressApp.use(cors());
 		}
 
 		this.expressApp.use(errorHandler());
 
 		this.server = createServer(this.expressApp);
 
-		this.websocket = new WebsocketServers(this.app);
+		this.websocket = new WebsocketServers(this.server);
 
 		this.sockets = new Map();
 		this.stopped = false;

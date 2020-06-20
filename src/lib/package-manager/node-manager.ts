@@ -1,7 +1,6 @@
 import * as which from 'which';
 import * as execa from 'execa';
 import chalk from 'chalk';
-import * as os from 'os';
 
 export abstract class NodeManager {
 	constructor(private cwd: string, private manager: 'yarn'|'npm') {}

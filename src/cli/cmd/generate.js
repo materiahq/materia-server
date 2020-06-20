@@ -5,7 +5,7 @@ const inquirer = require('inquirer');
 
 module.exports = {
 	matches: (args, options) => {
-		return args[0] == 'generate'
+		return args[0] == 'generate';
 	},
 
 	exec: async (args, options) => {
@@ -15,37 +15,38 @@ module.exports = {
 			let name;
 			if (options && options.name) {
 				name = options.name;
-				addonArgs.push(`--name=${options.name}`)
+				addonArgs.push(`--name=${options.name}`);
 			} else {
 				questions = [{
 					type: 'input',
 					name: 'name',
 					message: 'Enter an addon name: ',
-					default: 'addon-boilerplate',
+					default: 'addon-boilerplate'
 				}];
 				const answers = await inquirer.prompt(questions);
 				name = answers.name;
-				addonArgs.push(`--name=${answers.name}`)
+				addonArgs.push(`--name=${answers.name}`);
 			}
 			if (options && options.packageName) {
-				addonArgs.push(`--packageName=${options.packageName}`)
+				addonArgs.push(`--packageName=${options.packageName}`);
 			} else {
 				questions = [{
 					type: 'input',
 					name: 'packageName',
 					message: 'Enter a package name: ',
-					default: name,
+					default: name
 				  }];
 				 const answers = await inquirer.prompt(questions);
-				 addonArgs.push(`--packageName=${answers.packageName}`)
+				 addonArgs.push(`--packageName=${answers.packageName}`);
 			}
 			if (options && options.prefix) {
-				addonArgs.push(`--prefix=${options.prefix}`)
+				addonArgs.push(`--prefix=${options.prefix}`);
 			}
 			console.log(`Start generating addon: ${name}`);
-			const proc = execa(path.join(__dirname, '..', '..', '..', '..', '.bin', 'schematics'), addonArgs)
-			proc.stdout.on('data', (data) => console.log(data.toString()))
-			proc.stderr.on('data', (data) => console.log(data.toString()))
+			// TODO: if which(schematics) is not found, need to ask users to install @angular-devkit/schematics-cli in global
+			const proc = execa('schematics', addonArgs);
+			proc.stdout.on('data', (data) => console.log(data.toString()));
+			proc.stderr.on('data', (data) => console.log(data.toString()));
 		} else {
 			console.error(`Could not generate with unknown argument: ${args[1]}`);
 		}

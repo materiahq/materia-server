@@ -1,7 +1,8 @@
 import * as WS from 'ws';
 
-import { App } from '../lib';
 import * as url from 'url';
+
+import { Server as HttpServer } from 'http';
 
 export type IWebsocketVerifyClient = (info: {origin: any, secure: any, req: any}, cb: (done: boolean) => any) => any;
 
@@ -35,8 +36,8 @@ export class WebsocketInstance {
 export class WebsocketServers {
 	servers: {[path: string]: WebsocketInstance} = {};
 
-	constructor(private app: App) {
-		this.app.server.server.on('upgrade', (request, socket, head) => {
+	constructor(private httpServer: HttpServer) {
+		this.httpServer.on('upgrade', (request, socket, head) => {
 			const urlParsed = url.parse(request.url);
 			const pathname = urlParsed.pathname;
 			if (this.servers[pathname] && this.servers[pathname].instance) {
