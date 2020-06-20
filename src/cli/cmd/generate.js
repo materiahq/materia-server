@@ -2,6 +2,8 @@
 const execa = require('execa');
 const path = require('path');
 const inquirer = require('inquirer');
+const which = require('which');
+const chalk = require('chalk');
 
 module.exports = {
 	matches: (args, options) => {
@@ -43,12 +45,16 @@ module.exports = {
 				addonArgs.push(`--prefix=${options.prefix}`);
 			}
 			console.log(`Start generating addon: ${name}`);
-			// TODO: if which(schematics) is not found, need to ask users to install @angular-devkit/schematics-cli in global
-			const proc = execa('schematics', addonArgs);
-			proc.stdout.on('data', (data) => console.log(data.toString()));
-			proc.stderr.on('data', (data) => console.log(data.toString()));
+			if (which.sync('schematics', { nothrow: true})) {
+				const proc = execa('schematics', addonArgs);
+				proc.stdout.on('data', (data) => console.log(data.toString()));
+				proc.stderr.on('data', (data) => console.log(data.toString()));
+			} else {
+				console.error(chalk.red(chalk.bold(`ERROR: `) + `Need to install 'schematics' globally
+npm install -g @angular-devkit/schematics-cli`));
+			}
 		} else {
-			console.error(`Could not generate with unknown argument: ${args[1]}`);
+			console.error(chalk.red(chalk.bold(`ERROR: `) + `Could not generate with unknown argument: ${args[1]}`));
 		}
 	}
 }
