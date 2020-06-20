@@ -51,7 +51,7 @@ module.exports = {
 				proc.stderr.on('data', (data) => console.log(data.toString()));
 			} else {
 				console.error(chalk.red(chalk.bold(`ERROR: `) + `Need to install 'schematics' globally
-npm install -g @angular-devkit/schematics-cli`));
+npm install -g @angular-devkit/schematics-cli @materia/schematics-addons`));
 			}
 		} else {
 			console.error(chalk.red(chalk.bold(`ERROR: `) + `Could not generate with unknown argument: ${args[1]}`));
