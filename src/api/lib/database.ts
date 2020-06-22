@@ -61,12 +61,12 @@ export class DatabaseLib {
 
 	static loadEntitiesJson(app: App): IEntity[] {
 		const entities = app.entities.findAll();
-		return entities.map(entity => {
-			const finalEntity = DatabaseLib.loadEntityJson(entity);
+		const entitiesJson = entities.map(entity => this.loadEntityJson(entity));
+		return entitiesJson.map(finalEntity => {
 			if ( ! finalEntity.x && ! finalEntity.y ) {
-				DatabaseLib.loadUi(entities, entity);
-				finalEntity.x = isNaN(entity.x) || entity.x < 0 ? 0 : entity.x;
-				finalEntity.y = isNaN(entity.y) || entity.y < 0 ? 0 : entity.y;
+				DatabaseLib.loadUi(entitiesJson, finalEntity);
+				finalEntity.x = isNaN(finalEntity.x) || finalEntity.x < 0 ? 0 : finalEntity.x;
+				finalEntity.y = isNaN(finalEntity.y) || finalEntity.y < 0 ? 0 : finalEntity.y;
 			}
 			return finalEntity;
 		});
