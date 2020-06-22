@@ -7,6 +7,7 @@ import { App } from '../../lib/app';
 
 export class DatabaseLib {
 	static entitySpacing = 20;
+	static entityWidth = 200;
 
 	static generateActionId({ stringBase = 'base64', byteLength = 8 } = {}): Promise<string> {
 		return new Promise((resolve, reject) => {
@@ -63,18 +64,13 @@ export class DatabaseLib {
 		return entities.map(entity => {
 			const finalEntity = DatabaseLib.loadEntityJson(entity);
 			if ( ! finalEntity.x && ! finalEntity.y ) {
-				const ui = DatabaseLib.loadUi(app.path, entities, entity.name);
-				finalEntity.x = isNaN(ui.x) || ui.x < 0 ? 0 : ui.x;
-				finalEntity.y = isNaN(ui.y) || ui.y < 0 ? 0 : ui.y;
+				DatabaseLib.loadUi(entities, entity);
+				finalEntity.x = isNaN(entity.x) || entity.x < 0 ? 0 : entity.x;
+				finalEntity.y = isNaN(entity.y) || entity.y < 0 ? 0 : entity.y;
 			}
-			// const ui = this.loadUi(app.path, entities, entity.name);
 			return finalEntity;
 		});
 	}
-	private static entityWidth(entity) {
-		return 200;
-	}
-
 	private static entityHeight(entity) {
 		return 40 + 48 * entity.fields.length;
 	}
@@ -83,7 +79,7 @@ export class DatabaseLib {
 		const workspaceSize = { width: 0, height: 0 };
 		for (const i in entities) {
 			if (entities[i].x != -1 && entities[i].y != -1) {
-				const maxX = entities[i].x + DatabaseLib.entityWidth(entities[i]);
+				const maxX = entities[i].x + DatabaseLib.entityWidth;
 				const maxY = entities[i].y + DatabaseLib.entityHeight(entities[i]);
 				if (maxX > workspaceSize.width) {
 					workspaceSize.width = maxX;
@@ -97,12 +93,12 @@ export class DatabaseLib {
 	}
 
 	static isAvailableSpace(entities, entity, pX, pY) {
-		const elemWidth = DatabaseLib.entityWidth(entity);
+		const elemWidth = DatabaseLib.entityWidth;
 		const elemHeight = DatabaseLib.entityHeight(entity);
 		for (const i in entities) {
 			if (entities[i].x != -1 && entities[i].y != -1) {
 				if (
-					entities[i].x > pX - DatabaseLib.entityWidth(entities[i]) &&
+					entities[i].x > pX - DatabaseLib.entityWidth &&
 					entities[i].x < pX + elemWidth &&
 					entities[i].y > pY - DatabaseLib.entityHeight(entities[i]) &&
 					entities[i].y < pY + elemHeight
@@ -115,43 +111,38 @@ export class DatabaseLib {
 	}
 
 	// ui storage functions
+	static loadUi(entities, entity) {
 
-	static loadUi(p, entities, entityName) {
-		const ui = {
-			x: -1,
-			y: -1
-		};
+		entity.x = entity.x || -1;
+		entity.y = entity.y || -1;
 
-		const workspaceSize = DatabaseLib.getWorkspaceSize(entities);
-		if (workspaceSize.height >= workspaceSize.width) {
-			ui.y = 0;
-			ui.x = workspaceSize.width + DatabaseLib.entitySpacing * 2;
-		} else {
-			let posX = 0;
-			let posY = 1e10;
-			for (const i in entities) {
-				if (entities[i].x != -1 && entities[i].y != -1) {
-					const pX = entities[i].x;
-					const pY =
-						entities[i].y + DatabaseLib.entityHeight(entities[i]);
-					if (
-						pY < posY &&
-						DatabaseLib.isAvailableSpace(entities, entities[i], pX, pY)
-					) {
-						posX = pX;
-						posY = pY;
+		if (entity.x == -1 || entity.y == -1) {
+			let workspaceSize = DatabaseLib.getWorkspaceSize(entities);
+			if (workspaceSize.height >= workspaceSize.width) {
+				entity.y = 0;
+				entity.x = workspaceSize.width + DatabaseLib.entitySpacing * 2;
+			}
+			else {
+				let posX = 0;
+				let posY = 1e10;
+				for (let i in entities) {
+					if ( entities[i] && entities[i].x != -1 && entities[i].y != -1 ) {
+						let pX = entities[i].x;
+						let pY = entities[i].y + DatabaseLib.entityHeight(entities[i]);
+						if (pY < posY && DatabaseLib.isAvailableSpace(entities, entity, pX, pY)) {
+							posX = pX;
+							posY = pY;
+						}
 					}
 				}
-			}
-			ui.x = posX;
-			if (posY > 1e9) {
-				ui.y = 0;
-			} else {
-				ui.y = posY + DatabaseLib.entitySpacing * 2;
+				entity.x = posX;
+				if (posY > 1e9) {
+					entity.y = 0;
+				}
+				else {
+					entity.y = posY + DatabaseLib.entitySpacing * 2;
+				}
 			}
 		}
-
-		return ui;
 	}
-
 }
