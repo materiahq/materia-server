@@ -62,8 +62,8 @@ const typemap = {
 	'bytea': 'text',
 	'tsvector': 'text',
 	'point': 'text',
-	"longtext": "text",
-	"enum": "text",
+	'longtext': 'text',
+	'enum': 'text',
 	// 'blob': 'blob'
 
 	'real': 'float',
