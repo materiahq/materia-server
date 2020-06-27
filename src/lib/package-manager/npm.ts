@@ -19,7 +19,7 @@ export class Npm extends NodeManager {
 	}
 
 	upgrade(packageName: string, cwd?: string, stream?: (data: any, error?: boolean) => void) {
-		return this._exec('upgrade', [packageName, '--save'], cwd, stream);
+		return this._exec('install', [packageName, '--save'], cwd, stream);
 	}
 
 	runScript(scriptName: string, cwd: string, stream?: (data: any, error?: boolean) => void) {
