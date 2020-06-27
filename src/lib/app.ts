@@ -170,6 +170,13 @@ export class App extends events.EventEmitter {
 		const elapsedTimeGlobal = new Date().getTime();
 
 		this.api.removeAll({save: false});
+		if (require?.cache) {
+			Object.keys(require.cache).forEach(key => {
+				if (key.includes(join(this.path, 'server'))) {
+					delete require.cache[key];
+				}
+			});
+		}
 
 		return this.loadMateria()
 		.then(() => {
