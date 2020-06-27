@@ -30,4 +30,4 @@ export * from './package-manager/npm';
 export * from './package-manager/yarn';
 export * from './server';
 export * from './synchronizer';
-export * from '../api/lib/database';
+export * from '../api/lib/entities-loader';

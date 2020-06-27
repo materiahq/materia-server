@@ -2,7 +2,7 @@ import { IClientConfig, IAppConfig } from '@materia/interfaces';
 import * as path from 'path';
 
 import { App, ConfigType, AppMode } from '../../lib';
-import { DatabaseLib } from '../lib/database';
+import { loadEntitiesJson } from '../lib/entities-loader';
 import { WebsocketInstance } from '../../lib/websocket';
 
 export class AppController {
@@ -213,7 +213,7 @@ export class AppController {
 			},
 
 			client: this.app.config.get('dev', ConfigType.CLIENT),
-			entities: DatabaseLib.loadEntitiesJson(this.app),
+			entities: loadEntitiesJson(this.app),
 			relations: this.app.entities.findAllRelations({ implicit: true }),
 			api: this.app.api.findAll().map(api => {
 				return Object.assign({}, api.toJson(), {

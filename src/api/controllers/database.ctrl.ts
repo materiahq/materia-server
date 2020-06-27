@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { IEntity } from '@materia/interfaces';
 
 import { WebsocketInstance } from '../../lib/websocket';
-import { App, Entity, MateriaError, DatabaseLib } from '../../lib';
+import { App, Entity, MateriaError, loadEntitiesJson, generateActionId } from '../../lib';
 
 export class DatabaseController {
 	constructor(private app: App, websocket: WebsocketInstance) {}
@@ -19,7 +19,7 @@ export class DatabaseController {
 	}
 
 	getEntities(req, res) {
-		return res.status(200).send({entities: DatabaseLib.loadEntitiesJson(this.app)});
+		return res.status(200).send({entities: loadEntitiesJson(this.app)});
 	}
 
 	getRelations(req, res) {
@@ -75,7 +75,7 @@ export class DatabaseController {
 			history: true
 		}).then(() => {
 			this.app.watcher.enable();
-			res.status(200).json({ entities: DatabaseLib.loadEntitiesJson(this.app), endpoints: this.app.api.findAll().map(e => e.toJson()) });
+			res.status(200).json({ entities: loadEntitiesJson(this.app), endpoints: this.app.api.findAll().map(e => e.toJson()) });
 		}).catch(err => {
 			this.app.watcher.enable();
 			res.status(500).json({ error: true, message: err.message });
@@ -181,7 +181,7 @@ export class DatabaseController {
 		}
 		promise.then(() => {
 			this.app.watcher.enable();
-			return res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
+			return res.status(200).send(loadEntitiesJson(this.app));
 		}).catch(err => {
 			this.app.watcher.enable();
 			return res.status(500).send({ error: true, message: err.message });
@@ -227,7 +227,7 @@ export class DatabaseController {
 		})
 		.then(() => {
 			this.app.watcher.enable();
-			res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
+			res.status(200).json(loadEntitiesJson(this.app));
 		})
 		.catch(err => {
 			this.app.watcher.enable();
@@ -264,7 +264,7 @@ export class DatabaseController {
 		}
 		p.then(() => entity.addQuery(query)).then(() => {
 			this.app.watcher.enable();
-			res.status(200).send(DatabaseLib.loadEntitiesJson(this.app));
+			res.status(200).send(loadEntitiesJson(this.app));
 		}).catch(err => {
 			this.app.watcher.enable();
 			res.status(500).send({ error: true, message: err.message });
@@ -279,7 +279,7 @@ export class DatabaseController {
 		this.app.watcher.disable();
 		entity.removeQuery(req.params.queryId).then(() => {
 			this.app.watcher.enable();
-			res.status(200).json(DatabaseLib.loadEntitiesJson(this.app));
+			res.status(200).json(loadEntitiesJson(this.app));
 		}).catch(err => {
 			this.app.watcher.enable();
 			res.status(500).send({ error: true, message: err.message });
@@ -327,7 +327,7 @@ export class DatabaseController {
 	}
 
 	addAction(req, res) {
-		DatabaseLib.generateActionId().then(id => {
+		generateActionId().then(id => {
 			const action = Object.assign({}, req.body, {
 				id
 			});
@@ -338,7 +338,7 @@ export class DatabaseController {
 				});
 				this.app.watcher.enable();
 				res.status(200).json(
-					DatabaseLib.loadEntitiesJson(this.app)
+					loadEntitiesJson(this.app)
 				);
 			} catch (e) {
 				this.app.watcher.enable();
@@ -367,7 +367,7 @@ export class DatabaseController {
 			});
 			this.app.watcher.enable();
 			res.status(200).json(
-				DatabaseLib.loadEntitiesJson(this.app)
+				loadEntitiesJson(this.app)
 			);
 		} catch (e) {
 			this.app.watcher.enable();
@@ -387,7 +387,7 @@ export class DatabaseController {
 		if (this.app.actions.remove(id, { save: true })) {
 			this.app.watcher.enable();
 			res.status(200).json(
-				DatabaseLib.loadEntitiesJson(this.app)
+				loadEntitiesJson(this.app)
 			);
 		} else {
 			this.app.watcher.enable();
@@ -417,7 +417,7 @@ export class DatabaseController {
 			}).then(() => {
 				this.app.watcher.enable();
 				return res.status(201).json({
-					entities: DatabaseLib.loadEntitiesJson(this.app),
+					entities: loadEntitiesJson(this.app),
 					relations: this.app.entities.findAllRelations({
 						implicit: true
 					})
@@ -463,7 +463,7 @@ export class DatabaseController {
 		.then(() => {
 			this.app.watcher.enable();
 			return res.status(200).json({
-				entities: DatabaseLib.loadEntitiesJson(this.app),
+				entities: loadEntitiesJson(this.app),
 				relations: this.app.entities.findAllRelations({
 					implicit: true
 				})
