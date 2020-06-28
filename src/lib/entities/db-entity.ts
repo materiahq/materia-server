@@ -15,7 +15,7 @@ import { UpdateQuery } from './queries/update';
 import { DeleteQuery } from './queries/delete';
 import { SQLQuery } from './queries/sql';
 import { CustomQuery } from './queries/custom';
-import { BelongsToManyOptions } from 'sequelize/types';
+import { BelongsToManyOptions, BelongsToOptions, HasManyOptions } from 'sequelize/types';
 
 export class DBEntity extends Entity {
 	type: string;
@@ -520,16 +520,43 @@ export class DBEntity extends Entity {
 						key = relation.reference.field;
 					}
 
-					this.model.belongsTo(entityDest.model, { foreignKey: relation.field, targetKey: key });
-					entityDest.model.hasMany(this.model, { foreignKey: relation.field });
+					const opts: BelongsToOptions = {
+						foreignKey: relation.field,
+						targetKey: key
+					};
+
+					const opts2: HasManyOptions = {
+						foreignKey: relation.field
+					};
+
+					if (this.getField(relation.reference.entity)) {
+						opts.as = relation.field + DBEntity.getRelationId(relation.field);
+						opts2.as = relation.field + DBEntity.getRelationId(relation.field);
+					}
+
+					this.model.belongsTo(entityDest.model, opts);
+					entityDest.model.hasMany(this.model, opts2);
 				} else if (relation.type == 'hasMany') {
 					let key = this.getPK()[0].name;
 					if (relation.field) {
 						key = relation.field;
 					}
 
-					entityDest.model.belongsTo(this.model, { foreignKey: relation.reference.field, targetKey: key });
-					this.model.hasMany(entityDest.model, { foreignKey: relation.reference.field });
+					const opts: BelongsToOptions = {
+						foreignKey: relation.reference.field,
+						targetKey: key
+					};
+
+					const opts2: HasManyOptions = {
+						foreignKey: relation.reference.field
+					};
+
+					if (this.getField(relation.reference.entity)) {
+						opts.as = relation.field + DBEntity.getRelationId(relation.field);
+						opts2.as = relation.field + DBEntity.getRelationId(relation.field);
+					}
+					entityDest.model.belongsTo(this.model, opts);
+					this.model.hasMany(entityDest.model, opts2);
 				} else if (relation.type == 'belongsToMany') {
 					const entityThrough = this.app.entities.get(relation.through) as DBEntity;
 					if ( ! entityThrough) {
@@ -543,7 +570,7 @@ export class DBEntity extends Entity {
 							otherKey: relation.reference.as
 						};
 						if (this.model.getTableName() === entityDest.model.getTableName()) {
-							relationModel.as = entityThrough.model + Math.random().toString();
+							relationModel.as = entityThrough.name + DBEntity.getRelationId(entityThrough.name);
 						}
 						this.model.belongsToMany(entityDest.model, relationModel);
 					}
@@ -556,5 +583,15 @@ export class DBEntity extends Entity {
 		const json = super.toJson();
 		json.queries = json.queries.filter(query => ['get', 'list', 'update', 'create', 'delete'].indexOf(query.id) == -1);
 		return json;
+	}
+
+	static asRelationId: any = {};
+	static getRelationId(entityName): string {
+		if (DBEntity.asRelationId[entityName] == null) {
+			DBEntity.asRelationId[entityName] = 0;
+		}
+		console.log(`entity: ${entityName} ${DBEntity.asRelationId[entityName]}`);
+		// return Math.random().toString();
+		return '' + DBEntity.asRelationId[entityName]++;
 	}
 }

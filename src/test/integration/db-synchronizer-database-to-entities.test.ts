@@ -32,7 +32,7 @@ describe('[Database synchronizer: from database to entities]', () => {
 	};
 	const entity2 = {
 		name: 'test2',
-		id: 'fake-id',
+		id: 'fake-id2',
 		fields: [
 			{
 				name: 'id_test2',
@@ -49,7 +49,7 @@ describe('[Database synchronizer: from database to entities]', () => {
 	};
 	const entity3 = {
 		name: 'test3',
-		id: 'fake-id',
+		id: 'fake-id3',
 		fields: [
 			{
 				name: 'id_test3',
@@ -61,6 +61,11 @@ describe('[Database synchronizer: from database to entities]', () => {
 				required: true,
 				autoIncrement: true,
 				component: 'input'
+			}, {
+				name: 'test1',
+				type: 'text',
+				read: true,
+				write: true
 			}
 		]
 	};
@@ -101,7 +106,7 @@ describe('[Database synchronizer: from database to entities]', () => {
 				field: 'id_test1',
 				reference: {
 					entity: 'test1',
-					field: 'id_test1'
+					field: 'id_test1',
 				}
 			})
 		).then(() => app.entities.findAll().map(({ name }) => name)
@@ -147,8 +152,5 @@ describe('[Database synchronizer: from database to entities]', () => {
 		}).then(() => {
 			return app.entities.findAll().map(({ name }) => name);
 		}).should.be.fulfilled.and.eventually.have.members(['test1', 'test2', 'test3']);
-	});
-
-	it('should synchronize with interconnected entities', () => {
 	});
 });
