@@ -38,8 +38,17 @@ export class Synchronizer {
 		options.history = false;
 		options.db = false;
 
-		let actions = [];
-		actions = this._constructEntitiesDiffs(diffs['entities']);
+		const actions = this._constructEntitiesDiffs(diffs.entities);
+
+		diffs.entities.forEach(diff => {
+			const findAction = actions.find(a => {
+				return a.redo.type == diff.redo.type && a.redo.table == diff.redo.table;
+			});
+			if ( ! findAction ) {
+				actions.push(diff);
+			}
+		});
+
 		for (const type of ['fields', 'relations']) {
 			for (const action of diffs[type]) {
 				actions.push(action);
@@ -140,6 +149,7 @@ export class Synchronizer {
 		entitiesWithRelationsDiffs: IDatabaseDiffs['entities'],
 		loadedDiffs: IDatabaseDiffs['entities']
 	) {
+		// const totalEntities = loadedDiffs.length + entitiesWithRelationsDiffs.length;
 		let finish = true;
 		entitiesWithRelationsDiffs.forEach(diff => {
 			const relatedEntities = diff.redo.value.relations.map((relation: IRelation) => relation.reference.entity);
