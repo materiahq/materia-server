@@ -111,7 +111,6 @@ export class Database {
 			if ((settings as ISQLDatabase).ssl) {
 				this.opts.dialectOptions['ssl'] = true;
 			}
-			this.opts.dialectOptions['connectTimeout'] = 30000;
 		}
 
 		if (Database.isSQLite(settings)) {
@@ -230,7 +229,7 @@ export class Database {
 	@param settings - The configuration object
 	@returns {Promise}
 	 */
-	static listDatabases(settings: IDatabaseConfig) {
+	static listDatabases(settings: IDatabaseConfig): Promise<any> {
 		if (!Database.isSQL(settings)) {
 			return Promise.reject(new Error(`You can't list database on a SQLite database`));
 		}
@@ -343,11 +342,11 @@ export class Database {
 		}
 		this.interface.setDialect(this.type);
 		return this.interface.authenticate().then(() => {
-			this.app.logger.log(` └── Database: ${chalk.green.bold('Authenticated')}`);
+			this.app.logger.log(`│ └── Connection: ${chalk.green.bold('Authenticated')}`);
 
 			this.started = true;
 		}).catch((e) => {
-			this.app.logger.error(` └── Database: ${chalk.red.bold('Connection failed')}`);
+			this.app.logger.error(`│ └── Connection: ${chalk.red.bold('Failed')}`);
 			this.app.logger.error(chalk.red('    (Warning) Impossible to connect the database: ') + chalk.red.bold(e && e.message));
 			this.app.logger.error(chalk.red('    The database has been disabled'));
 			this.disabled = true;
