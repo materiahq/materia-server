@@ -184,11 +184,11 @@ export class App extends events.EventEmitter {
 			this.logger.log(` └── Path: ${chalk.bold(this.path)}`);
 			this.logger.log(` └── Mode: ${chalk.bold(this.mode == AppMode.DEVELOPMENT ? 'Development' : 'Production' )}`);
 
-			this.database.load();
-			return this.client.load();
+			return this.database.load();
 		})
-		.then(() => this.server.load())
 		.then(() => this.database.start())
+		.then(() => this.client.load())
+		.then(() => this.server.load())
 		.then(() => this.entities.clear())
 		.then(() => this.server.session.initialize())
 		.then(() => this.materiaApi.initialize())
