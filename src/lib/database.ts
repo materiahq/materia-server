@@ -2,7 +2,6 @@ import { existsSync, readFileSync } from 'fs-extra';
 import { join, resolve } from 'path';
 import chalk from 'chalk';
 import { Sequelize, Options, Dialect, QueryTypes } from 'sequelize';
-import * as domain from 'domain';
 import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfaces';
 
 import { App, AppMode } from './app';
@@ -171,27 +170,19 @@ export class Database {
 		}
 		let tmp;
 		return new Promise((accept, reject) => {
-			const d = domain.create();
 			try {
 				if (Database.isSQL(settings)) {
 					tmp = new Sequelize(settings.database, settings.username, settings.password, opts);
 				} else if (Database.isSQLite(settings)) {
 					tmp = new Sequelize(null, null, null, opts);
 				}
-			} catch (e) {
-				return reject(e);
-			}
-			d.add(tmp.query);
-			d.on('error', (e) => {
-				d.remove(tmp.query);
-				reject(e);
-			});
-			d.run(() => {
 				tmp.authenticate().then(() => {
 					tmp.close();
 					accept();
 				}).catch((e) => { reject(e); });
-			});
+			} catch (e) {
+				return reject(e);
+			}
 		});
 	}
 
