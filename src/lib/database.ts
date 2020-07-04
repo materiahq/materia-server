@@ -212,14 +212,16 @@ export class Database {
 			port: settings.port,
 			logging: false
 		};
-		try {
-			const tmpConnect = new Sequelize(defaultDatabase[settings.type], settings.username, settings.password, opts);
-			return tmpConnect.authenticate().then(() => {
-				return tmpConnect.close();
-			});
-		} catch (e) {
-			return Promise.reject(e);
-		}
+		return new Promise((accept, reject) => {
+			try {
+				const tmpConnect = new Sequelize(defaultDatabase[settings.type], settings.username, settings.password, opts);
+				tmpConnect.authenticate().then(() =>
+					tmpConnect.close()
+				).then(accept).catch(reject);
+			} catch (e) {
+				reject(e);
+			}
+		});
 	}
 
 
