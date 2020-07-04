@@ -33,12 +33,18 @@ const dialectClasses = {
 
 const typemap = {
 	'int': 'number',
+	'int unsigned': 'number',
 	'integer': 'number',
 	'tinyint': 'number',
+	'tinyint unsigned': 'number',
 	'smallint': 'number',
+	'smallint unsigned': 'number',
 	'mediumint': 'number',
+	'mediumint unsigned': 'number',
 	'bigint': 'number',
 	'unsigned big int': 'number',
+	'unsigned bigint': 'number',
+	'bigint unsigned': 'number',
 	'int2': 'number',
 	'int8': 'number',
 	'serial': 'number',
@@ -64,7 +70,8 @@ const typemap = {
 	'point': 'text',
 	'longtext': 'text',
 	'enum': 'text',
-	// 'blob': 'blob'
+	'blob': 'text',
+	'longblob': 'text',
 
 	'real': 'float',
 	'double': 'float',
@@ -75,6 +82,7 @@ const typemap = {
 
 	'date': 'date',
 	'datetime': 'date',
+	'time': 'date',
 	'time with time zone': 'date',
 	'time without time zone': 'date',
 	'timestamp with time zone': 'date',
