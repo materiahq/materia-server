@@ -16,6 +16,14 @@ const dialect = {
 	sqlite: 'SQLite'
 };
 
+const DEFAULT_DATABASE_MYSQL = 'mysql';
+const DEFAULT_DATABASE_POSTGRES = 'postgres';
+
+const defaultDatabase = {
+	mysql: DEFAULT_DATABASE_MYSQL,
+	postgres: DEFAULT_DATABASE_POSTGRES
+};
+
 /**
  * @class Database
  * @classdesc
@@ -44,10 +52,10 @@ export class Database {
 	}
 
 	static isSQL(settings: IDatabaseConfig): settings is ISQLDatabase {
-		return settings.type != 'sqlite';
+		return settings.type !== 'sqlite';
 	}
 	static isSQLite(settings: IDatabaseConfig): settings is ISQLiteDatabase {
-		return settings.type == 'sqlite';
+		return settings.type === 'sqlite';
 	}
 
 	/**
@@ -96,12 +104,14 @@ export class Database {
  			dialect: this.type,
 			host: this.host,
 			port: this.port,
-			logging: logging
+			logging: logging,
+			dialectOptions: {}
 		};
-		if (this.type !== 'sqlite' && (settings as ISQLDatabase).ssl) {
-			this.opts.dialectOptions = {
-				ssl: true
-			};
+		if (this.type !== 'sqlite') {
+			if ((settings as ISQLDatabase).ssl) {
+				this.opts.dialectOptions['ssl'] = true;
+			}
+			this.opts.dialectOptions['connectTimeout'] = 30000;
 		}
 
 		if (Database.isSQLite(settings)) {
@@ -142,7 +152,6 @@ export class Database {
 	@returns {Promise}
 	*/
 	static tryDatabase(settings: IDatabaseConfig, app?: App): Promise<void> {
-
 		// TODO: check settings.storage to be a real path
 		if (this.isSQLite(settings) && settings.storage) {
 			return Promise.resolve();
@@ -195,41 +204,22 @@ export class Database {
 	 */
 
 	static tryServer(settings: IDatabaseConfig, app?: App) {
-		if (Database.isSQL(settings)) {
-			const opts: Options = {
-				dialect: (settings.type as Dialect),
-				host: settings.host,
-				port: settings.port,
-				logging: false
-			};
-			let tmp;
-			let defaultDatabase;
-			if (settings.type == 'mysql') {
-				defaultDatabase = 'sys';
-			} else if (settings.type == 'postgres') {
-				defaultDatabase = 'postgres';
-			}
-			return new Promise((accept, reject) => {
-				const d = domain.create();
-				try {
-					tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts);
-				} catch (e) {
-					return reject(e);
-				}
-				d.add(tmp.query);
-				d.on('error', (e) => {
-					d.remove(tmp.query);
-					return reject(e);
-				});
-				d.run(() => {
-					return tmp.authenticate().then(() => {
-						tmp.close();
-						accept();
-					}).catch((e) => { reject(e); });
-				});
-			});
-		} else {
+		if (!Database.isSQL(settings)) {
 			return Promise.reject(new Error("You can't try to connect to SQLite with username/password"));
+		}
+		const opts: Options = {
+			dialect: (settings.type as Dialect),
+			host: settings.host,
+			port: settings.port,
+			logging: false
+		};
+		try {
+			const tmpConnect = new Sequelize(defaultDatabase[settings.type], settings.username, settings.password, opts);
+			return tmpConnect.authenticate().then(() => {
+				return tmpConnect.close();
+			});
+		} catch (e) {
+			return Promise.reject(e);
 		}
 	}
 
@@ -241,53 +231,41 @@ export class Database {
 	@returns {Promise}
 	 */
 	static listDatabases(settings: IDatabaseConfig) {
-		if (Database.isSQL(settings)) {
-			const opts: Options = {
-				dialect: (settings.type as Dialect),
-				host: settings.host,
-				port: settings.port,
-				logging: false
-			};
-			let tmp;
-			let defaultDatabase;
-			if (settings.type == 'mysql') {
-				defaultDatabase = 'sys';
-			} else if (settings.type == 'postgres') {
-				defaultDatabase = 'postgres';
-			}
-			return new Promise((accept, reject) => {
-				try {
-					tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts);
-					if (settings.type == 'mysql') {
-						tmp.query(`SHOW DATABASES`).spread((results, metadata) => {
-							const formatedResult = [];
-							for (const i in results) {
-								if (results[i]) {
-									const result = results[i];
-									formatedResult.push(result.Database);
-								}
-							}
-							return accept(formatedResult);
-						});
-					} else if (settings.type == 'postgres') {
-						tmp.query(`SELECT datname FROM pg_database`).spread((results, metadata) => {
-							const formatedResult = [];
-							for (const i in results) {
-								if (results[i]) {
-									const result = results[i];
-									formatedResult.push(result.datname);
-								}
-							}
-							return accept(formatedResult);
-						});
-					}
-				} catch (e) {
-					return reject(e);
-				}
-			});
-		} else {
+		if (!Database.isSQL(settings)) {
 			return Promise.reject(new Error(`You can't list database on a SQLite database`));
 		}
+		const opts: Options = {
+			dialect: (settings.type as Dialect),
+			host: settings.host,
+			port: settings.port,
+			logging: false
+		};
+		return new Promise((accept, reject) => {
+			try {
+				const tmp = new Sequelize(defaultDatabase[settings.type], settings.username, settings.password, opts);
+				let query: string;
+				let field: string;
+				if (settings.type == 'mysql') {
+					query = `SHOW DATABASES`;
+					field = 'Database';
+				} else if (settings.type == 'postgres') {
+					query = `SELECT datname FROM pg_database`;
+					field = 'datname';
+				}
+				tmp.query(query).spread((results: any, metadata) => {
+					const formatedResult = [];
+					for (const i in results) {
+						if (results[i]) {
+							const result = results[i];
+							formatedResult.push(result[field]);
+						}
+					}
+					return accept(formatedResult);
+				});
+			} catch (e) {
+				return reject(e);
+			}
+		});
 	}
 
 	/**
@@ -303,16 +281,10 @@ export class Database {
 			logging: false
 		};
 		let tmp;
-		let defaultDatabase;
-		if (settings.type == 'mysql') {
-			defaultDatabase = 'sys';
-		} else if (settings.type == 'postgres') {
-			defaultDatabase = 'postgres';
-		}
 		return new Promise((accept, reject) => {
-			const dbName = defaultDatabase === 'sys' ? '`' + `${name}` + '`' : `"${name}"`;
+			const dbName = defaultDatabase[settings.type] === DEFAULT_DATABASE_MYSQL ? '`' + name + '`' : `"${name}"`;
 			try {
-				tmp = new Sequelize(defaultDatabase, settings.username, settings.password, opts);
+				tmp = new Sequelize(defaultDatabase[settings.type], settings.username, settings.password, opts);
 			} catch (e) {
 				return reject(e);
 			}
