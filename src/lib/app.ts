@@ -244,10 +244,10 @@ export class App extends events.EventEmitter {
 		if (this.server.hasStatic() && this.client.config.packageJsonPath != '') {
 			setupScript += ` && cd ${this.client.config.packageJsonPath} && npm install`;
 			if (this.client.hasBuildScript(ScriptMode.BUILD)) {
-				setupScript += ` && npm run ${this.client.config.build}`;
+				setupScript += ` && npm run ${this.client.config.scripts.build}`;
 			}
 		} else if (this.client.hasBuildScript(ScriptMode.BUILD)) {
-			setupScript += ` && npm run ${this.client.config.build}`;
+			setupScript += ` && npm run ${this.client.config.scripts.build}`;
 		}
 
 		fse.writeFileSync(dockerfile, `FROM node:10-alpine
@@ -297,7 +297,7 @@ services:
   web:
     build: .
     ports:
-      - "${webProd.port}:${webProd.port}"
+      - ${webProd.port}:${webProd.port}
     links:
       - db
     depends_on:
