@@ -46,7 +46,7 @@ export class Server {
 		const conf = this.app.config.get<IServerConfig>(this.app.mode, ConfigType.SERVER);
 
 		this.expressApp = express();
-		this.expressApp.use(bodyParser({limit: conf.bodyParser?.limit ?? '1mb'}));
+		this.expressApp.use(bodyParser.raw({limit: conf.bodyParser?.limit ?? '1mb'}));
 		this.expressApp.use(bodyParser.urlencoded(Object.assign({}, { extended: false }, conf.bodyParser && conf.bodyParser.urlencoded || {})));
 		this.expressApp.use(bodyParser.json(conf.bodyParser?.json ?? null));
 		this.expressApp.use(methodOverride());
@@ -147,7 +147,6 @@ export class Server {
 				if (! opts || ! opts.fallback) {
 
 					let webDir;
-					// console.log(clientConfig);
 					if (clientConfig && clientConfig.www) {
 						webDir = clientConfig.www;
 					} else {

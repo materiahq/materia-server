@@ -120,9 +120,6 @@ export class TemplateApp {
 				request.type(type);
 			}
 			request.send(args).end((err, res) => {
-				// if (method == 'post' && url == '/api/ctrl/params') {
-				// 	console.log(err, '|||||', res)
-				// }
 				if (err) {
 					return reject(JSON.parse(res.text));
 				}

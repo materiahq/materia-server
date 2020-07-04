@@ -503,18 +503,7 @@ export class DBEntity extends Entity {
 		this.relations.forEach(relation => {
 			const entityDest = this.app.entities.get(relation.reference.entity);
 			if (entityDest && entityDest instanceof DBEntity) {
-				// @model.hasMany entityDest.model, relation.dstField if relation.type == '1-n' and relation.cardinality == '1'
 				if ( ! relation.type || relation.type == 'belongsTo') {
-					/*console.log(this.name + ' belongs to ' + entityDest.name + ' with fk: ' + relation.field)
-					//entityDest.model.belongsTo @model, foreignKey: relation.dstField
-					let keyReference = entityDest.getPK()
-					if (relation.reference.field && relation.reference.field != keyReference.name) {
-						let f = entityDest.getField(relation.reference.field)
-						if ( ! f.unique) {
-							throw f.name + ' cannot be a key (need unique/primary field)'
-						}
-						keyReference = f
-					}*/
 					let key = entityDest.getPK()[0].name;
 					if (relation.reference.field) {
 						key = relation.reference.field;
@@ -590,8 +579,6 @@ export class DBEntity extends Entity {
 		if (DBEntity.asRelationId[entityName] == null) {
 			DBEntity.asRelationId[entityName] = 0;
 		}
-		console.log(`entity: ${entityName} ${DBEntity.asRelationId[entityName]}`);
-		// return Math.random().toString();
 		return '' + DBEntity.asRelationId[entityName]++;
 	}
 }
