@@ -192,7 +192,6 @@ export class Database {
 	@param {object} - The configuration object
 	@returns {Promise}
 	 */
-
 	static tryServer(settings: IDatabaseConfig, app?: App) {
 		if (!Database.isSQL(settings)) {
 			return Promise.reject(new Error("You can't try to connect to SQLite with username/password"));
@@ -367,13 +366,6 @@ export class Database {
 	sync() {
 		return this.app.entities.sync().then(() => {
 			return this.sequelize.sync();
-		});
-	}
-
-	// Deprecated: use sync() instead as sequelize({force: true}) will remove all data
-	forceSync() {
-		return this.app.entities.sync().then(() => {
-			return this.sequelize.sync({ force: true });
 		});
 	}
 }
