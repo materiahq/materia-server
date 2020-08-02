@@ -1,6 +1,6 @@
 import { Query } from '../query';
 import { Conditions } from './utils/conditions';
-import chalk from 'chalk';
+import chalk = require('chalk');
 
 export class DeleteQuery extends Query {
 	type: string;

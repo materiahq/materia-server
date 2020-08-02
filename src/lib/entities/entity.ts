@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as uuid from 'uuid/v4';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { IEntityConfig, IRelation, IQuery, IField, IApplyOptions, IFieldUpdate } from '@materia/interfaces';
 
 import { App } from '../app';

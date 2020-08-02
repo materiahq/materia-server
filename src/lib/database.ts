@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'fs-extra';
 import { join, resolve } from 'path';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { Sequelize, Options, Dialect, QueryTypes } from 'sequelize';
 import { IDatabaseConfig, ISQLDatabase, ISQLiteDatabase } from '@materia/interfaces';
 
@@ -156,7 +156,7 @@ export class Database {
 		}
 
 		const optsDialect = {
-			dialect: settings.type,
+			dialect: settings.type as Dialect,
 			logging: false
 		};
 		let opts: Options;
@@ -243,7 +243,7 @@ export class Database {
 					query = `SELECT datname FROM pg_database`;
 					field = 'datname';
 				}
-				tmp.query(query).spread((results: any, metadata) => {
+				tmp.query(query).then(([results, metadata]) => {
 					const formatedResult = [];
 					for (const i in results) {
 						if (results[i]) {

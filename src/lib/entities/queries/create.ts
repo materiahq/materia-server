@@ -1,5 +1,5 @@
 import { Query, QueryParamResolver } from '../query';
-import chalk from 'chalk';
+import chalk = require('chalk');
 
 export class CreateQuery extends Query {
 	type: string;

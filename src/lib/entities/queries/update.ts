@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import chalk = require('chalk');
 import * as Sequelize from 'sequelize';
 import { IQuery, IUpdateQueryOptions, IQueryValues } from '@materia/interfaces';
 

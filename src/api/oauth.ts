@@ -114,7 +114,11 @@ export class OAuth {
 		});
 	}
 
-	private generateToken({ stringBase = 'base64', byteLength = 32 } = {}): Promise<string> {
+	private generateToken(
+		{ stringBase, byteLength }: { stringBase: BufferEncoding, byteLength: number} = {
+		stringBase: 'base64',
+		byteLength: 32
+	}): Promise<string> {
 		return new Promise((resolve, reject) => {
 			crypto.randomBytes(byteLength, (err, buffer) => {
 				if (err) {

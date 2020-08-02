@@ -1,5 +1,5 @@
 import * as chokidar from 'chokidar';
-import chalk from 'chalk';
+import chalk = require('chalk');
 
 import { App, AppMode } from './app';
 

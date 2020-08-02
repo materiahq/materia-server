@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import chalk = require('chalk');
 
 import { Query } from '../query';
 import { Conditions } from './utils/conditions';

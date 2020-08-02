@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { ICustomQueryOptions } from '@materia/interfaces';
 
 import { MateriaError } from '../../error';

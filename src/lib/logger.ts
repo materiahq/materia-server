@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import chalk = require('chalk');
 
 import { App, AppMode } from './app';
 
@@ -9,9 +9,8 @@ export class Logger {
 	constructor(private app: App) {
 		this.console = console;
 
-		chalk.enabled = ! app.options.nocolors;
 		if (app.options.level) {
-			chalk.level = app.options.level;
+			chalk.level = app.options.level as chalk.Level;
 		}
 	}
 

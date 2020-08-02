@@ -1,5 +1,4 @@
-import chalk from 'chalk';
-import * as Bluebird from 'bluebird';
+import chalk = require('chalk');
 import { IFindAllOptions, IQueryOrdering } from '@materia/interfaces';
 import { FindOptions } from 'sequelize';
 
@@ -238,7 +237,7 @@ export class FindAllQuery extends Query {
 		return tmp;
 	}
 
-	private _run(sequelizeOpts: FindOptions, options): Bluebird<any> {
+	private _run(sequelizeOpts: FindOptions, options): Promise<any> {
 		return this.entity.model.findAndCountAll(sequelizeOpts).then(res => {
 			if ( ! options || ! options.silent ) {
 				this.entity.app.logger.log(` └── ${chalk.green.bold('OK')}\n`);

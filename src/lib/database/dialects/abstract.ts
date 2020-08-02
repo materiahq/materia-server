@@ -1,5 +1,4 @@
 import { Sequelize } from 'sequelize';
-import * as Bluebird from 'bluebird';
 
 import { MateriaError } from '../../error';
 
@@ -14,7 +13,7 @@ export class AbstractDialect {
 		return Promise.reject(new MateriaError('Not implemented method in dialect'));
 	}
 
-	getIndices(table): Bluebird<any> {
+	getIndices(table): Promise<any> {
 		return this.sequelize.getQueryInterface().showIndex(table).then((res: Array<any>) => {
 			const fields = {};
 			for (const index of res) {
@@ -27,7 +26,7 @@ export class AbstractDialect {
 		});
 	}
 
-	_getFKs(table): Bluebird<any> {
+	_getFKs(table): Promise<any> {
 		const qg: any = this.sequelize.getQueryInterface().QueryGenerator;
 		const query = qg.getForeignKeysQuery(table, 'public');
 		return this.sequelize.query(query, {raw: true}).then((fks: any[]) => {
@@ -42,7 +41,7 @@ export class AbstractDialect {
 		});
 	}
 
-	getFKs(table): Bluebird<any> {
+	getFKs(table): Promise<any> {
 		return this._getFKs(table).then((res) => {
 			const fields = {};
 			for (const fk of res) {
@@ -52,7 +51,7 @@ export class AbstractDialect {
 		});
 	}
 
-	addColumn(table, column_name, attributes): Bluebird<any> {
+	addColumn(table, column_name, attributes): Promise<any> {
 		return this.sequelize.getQueryInterface().addColumn(
 			table, column_name, attributes
 		);
@@ -64,11 +63,11 @@ export class AbstractDialect {
 		);
 	}
 
-	removeColumn(table, column_name): Bluebird<any> {
+	removeColumn(table, column_name): Promise<any> {
 		return this.sequelize.getQueryInterface().removeColumn(table, column_name);
 	}
 
-	renameColumn(table, column_name, column_new_name): Bluebird<any> {
+	renameColumn(table, column_name, column_new_name): Promise<any> {
 		return this.sequelize.getQueryInterface().renameColumn(table, column_name, column_new_name);
 	}
 
@@ -84,7 +83,7 @@ export class AbstractDialect {
 		return Promise.resolve(false);
 	}
 
-	authenticate(): Bluebird<any> {
+	authenticate(): Promise<any> {
 		return this.sequelize.authenticate();
 	}
 

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { IAction, IActionFilter, IApplyOptions, IAddon } from '@materia/interfaces';
 
 import { App } from './app';
