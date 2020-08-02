@@ -144,27 +144,27 @@ describe('[Database synchronizer with relations]', () => {
 		field.name.should.equal('id_country');
 	});
 
-	it('country entity should have region as related entity', () => {
+	it('should have entity country with region as related entity', () => {
 		const relatedEntities = app.entities.get('country').getRelatedEntities().map(entity => entity.name);
 		relatedEntities.should.be.deep.equal(['region']);
 	});
 
-	it('region entity should have city and country as related entity', () => {
+	it('should have entity region with city and country as related entity', () => {
 		const relatedEntities = app.entities.get('region').getRelatedEntities().map(entity => entity.name);
 		relatedEntities.should.be.deep.equal(['city', 'country']);
 	});
 
-	it('city entity should have region as related entity', () => {
+	it('should entity city with region as related entity', () => {
 		const relatedEntities = app.entities.get('city').getRelatedEntities().map(entity => entity.name);
 		relatedEntities.should.be.deep.equal(['region']);
 	});
 
-	it('city entity should have 2 fields', () => {
+	it('should entity city with 2 fields', () => {
 		const fields = app.entities.get('city').getFields().map(field => field.name);
 		fields.should.be.deep.equal(['id_city', 'name', 'id_region']);
 	});
 
-	it('database and entity should be sync and not have diffs', () => {
+	it('should have database/entity synced with no diffs', () => {
 		return app.stop()
 			.then(() => {
 				return app.load();
@@ -182,7 +182,7 @@ describe('[Database synchronizer with relations]', () => {
 			});
 	});
 
-	it('app should have diffs after deleting models.json', () => {
+	it('should have diffs after deleting models.json', () => {
 		return fse.remove(path.join(app.path, 'server', 'models', 'country.json'))
 			.then(() =>
 				fse.remove(path.join(app.path, 'server', 'models', 'region.json'))
@@ -373,12 +373,12 @@ describe('[Database synchronizer with relations]', () => {
 		}).should.become(4);
 	});
 
-	it('entities should not exists', () => {
+	it('should have no entities', () => {
 		const entityIndex = app.entities.findAll().findIndex(entity => entity.name === 'city');
 		entityIndex.should.equal(-1);
 	});
 
-	it('synchronizing should re-add entities and relations', () => {
+	it('should synchronize and re-add entities/relations', () => {
 		return app.synchronizer.diff()
 			.then((diffs) =>
 				app.synchronizer.databaseToEntities(diffs, null)
@@ -389,7 +389,7 @@ describe('[Database synchronizer with relations]', () => {
 			).should.become(['id_city', 'name', 'id_region']);
 	});
 
-	it('running default findAll query should work after sync', () => {
+	it('should be able to run default findAll query after sync', () => {
 		return app.entities.get('city').getQuery('list').run({}, {raw: true})
 			.should.become({
 				count: 0,

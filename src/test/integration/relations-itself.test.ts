@@ -75,7 +75,7 @@ describe('[Relations itself]', () => {
 		}).should.become('test_has_test');
 	});
 
-	it('app should have diffs after deleting test entity file and restarting app', () => {
+	it('should have diffs after deleting test entity file and restarting app', () => {
 		return fse.remove(
 			join(app.path, 'server', 'models', 'test.json')
 		)

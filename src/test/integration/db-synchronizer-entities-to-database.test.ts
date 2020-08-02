@@ -61,12 +61,12 @@ describe('[Database synchronizer: from entities to database]', () => {
 			});
 	});
 
-	it('Database should have only one table test', () => {
+	it('should have only one table test', () => {
 		return app.database.sequelize.getQueryInterface().showAllTables()
 			.should.become(['test']);
 	});
 
-	it('Database should have diffs after deleting "test.json" model file', () => {
+	it('should have diffs after deleting "test.json" model file', () => {
 		return fse
 			.remove(
 				path.join(app.path, 'server', 'models', 'test.json')
@@ -115,7 +115,7 @@ describe('[Database synchronizer: from entities to database]', () => {
 			});
 	});
 
-	it('Synchronizing "from database to entities" should delete table test from database', () => {
+	it('should delete table test from database after sync "from database to entities"', () => {
 		return app.synchronizer.diff()
 		.then((diffs) => {
 			return app.synchronizer.entitiesToDatabase(diffs, null);

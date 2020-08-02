@@ -95,7 +95,7 @@ describe('[Relations without "onDelete: CASCADE"]', () => {
 	});
 
 
-	it('data in test2 should have null value for fk id_test', () => {
+	it('should have null value for fk id_test in test2', () => {
 		return app.entities.get('test2').getQuery('list').run(null, {raw: true})
 		.should.become(
 			{
@@ -141,7 +141,7 @@ describe('[Relations without "onDelete: CASCADE"]', () => {
 		});
 	});
 
-	it('entities and database should have no diffs', () => {
+	it('should have no diffs between entities and database ', () => {
 		return app.synchronizer.diff()
 			.then(diffs => {
 				return diffs.length;
