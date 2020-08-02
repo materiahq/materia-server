@@ -2,16 +2,10 @@ import * as path from 'path';
 import * as fse from 'fs-extra';
 import * as os from 'os';
 
-import * as chaiAsPromised from 'chai-as-promised';
-
 import { App } from '../../lib/app';
 import { ConfigType } from '../../lib/config';
 import { IDatabaseConfig } from '@materia/interfaces';
 
-chaiAsPromised['transferPromiseness'] = (assertion, promise) => {
-	assertion.then = promise.then.bind(promise);
-	assertion.catch = promise.catch.bind(promise);
-};
 const chai = require('chai');
 chai.use(require('chai-http'));
 const agent = chai.request.agent('http://localhost:8798');

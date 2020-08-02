@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { IClientBuild } from '@materia/interfaces';
 
 import { App } from './app';

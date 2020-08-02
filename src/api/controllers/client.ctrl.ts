@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { join } from 'path';
 import { IClientConfig } from '@materia/interfaces';
 

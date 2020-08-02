@@ -1,5 +1,5 @@
 import * as path from 'path';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { IAddonsConfig } from '@materia/interfaces';
 
 import { App } from './app';

@@ -1,15 +1,15 @@
-import chalk from 'chalk';
 import * as express from 'express';
+import * as compression from 'compression';
 import * as passport from 'passport';
 import * as morgan from 'morgan';
 import * as methodOverride from 'method-override';
 import * as bodyParser from 'body-parser';
 import * as errorHandler from 'errorhandler';
-import * as compression from 'compression';
 import { join } from 'path';
 import { existsSync } from 'fs-extra';
 import { createServer, Server as HttpServer } from 'http';
 import { IServerConfig, IClientConfig, IAppConfig, IConfigOptions } from '@materia/interfaces';
+import chalk = require('chalk');
 
 import { App, AppMode } from './app';
 import { ConfigType } from './config';

@@ -1,5 +1,5 @@
 import * as fse from 'fs-extra';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import * as Sequelize from 'sequelize';
 import { join } from 'path';
 import { IEndpoint, IApplyOptions, IField } from '@materia/interfaces';

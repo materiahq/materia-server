@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as express from 'express';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { IAddon, IEndpoint, IApplyOptions } from '@materia/interfaces';
 
 import { Endpoint } from './api/endpoint';

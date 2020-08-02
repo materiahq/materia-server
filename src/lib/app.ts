@@ -1,5 +1,5 @@
 import * as events from 'events';
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { join, sep, dirname, relative, normalize, extname, basename } from 'path';
 import * as fse from 'fs-extra';
 import {

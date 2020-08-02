@@ -1,4 +1,4 @@
-import chalk from 'chalk';
+import chalk = require('chalk');
 import { IEndpoint, IParam } from '@materia/interfaces';
 
 import { App } from '../app';

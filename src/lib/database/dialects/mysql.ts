@@ -1,5 +1,4 @@
 import { Sequelize, NOW } from 'sequelize';
-import * as Bluebird from 'bluebird';
 
 import { AbstractDialect } from './abstract';
 import { MateriaError } from '../../error';
@@ -57,7 +56,7 @@ export class MysqlDialect extends AbstractDialect {
 		});
 	}
 
-	_getFKs(table): Bluebird<any> {
+	_getFKs(table): Promise<any> {
 		const query =
 			'SELECT INFORMATION_SCHEMA.KEY_COLUMN_USAGE.CONSTRAINT_NAME as `constraint_name`,' +
 				'INFORMATION_SCHEMA.KEY_COLUMN_USAGE.COLUMN_NAME as `from`,' +
@@ -84,7 +83,7 @@ export class MysqlDialect extends AbstractDialect {
 		});
 	}
 
-	showTables(): Bluebird<any> {
+	showTables(): Promise<any> {
 		const promises = [];
 		return this.sequelize.getQueryInterface().showAllTables().then((tables: Array<string>) => {
 			for (const table of tables) {
@@ -168,7 +167,7 @@ export class MysqlDialect extends AbstractDialect {
 		});
 	}
 
-	addConstraint(table, constraint): Bluebird<any> {
+	addConstraint(table, constraint): Promise<any> {
 		if (constraint.type != 'primary' && ! constraint.name) {
 			constraint.name = constraint.fields.join('_') + '_' + table + '_key';
 		}
@@ -178,7 +177,7 @@ export class MysqlDialect extends AbstractDialect {
 		);
 	}
 
-	dropConstraint(table, constraint): Bluebird<any> {
+	dropConstraint(table, constraint): Promise<any> {
 		if (constraint.name) {
 			return this.sequelize.getQueryInterface().showIndex(table).then((res: Array<any>) => {
 				for (const index of res) {
