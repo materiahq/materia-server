@@ -8,10 +8,9 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "target": "ES6",
-        "noUnusedLocals": true
+		"noUnusedLocals": true
     },
     "include": [
-        "src/**/*",
-		"node_modules/@types"
+        "src/**/*"
     ]
 }
