@@ -33,6 +33,7 @@
     "express": "^4.17.1",
     "express-session": "^1.16.2",
     "fs-extra": "^8.1.0",
+    "helmet": "^3.23.3",
     "inquirer": "^7.0.4",
     "method-override": "^3.0.0",
     "minimist": "^1.2.0",
