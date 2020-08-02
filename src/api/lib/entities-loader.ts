@@ -8,7 +8,12 @@ import { App } from '../../lib/app';
 const entitySpacing = 20;
 const entityWidth = 200;
 
-export function generateActionId({ stringBase = 'base64', byteLength = 8 } = {}): Promise<string> {
+export function generateActionId(
+	{ stringBase, byteLength }: { stringBase: BufferEncoding, byteLength: number } = {
+		stringBase: 'base64',
+		byteLength: 32
+	}
+): Promise<string> {
 	return new Promise((resolve, reject) => {
 		crypto.randomBytes(byteLength, (err, buffer) => {
 			if (err) {
